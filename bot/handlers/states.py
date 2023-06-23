@@ -67,15 +67,16 @@ async def announce_mode(message: Message, state: FSMContext, session: AsyncSessi
     elif message.text == "Вывести ближайшие выступления":
         results = await requests.fetch_performances(session, current=True)
         current_performance: Performance = results.one_or_none()
-        position = 1
         if current_performance:
-            position = current_performance.position
-        performances = await requests.get_close_performances(session, position, 3, 4)
+            performances = await requests.get_close_performances(session, current_performance.position, 3, 4)
+        else:
+            performances = await requests.get_close_performances(session, 1, 3, 4)
         performances_list = ''
         for performance in performances:
             list_entry = str(performance.position) + '. ' + performance.name + '\n'
-            if performance.position == position:
-                list_entry = "<b>" + list_entry + "</b>"
+            if current_performance:
+                if performance.position == current_performance.position:
+                    list_entry = "<b>" + list_entry + "</b>"
             performances_list = performances_list + list_entry
         await message.reply(text='Ближайшие выступления (текущее выступление выделено жирным шрифтом):\n'+performances_list)
         return
