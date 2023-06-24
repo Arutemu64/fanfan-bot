@@ -1,5 +1,4 @@
 import asyncio
-from asyncio import WindowsSelectorEventLoopPolicy
 from logging.config import fileConfig
 
 from alembic import context
@@ -8,7 +7,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from bot.config import config as bot_config
+from bot.config import conf
 from bot.db.models import Base
 
 # this is the Alembic Config object, which provides
@@ -27,7 +26,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 config.set_main_option(
     'sqlalchemy.url',
-    bot_config.db_url
+    conf.db.build_connection_str()
 )
 
 # other values from the config, defined by the needs of env.py,
@@ -110,8 +109,8 @@ def process_revision_directives(context, revision, directives):
 
 
 if context.is_offline_mode():
-    asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
+    #asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     run_migrations_offline()
 else:
-    asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
+    #asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     run_migrations_online()

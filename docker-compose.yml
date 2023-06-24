@@ -1,7 +1,21 @@
 version: '3.8'
 services:
   bot:
+    container_name: 'fanfan-bot'
     build: .
     env_file:
       - .env
     restart: always
+    stop_signal: SIGINT
+    depends_on:
+      - db
+  db:
+    container_name: 'fanfan-db'
+    image: postgres:15-alpine
+    restart: on-failure
+    env_file:
+      - .env
+    volumes:
+      - /var/lib/docker/volumes/postgres/_data:/var/lib/postgresql/data
+    ports:
+      - "54320:5432"

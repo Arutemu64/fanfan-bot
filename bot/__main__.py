@@ -12,16 +12,16 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 # роутеры и мидлвари
-from handlers import callbacks, commands, states
-from middlewares import DbSessionMiddleware, RoleMiddleware
+from bot.handlers import callbacks, commands, states
+from bot.middlewares import DbSessionMiddleware, RoleMiddleware
 
 # конфиг
-from config import config
+from bot.config import conf
 
 
 async def main():
     # cоздаем движок и sessionmaker для работы с БД
-    engine = create_async_engine(url=config.db_url, echo=True)
+    engine = create_async_engine(url=conf.db.build_connection_str(), echo=True)
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
     # создаём диспетчера
@@ -29,7 +29,6 @@ async def main():
 
     # подключаем к диспетчеру две мидлвари (работа с БД и проверка роли) и фильтр на личные чаты
     dp.update.middleware(DbSessionMiddleware(session_pool=sessionmaker))
-    #dp.update.middleware(RoleMiddleware())
     dp.message.filter(F.chat.type == "private")
 
     callbacks.router.callback_query.middleware(RoleMiddleware())
@@ -41,7 +40,7 @@ async def main():
     dp.include_router(states.router)
 
     # создаём бота, не реагируем на старые сообщения
-    bot = Bot(config.bot_token.get_secret_value(), parse_mode=ParseMode.HTML)
+    bot = Bot(token=conf.bot.token, parse_mode=ParseMode.HTML)
     await bot.delete_webhook(drop_pending_updates=True)
 
     # запускаем пулинг бота
@@ -49,7 +48,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=conf.logging_level)
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     try:

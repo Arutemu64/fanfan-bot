@@ -11,5 +11,9 @@ FROM python:3.11-slim-bullseye
 COPY --from=compile-image /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /app
-COPY bot /app/bot
+COPY bot ./bot
+COPY alembic.ini .
+COPY alembic ./alembic
+COPY Makefile .
+RUN apt update && apt install -y make
 CMD ["python", "-m", "bot"]
