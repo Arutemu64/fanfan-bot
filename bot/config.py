@@ -35,6 +35,9 @@ class BotConfig:
     """Bot configuration"""
 
     token: str = getenv("BOT_TOKEN")
+    mode: str = getenv("MODE")
+
+    ngrok_auth: str = getenv("NGROK_AUTH")
 
 
 @dataclass

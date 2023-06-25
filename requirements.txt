@@ -5,4 +5,5 @@ psycopg
 psycopg-binary
 psycopg-pool
 alembic
-pydantic
+pyngrok
+aiohttp
