@@ -38,7 +38,8 @@ async def send_announcement(callback: types.CallbackQuery, bot: Bot, session: As
             return
         text = callback.message.html_text + f"\n<i>Отправил @{callback.from_user.username} ({callback.from_user.id})</i>"
         for user in users:
-            await bot.send_message(user.tg_id, text)
+            if user.tg_id:
+                await bot.send_message(user.tg_id, text)
         await callback.message.delete()
         await callback.answer()
     else:
