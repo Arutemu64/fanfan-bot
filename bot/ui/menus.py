@@ -5,10 +5,8 @@ from aiogram.types import Message
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db.models import Vote, User, Settings, Performance, Nomination
+from bot.db.models import Vote, User, Settings, Nomination
 from bot.db import requests
-
-from typing import List
 
 
 async def main_menu(message: Message, user: User):
@@ -54,7 +52,7 @@ async def voting_menu(session: AsyncSession, message, nomination_id: int):
                 entry = "<b>✅ " + entry + "</b>"
         performances_list = performances_list + entry
     text = f"""<b>Номинация {nomination.name}</b>
-В этой категории представлены следующие участники:
+В этой номинации представлены следующие участники:
 {performances_list}
 Чтобы проголосовать, используй команду <code>/vote [номер участника]</code>.
 Отменить голос можно командой <code>/unvote [номер участника]</code>"""
