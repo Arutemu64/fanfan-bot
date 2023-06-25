@@ -47,7 +47,8 @@ class Configuration:
 
     # debug = bool(getenv("DEBUG"))
     logging_level = int(getenv("LOGGING_LEVEL", logging.INFO))
-    db_echo = bool(os.getenv("DB_ECHO", "False") == "True")
+    db_echo = bool(getenv("DB_ECHO", "False") == "True")
+    ngrok_region = getenv("NGROK_REGION", "eu")
 
     db = DatabaseConfig()
     bot = BotConfig()

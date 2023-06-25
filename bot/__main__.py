@@ -9,6 +9,7 @@ from aiohttp.web_app import Application
 from aiohttp.web import _run_app
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from pyngrok import ngrok
+from pyngrok import conf as ngrok_conf
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
@@ -20,6 +21,7 @@ from bot.config import conf
 
 async def on_startup(bot: Bot):
     ngrok.set_auth_token(conf.bot.ngrok_auth)
+    ngrok_conf.get_default().region = conf.ngrok_region
     ngrok_tunnel = ngrok.connect(addr="127.0.0.1:8080", proto="http")
     await bot.set_webhook(ngrok_tunnel.public_url)
 
