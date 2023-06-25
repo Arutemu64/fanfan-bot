@@ -25,7 +25,7 @@ async def on_startup(bot: Bot):
 
 
 async def main():
-    engine = create_async_engine(url=conf.db.build_connection_str(), echo=True)
+    engine = create_async_engine(url=conf.db.build_connection_str(), echo=conf.db_echo)
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
     dp = Dispatcher(storage=MemoryStorage())

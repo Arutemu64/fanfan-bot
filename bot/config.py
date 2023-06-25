@@ -1,4 +1,5 @@
 from os import getenv
+import os
 from sqlalchemy.engine import URL
 from dataclasses import dataclass
 import logging
@@ -44,8 +45,9 @@ class BotConfig:
 class Configuration:
     """All in one configuration's class"""
 
-    debug = bool(getenv("DEBUG"))
+    # debug = bool(getenv("DEBUG"))
     logging_level = int(getenv("LOGGING_LEVEL", logging.INFO))
+    db_echo = bool(os.getenv("DB_ECHO", "False") == "True")
 
     db = DatabaseConfig()
     bot = BotConfig()
