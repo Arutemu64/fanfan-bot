@@ -36,7 +36,7 @@ class BotConfig:
     """Bot configuration"""
 
     token: str = getenv("BOT_TOKEN")
-    mode: str = getenv("MODE")
+    mode: str = getenv("MODE", 'polling')
 
     ngrok_auth: str = getenv("NGROK_AUTH")
 
@@ -49,6 +49,9 @@ class Configuration:
     logging_level = int(getenv("LOGGING_LEVEL", logging.INFO))
     db_echo = bool(getenv("DB_ECHO", "False") == "True")
     ngrok_region = getenv("NGROK_REGION", "eu")
+
+    channel_id = int(getenv("CHANNEL_ID"))
+    channel_link = getenv("CHANNEL_LINK")
 
     db = DatabaseConfig()
     bot = BotConfig()

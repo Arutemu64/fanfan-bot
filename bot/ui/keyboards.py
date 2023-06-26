@@ -5,17 +5,21 @@ from bot.ui import strings
 
 from bot.db.models import Settings
 
+from bot.config import conf
+
 
 def main_menu_kb(user_group, notifications_enabled):
     builder = InlineKeyboardBuilder()
-    if notifications_enabled:
-        builder.row(types.InlineKeyboardButton(text=strings.disable_notifications_button,
-                                               callback_data="switch_notifications"))
-    else:
-        builder.row(types.InlineKeyboardButton(text=strings.enable_notifications_button,
-                                               callback_data="switch_notifications"))
+    # if notifications_enabled:
+    #     builder.row(types.InlineKeyboardButton(text=strings.disable_notifications_button,
+    #                                            callback_data="switch_notifications"))
+    # else:
+    #     builder.row(types.InlineKeyboardButton(text=strings.enable_notifications_button,
+    #                                            callback_data="switch_notifications"))
+    builder.row(types.InlineKeyboardButton(
+        text=strings.open_channel, url=conf.channel_link)
+    )
     builder.row(types.InlineKeyboardButton(text=strings.vote_button, callback_data="nominations_menu"))
-
     helper_button = types.InlineKeyboardButton(text=strings.helper_menu_button, callback_data="helper_menu")
     org_button = types.InlineKeyboardButton(text=strings.org_menu_button, callback_data="org_menu")
     match user_group:

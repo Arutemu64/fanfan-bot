@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from bot.ui import menus, keyboards, strings
 from bot.handlers import states
 from bot.db import requests
-
+from bot.config import conf
 from bot.db.models import User, Settings, Performance
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,14 +32,15 @@ async def send_announcement(callback: types.CallbackQuery, bot: Bot, session: As
         if current_event:
             current_event.current = True
         await session.commit()
-        users = await requests.fetch_users(session, notifications_enabled=True)
-        if users is None:
-            await callback.answer()
-            return
+        # users = await requests.fetch_users(session, notifications_enabled=True)
+        # if users is None:
+        #     await callback.answer()
+        #     return
         text = callback.message.html_text + f"\n<i>Отправил @{callback.from_user.username} ({callback.from_user.id})</i>"
-        for user in users:
-            if user.tg_id:
-                await bot.send_message(user.tg_id, text)
+        # for user in users:
+        #     if user.tg_id:
+        #         await bot.send_message(user.tg_id, text)
+        await bot.send_message(conf.channel_id, text)
         await callback.message.delete()
         await callback.answer()
     else:
