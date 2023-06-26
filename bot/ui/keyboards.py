@@ -16,9 +16,8 @@ def main_menu_kb(user_group, notifications_enabled):
     # else:
     #     builder.row(types.InlineKeyboardButton(text=strings.enable_notifications_button,
     #                                            callback_data="switch_notifications"))
-    builder.row(types.InlineKeyboardButton(
-        text=strings.open_channel, url=conf.channel_link)
-    )
+    builder.row(types.InlineKeyboardButton(text=strings.whats_new, url="https://t.me/fanfan_bot_dev_notes"))
+    builder.row(types.InlineKeyboardButton(text=strings.open_channel, url=conf.channel_link))
     builder.row(types.InlineKeyboardButton(text=strings.vote_button, callback_data="nominations_menu"))
     helper_button = types.InlineKeyboardButton(text=strings.helper_menu_button, callback_data="helper_menu")
     org_button = types.InlineKeyboardButton(text=strings.org_menu_button, callback_data="org_menu")
