@@ -4,7 +4,6 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from bot.db.models import User
 from bot.db import requests
 
 
@@ -24,7 +23,6 @@ class DbSessionMiddleware(BaseMiddleware):
             data["session"] = session
             users = await requests.fetch_users(session, tg_id=data['event_from_user'].id)
             user = users.one_or_none()
-            print(user)
             if user:
                 data["user"] = user
             else:

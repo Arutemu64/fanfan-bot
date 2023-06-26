@@ -16,7 +16,7 @@ from bot import utils
 router = Router(name='commands_router')
 
 
-async def auth(message, state, user):  # TODO принимать юзера вместо session чтобы не делать повторные запросы
+async def auth(message, state, user):
     if user:
         await menus.main_menu(await message.answer(strings.loading), user)
     else:
@@ -91,7 +91,6 @@ async def vote(message: Message, command: CommandObject, session: AsyncSession, 
         await message.reply(strings.wrong_command_usage)
         return
     args = command.args.split()
-    print(args[1])
     if not args[1] in {'visitor', 'helper', 'org'}:
         await message.reply(strings.wrong_command_usage)
         return
