@@ -1,5 +1,4 @@
 import math
-import random
 
 from aiogram.types import Message
 from aiogram.exceptions import TelegramBadRequest
@@ -15,9 +14,8 @@ from sqlalchemy import and_
 
 async def main_menu(message: Message, user: User):
     first_name = message.chat.first_name
-    random_quote = random.choice(strings.quotes)
     kb = keyboards.main_menu_kb(user.role)
-    text = strings.main_menu_text(first_name, random_quote)
+    text = strings.main_menu_text(first_name)
     await message.edit_text(text, reply_markup=kb)
 
 

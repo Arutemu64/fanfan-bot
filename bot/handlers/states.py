@@ -45,19 +45,19 @@ async def registration(message: Message, state: FSMContext, session: AsyncSessio
 @router.message(Modes.AnnounceMode)
 async def announce_mode(message: Message, state: FSMContext, session: AsyncSession):
     if message.text == strings.back_button:
-        await message.answer(text='Возвращаемся обратно...', reply_markup=types.ReplyKeyboardRemove())
+        await message.answer(text=strings.loading, reply_markup=types.ReplyKeyboardRemove())
         await state.clear()
         new_message = await message.answer(text=strings.loading)
         await menus.helper_menu(new_message)
         return
-    if message.text == "📅 Показать расписание":
-        new_message = await message.answer(text="Загрузка...")
+    if message.text == strings.show_schedule_button:
+        new_message = await message.answer(text=strings.loading)
         show_back_button = (await state.get_state()) != Modes.AnnounceMode
         await menus.schedule_menu(session, new_message, show_back_button=show_back_button)
         return
     current_event = None
     next_event = None
-    if message.text == "⏭️ Дальше":
+    if message.text == strings.next_button:
         previous_event_id = (await requests.fetch_settings(session)).current_event_id
         current_event: Event = await requests.get_event(session, Event.id == previous_event_id + 1)
         next_event: Event = await requests.get_event(session, Event.id == previous_event_id + 2)

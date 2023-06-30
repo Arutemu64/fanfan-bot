@@ -13,7 +13,7 @@ def main_menu_kb(user_group):
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text=strings.whats_new, url="https://t.me/fanfan_bot_dev_notes"))
     builder.row(types.InlineKeyboardButton(text=strings.open_channel, url=conf.channel_link))
-    builder.row(types.InlineKeyboardButton(text="📅 Показать расписание", callback_data="update_schedule"))
+    builder.row(types.InlineKeyboardButton(text=strings.show_schedule_button, callback_data="update_schedule"))
     builder.row(types.InlineKeyboardButton(text=strings.vote_button, callback_data="nominations_menu"))
     helper_button = types.InlineKeyboardButton(text=strings.helper_menu_button, callback_data="helper_menu")
     org_button = types.InlineKeyboardButton(text=strings.org_menu_button, callback_data="org_menu")
@@ -22,7 +22,6 @@ def main_menu_kb(user_group):
             builder.row(helper_button)
         case "org":
             builder.row(helper_button, org_button)
-    # builder.row(types.InlineKeyboardButton(text=strings.update_menu_button, callback_data="main_menu"))
     return builder.as_markup()
 
 
@@ -80,8 +79,8 @@ def send_kb(current_position):
 
 def announce_mode_kb():
     builder = ReplyKeyboardBuilder()
-    builder.row(types.KeyboardButton(text="⏭️ Дальше"))
-    builder.row(types.KeyboardButton(text="📅 Показать расписание"))
+    builder.row(types.KeyboardButton(text=strings.next_button))
+    builder.row(types.KeyboardButton(text=strings.show_schedule_button))
     builder.row(types.KeyboardButton(text=strings.back_button))
     return builder.as_markup(resize_keyboard=True)
 
