@@ -1,5 +1,4 @@
 from os import getenv
-import os
 from sqlalchemy.engine import URL
 from dataclasses import dataclass
 import logging
@@ -52,6 +51,8 @@ class Configuration:
 
     channel_id = int(getenv("CHANNEL_ID"))
     channel_link = getenv("CHANNEL_LINK")
+
+    events_per_page = 7
 
     db = DatabaseConfig()
     bot = BotConfig()

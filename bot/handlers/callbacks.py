@@ -8,7 +8,8 @@ from bot.ui import menus, keyboards, strings
 from bot.handlers import states
 from bot.db import requests
 from bot.config import conf
-from bot.db.models import User, Settings, Performance
+from bot.db.models import User, Settings
+from bot.handlers.states import Modes
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,23 +24,12 @@ async def send_announcement(callback: types.CallbackQuery, bot: Bot, session: As
     timestamp = time.time()
     if (timestamp - announcement_timestamp) > 5:
         announcement_timestamp = timestamp
-        position = int(callback.data.split()[1])
-        results = await requests.fetch_performances(session, current=True)
-        for result in results:
-            result.current = False
-        result = await requests.fetch_performances(session, position=position)
-        current_event: Performance = result.one_or_none()
-        if current_event:
-            current_event.current = True
-        await session.commit()
-        # users = await requests.fetch_users(session, notifications_enabled=True)
-        # if users is None:
-        #     await callback.answer()
-        #     return
-        text = callback.message.html_text + f"\n<i>Отправил @{callback.from_user.username} ({callback.from_user.id})</i>"
-        # for user in users:
-        #     if user.tg_id:
-        #         await bot.send_message(user.tg_id, text)
+        if len(callback.data.split()) > 1:
+            event_id = int(callback.data.split()[1])
+            settings: Settings = await requests.fetch_settings(session)
+            settings.current_event_id = event_id
+            await session.commit()
+        text = f"""{callback.message.html_text}\n<i>Отправил @{callback.from_user.username} ({callback.from_user.id})</i>"""
         await bot.send_message(conf.channel_id, text)
         await callback.message.delete()
         await callback.answer()
@@ -57,8 +47,7 @@ async def open_main_menu(callback: types.CallbackQuery, user: User):
 async def switch_notifications(callback: types.CallbackQuery, user: User, session: AsyncSession):
     user.notifications_enabled = not user.notifications_enabled
     await session.commit()
-    await callback.message.edit_reply_markup(reply_markup=keyboards.main_menu_kb(user.role,
-                                                                                 user.notifications_enabled))
+    await callback.message.edit_reply_markup(reply_markup=keyboards.main_menu_kb(user.role))
     await callback.answer()
 
 
@@ -114,3 +103,34 @@ async def announce_mode(callback: types.CallbackQuery, session: AsyncSession):
     await callback.message.edit_reply_markup(reply_markup=keyboards.org_menu_kb(settings))
     await callback.answer()
 
+
+@router.callback_query(Text(startswith="schedule_page"))
+async def switch_schedule_page(callback: types.CallbackQuery, session: AsyncSession, state: FSMContext):
+    page = None
+    if len(callback.data.split()) > 1:
+        page = int(callback.data.split()[1])
+    show_back_button = (await state.get_state()) != Modes.AnnounceMode
+    await menus.schedule_menu(session,
+                              message=callback.message,
+                              page=page,
+                              show_back_button=show_back_button)
+    await callback.answer()
+
+
+@router.callback_query(Text(startswith="update_schedule"))
+async def update_schedule_page(callback: types.CallbackQuery, session: AsyncSession, state: FSMContext):
+    show_back_button = (await state.get_state()) != Modes.AnnounceMode
+    await menus.schedule_menu(session,
+                              message=callback.message,
+                              show_back_button=show_back_button)
+    await callback.answer()
+
+
+@router.callback_query(Text("dummy"))
+async def dummy(callback: types.CallbackQuery):
+    await callback.answer()
+
+
+# @router.callback_query(Text(startswith="schedule_menu"))
+# async def open_schedule_page(callback: types.CallbackQuery, session: AsyncSession):
+#     await menus.schedule_menu(session, message=callback.message)

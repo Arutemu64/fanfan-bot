@@ -15,5 +15,5 @@ COPY bot ./bot
 COPY alembic.ini .
 COPY alembic ./alembic
 COPY Makefile .
-RUN apt update && apt install -y make
+#RUN apt update && apt install -y make
 CMD ["python", "-m", "bot"]

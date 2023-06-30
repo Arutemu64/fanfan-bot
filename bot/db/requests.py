@@ -1,25 +1,29 @@
+from typing import List
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, delete
-from sqlalchemy import or_, and_
+from sqlalchemy import select
+from sqlalchemy import or_
 from sqlalchemy.engine.result import ScalarResult
-from typing import List, Dict
 
-from bot.db.models import User, Performance, Nomination, Vote, Settings
+from bot.db.models import User, Event, Nomination, Vote, Settings
+
+cached_schedule = None
 
 
-async def fetch_users(
+async def get_user(
         session: AsyncSession,
-        ticket_id: str = None,
-        tg_id: int = None,
-        username: str = None,
-        role: str = None,
-        notifications_enabled: bool = None) -> ScalarResult:
-    db_query = await session.execute(select(User).filter(or_(User.ticket_id == ticket_id, ticket_id is None),
-                                                         or_(User.tg_id == tg_id, tg_id is None),
-                                                         or_(User.username == username, username is None),
-                                                         or_(User.role == role, role is None),
-                                                         or_(User.notifications_enabled == notifications_enabled, notifications_enabled is None)))
-    return db_query.scalars()
+        whereclause) -> User | None:
+    db_query = await session.execute(select(User).where(whereclause))
+    user = db_query.scalar_one_or_none()
+    return user
+
+
+async def get_users(
+        session: AsyncSession,
+        whereclause) -> List[User]:
+    db_query = await session.execute(select(User).where(whereclause))
+    users = db_query.scalars().all()
+    return users
 
 
 async def fetch_nominations(session: AsyncSession, nomination_id: Nomination.id = None) -> ScalarResult:
@@ -28,41 +32,62 @@ async def fetch_nominations(session: AsyncSession, nomination_id: Nomination.id 
     return db_query.scalars()
 
 
-async def fetch_performances(
+async def get_nomination(
         session: AsyncSession,
-        position: int = None,
-        nomination_id: int = None,
-        current: bool = None) -> ScalarResult:
-    db_query = await session.execute(select(Performance).filter(or_(Performance.position == position, position is None),
-                                                                or_(Performance.nomination_id == nomination_id, nomination_id is None),
-                                                                or_(Performance.current == current, current is None)).order_by(Performance.position))
-    return db_query.scalars()
+        whereclause) -> Nomination | None:
+    db_query = await session.execute(select(Nomination).where(whereclause))
+    nomination = db_query.scalar_one_or_none()
+    return nomination
 
 
-async def get_close_performances(session: AsyncSession, position: int, back: int, next: int) -> ScalarResult:
-    db_query = await session.execute(select(Performance).filter(and_(Performance.position < position + next,
-                                                                     Performance.position > position - back)).order_by(Performance.position))
-    return db_query.scalars()
-
-
-async def fetch_votes(
+async def get_nominations(
         session: AsyncSession,
-        tg_id: int = None,
-        position: int = None,
-        nomination_id: int = None) -> ScalarResult:
-    db_query = await session.execute(select(Vote).filter(or_(Vote.tg_id == tg_id, tg_id is None),
-                                                         or_(Vote.position == position, position is None),
-                                                         or_(Vote.nomination_id == nomination_id,
-                                                             nomination_id is None)))
-    return db_query.scalars()
+        whereclause) -> List[Nomination]:
+    db_query = await session.execute(select(Nomination).where(whereclause))
+    nominations = db_query.scalars().all()
+    return nominations
 
 
-async def how_many_votes(session: AsyncSession, position: Performance.position) -> int:  # TODO дописать
-    votes = await fetch_votes(session, position=position)
-    votes_list = votes.all()
-    return len(votes_list)
+async def get_event(
+        session: AsyncSession,
+        whereclause) -> Event | None:
+    db_query = await session.execute(select(Event).where(whereclause))
+    event = db_query.scalar_one_or_none()
+    return event
+
+async def get_events(
+        session: AsyncSession,
+        whereclause) -> List[Nomination]:
+    db_query = await session.execute(select(Event).where(whereclause).order_by(Event.id))
+    events = db_query.scalars().all()
+    return events
+
+
+async def fetch_events_range(session: AsyncSession, start: Event.id, end: Event.id):
+    db_query = await session.execute(select(Event).order_by(Event.id).slice(start, end))
+    return db_query.scalars().all()
+
+
+async def get_vote(
+        session: AsyncSession,
+        whereclause) -> Vote | None:
+    db_query = await session.execute(select(Vote).where(whereclause))
+    vote = db_query.scalar_one_or_none()
+    return vote
+async def get_votes(
+        session: AsyncSession,
+        whereclause) -> List[Vote]:
+    db_query = await session.execute(select(Vote).where(whereclause))
+    votes = db_query.scalars().all()
+    return votes
 
 
 async def fetch_settings(session: AsyncSession) -> Settings:
     db_query = await session.execute(select(Settings))
-    return db_query.scalar()
+    settings = db_query.scalar_one_or_none()
+    if settings:
+        return settings
+    else:
+        settings = Settings(voting_enabled=False, current_event_id=0)
+        session.add(settings)
+        return settings
