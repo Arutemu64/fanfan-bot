@@ -11,7 +11,6 @@ class User(Base):
     tg_id = Column(BigInteger, unique=True, autoincrement=False)  # tg_id
     username = Column(VARCHAR)  # username
     role = Column(VARCHAR, default='visitor')  # role
-    notifications_enabled = Column(Boolean, default=False)  # notifications_enabled
 
     def __str__(self):
         return f"""User: tg_id={str(self.tg_id)}, username={self.username}, role={self.role}"""
