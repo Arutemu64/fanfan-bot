@@ -64,11 +64,19 @@ def org_menu_kb(settings: Settings):
     return builder.as_markup()
 
 
-def send_kb(current_position):
+def send_kb(current_event_id=None, next_event_id=None):
     builder = InlineKeyboardBuilder()
-    if current_position:
+    callback_data = ''
+    print(current_event_id, flush=True)
+    if current_event_id:
+        callback_data = str(current_event_id)
+    else:
+        callback_data = "-1"
+    if next_event_id:
+        callback_data = callback_data + ' ' + str(next_event_id)
+    if callback_data != '':
         builder.row(types.InlineKeyboardButton(text=strings.send_button,
-                                               callback_data='send_announcement ' + str(current_position)))
+                                               callback_data='send_announcement ' + callback_data))
     else:
         builder.row(types.InlineKeyboardButton(text=strings.send_button,
                                                callback_data='send_announcement'))

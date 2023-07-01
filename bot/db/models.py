@@ -65,7 +65,9 @@ class Settings(Base):
 
     voting_enabled = Column(Boolean, primary_key=True)
     current_event_id = Column(Integer, primary_key=True)
+    next_event_id = Column(Integer, primary_key=True)
 
-    def __init__(self, voting_enabled, current_event_id):
+    def __init__(self, voting_enabled, current_event_id, next_event_id):
         self.voting_enabled = voting_enabled
         self.current_event_id = current_event_id
+        self.next_event_id = next_event_id

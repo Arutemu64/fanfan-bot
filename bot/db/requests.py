@@ -88,6 +88,7 @@ async def fetch_settings(session: AsyncSession) -> Settings:
     if settings:
         return settings
     else:
-        settings = Settings(voting_enabled=False, current_event_id=0)
+        settings = Settings(voting_enabled=False, current_event_id=0, next_event_id=1)
         session.add(settings)
+        await session.commit()
         return settings

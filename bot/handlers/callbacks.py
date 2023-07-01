@@ -25,9 +25,15 @@ async def send_announcement(callback: types.CallbackQuery, bot: Bot, session: As
     if (timestamp - announcement_timestamp) > 5:
         announcement_timestamp = timestamp
         if len(callback.data.split()) > 1:
-            event_id = int(callback.data.split()[1])
             settings: Settings = await requests.fetch_settings(session)
-            settings.current_event_id = event_id
+            current_event_id = int(callback.data.split()[1])
+            if current_event_id != -1:
+                settings.current_event_id = current_event_id
+            if len(callback.data.split()) > 2:
+                next_event_id = int(callback.data.split()[2])
+                settings.next_event_id = next_event_id
+            else:
+                settings.next_event_id = current_event_id + 1
             await session.commit()
         text = f"""{callback.message.html_text}\n<i>Отправил @{callback.from_user.username} ({callback.from_user.id})</i>"""
         await bot.send_message(conf.channel_id, text)
