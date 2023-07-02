@@ -4,7 +4,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir -r requirements.txt
+ && pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 # "Run" image
 FROM python:3.11-slim-bullseye
@@ -16,5 +16,4 @@ COPY bot ./bot
 COPY alembic.ini .
 COPY alembic ./alembic
 COPY Makefile .
-#RUN apt update && apt install -y make
 CMD ["python", "-m", "bot"]
