@@ -1,21 +1,19 @@
 import math
 
-from aiogram.types import Message
 from aiogram.exceptions import TelegramBadRequest
-
-from bot.ui import keyboards, strings
-from bot.db.models import Vote, User, Settings, Nomination, Event
-from bot.db import requests
-from bot.config import conf
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram.types import Message
 from sqlalchemy import and_
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.config import conf
+from bot.db import requests
+from bot.db.models import Vote, User, Settings, Nomination, Event
+from bot.ui import keyboards, strings
 
 
 async def main_menu(message: Message, user: User):
-    first_name = message.chat.first_name
     kb = keyboards.main_menu_kb(user.role)
-    text = strings.main_menu_text(first_name)
+    text = strings.menus.main_menu_text(first_name=message.chat.first_name)
     await message.edit_text(text, reply_markup=kb)
 
 
@@ -27,13 +25,13 @@ async def nominations_menu(message: Message, session: AsyncSession):
 
 
 async def helper_menu(message):
-    text = strings.helper_guide
+    text = strings.menus.helper_menu_text
     kb = keyboards.helper_menu_kb()
     await message.edit_text(text, reply_markup=kb)
 
 
 async def org_menu(message, settings: Settings):
-    text = strings.org_guide
+    text = strings.menus.org_menu_text
     kb = keyboards.org_menu_kb(settings)
     await message.edit_text(text, reply_markup=kb)
 

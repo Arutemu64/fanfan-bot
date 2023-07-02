@@ -1,9 +1,9 @@
 from typing import List
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from sqlalchemy import or_
+from sqlalchemy import select
 from sqlalchemy.engine.result import ScalarResult
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import User, Event, Nomination, Vote, Settings
 
@@ -55,6 +55,7 @@ async def get_event(
     event = db_query.scalar_one_or_none()
     return event
 
+
 async def get_events(
         session: AsyncSession,
         whereclause) -> List[Nomination]:
@@ -74,6 +75,8 @@ async def get_vote(
     db_query = await session.execute(select(Vote).where(whereclause))
     vote = db_query.scalar_one_or_none()
     return vote
+
+
 async def get_votes(
         session: AsyncSession,
         whereclause) -> List[Vote]:

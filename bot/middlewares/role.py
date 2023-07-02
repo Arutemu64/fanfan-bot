@@ -1,11 +1,11 @@
 from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message, TelegramObject
 from aiogram.dispatcher.flags import get_flag
+from aiogram.types import CallbackQuery, Message, TelegramObject
 
-from bot.ui import strings
 from bot.db.models import User
+from bot.ui import strings
 
 
 # данная мидлварь пробрасывает в хендлеры роль пользователя из БД
@@ -28,24 +28,24 @@ class RoleMiddleware(BaseMiddleware):
             user: User = data["user"]
         except KeyError:
             if type(event) is CallbackQuery:
-                await event.answer(strings.no_access, show_alert=True)
+                await event.answer(strings.errors.no_access, show_alert=True)
             elif type(event) is Message:
-                await event.reply(strings.no_access)
+                await event.reply(strings.errors.no_access)
             return
         if user is None:
             if type(event) is CallbackQuery:
-                await event.answer(strings.no_access, show_alert=True)
+                await event.answer(strings.errors.no_access, show_alert=True)
             elif type(event) is Message:
-                await event.reply(strings.no_access)
+                await event.reply(strings.errors.no_access)
             return
         if allowed_roles:
             if user.role in allowed_roles:
                 return await handler(event, data)
             else:
                 if type(event) is CallbackQuery:
-                    await event.answer(strings.no_access, show_alert=True)
+                    await event.answer(strings.errors.no_access, show_alert=True)
                 elif type(event) is Message:
-                    await event.reply(strings.no_access)
+                    await event.reply(strings.errors.no_access)
                 return
         else:
             return await handler(event, data)

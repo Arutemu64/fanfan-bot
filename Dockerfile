@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 FROM python:3.11-slim-bullseye
 COPY --from=compile-image /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+RUN apt update && apt install -y make libzbar0 libgl1-mesa-glx libglib2.0-0
 WORKDIR /app
 COPY bot ./bot
 COPY alembic.ini .

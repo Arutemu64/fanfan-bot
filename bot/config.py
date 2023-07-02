@@ -1,7 +1,8 @@
-from os import getenv
-from sqlalchemy.engine import URL
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
+from os import getenv
+
+from sqlalchemy.engine import URL
 
 
 class DatabaseConfig:
