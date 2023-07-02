@@ -20,24 +20,16 @@ class RoleMiddleware(BaseMiddleware):
             event: Message | CallbackQuery,
             data: Dict[str, Any]
     ) -> Any:
-        if type(event) is Message:
-            if event.text == '/start' or event.text == '/menu':
-                return await handler(event, data)
-        allowed_roles = get_flag(data, 'allowed_roles')
-        try:
-            user: User = data["user"]
-        except KeyError:
-            if type(event) is CallbackQuery:
-                await event.answer(strings.errors.no_access, show_alert=True)
-            elif type(event) is Message:
-                await event.reply(strings.errors.no_access)
-            return
+        if get_flag(data, 'bypass_verification'):
+            return await handler(event, data)
+        user: User = data["user"]
         if user is None:
             if type(event) is CallbackQuery:
                 await event.answer(strings.errors.no_access, show_alert=True)
             elif type(event) is Message:
                 await event.reply(strings.errors.no_access)
             return
+        allowed_roles = get_flag(data, 'allowed_roles')
         if allowed_roles:
             if user.role in allowed_roles:
                 return await handler(event, data)

@@ -15,7 +15,7 @@ class Registration(StatesGroup):  # состояние регистрации
     NotRegistered = State()
 
 
-@router.message(Registration.NotRegistered)
+@router.message(Registration.NotRegistered, flags={'bypass_verification': True})
 async def registration(message: Message, state: FSMContext, session: AsyncSession):
     ticket: User = await requests.get_user(session, User.ticket_id == message.text)
     if ticket:
