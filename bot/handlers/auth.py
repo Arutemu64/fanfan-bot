@@ -4,7 +4,6 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db import requests
 from bot.db.models import User
 from bot.ui import menus, strings
 
@@ -17,7 +16,7 @@ class Registration(StatesGroup):  # состояние регистрации
 
 @router.message(Registration.NotRegistered, flags={'bypass_verification': True})
 async def registration(message: Message, state: FSMContext, session: AsyncSession):
-    ticket: User = await requests.get_user(session, User.ticket_id == message.text)
+    ticket = await User.get_one(session, User.ticket_id == message.text)
     if ticket:
         if ticket.tg_id is None:
             ticket.tg_id = message.from_user.id

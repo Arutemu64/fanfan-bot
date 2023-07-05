@@ -6,7 +6,6 @@ from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import conf
-from bot.db import requests
 from bot.db.models import Vote, User, Settings, Nomination, Event
 from bot.ui import keyboards, strings
 
@@ -18,7 +17,7 @@ async def main_menu(message: Message, user: User):
 
 
 async def nominations_menu(message: Message, session: AsyncSession):
-    nominations = await requests.fetch_nominations(session)
+    nominations = await Nomination.get_many(session, True)
     text = f"""<b>Голосование</b>\nДля голосования доступны следующие номинации:"""
     kb = keyboards.nominations_menu_kb(nominations)
     await message.edit_text(text, reply_markup=kb)
@@ -37,14 +36,13 @@ async def org_menu(message, settings: Settings):
 
 
 async def voting_menu(session: AsyncSession, message, nomination_id: int):
-    performances = await requests.get_events(session, Event.nomination_id == nomination_id)
-    results = await requests.fetch_nominations(session, nomination_id=nomination_id)
-    nomination: Nomination = results.one_or_none()
-    user_vote: Vote = await requests.get_vote(session, and_(Vote.tg_id == message.chat.id,
-                                                            Vote.nomination_id == nomination_id))
+    performances = await Event.get_many(session, Event.nomination_id == nomination_id)
+    nomination = await Nomination.get_one(session, Nomination.id == nomination_id)
+    user_vote = await Vote.get_one(session, and_(Vote.tg_id == message.chat.id,
+                                                 Vote.nomination_id == nomination_id))
     performances_list = ''
     for performance in performances:
-        votes_count = len(await requests.get_votes(session, Vote.event_id == performance.id))
+        votes_count = await Vote.count(session, Vote.event_id == performance.id)
         entry = f"<b>{str(performance.id)}.</b> {performance.title} [голосов: {votes_count}]\n"
         if user_vote is not None:
             if user_vote.event_id == performance.id:
@@ -60,22 +58,19 @@ async def voting_menu(session: AsyncSession, message, nomination_id: int):
 
 
 async def schedule_menu(session: AsyncSession, message, show_back_button: bool = False, page: int = None):
-    settings = await requests.fetch_settings(session)
+    settings = await Settings.get_one(session, True)
     per_page = conf.events_per_page
-    all_events = await requests.get_events(session, True)
     if page is None:
         page = math.floor((settings.current_event_id - 1) / per_page)
-        if page < 0:
+        if page == 0:
             page = 0
-    events = all_events[(page * per_page):(page * per_page) + per_page]
-    total_pages = math.ceil((len(all_events) - 1) / per_page)
+    events = await Event.get_range(session, (page * per_page), (page * per_page) + per_page, Event.id)
+    total_pages = math.floor((await Event.count(session, True) / per_page))
     text = f"<b>📅 Расписание</b> (страница {page + 1} из {total_pages + 1})\n\n"
     for event in events:
         entry = ''
         if event.id:
             entry = f"<b>{event.id}.</b> {event.title}"
-        # elif event.title:
-        #     entry = f"<b>------{event.title}------</b>"
         if event.id == settings.current_event_id:
             entry = f"""<b>👉 {entry}</b>"""
         text = text + entry + "\n"

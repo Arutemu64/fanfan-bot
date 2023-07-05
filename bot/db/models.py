@@ -1,10 +1,12 @@
 from sqlalchemy import Column, Integer, BigInteger, Boolean, Text, VARCHAR
 from sqlalchemy.orm import declarative_base
 
+from bot.db.requests import Requests
+
 Base = declarative_base()
 
 
-class User(Base):
+class User(Requests, Base):
     __tablename__ = 'users'
 
     ticket_id = Column(VARCHAR, primary_key=True, unique=True, autoincrement=False)  # ticket_id
@@ -16,7 +18,7 @@ class User(Base):
         return f"""User: tg_id={str(self.tg_id)}, username={self.username}, role={self.role}"""
 
 
-class Event(Base):
+class Event(Requests, Base):
     __tablename__ = 'schedule'
 
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)  # event_id
@@ -39,14 +41,14 @@ class Event(Base):
         return f"""Event: {str(self.id)}, {self.title}, {str(self.nomination_id)}"""
 
 
-class Nomination(Base):
+class Nomination(Requests, Base):
     __tablename__ = 'nominations'
 
     id = Column(Integer, primary_key=True, unique=True, autoincrement=False)  # nomination_id
     name = Column(Text)  # name
 
 
-class Vote(Base):
+class Vote(Requests, Base):
     __tablename__ = 'votes'
 
     vote_id = Column(Integer, primary_key=True, unique=True, autoincrement=True)  # vote_id
@@ -59,8 +61,11 @@ class Vote(Base):
         self.event_id = event_id
         self.nomination_id = nomination_id
 
+    def __str__(self):
+        return f"Vote: {self.tg_id} {self.event_id} {self.nomination_id}"
 
-class Settings(Base):
+
+class Settings(Requests, Base):
     __tablename__ = 'settings'
 
     voting_enabled = Column(Boolean, primary_key=True)

@@ -5,7 +5,6 @@ from sqlalchemy import or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot import utils
-from bot.db import requests
 from bot.db.models import User, Settings
 from bot.ui import strings, keyboards
 
@@ -22,7 +21,7 @@ async def vote(message: Message, command: CommandObject, session: AsyncSession, 
         await message.reply(strings.errors.wrong_command_usage)
         return
     username = args[0].replace('@', '').lower()
-    user: User = await requests.get_user(session, User.username == username)
+    user = await User.get_one(session, User.username == username)
     if user is None:
         return
     user.role = args[1]
@@ -43,7 +42,7 @@ async def get_user_info(message: Message, command: CommandObject, session: Async
     stmt = or_(User.ticket_id == query, User.username == query)
     if query.isnumeric():
         stmt = or_(stmt, User.tg_id == int(query))
-    user = await requests.get_user(session, stmt)
+    user = await User.get_one(session, stmt)
     if user:
         info = f"<i>👤 Пользователь найден</i>\n\nticket_id: {user.ticket_id}\ntg_id: {user.tg_id}\nusername: {user.username}\nrole: {user.role}"
         await message.reply(text=info)
@@ -53,7 +52,7 @@ async def get_user_info(message: Message, command: CommandObject, session: Async
 
 @router.callback_query(Text("switch_voting"), flags={'allowed_roles': ['org']})
 async def announce_mode(callback: types.CallbackQuery, session: AsyncSession):
-    settings: Settings = await requests.fetch_settings(session)
+    settings = await Settings.get_one(session, True)
     settings.voting_enabled = not settings.voting_enabled
     await session.commit()
     await callback.message.edit_reply_markup(reply_markup=keyboards.org_menu_kb(settings))

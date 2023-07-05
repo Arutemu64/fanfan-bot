@@ -8,7 +8,6 @@ from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import conf
-from bot.db import requests
 from bot.db.models import Settings, Event
 from bot.ui import menus, keyboards, strings
 
@@ -28,7 +27,7 @@ async def send_announcement(callback: types.CallbackQuery, bot: Bot, session: As
     if (timestamp - announcement_timestamp) > 5:
         announcement_timestamp = timestamp
         if len(callback.data.split()) > 1:
-            settings: Settings = await requests.fetch_settings(session)
+            settings = await Settings.get_one(session, True)
             current_event_id = int(callback.data.split()[1])
             if current_event_id != -1:
                 settings.current_event_id = current_event_id
@@ -62,15 +61,15 @@ async def announce_mode(message: Message, state: FSMContext, session: AsyncSessi
     current_event = Event()
     next_event = Event()
     if message.text == strings.buttons.next:
-        current_event_id = (await requests.fetch_settings(session)).next_event_id
-        current_event = await requests.get_event(session, Event.id == current_event_id)
-        next_event = await requests.get_event(session, Event.id == current_event_id + 1)
+        current_event_id = (await Settings.get_one(session, True)).next_event_id
+        current_event = await Event.get_one(session, Event.id == current_event_id)
+        next_event = await Event.get_one(session, Event.id == current_event_id + 1)
     else:
         args = message.text.split()
         current_arg = 0
         while current_arg < len(args):
             if args[current_arg].isnumeric():
-                event = await requests.get_event(session, Event.id == int(args[current_arg]))
+                event = await Event.get_one(session, Event.id == int(args[current_arg]))
                 if current_event.title is None:
                     current_event = event
                 elif next_event.title is None:

@@ -3,7 +3,6 @@ from aiogram.filters import Text
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db import requests
 from bot.db.models import User, Settings
 from bot.handlers.announce import Modes
 from bot.ui import menus, strings, keyboards
@@ -19,7 +18,8 @@ async def open_main_menu(callback: types.CallbackQuery, user: User):
 
 @router.callback_query(Text("open_nominations_menu"))
 async def open_nominations_menu(callback: types.CallbackQuery, session: AsyncSession):
-    settings: Settings = await requests.fetch_settings(session)
+    # settings: Settings = await requests.fetch_settings(session)
+    settings = await Settings.get_one(session, True)
     if settings.voting_enabled:
         await menus.nominations_menu(callback.message, session)
         await callback.answer()
@@ -35,7 +35,8 @@ async def open_helper_menu(callback: types.CallbackQuery):
 
 @router.callback_query(Text("open_org_menu"), flags={'allowed_roles': ['org']})
 async def open_org_menu(callback: types.CallbackQuery, session: AsyncSession):
-    settings = await requests.fetch_settings(session)
+    # settings = await requests.fetch_settings(session)
+    settings = await Settings.get_one(session, True)
     await menus.org_menu(callback.message, settings)
     await callback.answer()
 
