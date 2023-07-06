@@ -1,6 +1,6 @@
 python-dotenv
-aiogram~=3.0.0b7
-sqlalchemy
+aiogram==3.0.0b7
+sqlalchemy==2.0.18
 psycopg
 psycopg-binary
 psycopg-pool
@@ -8,7 +8,7 @@ alembic
 pyngrok
 aiohttp
 opencv-python-headless
-qreader
+qreader==2.12
 torch
 opencv-python
 numpy
