@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.config import conf
 from bot.db.models import Settings, Event
 from bot.ui import strings
+from bot.handlers.cb_factories import ShowSchedule
 
 
 async def show(session: AsyncSession, message, show_back_button: bool = False, page: int = None):
@@ -14,7 +15,7 @@ async def show(session: AsyncSession, message, show_back_button: bool = False, p
     per_page = conf.events_per_page
     if page is None:
         page = math.floor((settings.current_event_id - 1) / per_page)
-        if page == 0:
+        if page < 0:
             page = 0
     events = await Event.get_range(session, (page * per_page), (page * per_page) + per_page, Event.id)
     total_pages = math.floor((await Event.count(session, True) / per_page))
@@ -37,19 +38,21 @@ def keyboard(page, total_pages: int, show_back_button: bool = False):
     navigation_buttons = []
     if page > 0:
         navigation_buttons.insert(0, types.InlineKeyboardButton(text="⏪",
-                                                                callback_data='open_schedule_page 0'))
+                                                                callback_data=ShowSchedule(page=0).pack()))
         navigation_buttons.insert(1, types.InlineKeyboardButton(text="◀️",
-                                                                callback_data='open_schedule_page ' + str(page - 1)))
+                                                                callback_data=ShowSchedule(page=page-1).pack()))
     else:
-        navigation_buttons.insert(0, types.InlineKeyboardButton(text="⠀", callback_data='dummy'))
-        navigation_buttons.insert(1, types.InlineKeyboardButton(text="⠀", callback_data='dummy'))
+        navigation_buttons.insert(0, types.InlineKeyboardButton(text="⠀",
+                                                                callback_data='dummy'))
+        navigation_buttons.insert(1, types.InlineKeyboardButton(text="⠀",
+                                                                callback_data='dummy'))
     navigation_buttons.append(types.InlineKeyboardButton(text="🔃",
-                                                         callback_data='open_schedule_page'))
+                                                         callback_data=ShowSchedule().pack()))
     if page < total_pages:
         navigation_buttons.append(types.InlineKeyboardButton(text="▶️",
-                                                             callback_data='open_schedule_page ' + str(page + 1)))
+                                                             callback_data=ShowSchedule(page=page+1).pack()))
         navigation_buttons.append(types.InlineKeyboardButton(text="⏭️",
-                                                             callback_data='open_schedule_page ' + str(total_pages)))
+                                                             callback_data=ShowSchedule(page=total_pages).pack()))
     else:
         navigation_buttons.append(types.InlineKeyboardButton(text="⠀", callback_data='dummy'))
         navigation_buttons.append(types.InlineKeyboardButton(text="⠀", callback_data='dummy'))

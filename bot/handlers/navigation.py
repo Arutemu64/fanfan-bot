@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.db.models import User, Settings
 from bot.handlers.announce import Modes
 from bot.ui import menus, strings
+from bot.handlers.cb_factories import ShowNomination
 
 router = Router(name='menu_router')
 
@@ -39,10 +40,11 @@ async def open_org_menu(callback: types.CallbackQuery, session: AsyncSession):
     await callback.answer()
 
 
-@router.callback_query(Text(startswith="nomination"))
-async def open_voting_menu(callback: types.CallbackQuery, session: AsyncSession):
-    nomination = callback.data.split()[1]
-    await menus.voting.show_voting(session, callback.message, int(nomination))
+@router.callback_query(ShowNomination.filter())
+async def open_voting_menu(callback: types.CallbackQuery,
+                           callback_data: ShowNomination,
+                           session: AsyncSession):
+    await menus.voting.show_voting(session, callback.message, callback_data.id)
     await callback.answer()
 
 
