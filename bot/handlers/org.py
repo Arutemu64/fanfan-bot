@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot import utils
 from bot.db.models import User, Settings
-from bot.ui import strings, keyboards
+from bot.ui import strings, menus
 
 router = Router(name='auth_router')
 
@@ -55,7 +55,7 @@ async def announce_mode(callback: types.CallbackQuery, session: AsyncSession):
     settings = await Settings.get_one(session, True)
     settings.voting_enabled = not settings.voting_enabled
     await session.commit()
-    await callback.message.edit_reply_markup(reply_markup=keyboards.org_menu_kb(settings))
+    await callback.message.edit_reply_markup(reply_markup=menus.org.keyboard(settings))
     await callback.answer()
 
 # @router.message(Command("msg"), flags={'allowed_roles': ['org']})

@@ -15,7 +15,7 @@ async def switch_schedule_page(callback: types.CallbackQuery, session: AsyncSess
     if len(callback.data.split()) > 1:
         page = int(callback.data.split()[1])
     show_back_button = (await state.get_state()) != Modes.AnnounceMode
-    await menus.schedule_menu(session,
+    await menus.schedule.show(session,
                               message=callback.message,
                               page=page,
                               show_back_button=show_back_button)
@@ -25,7 +25,7 @@ async def switch_schedule_page(callback: types.CallbackQuery, session: AsyncSess
 @router.callback_query(Text(startswith="update_schedule"))
 async def update_schedule_page(callback: types.CallbackQuery, session: AsyncSession, state: FSMContext):
     show_back_button = (await state.get_state()) != Modes.AnnounceMode
-    await menus.schedule_menu(session,
+    await menus.schedule.show(session,
                               message=callback.message,
                               show_back_button=show_back_button)
     await callback.answer()

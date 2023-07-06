@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import conf
 from bot.db.models import Settings, Event
-from bot.ui import menus, keyboards, strings
+from bot.ui import menus, strings
 
 router = Router(name='auth_router')
 
@@ -50,13 +50,12 @@ async def announce_mode(message: Message, state: FSMContext, session: AsyncSessi
     if message.text == strings.buttons.back:
         await message.answer(text=strings.common.loading, reply_markup=types.ReplyKeyboardRemove())
         await state.clear()
-        new_message = await message.answer(text=strings.common.loading)
-        await menus.helper_menu(new_message)
+        await menus.helper.show(await message.answer(text=strings.common.loading))
         return
     if message.text == strings.buttons.show_schedule:
         new_message = await message.answer(text=strings.common.loading)
         show_back_button = (await state.get_state()) != Modes.AnnounceMode
-        await menus.schedule_menu(session, new_message, show_back_button=show_back_button)
+        await menus.schedule.show(session, new_message, show_back_button=show_back_button)
         return
     current_event = Event()
     next_event = Event()
@@ -105,7 +104,7 @@ async def announce_mode(message: Message, state: FSMContext, session: AsyncSessi
                     kwargs['next_event_id'] = next_event.id
                 else:
                     text = f"{text}\n<b>Затем:</b> {next_event.title}"
-        kb = keyboards.send_kb(**kwargs)
+        kb = await menus.announce.sender_kb(**kwargs)
         await message.answer(text, reply_markup=kb)
     else:
         await message.reply(strings.errors.announce)

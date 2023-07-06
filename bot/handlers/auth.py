@@ -5,7 +5,7 @@ from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import User
-from bot.ui import menus, strings
+from bot.ui import strings, menus
 
 router = Router(name='auth_router')
 
@@ -24,7 +24,7 @@ async def registration(message: Message, state: FSMContext, session: AsyncSessio
             await session.commit()
             await state.clear()
             await message.answer(strings.success.registration_successful)
-            await menus.main_menu(await message.answer(strings.common.loading), ticket)
+            await menus.main.show(await message.answer(strings.common.loading), ticket)
         else:
             await message.answer(strings.errors.ticket_used)
     else:
@@ -34,7 +34,7 @@ async def registration(message: Message, state: FSMContext, session: AsyncSessio
 async def auth(message, state, user):
     await state.clear()
     if user:
-        await menus.main_menu(await message.answer(strings.common.loading), user)
+        await menus.main.show(await message.answer(strings.common.loading), user)
     else:
         await message.reply(strings.errors.please_send_ticket)
         await state.set_state(Registration.NotRegistered)

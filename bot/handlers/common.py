@@ -10,13 +10,13 @@ from bot.ui import strings
 router = Router(name='common_router')
 
 
-@router.message(Command("start"), flags={'bypass_verification': True})  # /start - выводит приветствие и производит авторизацию пользователя
+@router.message(Command("start"), flags={'bypass_verification': True})
 async def start_cmd(message: Message, state: FSMContext, user: User):
     await message.reply(strings.common.welcome)
     await auth(message, state, user)
 
 
-@router.message(Command("menu"), flags={'bypass_verification': True})  # /menu - как /start, только без приветствия
+@router.message(Command("menu"), flags={'bypass_verification': True})
 async def menu_cmd(message: Message, state: FSMContext, user: User):
     await auth(message, state, user)
 
