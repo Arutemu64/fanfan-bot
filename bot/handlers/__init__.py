@@ -1,6 +1,7 @@
 from aiogram import Router
 
 from bot import middlewares
+from bot.handlers import cb_factories
 
 
 def setup_routers() -> Router:

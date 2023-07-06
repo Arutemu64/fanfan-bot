@@ -2,19 +2,17 @@ from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from bot.ui import strings
+from bot.handlers.cb_factories import SendAnnouncementCallback
 
 
 async def sender_kb(current_event_id=None, next_event_id=None):
     builder = InlineKeyboardBuilder()
-    callback_data = 'send_announcement'
+    callback = SendAnnouncementCallback()
     if current_event_id:
-        callback_data = f"{callback_data} {str(current_event_id)}"
-    else:
-        callback_data = f"{callback_data} -1"
+        callback.current_event_id = current_event_id
     if next_event_id:
-        callback_data = f"{callback_data} {str(next_event_id)}"
-    builder.row(types.InlineKeyboardButton(text=strings.buttons.send,
-                                           callback_data=callback_data))
+        callback.next_event_id = next_event_id
+    builder.row(types.InlineKeyboardButton(text=strings.buttons.send, callback_data=callback.pack()))
     builder.row(types.InlineKeyboardButton(text=strings.buttons.delete,
                                            callback_data='delete_message'))
     return builder.as_markup()
