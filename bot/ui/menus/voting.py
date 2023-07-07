@@ -11,7 +11,7 @@ from bot.ui import strings
 
 async def show_nominations(message: Message, session: AsyncSession):
     nominations = await Nomination.get_many(session, True)
-    text = f"""<b>Голосование</b>\nДля голосования доступны следующие номинации:"""
+    text = f"""<b>📊 Голосование</b>\n\nДля голосования доступны следующие номинации:"""
     kb = nominations_kb(nominations)
     await message.edit_text(text, reply_markup=kb)
 
@@ -29,7 +29,8 @@ async def show_voting(session: AsyncSession, message, nomination_id: int):
             if user_vote.event_id == performance.id:
                 entry = f"✅ <b>{entry}</b>"
         performances_list = performances_list + entry
-    text = f"""<b>Номинация {nomination.name}</b>
+    text = f"""<b>📊 Номинация {nomination.name}</b>
+
 В этой номинации представлены следующие участники:
 {performances_list}
 Чтобы проголосовать, используй команду <code>/vote номер_участника</code>.
