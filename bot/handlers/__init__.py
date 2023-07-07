@@ -11,10 +11,10 @@ def setup_routers() -> Router:
     router.include_router(announce.router)
     router.include_router(auth.router)
     router.include_router(common.router)
-    router.include_router(navigation.router)
+    router.include_router(helper.router)
     router.include_router(org.router)
     router.include_router(qr.router)
-    router.include_router(schedule_viewer.router)
+    router.include_router(schedule.router)
     router.include_router(voting.router)
 
     router.message.middleware(middlewares.RoleMiddleware())

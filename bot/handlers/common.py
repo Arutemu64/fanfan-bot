@@ -5,7 +5,7 @@ from aiogram.types import Message
 
 from bot.db.models import User
 from bot.handlers.auth import auth
-from bot.ui import strings
+from bot.ui import strings, menus
 
 router = Router(name='common_router')
 
@@ -19,6 +19,12 @@ async def start_cmd(message: Message, state: FSMContext, user: User):
 @router.message(Command("menu"), flags={'bypass_verification': True})
 async def menu_cmd(message: Message, state: FSMContext, user: User):
     await auth(message, state, user)
+
+
+@router.callback_query(Text("open_main_menu"))
+async def open_main_menu(callback: types.CallbackQuery, user: User):
+    await menus.main.show(callback.message, user)
+    await callback.answer()
 
 
 @router.callback_query(Text("delete_message"))

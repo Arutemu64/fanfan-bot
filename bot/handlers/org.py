@@ -8,7 +8,14 @@ from bot import utils
 from bot.db.models import User, Settings
 from bot.ui import strings, menus
 
-router = Router(name='auth_router')
+router = Router(name='org_router')
+
+
+@router.callback_query(Text("open_org_menu"), flags={'allowed_roles': ['org']})
+async def open_org_menu(callback: types.CallbackQuery, session: AsyncSession):
+    settings = await Settings.get_one(session, True)
+    await menus.org.show(callback.message, settings)
+    await callback.answer()
 
 
 @router.message(Command("role"), flags={'allowed_roles': ['org']})

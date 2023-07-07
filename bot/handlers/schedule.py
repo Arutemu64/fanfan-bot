@@ -1,5 +1,4 @@
 from aiogram import Router, types
-from aiogram.filters import Text
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 

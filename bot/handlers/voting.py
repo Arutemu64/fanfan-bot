@@ -1,11 +1,12 @@
-from aiogram import Router
-from aiogram.filters import Command, CommandObject
+from aiogram import Router, types
+from aiogram.filters import Command, CommandObject, Text
 from aiogram.types import Message
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db.models import Event, Vote
-from bot.ui import strings
+from bot.db.models import Event, Vote, Settings
+from bot.handlers.cb_factories import ShowNomination
+from bot.ui import strings, menus
 
 router = Router(name='voting_router')
 
@@ -57,3 +58,21 @@ async def vote(message: Message, command: CommandObject, session: AsyncSession):
         await message.reply(strings.success.unvoted)
     else:
         await message.reply(strings.errors.not_voted)
+
+
+@router.callback_query(Text("open_nominations_menu"))
+async def open_nominations_menu(callback: types.CallbackQuery, session: AsyncSession):
+    settings = await Settings.get_one(session, True)
+    if settings.voting_enabled:
+        await menus.voting.show_nominations(callback.message, session)
+        await callback.answer()
+    else:
+        await callback.answer(strings.errors.voting_disabled, show_alert=True)
+
+
+@router.callback_query(ShowNomination.filter())
+async def open_voting_menu(callback: types.CallbackQuery,
+                           callback_data: ShowNomination,
+                           session: AsyncSession):
+    await menus.voting.show_voting(session, callback.message, callback_data.id)
+    await callback.answer()

@@ -1,6 +1,7 @@
 import time
 
 from aiogram import Router, types, Bot
+from aiogram.filters import Text
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
@@ -11,7 +12,7 @@ from bot.db.models import Settings, Event
 from bot.handlers.cb_factories import SendAnnouncementCallback
 from bot.ui import menus, strings
 
-router = Router(name='auth_router')
+router = Router(name='announce_router')
 
 announcement_timestamp = 0
 
@@ -107,3 +108,11 @@ async def announce_mode(message: Message, state: FSMContext, session: AsyncSessi
     else:
         await message.reply(strings.errors.announce)
         return
+
+
+@router.callback_query(Text("announce_mode"), flags={'allowed_roles': ['helper', 'org']})
+async def announce_mode(callback: types.CallbackQuery, state: FSMContext):
+    kb = await menus.announce.announce_mode_keyboard()
+    await callback.message.answer(text=strings.menus.announce_mode_text, reply_markup=kb)
+    await state.set_state(Modes.AnnounceMode)
+    await callback.answer()
