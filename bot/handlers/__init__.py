@@ -5,9 +5,10 @@ from bot.handlers import cb_factories
 
 
 def setup_routers() -> Router:
-    from . import announce, auth, common, navigation, org, qr, schedule_viewer, voting
+    from . import activities, announce, auth, common, helper, org, qr, schedule, voting
 
     router = Router()
+    router.include_router(activities.router)
     router.include_router(announce.router)
     router.include_router(auth.router)
     router.include_router(common.router)

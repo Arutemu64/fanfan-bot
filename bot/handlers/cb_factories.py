@@ -14,3 +14,8 @@ class ShowSchedule(CallbackData, prefix="schedule"):
 
 class ShowNomination(CallbackData, prefix="nomination"):
     id: int
+
+
+class ShowActivity(CallbackData, prefix="activity"):
+    id: Optional[int]
+
