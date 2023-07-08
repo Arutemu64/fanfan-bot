@@ -47,7 +47,8 @@ async def send_announcement(callback: types.CallbackQuery,
 @router.message(Modes.AnnounceMode)
 async def announce_mode(message: Message, state: FSMContext, session: AsyncSession):
     if message.text == strings.buttons.back:
-        await message.answer(text=strings.common.loading, reply_markup=types.ReplyKeyboardRemove())
+        kb_remover = await message.answer(text=strings.common.loading, reply_markup=types.ReplyKeyboardRemove())
+        await kb_remover.delete()
         await state.clear()
         await menus.helper.show(await message.answer(text=strings.common.loading))
         return
