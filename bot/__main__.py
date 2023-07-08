@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp.web import run_app
+from aiohttp.web import _run_app
 from aiohttp.web_app import Application
 from pyngrok import conf as ngrok_conf
 from pyngrok import ngrok
@@ -57,7 +57,7 @@ async def main():
         app['bot'] = bot
         SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="")
         setup_application(app, dp, bot=bot)
-        run_app(app, host="127.0.0.1", port=8080)
+        await _run_app(app, host="127.0.0.1", port=8080)  # Не уверен, что это правильно
     elif conf.bot.mode == "polling":
         await dp.start_polling(bot)
 
