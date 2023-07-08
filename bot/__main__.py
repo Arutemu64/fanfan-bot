@@ -31,7 +31,6 @@ async def on_startup(bot: Bot):
 async def main():
     sentry_sdk.init(dsn=conf.bot.sentry_dsn,
                     traces_sample_rate=1.0,
-                    profiles_sample_rate=1.0,
                     environment=conf.bot.sentry_env,
                     integrations=[
                         AsyncioIntegration(),
