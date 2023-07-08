@@ -1,16 +1,19 @@
 import asyncio
 import logging
 import sys
-import sentry_sdk
 
+import sentry_sdk
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp.web import _run_app
+from aiohttp.web import run_app
 from aiohttp.web_app import Application
 from pyngrok import conf as ngrok_conf
 from pyngrok import ngrok
+from sentry_sdk.integrations.aiohttp import AioHttpIntegration
+from sentry_sdk.integrations.asyncio import AsyncioIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from bot import handlers
@@ -28,7 +31,12 @@ async def on_startup(bot: Bot):
 async def main():
     sentry_sdk.init(dsn=conf.bot.sentry_dsn,
                     traces_sample_rate=1.0,
-                    environment=conf.bot.sentry_env)
+                    environment=conf.bot.sentry_env,
+                    integrations=[
+                        AsyncioIntegration(),
+                        AioHttpIntegration(),
+                        SqlalchemyIntegration(),
+                    ])
     engine = create_async_engine(url=conf.db.build_connection_str(), echo=conf.db_echo)
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -49,7 +57,7 @@ async def main():
         app['bot'] = bot
         SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="")
         setup_application(app, dp, bot=bot)
-        await _run_app(app, host="127.0.0.1", port=8080)
+        run_app(app, host="127.0.0.1", port=8080)
     elif conf.bot.mode == "polling":
         await dp.start_polling(bot)
 

@@ -10,6 +10,6 @@ aiohttp
 opencv-python-headless
 qreader==2.12
 torch
-opencv-python
 numpy
-sentry-sdk
+sentry-sdk[sqlalchemy]
+aiocontextvars
