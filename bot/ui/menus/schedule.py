@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.config import conf
 from bot.db.models import Settings, Event
 from bot.ui import strings
-from bot.handlers.cb_factories import ShowSchedule
+from bot.handlers.cb_factories import ShowSchedule, OpenMenu
 
 
 async def show(session: AsyncSession, message, show_back_button: bool = False, page: int = None):
@@ -59,6 +59,6 @@ def keyboard(page, total_pages: int, show_back_button: bool = False):
     buttons = [navigation_buttons]
     if show_back_button:
         buttons.append([types.InlineKeyboardButton(text=strings.buttons.back,
-                                                   callback_data='open_main_menu')])
+                                                   callback_data=OpenMenu(menu='main').pack())])
     kb = types.InlineKeyboardMarkup(inline_keyboard=buttons)
     return kb

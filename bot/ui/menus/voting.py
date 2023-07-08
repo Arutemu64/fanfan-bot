@@ -5,7 +5,7 @@ from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import Nomination, Event, Vote
-from bot.handlers.cb_factories import ShowNomination
+from bot.handlers.cb_factories import ShowNomination, OpenMenu
 from bot.ui import strings
 
 
@@ -45,12 +45,12 @@ def nominations_kb(nominations):
         builder.row(types.InlineKeyboardButton(text=nomination.name,
                                                callback_data=ShowNomination(id=nomination.id).pack()))
     builder.row(types.InlineKeyboardButton(text=strings.buttons.back,
-                                           callback_data='open_main_menu'))
+                                           callback_data=OpenMenu(menu='main').pack()))
     return builder.as_markup()
 
 
 def voting_kb():
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text=strings.buttons.back,
-                                           callback_data='open_nominations_menu'))
+                                           callback_data=OpenMenu(menu='nominations').pack()))
     return builder.as_markup()

@@ -19,3 +19,6 @@ class ShowNomination(CallbackData, prefix="nomination"):
 class ShowActivity(CallbackData, prefix="activity"):
     id: Optional[int]
 
+
+class OpenMenu(CallbackData, prefix="open_menu"):
+    menu: str

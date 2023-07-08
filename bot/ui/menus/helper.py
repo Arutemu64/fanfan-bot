@@ -1,6 +1,7 @@
 from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.handlers.cb_factories import OpenMenu
 from bot.ui import strings
 
 
@@ -15,5 +16,5 @@ def keyboard():
     builder.row(types.InlineKeyboardButton(text=strings.buttons.announce_mode,
                                            callback_data='announce_mode'))
     builder.row(types.InlineKeyboardButton(text=strings.buttons.back,
-                                           callback_data='open_main_menu'))
+                                           callback_data=OpenMenu(menu='main').pack()))
     return builder.as_markup()

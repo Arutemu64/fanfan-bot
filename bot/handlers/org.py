@@ -1,17 +1,19 @@
 from aiogram import Router, Bot, types
 from aiogram.filters import Command, CommandObject, Text
 from aiogram.types import Message
+from magic_filter import F
 from sqlalchemy import or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot import utils
 from bot.db.models import User, Settings
+from bot.handlers.cb_factories import OpenMenu
 from bot.ui import strings, menus
 
 router = Router(name='org_router')
 
 
-@router.callback_query(Text("open_org_menu"), flags={'allowed_roles': ['org']})
+@router.callback_query(OpenMenu.filter(F.menu == 'org'), flags={'allowed_roles': ['org']})
 async def open_org_menu(callback: types.CallbackQuery, session: AsyncSession):
     settings = await Settings.get_one(session, True)
     await menus.org.show(callback.message, settings)
