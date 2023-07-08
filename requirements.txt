@@ -1,9 +1,6 @@
 python-dotenv
 aiogram==3.0.0b7
 sqlalchemy==2.0.18
-psycopg
-psycopg-binary
-psycopg-pool
 alembic
 pyngrok
 aiohttp
@@ -13,3 +10,4 @@ torch
 numpy
 sentry-sdk[sqlalchemy]
 aiocontextvars
+asyncpg

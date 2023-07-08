@@ -14,7 +14,7 @@ class DatabaseConfig:
     port: int = int(getenv("POSTGRES_PORT", 5432))
     host: str = getenv("POSTGRES_HOST", "db")
 
-    driver: str = "psycopg"
+    driver: str = "asyncpg"
     database_system: str = "postgresql"
 
     def build_connection_str(self) -> str:
