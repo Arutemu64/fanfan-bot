@@ -38,20 +38,22 @@ class BotConfig:
     token: str = getenv("BOT_TOKEN")
     mode: str = getenv("MODE", 'polling')
 
+    channel_id = int(getenv("CHANNEL_ID"))
+    channel_link = getenv("CHANNEL_LINK")
+
     ngrok_auth: str = getenv("NGROK_AUTH")
+    ngrok_region = getenv("NGROK_REGION", "eu")
+
+    sentry_dsn = getenv("SENTRY_DSN")
+    sentry_env = getenv("SENTRY_ENV")
 
 
 @dataclass
 class Configuration:
     """All in one configuration's class"""
 
-    # debug = bool(getenv("DEBUG"))
     logging_level = int(getenv("LOGGING_LEVEL", logging.INFO))
     db_echo = bool(getenv("DB_ECHO", "False") == "True")
-    ngrok_region = getenv("NGROK_REGION", "eu")
-
-    channel_id = int(getenv("CHANNEL_ID"))
-    channel_link = getenv("CHANNEL_LINK")
 
     events_per_page = 7
 

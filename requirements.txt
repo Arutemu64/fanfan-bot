@@ -12,3 +12,4 @@ qreader==2.12
 torch
 opencv-python
 numpy
+sentry-sdk

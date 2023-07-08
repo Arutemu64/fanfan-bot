@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import sentry_sdk
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums.parse_mode import ParseMode
@@ -19,12 +20,15 @@ from bot.middlewares import DbSessionMiddleware
 
 async def on_startup(bot: Bot):
     ngrok.set_auth_token(conf.bot.ngrok_auth)
-    ngrok_conf.get_default().region = conf.ngrok_region
+    ngrok_conf.get_default().region = conf.bot.ngrok_region
     ngrok_tunnel = ngrok.connect(addr="127.0.0.1:8080", proto="http")
     await bot.set_webhook(ngrok_tunnel.public_url)
 
 
 async def main():
+    sentry_sdk.init(dsn=conf.bot.sentry_dsn,
+                    traces_sample_rate=1.0,
+                    environment=conf.bot.sentry_env)
     engine = create_async_engine(url=conf.db.build_connection_str(), echo=conf.db_echo)
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
