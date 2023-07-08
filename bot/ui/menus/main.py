@@ -18,7 +18,7 @@ async def keyboard(user_group):
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(text=strings.buttons.changelog_channel, url="https://t.me/fanfan_bot_dev_notes"))
-    builder.row(types.InlineKeyboardButton(text=strings.buttons.notifications_channel, url=conf.channel_link))
+    builder.row(types.InlineKeyboardButton(text=strings.buttons.notifications_channel, url=conf.bot.channel_link))
     builder.row(types.InlineKeyboardButton(text=strings.buttons.show_schedule, callback_data=ShowSchedule().pack()))
     builder.row(types.InlineKeyboardButton(text=strings.buttons.activities_menu, callback_data=ShowActivity().pack()))
     builder.row(types.InlineKeyboardButton(text=strings.buttons.voting, callback_data=OpenMenu(menu='nominations').pack()))

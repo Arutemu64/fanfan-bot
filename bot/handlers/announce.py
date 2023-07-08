@@ -37,7 +37,7 @@ async def send_announcement(callback: types.CallbackQuery,
             settings.next_event_id = callback_data.next_event_id
         await session.commit()
         text = f"""{callback.message.html_text}\n<i>Отправил @{callback.from_user.username} ({callback.from_user.id})</i>"""
-        await bot.send_message(conf.channel_id, text)
+        await bot.send_message(conf.bot.channel_id, text)
         await callback.message.delete()
         await callback.answer()
     else:
