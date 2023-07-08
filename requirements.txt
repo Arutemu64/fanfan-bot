@@ -8,6 +8,5 @@ opencv-python-headless
 qreader==2.12
 torch
 numpy
-sentry-sdk[sqlalchemy]
-aiocontextvars
+sentry-sdk
 asyncpg
