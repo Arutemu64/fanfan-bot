@@ -59,7 +59,7 @@ async def keyboard(id: int, total: int):
         )
         navigation_buttons.append(
             types.InlineKeyboardButton(
-                text="⏭️", callback_data=ShowActivity(page=total).pack()
+                text="⏭️", callback_data=ShowActivity(id=total-1).pack()
             )
         )
     else:
