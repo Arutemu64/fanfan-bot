@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -22,7 +22,7 @@ class Requests(object):
         return db_query.scalars().all()
 
     @classmethod
-    async def count(cls, session: AsyncSession, whereclause):  # Переписать, так делать не стоит
-        db_query = await session.execute(select(cls).where(whereclause))
-        votes = db_query.scalars().all()
-        return len(votes)
+    async def count(cls, session: AsyncSession, whereclause) -> int:
+        db_query = await session.execute(select(func.count()).select_from(cls).where(whereclause))
+        count = db_query.scalar()
+        return count
