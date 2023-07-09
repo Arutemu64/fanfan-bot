@@ -10,12 +10,14 @@ from bot.ui import strings
 path_to_activities_folder = Path(__file__).parents[1] / "activities"
 activities_json = path_to_activities_folder / "activities.json"
 
+with open(activities_json, mode="r") as f:
+    activities = json.load(f)
+
 
 async def show(message: Message, id: int):
     if not id:
         id = 0
-    with open(activities_json, mode="r") as f:
-        activities = json.load(f)
+    global activities
     title = activities[id].get("title", "%title%")
     text = activities[id].get("text", "%text%")
     where = activities[id].get("where", "%where%")
@@ -59,7 +61,7 @@ async def keyboard(id: int, total: int):
         )
         navigation_buttons.append(
             types.InlineKeyboardButton(
-                text="⏭️", callback_data=ShowActivity(id=total-1).pack()
+                text="⏭️", callback_data=ShowActivity(id=total - 1).pack()
             )
         )
     else:
