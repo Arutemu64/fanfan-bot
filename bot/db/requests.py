@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type, List
+from typing import TypeVar, Generic, List
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,13 +9,6 @@ Base = declarative_base()
 
 
 class Requests(Generic[T]):
-
-    type_model: Type[Base]
-    session: AsyncSession
-
-    def __init__(self, type_model: Type[Base], session: AsyncSession):
-        self.type_model = type_model
-        self.session = session
 
     @classmethod
     async def get_one(cls, session: AsyncSession, whereclause) -> T:
