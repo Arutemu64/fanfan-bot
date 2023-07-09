@@ -15,12 +15,12 @@ class RoleMiddleware(BaseMiddleware):
     """
 
     async def __call__(
-            self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-            event: Message | CallbackQuery,
-            data: Dict[str, Any]
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: Message | CallbackQuery,
+        data: Dict[str, Any],
     ) -> Any:
-        if get_flag(data, 'bypass_verification'):
+        if get_flag(data, "bypass_verification"):
             return await handler(event, data)
         user: User = data["user"]
         if user is None:
@@ -29,7 +29,7 @@ class RoleMiddleware(BaseMiddleware):
             elif type(event) is Message:
                 await event.reply(strings.errors.no_access)
             return
-        allowed_roles = get_flag(data, 'allowed_roles')
+        allowed_roles = get_flag(data, "allowed_roles")
         if allowed_roles:
             if user.role in allowed_roles:
                 return await handler(event, data)

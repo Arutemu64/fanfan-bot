@@ -36,7 +36,7 @@ class BotConfig:
     """Bot configuration"""
 
     token: str = getenv("BOT_TOKEN")
-    mode: str = getenv("MODE", 'polling')
+    mode: str = getenv("MODE", "polling")
 
     channel_id = int(getenv("CHANNEL_ID"))
     channel_link = getenv("CHANNEL_LINK")

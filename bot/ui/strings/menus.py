@@ -1,4 +1,5 @@
 import random
+
 from bot.ui.strings import buttons
 
 quotes = [

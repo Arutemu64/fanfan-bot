@@ -1,20 +1,20 @@
 from aiogram import Router
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import User
-from bot.ui import strings, menus
+from bot.ui import menus, strings
 
-router = Router(name='auth_router')
+router = Router(name="auth_router")
 
 
 class Registration(StatesGroup):  # состояние регистрации
     NotRegistered = State()
 
 
-@router.message(Registration.NotRegistered, flags={'bypass_verification': True})
+@router.message(Registration.NotRegistered, flags={"bypass_verification": True})
 async def registration(message: Message, state: FSMContext, session: AsyncSession):
     ticket = await User.get_one(session, User.ticket_id == message.text)
     if ticket:

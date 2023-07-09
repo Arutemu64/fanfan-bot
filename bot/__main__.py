@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import sys
-import sentry_sdk
 
+import sentry_sdk
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -11,7 +11,7 @@ from aiohttp.web import _run_app
 from aiohttp.web_app import Application
 from pyngrok import conf as ngrok_conf
 from pyngrok import ngrok
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from bot import handlers
 from bot.config import conf
@@ -26,9 +26,9 @@ async def on_startup(bot: Bot):
 
 
 async def main():
-    sentry_sdk.init(dsn=conf.bot.sentry_dsn,
-                    traces_sample_rate=1.0,
-                    environment=conf.bot.sentry_env)
+    sentry_sdk.init(
+        dsn=conf.bot.sentry_dsn, traces_sample_rate=1.0, environment=conf.bot.sentry_env
+    )
     engine = create_async_engine(url=conf.db.build_connection_str(), echo=conf.db_echo)
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -46,7 +46,7 @@ async def main():
 
     if conf.bot.mode == "webhook":
         app = Application()
-        app['bot'] = bot
+        app["bot"] = bot
         SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="")
         setup_application(app, dp, bot=bot)
         await _run_app(app, host="127.0.0.1", port=8080)
@@ -61,4 +61,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
-        print('Bot stopped!')
+        print("Bot stopped!")

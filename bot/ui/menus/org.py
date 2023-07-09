@@ -15,11 +15,20 @@ async def show(message, settings: Settings):
 def keyboard(settings: Settings):
     builder = InlineKeyboardBuilder()
     if settings.voting_enabled:
-        builder.row(types.InlineKeyboardButton(text=strings.buttons.disable_voting,
-                                               callback_data='switch_voting'))
+        builder.row(
+            types.InlineKeyboardButton(
+                text=strings.buttons.disable_voting, callback_data="switch_voting"
+            )
+        )
     else:
-        builder.row(types.InlineKeyboardButton(text=strings.buttons.enable_voting,
-                                               callback_data='switch_voting'))
-    builder.row(types.InlineKeyboardButton(text=strings.buttons.back,
-                                           callback_data=OpenMenu(menu='main').pack()))
+        builder.row(
+            types.InlineKeyboardButton(
+                text=strings.buttons.enable_voting, callback_data="switch_voting"
+            )
+        )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=strings.buttons.back, callback_data=OpenMenu(menu="main").pack()
+        )
+    )
     return builder.as_markup()

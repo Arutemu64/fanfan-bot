@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, BigInteger, Boolean, Text, VARCHAR
+from sqlalchemy import VARCHAR, BigInteger, Boolean, Column, Integer, Text
 from sqlalchemy.orm import declarative_base
 
 from bot.db.requests import Requests
@@ -7,30 +7,34 @@ Base = declarative_base()
 
 
 class User(Requests, Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
-    ticket_id = Column(VARCHAR, primary_key=True, unique=True, autoincrement=False)  # ticket_id
+    ticket_id = Column(
+        VARCHAR, primary_key=True, unique=True, autoincrement=False
+    )  # ticket_id
     tg_id = Column(BigInteger, unique=True, autoincrement=False)  # tg_id
     username = Column(VARCHAR)  # username
-    role = Column(VARCHAR, default='visitor')  # role
+    role = Column(VARCHAR, default="visitor")  # role
 
     def __str__(self):
         return f"""User: tg_id={str(self.tg_id)}, username={self.username}, role={self.role}"""
 
 
 class Event(Requests, Base):
-    __tablename__ = 'schedule'
+    __tablename__ = "schedule"
 
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)  # event_id
     title = Column(Text)  # name
     # position = Column(Integer, unique=True, primary_key=True)  # position
     nomination_id = Column(Integer, autoincrement=False)  # nomination_id
 
-    def __init__(self,
-                 id: int = None,
-                 title: str = None,
-                 # position: int = None,
-                 nomination_id: int = None):
+    def __init__(
+        self,
+        id: int = None,
+        title: str = None,
+        # position: int = None,
+        nomination_id: int = None,
+    ):
         self.id = id
         self.title = title
         # self.position = position
@@ -42,16 +46,20 @@ class Event(Requests, Base):
 
 
 class Nomination(Requests, Base):
-    __tablename__ = 'nominations'
+    __tablename__ = "nominations"
 
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=False)  # nomination_id
+    id = Column(
+        Integer, primary_key=True, unique=True, autoincrement=False
+    )  # nomination_id
     name = Column(Text)  # name
 
 
 class Vote(Requests, Base):
-    __tablename__ = 'votes'
+    __tablename__ = "votes"
 
-    vote_id = Column(Integer, primary_key=True, unique=True, autoincrement=True)  # vote_id
+    vote_id = Column(
+        Integer, primary_key=True, unique=True, autoincrement=True
+    )  # vote_id
     tg_id = Column(Integer)  # tg_id
     event_id = Column(Integer)  # event_id
     nomination_id = Column(Integer)  # nomination_id
@@ -66,7 +74,7 @@ class Vote(Requests, Base):
 
 
 class Settings(Requests, Base):
-    __tablename__ = 'settings'
+    __tablename__ = "settings"
 
     voting_enabled = Column(Boolean, primary_key=True)
     current_event_id = Column(Integer, primary_key=True)

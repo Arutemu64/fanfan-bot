@@ -5,23 +5,27 @@ from aiogram.exceptions import TelegramBadRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import conf
-from bot.db.models import Settings, Event
+from bot.db.models import Event, Settings
+from bot.handlers.cb_factories import OpenMenu, ShowSchedule
 from bot.ui import strings
-from bot.handlers.cb_factories import ShowSchedule, OpenMenu
 
 
-async def show(session: AsyncSession, message, show_back_button: bool = False, page: int = None):
+async def show(
+    session: AsyncSession, message, show_back_button: bool = False, page: int = None
+):
     settings = await Settings.get_one(session, True)
     per_page = conf.events_per_page
     if page is None:
         page = math.floor((settings.current_event_id - 1) / per_page)
         if page < 0:
             page = 0
-    events = await Event.get_range(session, (page * per_page), (page * per_page) + per_page, Event.id)
+    events = await Event.get_range(
+        session, (page * per_page), (page * per_page) + per_page, Event.id
+    )
     total_pages = math.floor((await Event.count(session, True) / per_page))
     text = f"<b>📅 Расписание</b> (страница {page + 1} из {total_pages + 1})\n\n"
     for event in events:
-        entry = ''
+        entry = ""
         if event.id:
             entry = f"<b>{event.id}.</b> {event.title}"
         if event.id == settings.current_event_id:
@@ -37,28 +41,55 @@ async def show(session: AsyncSession, message, show_back_button: bool = False, p
 def keyboard(page, total_pages: int, show_back_button: bool = False):
     navigation_buttons = []
     if page > 0:
-        navigation_buttons.insert(0, types.InlineKeyboardButton(text="⏪",
-                                                                callback_data=ShowSchedule(page=0).pack()))
-        navigation_buttons.insert(1, types.InlineKeyboardButton(text="◀️",
-                                                                callback_data=ShowSchedule(page=page-1).pack()))
+        navigation_buttons.insert(
+            0,
+            types.InlineKeyboardButton(
+                text="⏪", callback_data=ShowSchedule(page=0).pack()
+            ),
+        )
+        navigation_buttons.insert(
+            1,
+            types.InlineKeyboardButton(
+                text="◀️", callback_data=ShowSchedule(page=page - 1).pack()
+            ),
+        )
     else:
-        navigation_buttons.insert(0, types.InlineKeyboardButton(text="⠀",
-                                                                callback_data='dummy'))
-        navigation_buttons.insert(1, types.InlineKeyboardButton(text="⠀",
-                                                                callback_data='dummy'))
-    navigation_buttons.append(types.InlineKeyboardButton(text="🔃",
-                                                         callback_data=ShowSchedule().pack()))
+        navigation_buttons.insert(
+            0, types.InlineKeyboardButton(text="⠀", callback_data="dummy")
+        )
+        navigation_buttons.insert(
+            1, types.InlineKeyboardButton(text="⠀", callback_data="dummy")
+        )
+    navigation_buttons.append(
+        types.InlineKeyboardButton(text="🔃", callback_data=ShowSchedule().pack())
+    )
     if page < total_pages:
-        navigation_buttons.append(types.InlineKeyboardButton(text="▶️",
-                                                             callback_data=ShowSchedule(page=page+1).pack()))
-        navigation_buttons.append(types.InlineKeyboardButton(text="⏭️",
-                                                             callback_data=ShowSchedule(page=total_pages).pack()))
+        navigation_buttons.append(
+            types.InlineKeyboardButton(
+                text="▶️", callback_data=ShowSchedule(page=page + 1).pack()
+            )
+        )
+        navigation_buttons.append(
+            types.InlineKeyboardButton(
+                text="⏭️", callback_data=ShowSchedule(page=total_pages).pack()
+            )
+        )
     else:
-        navigation_buttons.append(types.InlineKeyboardButton(text="⠀", callback_data='dummy'))
-        navigation_buttons.append(types.InlineKeyboardButton(text="⠀", callback_data='dummy'))
+        navigation_buttons.append(
+            types.InlineKeyboardButton(text="⠀", callback_data="dummy")
+        )
+        navigation_buttons.append(
+            types.InlineKeyboardButton(text="⠀", callback_data="dummy")
+        )
     buttons = [navigation_buttons]
     if show_back_button:
-        buttons.append([types.InlineKeyboardButton(text=strings.buttons.back,
-                                                   callback_data=OpenMenu(menu='main').pack())])
+        buttons.append(
+            [
+                types.InlineKeyboardButton(
+                    text=strings.buttons.back,
+                    callback_data=OpenMenu(menu="main").pack(),
+                )
+            ]
+        )
     kb = types.InlineKeyboardMarkup(inline_keyboard=buttons)
     return kb

@@ -13,8 +13,14 @@ async def show(message):
 
 def keyboard():
     builder = InlineKeyboardBuilder()
-    builder.row(types.InlineKeyboardButton(text=strings.buttons.announce_mode,
-                                           callback_data='announce_mode'))
-    builder.row(types.InlineKeyboardButton(text=strings.buttons.back,
-                                           callback_data=OpenMenu(menu='main').pack()))
+    builder.row(
+        types.InlineKeyboardButton(
+            text=strings.buttons.announce_mode, callback_data="announce_mode"
+        )
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=strings.buttons.back, callback_data=OpenMenu(menu="main").pack()
+        )
+    )
     return builder.as_markup()

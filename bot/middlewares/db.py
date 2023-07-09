@@ -1,4 +1,4 @@
-from typing import Callable, Awaitable, Dict, Any
+from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
@@ -14,14 +14,14 @@ class DbSessionMiddleware(BaseMiddleware):
         self.session_pool = session_pool
 
     async def __call__(
-            self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-            event: TelegramObject,
-            data: Dict[str, Any],
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
     ) -> Any:
         async with self.session_pool() as session:
             data["session"] = session
-            user = await User.get_one(session, User.tg_id == data['event_from_user'].id)
+            user = await User.get_one(session, User.tg_id == data["event_from_user"].id)
             if user:
                 data["user"] = user
             else:

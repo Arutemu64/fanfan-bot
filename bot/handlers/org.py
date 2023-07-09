@@ -1,4 +1,4 @@
-from aiogram import Router, Bot, types
+from aiogram import Bot, Router, types
 from aiogram.filters import Command, CommandObject, Text
 from aiogram.types import Message
 from magic_filter import F
@@ -6,30 +6,34 @@ from sqlalchemy import or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot import utils
-from bot.db.models import User, Settings
+from bot.db.models import Settings, User
 from bot.handlers.cb_factories import OpenMenu
-from bot.ui import strings, menus
+from bot.ui import menus, strings
 
-router = Router(name='org_router')
+router = Router(name="org_router")
 
 
-@router.callback_query(OpenMenu.filter(F.menu == 'org'), flags={'allowed_roles': ['org']})
+@router.callback_query(
+    OpenMenu.filter(F.menu == "org"), flags={"allowed_roles": ["org"]}
+)
 async def open_org_menu(callback: types.CallbackQuery, session: AsyncSession):
     settings = await Settings.get_one(session, True)
     await menus.org.show(callback.message, settings)
     await callback.answer()
 
 
-@router.message(Command("role"), flags={'allowed_roles': ['org']})
-async def vote(message: Message, command: CommandObject, session: AsyncSession, bot: Bot):
+@router.message(Command("role"), flags={"allowed_roles": ["org"]})
+async def vote(
+    message: Message, command: CommandObject, session: AsyncSession, bot: Bot
+):
     if not command.args:
         await message.reply(strings.errors.wrong_command_usage)
         return
     args = command.args.split()
-    if not args[1] in {'visitor', 'helper', 'org'}:
+    if not args[1] in {"visitor", "helper", "org"}:
         await message.reply(strings.errors.wrong_command_usage)
         return
-    username = args[0].replace('@', '').lower()
+    username = args[0].replace("@", "").lower()
     user = await User.get_one(session, User.username == username)
     if user is None:
         return
@@ -39,12 +43,14 @@ async def vote(message: Message, command: CommandObject, session: AsyncSession, 
     await utils.service_message(session, bot, text)
 
 
-@router.message(Command("info"), flags={'allowed_roles': ['org']})
-async def get_user_info(message: Message, command: CommandObject, session: AsyncSession):
+@router.message(Command("info"), flags={"allowed_roles": ["org"]})
+async def get_user_info(
+    message: Message, command: CommandObject, session: AsyncSession
+):
     if not command.args:
         await message.reply(strings.errors.wrong_command_usage)
         return
-    query = command.args.replace('@', '')
+    query = command.args.replace("@", "")
     if type(query) is not str:
         await message.reply(strings.errors.wrong_command_usage)
         return
@@ -59,13 +65,14 @@ async def get_user_info(message: Message, command: CommandObject, session: Async
         await message.reply("Такой пользователь не найден")
 
 
-@router.callback_query(Text("switch_voting"), flags={'allowed_roles': ['org']})
+@router.callback_query(Text("switch_voting"), flags={"allowed_roles": ["org"]})
 async def announce_mode(callback: types.CallbackQuery, session: AsyncSession):
     settings = await Settings.get_one(session, True)
     settings.voting_enabled = not settings.voting_enabled
     await session.commit()
     await callback.message.edit_reply_markup(reply_markup=menus.org.keyboard(settings))
     await callback.answer()
+
 
 # @router.message(Command("msg"), flags={'allowed_roles': ['org']})
 # async def msg(message: Message, command: CommandObject, session: AsyncSession, bot: Bot):

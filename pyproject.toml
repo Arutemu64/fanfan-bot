@@ -18,6 +18,17 @@ sqlalchemy = "^2.0.0"
 torch = {version = "^2.0.1+cpu", source="torch-cpu"}
 torchvision = {version = "^0.15.2+cpu", source = "torch-cpu"}
 
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+flake8 = "^6.0.0"
+isort = "^5.12.0"
+
+[tool.poetry.group.dev]
+optional=true
+
+[tool.isort]
+profile = "black"
+
 [[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"
