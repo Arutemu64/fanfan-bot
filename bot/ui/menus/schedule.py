@@ -1,12 +1,12 @@
 import math
 
 from aiogram import types
-from aiogram.exceptions import TelegramBadRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import conf
 from bot.db.models import Event, Settings
 from bot.handlers.cb_factories import OpenMenu, ShowSchedule
+from bot.models import Menu
 from bot.ui import strings
 
 
@@ -15,15 +15,19 @@ async def show(
 ):
     settings = await Settings.get_one(session, True)
     per_page = conf.events_per_page
+
+    menu = Menu()
+    total_pages = math.floor((await Event.count(session, True) / per_page))
+    menu.formatting = False
     if page is None:
         page = math.floor((settings.current_event_id - 1) / per_page)
         if page < 0:
             page = 0
+    menu.title = f"<b>📅 Расписание</b> (страница {page + 1} из {total_pages + 1})"
     events = await Event.get_range(
         session, (page * per_page), (page * per_page) + per_page, Event.id
     )
-    total_pages = math.floor((await Event.count(session, True) / per_page))
-    text = f"<b>📅 Расписание</b> (страница {page + 1} из {total_pages + 1})\n\n"
+    text = ""
     for event in events:
         entry = ""
         if event.id:
@@ -31,11 +35,13 @@ async def show(
         if event.id == settings.current_event_id:
             entry = f"""<b>👉 {entry}</b>"""
         text = text + entry + "\n"
-    kb = keyboard(page, total_pages, show_back_button)
-    try:
-        await message.edit_text(text, reply_markup=kb)
-    except TelegramBadRequest:
-        return
+    menu.text = text
+    menu.keyboard = keyboard(page, total_pages, show_back_button)
+    await menu.show(message)
+    # try:
+    #     await message.edit_text(text, reply_markup=kb)
+    # except TelegramBadRequest:
+    #     return
 
 
 def keyboard(page, total_pages: int, show_back_button: bool = False):

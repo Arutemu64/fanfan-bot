@@ -2,13 +2,16 @@ from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.handlers.cb_factories import OpenMenu
+from bot.models import Menu
 from bot.ui import strings
 
 
 async def show(message):
-    text = strings.menus.helper_menu_text
-    kb = keyboard()
-    await message.edit_text(text, reply_markup=kb)
+    menu = Menu()
+    menu.title = f"📣 Для волонтёров доступны следующие функции:"
+    menu.text = strings.menus.helper_menu_text
+    menu.keyboard = keyboard()
+    await menu.show(message)
 
 
 def keyboard():

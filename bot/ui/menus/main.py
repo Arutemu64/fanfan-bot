@@ -1,3 +1,6 @@
+import random
+from pathlib import Path
+
 from aiogram import types
 from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -5,16 +8,24 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.config import conf
 from bot.db.models import User
 from bot.handlers.cb_factories import OpenMenu, ShowActivity, ShowSchedule
+from bot.models import Menu
 from bot.ui import strings
+from bot.ui.strings.menus import quotes
+
+path = Path(__file__).parent.parent / "images" / "test.jpg"
 
 
 async def show(message: Message, user: User):
-    kb = await keyboard(user_group=user.role)
-    text = strings.menus.main_menu_text(first_name=message.chat.first_name)
-    await message.edit_text(text, reply_markup=kb)
+    menu = Menu()
+    menu.title = "📃 Главное меню"
+    menu.text = strings.menus.main_menu_text(first_name=message.chat.first_name)
+    menu.bottom = random.choice(quotes)
+    # menu.image = path
+    menu.keyboard = keyboard(user_group=user.role)
+    await menu.show(message)
 
 
-async def keyboard(user_group):
+def keyboard(user_group):
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(

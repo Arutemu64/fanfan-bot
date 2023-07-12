@@ -3,13 +3,16 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.db.models import Settings
 from bot.handlers.cb_factories import OpenMenu
+from bot.models import Menu
 from bot.ui import strings
 
 
 async def show(message, settings: Settings):
-    text = strings.menus.org_menu_text
-    kb = keyboard(settings)
-    await message.edit_text(text, reply_markup=kb)
+    menu = Menu()
+    menu.title = "🔧 Для организаторов доступны следующие команды:"
+    menu.text = strings.menus.org_menu_text
+    menu.keyboard = keyboard(settings)
+    await menu.show(message)
 
 
 def keyboard(settings: Settings):

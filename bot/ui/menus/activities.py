@@ -5,6 +5,7 @@ from aiogram import types
 from aiogram.types import Message
 
 from bot.handlers.cb_factories import OpenMenu, ShowActivity
+from bot.models import Menu
 from bot.ui import strings
 
 path_to_activities_folder = Path(__file__).parents[1] / "activities"
@@ -18,12 +19,12 @@ async def show(message: Message, id: int):
     if not id:
         id = 0
     global activities
-    title = activities[id].get("title", "%title%")
-    text = activities[id].get("text", "%text%")
-    where = activities[id].get("where", "%where%")
-    kb = await keyboard(id, len(activities))
-    message_text = f"<b>{title}</b>\n\n{text}\n\n<b>Где:</b> {where}"
-    await message.edit_text(text=message_text, reply_markup=kb)
+    menu = Menu()
+    menu.title = activities[id].get("title", "%title%")
+    menu.text = activities[id].get("text", "%text%")
+    menu.bottom = activities[id].get("where", "%where%")
+    menu.keyboard = await keyboard(id, len(activities))
+    await menu.show(message)
 
 
 async def keyboard(id: int, total: int):
