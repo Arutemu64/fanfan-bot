@@ -18,7 +18,4 @@ def setup_routers() -> Router:
     router.include_router(schedule.router)
     router.include_router(voting.router)
 
-    router.message.middleware(middlewares.RoleMiddleware())
-    router.callback_query.middleware(middlewares.RoleMiddleware())
-
     return router
