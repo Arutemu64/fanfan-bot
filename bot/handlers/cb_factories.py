@@ -13,7 +13,7 @@ class ShowSchedule(CallbackData, prefix="schedule"):
 
 
 class ShowNomination(CallbackData, prefix="nomination"):
-    id: int
+    id: str
 
 
 class ShowActivity(CallbackData, prefix="activity"):

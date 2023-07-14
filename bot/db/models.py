@@ -1,5 +1,7 @@
-from sqlalchemy import VARCHAR, BigInteger, Boolean, Column, Integer, Text
-from sqlalchemy.orm import declarative_base
+from typing import List
+
+from sqlalchemy import BigInteger, ForeignKey
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 
 from bot.db.requests import Requests
 
@@ -9,78 +11,74 @@ Base = declarative_base()
 class User(Requests, Base):
     __tablename__ = "users"
 
-    ticket_id = Column(
-        VARCHAR, primary_key=True, unique=True, autoincrement=False
-    )  # ticket_id
-    tg_id = Column(BigInteger, unique=True, autoincrement=False)  # tg_id
-    username = Column(VARCHAR)  # username
-    role = Column(VARCHAR, default="visitor")  # role
+    ticket_id: Mapped[str] = mapped_column(primary_key=True, unique=True, nullable=True)
+    tg_id: Mapped[int] = mapped_column(
+        BigInteger, unique=True, autoincrement=False, nullable=True
+    )
+    username: Mapped[str] = mapped_column(nullable=True)
+    role: Mapped[str] = mapped_column(server_default="visitor")
+
+    votes: Mapped[List["Vote"]] = relationship()
 
     def __str__(self):
         return f"""User: tg_id={str(self.tg_id)}, username={self.username}, role={self.role}"""
 
 
-class Event(Requests, Base):
-    __tablename__ = "schedule"
-
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)  # event_id
-    title = Column(Text)  # name
-    # position = Column(Integer, unique=True, primary_key=True)  # position
-    nomination_id = Column(Integer, autoincrement=False)  # nomination_id
-
-    def __init__(
-        self,
-        id: int = None,
-        title: str = None,
-        # position: int = None,
-        nomination_id: int = None,
-    ):
-        self.id = id
-        self.title = title
-        # self.position = position
-        self.nomination_id = nomination_id
-
-    def __str__(self):
-        # return f"""Event: {str(self.id)}, {self.title}, {str(self. position)}, {str(self.nomination_id)}"""
-        return f"""Event: {str(self.id)}, {self.title}, {str(self.nomination_id)}"""
-
-
 class Nomination(Requests, Base):
     __tablename__ = "nominations"
 
-    id = Column(
-        Integer, primary_key=True, unique=True, autoincrement=False
-    )  # nomination_id
-    name = Column(Text)  # name
+    id: Mapped[str] = mapped_column(primary_key=True, unique=True, autoincrement=False)
+    title: Mapped[str] = mapped_column(unique=True)
+    votable: Mapped[bool] = mapped_column(server_default="False")
+
+    participants: Mapped[List["Participant"]] = relationship(
+        back_populates="nomination", lazy="selectin"
+    )
+
+
+class Participant(Requests, Base):
+    __tablename__ = "participants"
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(unique=True)
+    nomination_id: Mapped[str] = mapped_column(
+        ForeignKey("nominations.id"), nullable=True
+    )
+
+    nomination: Mapped["Nomination"] = relationship(back_populates="participants")
+    votes: Mapped[List["Vote"]] = relationship(lazy="selectin")
+
+
+class Event(Requests, Base):
+    __tablename__ = "schedule"
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
+    participant_id: Mapped[int] = mapped_column(ForeignKey("participants.id"))
+    text: Mapped[str] = mapped_column(nullable=True)
+    current: Mapped[bool] = mapped_column(nullable=True, unique=True)
+    next: Mapped[bool] = mapped_column(nullable=True, unique=True)
+
+    def __str__(self):
+        return f"""Event: {str(self.id)}, {self.participant_id}"""
+
+    participant: Mapped["Participant"] = relationship(lazy="selectin")
 
 
 class Vote(Requests, Base):
     __tablename__ = "votes"
 
-    vote_id = Column(
-        Integer, primary_key=True, unique=True, autoincrement=True
+    vote_id: Mapped[int] = mapped_column(
+        primary_key=True, unique=True, autoincrement=True
     )  # vote_id
-    tg_id = Column(Integer)  # tg_id
-    event_id = Column(Integer)  # event_id
-    nomination_id = Column(Integer)  # nomination_id
-
-    def __init__(self, tg_id, event_id, nomination_id):
-        self.tg_id = tg_id
-        self.event_id = event_id
-        self.nomination_id = nomination_id
+    tg_id: Mapped[int] = mapped_column(ForeignKey("users.tg_id"))
+    participant_id: Mapped[int] = mapped_column(ForeignKey("participants.id"))
+    nomination_id: Mapped[str] = mapped_column(ForeignKey("nominations.id"))
 
     def __str__(self):
-        return f"Vote: {self.tg_id} {self.event_id} {self.nomination_id}"
+        return f"Vote: {self.tg_id} {self.participant_id} {self.nomination_id}"
 
 
 class Settings(Requests, Base):
     __tablename__ = "settings"
 
-    voting_enabled = Column(Boolean, primary_key=True)
-    current_event_id = Column(Integer, primary_key=True)
-    next_event_id = Column(Integer, primary_key=True)
-
-    def __init__(self, voting_enabled, current_event_id, next_event_id):
-        self.voting_enabled = voting_enabled
-        self.current_event_id = current_event_id
-        self.next_event_id = next_event_id
+    voting_enabled: Mapped[bool] = mapped_column(primary_key=True)

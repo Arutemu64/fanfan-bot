@@ -13,35 +13,34 @@ from bot.ui import strings
 async def show(
     session: AsyncSession, message, show_back_button: bool = False, page: int = None
 ):
-    settings = await Settings.get_one(session, True)
     per_page = conf.events_per_page
-
-    menu = Menu()
     total_pages = math.floor((await Event.count(session, True) / per_page))
-    menu.formatting = False
+    current_event: Event = await Event.get_one(session, Event.current == True)  # noqa
+    if current_event:
+        current_event_id = current_event.id
+    else:
+        current_event_id = 0
     if page is None:
-        page = math.floor((settings.current_event_id - 1) / per_page)
+        page = math.floor((current_event_id - 1) / per_page)
         if page < 0:
             page = 0
-    menu.title = f"<b>📅 Расписание</b> (страница {page + 1} из {total_pages + 1})"
     events = await Event.get_range(
         session, (page * per_page), (page * per_page) + per_page, Event.id
     )
     text = ""
     for event in events:
         entry = ""
-        if event.id:
-            entry = f"<b>{event.id}.</b> {event.title}"
-        if event.id == settings.current_event_id:
+        if event.participant:
+            entry = f"<b>{event.id}.</b> {event.participant.title}"
+        if event.id == current_event_id:
             entry = f"""<b>👉 {entry}</b>"""
         text = text + entry + "\n"
+    menu = Menu()
+    menu.formatting = False
+    menu.title = f"<b>📅 Расписание</b> (страница {page + 1} из {total_pages + 1})"
     menu.text = text
     menu.keyboard = keyboard(page, total_pages, show_back_button)
     await menu.show(message)
-    # try:
-    #     await message.edit_text(text, reply_markup=kb)
-    # except TelegramBadRequest:
-    #     return
 
 
 def keyboard(page, total_pages: int, show_back_button: bool = False):
