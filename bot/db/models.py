@@ -31,9 +31,7 @@ class Nomination(Requests, Base):
     title: Mapped[str] = mapped_column(unique=True)
     votable: Mapped[bool] = mapped_column(server_default="False")
 
-    participants: Mapped[List["Participant"]] = relationship(
-        back_populates="nomination", lazy="selectin"
-    )
+    participants: Mapped[List["Participant"]] = relationship(lazy="selectin")
 
 
 class Participant(Requests, Base):
@@ -45,7 +43,7 @@ class Participant(Requests, Base):
         ForeignKey("nominations.id"), nullable=True
     )
 
-    nomination: Mapped["Nomination"] = relationship(back_populates="participants")
+    nomination: Mapped["Nomination"] = relationship(lazy="joined")
     votes: Mapped[List["Vote"]] = relationship(lazy="selectin")
 
 
@@ -69,10 +67,11 @@ class Vote(Requests, Base):
 
     vote_id: Mapped[int] = mapped_column(
         primary_key=True, unique=True, autoincrement=True
-    )  # vote_id
+    )
     tg_id: Mapped[int] = mapped_column(ForeignKey("users.tg_id"))
     participant_id: Mapped[int] = mapped_column(ForeignKey("participants.id"))
-    nomination_id: Mapped[str] = mapped_column(ForeignKey("nominations.id"))
+
+    participant: Mapped["Participant"] = relationship(lazy="joined")
 
     def __str__(self):
         return f"Vote: {self.tg_id} {self.participant_id} {self.nomination_id}"

@@ -55,7 +55,7 @@ class Configuration:
     logging_level = int(getenv("LOGGING_LEVEL", logging.INFO))
     db_echo = bool(getenv("DB_ECHO", "False") == "True")
 
-    events_per_page = 7
+    events_per_page = 1
 
     db = DatabaseConfig()
     bot = BotConfig()
