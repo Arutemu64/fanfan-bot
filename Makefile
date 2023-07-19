@@ -8,15 +8,15 @@ migrate:
 
 .PHONY:	black
 black:
-	poetry run black bot/
+	poetry run black src/
 
 .PHONY: isort
 isort:
-	poetry run isort bot/
+	poetry run isort src/
 
 .PHONY: flake
 flake:
-	poetry run flake8 bot/
+	poetry run flake8 src/
 
 .PHONY: lint
 lint: black isort flake
