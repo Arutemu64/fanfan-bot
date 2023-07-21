@@ -1,12 +1,14 @@
 from aiogram.fsm.state import State, StatesGroup
 
 
+class REGISTRATION(StatesGroup):
+    MAIN = State()
+
+
 class MAIN(StatesGroup):
     MAIN = State()
-
-
-class HELPER(StatesGroup):
-    MAIN = State()
+    ACTIVITIES = State()
+    SCHEDULE = State()
 
 
 class VOTING(StatesGroup):
@@ -14,22 +16,15 @@ class VOTING(StatesGroup):
     VOTING = State()
 
 
-class SCHEDULE(StatesGroup):
+class HELPER(StatesGroup):
     MAIN = State()
 
 
 class ANNOUNCE_MODE(StatesGroup):
     MAIN = State()
+    SCHEDULE = State()
     PREVIEW = State()
 
 
 class ORG(StatesGroup):
-    MAIN = State()
-
-
-class ACTIVITIES(StatesGroup):
-    MAIN = State()
-
-
-class REGISTRATION(StatesGroup):
     MAIN = State()

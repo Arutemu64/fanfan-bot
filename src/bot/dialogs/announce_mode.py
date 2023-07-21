@@ -3,11 +3,12 @@ import time
 from aiogram import Bot
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Back, Button, Start
+from aiogram_dialog.widgets.kbd import Back, Button, Start, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
+from src.bot.dialogs.widgets.schedule import get_schedule_widget
 from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
@@ -105,14 +106,18 @@ async def send_announce(
     return
 
 
+schedule = get_schedule_widget(
+    state=states.ANNOUNCE_MODE.SCHEDULE, back_to=states.ANNOUNCE_MODE.MAIN
+)
+
+
 announce_mode = Window(
     Const(strings.menus.announce_mode_text),
     Button(text=Const(strings.buttons.next), id="next", on_click=send_next),
-    Start(
+    SwitchTo(
         text=Const(strings.buttons.show_schedule),
         id="show_schedule",
-        state=states.SCHEDULE.MAIN,
-        data={"back_to": states.ANNOUNCE_MODE.MAIN},
+        state=states.ANNOUNCE_MODE.SCHEDULE,
     ),
     Start(text=Const(strings.buttons.back), id="helper_menu", state=states.HELPER.MAIN),
     state=states.ANNOUNCE_MODE.MAIN,
@@ -131,4 +136,4 @@ preview_announcement = Window(
     getter=preview_getter,
 )
 
-dialog = Dialog(announce_mode, preview_announcement)
+dialog = Dialog(announce_mode, schedule, preview_announcement)

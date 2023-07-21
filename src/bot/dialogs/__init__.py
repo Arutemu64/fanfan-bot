@@ -4,26 +4,15 @@ from src.bot.filters import RoleFilter
 
 
 def setup_router() -> Router:
-    from src.bot.dialogs import (
-        activities,
-        announce_mode,
-        helper,
-        main_menu,
-        org,
-        registration,
-        schedule,
-        voting,
-    )
+    from src.bot.dialogs import announce_mode, helper, main, org, registration, voting
 
     registration_router = Router()
     registration_router.include_router(registration.dialog)
 
     common_router = Router()
     common_router.message.filter(RoleFilter(["visitor", "helper", "org"]))
-    common_router.include_router(activities.dialog)
-    common_router.include_router(main_menu.dialog)
+    common_router.include_router(main.dialog)
     common_router.include_router(voting.dialog)
-    common_router.include_router(schedule.dialog)
 
     helper_router = Router()
     helper_router.callback_query.filter(RoleFilter(["helper", "org"]))

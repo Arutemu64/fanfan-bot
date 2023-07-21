@@ -1,8 +1,9 @@
 import math
 
+from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Row
+from aiogram_dialog import DialogManager, Window
+from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 from magic_filter import F
 
@@ -34,16 +35,6 @@ async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
     events = await db.event.get_range(
         (page * per_page), (page * per_page) + per_page, Event.id
     )
-    # events_list = ""
-    # for event in events:
-    #     entry = ""
-    #     if event.participant:
-    #         entry = f"<b>{event.id}.</b> {event.participant.title}"
-    #     elif event.title:
-    #         entry = f"<b>{event.title}</b>"
-    #     if event.id == current_event_id:
-    #         entry = f"""<b>👉 {entry}</b>"""
-    #     events_list = events_list + entry + "\n"
     return {
         "page": page + 1,
         "total_pages": total_pages,
@@ -77,7 +68,7 @@ async def switch_back(callback: CallbackQuery, button: Button, manager: DialogMa
 
 # fmt: off
 events_html = Jinja(
-"""{% for event in events %}
+    """{% for event in events %}
 {% if event.participant %}
 <b>{{event.id}}.</b> {{event.participant.title}}
 {% elif event.title %}
@@ -88,37 +79,44 @@ events_html = Jinja(
 # fmt: on
 
 
-schedule = Window(
-    Const("<b>📅 Расписание</b>"),
-    Const(" "),
-    events_html,
-    Format("<i>Страница {page} из {total_pages}</i>"),
-    Row(
-        Button(
-            text=Const("⏪"), id="first", on_click=change_page, when=~F["is_first_page"]
+def get_schedule_widget(state: State, back_to: State):
+    return Window(
+        Const("<b>📅 Расписание</b>"),
+        Const(" "),
+        events_html,
+        Format("<i>Страница {page} из {total_pages}</i>"),
+        Row(
+            Button(
+                text=Const("⏪"),
+                id="first",
+                on_click=change_page,
+                when=~F["is_first_page"],
+            ),
+            Button(text=Const("  "), id="first_dummy", when=F["is_first_page"]),
+            Button(
+                text=Const("◀️"),
+                id="previous",
+                on_click=change_page,
+                when=~F["is_first_page"],
+            ),
+            Button(text=Const("  "), id="previous_dummy", when=F["is_first_page"]),
+            Button(text=Const("🔄️"), id="update", on_click=change_page),
+            Button(
+                text=Const("▶️"),
+                id="next",
+                on_click=change_page,
+                when=~F["is_last_page"],
+            ),
+            Button(text=Const("  "), id="next_dummy", when=F["is_last_page"]),
+            Button(
+                text=Const("⏭️"),
+                id="last",
+                on_click=change_page,
+                when=~F["is_last_page"],
+            ),
+            Button(text=Const("  "), id="last_dummy", when=F["is_last_page"]),
         ),
-        Button(text=Const("  "), id="first_dummy", when=F["is_first_page"]),
-        Button(
-            text=Const("◀️"),
-            id="previous",
-            on_click=change_page,
-            when=~F["is_first_page"],
-        ),
-        Button(text=Const("  "), id="previous_dummy", when=F["is_first_page"]),
-        Button(text=Const("🔄️"), id="update", on_click=change_page),
-        Button(
-            text=Const("▶️"), id="next", on_click=change_page, when=~F["is_last_page"]
-        ),
-        Button(text=Const("  "), id="next_dummy", when=F["is_last_page"]),
-        Button(
-            text=Const("⏭️"), id="last", on_click=change_page, when=~F["is_last_page"]
-        ),
-        Button(text=Const("  "), id="last_dummy", when=F["is_last_page"]),
-    ),
-    Button(text=Const(strings.buttons.back), id="mm", on_click=switch_back),
-    parse_mode="HTML",
-    state=states.SCHEDULE.MAIN,
-    getter=get_schedule,
-)
-
-dialog = Dialog(schedule)
+        SwitchTo(text=Const(strings.buttons.back), id="back", state=back_to),
+        state=state,
+        getter=get_schedule,
+    )

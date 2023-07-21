@@ -3,14 +3,14 @@ from pathlib import Path
 
 from aiogram import F
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Row, Start
+from aiogram_dialog import DialogManager, Window
+from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
 
-path_to_activities_folder = Path(__file__).parents[1] / "ui" / "activities"
+path_to_activities_folder = Path(__file__).parents[2] / "ui" / "activities"
 activities_json = path_to_activities_folder / "activities.json"
 with open(activities_json, mode="r") as f:
     activities = json.load(f)
@@ -77,9 +77,7 @@ activity = Window(
         ),
         Button(text=Const("  "), id="last_dummy", when=F["is_last_page"]),
     ),
-    Start(text=Const(strings.buttons.back), id="mm", state=states.MAIN.MAIN),
-    state=states.ACTIVITIES.MAIN,
+    SwitchTo(text=Const(strings.buttons.back), state=states.MAIN.MAIN, id="mm"),
+    state=states.MAIN.ACTIVITIES,
     getter=get_activity,
 )
-
-dialog = Dialog(activity)
