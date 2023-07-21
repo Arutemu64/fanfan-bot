@@ -5,7 +5,6 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Back, Button, Start, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets.schedule import get_schedule_widget
@@ -70,31 +69,29 @@ async def send_announce(
         return
     announcement_timestamp = timestamp
 
-    session: AsyncSession = manager.middleware_data.get("session")
+    db: Database = manager.middleware_data.get("db")
     current_event: Event = manager.dialog_data.get("current_event")
     next_event: Event = manager.dialog_data.get("next_event")
 
     if current_event:
         if current_event.id:
-            db_current_event: Event = await Event.get_one(
-                session, Event.current == True
-            )
+            db_current_event: Event = await db.event.get_by_where(Event.current == True)
             if db_current_event:
                 db_current_event.current = None
-                await session.flush([db_current_event])
+                await db.session.flush([db_current_event])
             current_event.current = True
             current_event.next = None
-            await session.merge(current_event)
+            await db.session.merge(current_event)
     if next_event:
         if next_event.id:
-            db_next_event: Event = await Event.get_one(session, Event.next == True)
+            db_next_event: Event = await db.event.get_by_where(Event.next == True)
             if db_next_event:
                 db_next_event.next = None
-                await session.flush([db_next_event])
+                await db.session.flush([db_next_event])
             next_event.next = True
             next_event.current = None
-            await session.merge(next_event)
-    await session.commit()
+            await db.session.merge(next_event)
+    await db.session.commit()
     text = ""
     if current_event:
         text = format_event_text(current_event, current=True)
