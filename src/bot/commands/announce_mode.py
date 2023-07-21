@@ -2,10 +2,10 @@ from aiogram import Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 from aiogram_dialog import DialogManager
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
+from src.db import Database
 from src.db.models import Event
 
 router = Router(name="announce_mode_router")
@@ -16,7 +16,7 @@ announcement_timestamp = 0
 @router.message(Command("a"))
 async def announce_mode(
     message: Message,
-    session: AsyncSession,
+    db: Database,
     dialog_manager: DialogManager,
     command: CommandObject,
 ):
@@ -26,7 +26,7 @@ async def announce_mode(
     current_arg = 0
     while current_arg < len(args):
         if args[current_arg].isnumeric():
-            event = await Event.get_one(session, Event.id == int(args[current_arg]))
+            event = await db.event.get_by_where(Event.id == int(args[current_arg]))
             if event is None:
                 await message.reply(strings.errors.wrong_command_usage)
                 return

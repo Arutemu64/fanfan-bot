@@ -52,6 +52,7 @@ class BotConfig:
 class Configuration:
     """All in one configuration's class"""
 
+    debug = bool(getenv("DEBUG", "False") == "True")
     logging_level = int(getenv("LOGGING_LEVEL", logging.INFO))
     db_echo = bool(getenv("DB_ECHO", "False") == "True")
 

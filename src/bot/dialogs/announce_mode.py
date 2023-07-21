@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.bot.dialogs import states
 from src.bot.ui import strings
 from src.config import conf
+from src.db import Database
 from src.db.models import Event
 
 announcement_timestamp = 0
@@ -29,14 +30,14 @@ def format_event_text(event: Event, current: bool = False, next: bool = False) -
 
 
 async def send_next(callback: CallbackQuery, button: Button, manager: DialogManager):
-    session: AsyncSession = manager.middleware_data["session"]
-    next_event: Event = await Event.get_one(session, Event.next == True)
+    db: Database = manager.middleware_data["db"]
+    next_event = await db.event.get_by_where(Event.next == True)  # noqa
     if next_event:
         current_event = next_event
-        next_event = await Event.get_one(session, Event.id == current_event.id + 1)
+        next_event = await db.event.get_by_where(Event.id == current_event.id + 1)
     else:
-        current_event = await Event.get_one(session, Event.id == 1)
-        next_event = await Event.get_one(session, Event.id == 2)
+        current_event = await db.event.get_by_where(Event.id == 1)
+        next_event = await db.event.get_by_where(Event.id == 2)
     await manager.start(
         states.ANNOUNCE_MODE.PREVIEW,
         data={"current_event": current_event, "next_event": next_event},

@@ -3,22 +3,22 @@ import math
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 from magic_filter import F
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
 from src.config import conf
+from src.db import Database
 from src.db.models import Event
 
 per_page = conf.events_per_page
 
 
-async def get_schedule(dialog_manager: DialogManager, session: AsyncSession, **kwargs):
-    total_pages = math.floor((await Event.count(session, True) / per_page))
+async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
+    total_pages = math.floor((await db.event.count() / per_page))
     dialog_manager.dialog_data["total_pages"] = total_pages
-    current_event: Event = await Event.get_one(session, Event.current == True)  # noqa
+    current_event = await db.event.get_by_where(Event.current == True)  # noqa
     if current_event:
         current_event_id = current_event.id
     else:
@@ -31,21 +31,23 @@ async def get_schedule(dialog_manager: DialogManager, session: AsyncSession, **k
     else:
         page = dialog_manager.dialog_data["schedule_page"]
     dialog_manager.dialog_data["schedule_page"] = page
-    events = await Event.get_range(
-        session, (page * per_page), (page * per_page) + per_page, Event.id
+    events = await db.event.get_range(
+        (page * per_page), (page * per_page) + per_page, Event.id
     )
-    events_list = ""
-    for event in events:
-        entry = ""
-        if event.participant:
-            entry = f"<b>{event.id}.</b> {event.participant.title}"
-        if event.id == current_event_id:
-            entry = f"""<b>👉 {entry}</b>"""
-        events_list = events_list + entry + "\n"
+    # events_list = ""
+    # for event in events:
+    #     entry = ""
+    #     if event.participant:
+    #         entry = f"<b>{event.id}.</b> {event.participant.title}"
+    #     elif event.title:
+    #         entry = f"<b>{event.title}</b>"
+    #     if event.id == current_event_id:
+    #         entry = f"""<b>👉 {entry}</b>"""
+    #     events_list = events_list + entry + "\n"
     return {
         "page": page + 1,
         "total_pages": total_pages,
-        "events_list": events_list,
+        "events": events,
         "is_first_page": page == 0,
         "is_last_page": page + 1 == total_pages,
     }
@@ -73,10 +75,23 @@ async def switch_back(callback: CallbackQuery, button: Button, manager: DialogMa
     return
 
 
+# fmt: off
+events_html = Jinja(
+"""{% for event in events %}
+{% if event.participant %}
+<b>{{event.id}}.</b> {{event.participant.title}}
+{% elif event.title %}
+<b>{{event.title}}</b>
+{% endif %}
+{% endfor %}"""
+)
+# fmt: on
+
+
 schedule = Window(
     Const("<b>📅 Расписание</b>"),
     Const(" "),
-    Format("{events_list}"),
+    events_html,
     Format("<i>Страница {page} из {total_pages}</i>"),
     Row(
         Button(
@@ -101,6 +116,7 @@ schedule = Window(
         Button(text=Const("  "), id="last_dummy", when=F["is_last_page"]),
     ),
     Button(text=Const(strings.buttons.back), id="mm", on_click=switch_back),
+    parse_mode="HTML",
     state=states.SCHEDULE.MAIN,
     getter=get_schedule,
 )

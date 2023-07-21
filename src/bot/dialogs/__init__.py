@@ -10,9 +10,13 @@ def setup_router() -> Router:
         helper,
         main_menu,
         org,
+        registration,
         schedule,
         voting,
     )
+
+    registration_router = Router()
+    registration_router.include_router(registration.dialog)
 
     common_router = Router()
     common_router.message.filter(RoleFilter(["visitor", "helper", "org"]))
@@ -31,6 +35,7 @@ def setup_router() -> Router:
     org_router.include_router(org.dialog)
 
     dialog_router = Router()
+    dialog_router.include_router(registration_router)
     dialog_router.include_router(common_router)
     dialog_router.include_router(helper_router)
     dialog_router.include_router(org_router)

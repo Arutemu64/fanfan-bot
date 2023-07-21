@@ -2,33 +2,33 @@ from aiogram import Router
 
 from src.bot.filters import RoleFilter
 from src.bot.middlewares import ReturnToDialog
+from src.bot.structures import Role
 
 
 def setup_router() -> Router:
-    from . import announce_mode, auth, common, org, qr, voting
-
-    auth_router = Router()
-    auth_router.include_router(auth.router)
-    auth_router.include_router(common.router)
+    from . import announce_mode, org, qr, start, voting
 
     common_router = Router()
-    common_router.message.filter(RoleFilter(["visitor", "helper", "org"]))
+    common_router.message.filter(RoleFilter([Role.VISITOR, Role.HELPER, Role.ORG]))
+    common_router.message.middleware(ReturnToDialog())
     common_router.include_router(voting.router)
     common_router.include_router(qr.router)
 
     helper_router = Router()
-    helper_router.message.filter(RoleFilter(["helper", "org"]))
+    helper_router.message.filter(RoleFilter([Role.HELPER, Role.ORG]))
+    helper_router.message.middleware(ReturnToDialog())
     helper_router.include_router(announce_mode.router)
 
     org_router = Router()
-    org_router.message.filter(RoleFilter(["org"]))
+    org_router.message.filter(RoleFilter([Role.ORG]))
+    org_router.message.middleware(ReturnToDialog())
     org_router.include_router(org.router)
 
     commands_router = Router()
-    commands_router.include_router(auth_router)
+    commands_router.include_router(start.router)
     commands_router.include_router(common_router)
     commands_router.include_router(helper_router)
     commands_router.include_router(org_router)
-    commands_router.message.middleware(ReturnToDialog())
+    # commands_router.message.middleware(ReturnToDialog())
 
     return commands_router

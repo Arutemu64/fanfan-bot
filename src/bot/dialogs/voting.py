@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
+from src.db import Database
 from src.db.models import Nomination, Participant, Vote
 
 
@@ -21,27 +22,22 @@ async def show_nomination(
     return
 
 
-async def get_nominations(
-    dialog_manager: DialogManager, session: AsyncSession, **kwargs
-):
+async def get_nominations(dialog_manager: DialogManager, db: Database, **kwargs):
     nominations_list = []
-    nominations = await Nomination.get_many(session, True)
+    nominations = await db.nomination.get_many(True)
     for nomination in nominations:
         nominations_list.append((nomination.title, nomination.id))
     return {"nominations_list": nominations_list}
 
 
-async def get_participants(
-    dialog_manager: DialogManager, session: AsyncSession, **kwargs
-):
+async def get_participants(dialog_manager: DialogManager, db: Database, **kwargs):
     nomination_id = dialog_manager.dialog_data["nomination_id"]
-    nomination = await Nomination.get_one(session, Nomination.id == nomination_id)
-    user_vote = await Vote.get_one(
-        session,
+    nomination = await db.nomination.get_by_where(Nomination.id == nomination_id)
+    user_vote = await db.vote.get_by_where(
         and_(
             Vote.tg_id == dialog_manager.event.from_user.id,
             Vote.participant.has(Participant.nomination_id == nomination_id),
-        ),
+        )
     )
     participants_list = ""
     for participant in nomination.participants:

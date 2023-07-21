@@ -6,7 +6,6 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row, Start
 from aiogram_dialog.widgets.text import Const, Format
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
@@ -17,7 +16,7 @@ with open(activities_json, mode="r") as f:
     activities = json.load(f)
 
 
-async def get_activity(dialog_manager: DialogManager, session: AsyncSession, **kwargs):
+async def get_activity(dialog_manager: DialogManager, **kwargs):
     if dialog_manager.dialog_data.get("current_activity"):
         activity_id = dialog_manager.dialog_data.get("current_activity")
     else:

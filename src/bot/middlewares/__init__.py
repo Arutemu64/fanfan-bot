@@ -1,4 +1,5 @@
-from .db import DbSessionMiddleware
+from .database import DatabaseMiddleware
 from .return_to_dialog import ReturnToDialog
+from .userdata import UserData
 
-__all__ = ["DbSessionMiddleware", "ReturnToDialog"]
+__all__ = ["DatabaseMiddleware", "ReturnToDialog", "UserData"]

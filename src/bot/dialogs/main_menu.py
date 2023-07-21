@@ -1,18 +1,19 @@
 import random
 
-from aiogram_dialog import Dialog, LaunchMode, Window
+from aiogram_dialog import Dialog, DialogManager, LaunchMode, Window
 from aiogram_dialog.widgets.kbd import Row, Start, Url
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
+from src.bot.structures import Role
 from src.bot.ui import strings
 from src.config import conf
 from src.db.models import User
 
 
-async def getter(user: User, **kwargs):
-    is_helper = user.role == "helper"
-    is_org = user.role == "org"
+async def getter(dialog_manager: DialogManager, user: User, **kwargs):
+    is_helper = user.role == Role.HELPER
+    is_org = user.role == Role.ORG
     if is_org:
         is_helper = True
     random_quote = random.choice(strings.quotes)

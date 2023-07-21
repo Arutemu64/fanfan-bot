@@ -6,11 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
+from src.db import Database
 from src.db.models import Settings
 
 
-async def getter(session: AsyncSession, **kwargs):
-    settings = await Settings.get_one(session, True)
+async def getter(db: Database, **kwargs):
+    settings = await db.settings.get_by_where(True)
     if settings.voting_enabled:
         switch_voting_text = strings.buttons.disable_voting
     else:
@@ -21,11 +22,11 @@ async def getter(session: AsyncSession, **kwargs):
 async def switch_voting(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    session: AsyncSession = manager.middleware_data.get("session")
-    settings = await Settings.get_one(session, True)
+    db: Database = manager.middleware_data.get("db")
+    settings = await db.settings.get_by_where(True)
     settings.voting_enabled = not settings.voting_enabled
-    await session.merge(settings)
-    await session.commit()
+    await db.session.merge(settings)
+    await db.session.commit()
 
 
 org_menu = Window(

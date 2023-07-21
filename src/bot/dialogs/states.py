@@ -29,3 +29,7 @@ class ORG(StatesGroup):
 
 class ACTIVITIES(StatesGroup):
     MAIN = State()
+
+
+class REGISTRATION(StatesGroup):
+    MAIN = State()
