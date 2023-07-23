@@ -31,6 +31,18 @@ class DatabaseConfig:
         ).render_as_string(hide_password=False)
 
 
+class RedisConfig:
+    """Redis connection variables"""
+
+    db: str = int(getenv("REDIS_DATABASE", 1))
+    host: str = getenv("REDIS_HOST", "redis")
+    port: int = int(getenv("REDIS_PORT", 6379))
+    passwd: str = getenv("REDIS_PASSWORD")
+    username: int = getenv("REDIS_USERNAME")
+    state_ttl: int = getenv("REDIS_TTL_STATE", None)
+    data_ttl: int = getenv("REDIS_TTL_DATA", None)
+
+
 @dataclass
 class BotConfig:
     """Bot configuration"""
@@ -56,10 +68,11 @@ class Configuration:
     logging_level = int(getenv("LOGGING_LEVEL", logging.INFO))
     db_echo = bool(getenv("DB_ECHO", "False") == "True")
 
-    events_per_page = 1
+    events_per_page = 2
 
     db = DatabaseConfig()
     bot = BotConfig()
+    redis = RedisConfig()
 
 
 conf = Configuration()

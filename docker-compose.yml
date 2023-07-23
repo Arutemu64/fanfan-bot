@@ -11,6 +11,7 @@ services:
     stop_signal: SIGINT
     depends_on:
       - db
+      - redis
   db:
     container_name: 'fanfan-db'
     image: postgres:15-alpine
@@ -21,3 +22,20 @@ services:
       - /var/lib/docker/volumes/postgres/_data:/var/lib/postgresql/data
     ports:
       - "54320:5432"
+  redis:
+    container_name: 'fanfan-redis'
+    build:
+      context: buildfiles
+      dockerfile: RedisDockerfile
+    env_file:
+      - .env
+    restart: on-failure
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6378:6378"
+
+volumes:
+  redis-data:
+    name: "fanfan-redis-data"
+    driver: local

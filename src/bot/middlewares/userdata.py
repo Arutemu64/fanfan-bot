@@ -1,7 +1,7 @@
-from typing import Any, Awaitable, Callable, Dict, Union
+from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message, TelegramObject
+from aiogram.types import TelegramObject
 
 from src.db import Database
 from src.db.models import User
@@ -11,7 +11,7 @@ class UserData(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-        event: Union[Message, CallbackQuery],
+        event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
         db: Database = data["db"]

@@ -1,10 +1,9 @@
-from typing import Any, Awaitable, Callable, Dict, Union
+from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message, TelegramObject
 
 from src.db.database import Database
-from src.db.models import User
 
 
 class DatabaseMiddleware(BaseMiddleware):
@@ -16,7 +15,7 @@ class DatabaseMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-        event: Union[Message, CallbackQuery],
+        event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
         async with self.session_pool() as session:

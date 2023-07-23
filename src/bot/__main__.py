@@ -4,6 +4,7 @@ import logging
 import sentry_sdk
 from aiogram import Bot
 from aiogram.enums.parse_mode import ParseMode
+from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 from pyngrok import conf as ngrok_conf
@@ -12,7 +13,8 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
-from src.bot.dispatcher import get_dispatcher
+from src.bot.dispatcher import get_dispatcher, get_redis_storage
+from src.cache import Cache
 from src.config import conf
 
 sentry_sdk.init(
@@ -35,12 +37,14 @@ async def on_startup(bot: Bot):
 
 
 async def main() -> None:
-    dp = get_dispatcher()
+    bot = Bot(token=conf.bot.token, parse_mode=ParseMode.HTML)
+    cache = Cache()
+    storage = get_redis_storage(redis=cache.redis_client)
+    dp = get_dispatcher(storage=storage, event_isolation=SimpleEventIsolation())
 
     if conf.bot.mode == "webhook":
         dp.startup.register(on_startup)
 
-    bot = Bot(token=conf.bot.token, parse_mode=ParseMode.HTML)
     await bot.delete_webhook(drop_pending_updates=True)
 
     if conf.bot.mode == "webhook":
