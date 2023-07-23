@@ -63,7 +63,9 @@ class Nomination(Base):
     title: Mapped[str] = mapped_column(unique=True)
     votable: Mapped[bool] = mapped_column(server_default="False")
 
-    participants: Mapped[List["Participant"]] = relationship(lazy="selectin")
+    participants: Mapped[List["Participant"]] = relationship(
+        lazy="selectin", order_by=Participant.id.asc()
+    )
 
 
 class Settings(Base):

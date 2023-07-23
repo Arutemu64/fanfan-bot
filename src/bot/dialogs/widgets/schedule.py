@@ -4,7 +4,7 @@ from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
-from aiogram_dialog.widgets.text import Const, Format, Jinja
+from aiogram_dialog.widgets.text import Const, Jinja
 from magic_filter import F
 
 from src.bot.dialogs import states
@@ -35,6 +35,7 @@ async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
     events = await db.event.get_range(
         (page * per_page), (page * per_page) + per_page, Event.id
     )
+    # logging.warning(await events_html.render_text(dialog_manager.dialog_data, dialog_manager))
     return {
         "page": page + 1,
         "total_pages": total_pages,
@@ -68,23 +69,39 @@ async def switch_back(callback: CallbackQuery, button: Button, manager: DialogMa
 
 # fmt: off
 events_html = Jinja(
-    """{% for event in events %}
-{% if event.participant %}
-<b>{{event.id}}.</b> {{event.participant.title}}
-{% elif event.title %}
-<b>{{event.title}}</b>
-{% endif %}
-{% endfor %}"""
-)
+    "<b>📅 Расписание</b>\n"
+    "\n"
+    "{% for event in events %}"
+        "{% if event.participant %}"
+            "{% if loop.previtem %}"
+                "{% if event.participant.nomination.id != loop.previtem.participant.nomination.id %}"
+                    "<b>{{event.participant.nomination.title}}</b>\n"
+                "{% endif %}"
+            "{% else %}"
+                "<b>{{event.participant.nomination.title}}</b>\n"
+            "{% endif %}"
+            "{% if event.current %}"
+                "<b>{{event.id}}. {{event.participant.title}}</b>\n"
+            "{% else %}"
+                "<b>{{event.id}}.</b> {{event.participant.title}}\n"
+            "{% endif %}"
+        "{% elif event.title %}"
+            "{% if event.current %}"
+                "<b><i>{{event.title}}</i></b>\n"
+            "{% else %}"
+                "<i>{{event.title}}</i>\n"
+            "{% endif %}"
+        "{% endif %}"
+    "{% endfor %}"
+    "\n\n"
+    "<i>Страница {{ page }} из {{ total_pages }}</i>")
+
 # fmt: on
 
 
 def get_schedule_widget(state: State, back_to: State):
     return Window(
-        Const("<b>📅 Расписание</b>"),
-        Const(" "),
         events_html,
-        Format("<i>Страница {page} из {total_pages}</i>"),
         Row(
             Button(
                 text=Const("⏪"),

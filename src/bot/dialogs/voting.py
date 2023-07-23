@@ -4,9 +4,8 @@ from typing import Any
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Back, Select, Start
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 from sqlalchemy import and_
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
@@ -33,24 +32,17 @@ async def get_nominations(dialog_manager: DialogManager, db: Database, **kwargs)
 async def get_participants(dialog_manager: DialogManager, db: Database, **kwargs):
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get_by_where(Nomination.id == nomination_id)
+    participants = nomination.participants
     user_vote = await db.vote.get_by_where(
         and_(
             Vote.tg_id == dialog_manager.event.from_user.id,
             Vote.participant.has(Participant.nomination_id == nomination_id),
         )
     )
-    participants_list = ""
-    for participant in nomination.participants:
-        entry = f"<b>{str(participant.id)}.</b> {participant.title} [голосов: {len(participant.votes)}]"
-        if user_vote is not None:
-            if user_vote.participant_id == participant.id:
-                entry = f"<b>{entry} ✅</b>"
-        if participant != nomination.participants[-1]:
-            entry = entry + "\n"
-        participants_list = participants_list + entry
     return {
         "nomination_title": nomination.title,
-        "participants_list": participants_list,
+        "participants": participants,
+        "user_vote": user_vote,
     }
 
 
@@ -70,14 +62,24 @@ nominations = Window(
     getter=get_nominations,
 )
 
+# fmt: off
+participants_html = Jinja(
+    "<b>Номинация {{nomination_title}}</b>"
+    "\n"
+    "В этой номинации представлены следующие участники:\n"
+    "{% for participant in participants %}"
+        "{% if user_vote.participant_id == participant.id %}"
+            "<b>{{participant.id}}. {{participant.title}}</b> [голосов: {{participant.votes|length}}] ✅\n"
+        "{% else %}"
+            "<b>{{participant.id}}.</b> {{participant.title}} [голосов: {{participant.votes|length}}]\n"
+        "{% endif %}"
+    "{% endfor %}"
+    "Чтобы проголосовать, используй команду <code>/vote номер_участника</code>\n"
+    "Отменить голос можно командой <code>/unvote номер_участника</code>")
+# fmt: on
+
 voting = Window(
-    Format("<b>Номинация {nomination_title}</b>"),
-    Const(" "),
-    Const("В этой номинации представлены следующие участники:"),
-    Format("{participants_list}"),
-    Const(" "),
-    Const("Чтобы проголосовать, используй команду <code>/vote номер_участника</code>"),
-    Const("Отменить голос можно командой <code>/unvote номер_участника</code>"),
+    participants_html,
     Back(text=Const(strings.buttons.back)),
     state=states.VOTING.VOTING,
     getter=get_participants,
