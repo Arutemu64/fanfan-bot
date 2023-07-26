@@ -24,6 +24,14 @@ class Repository(Generic[AbstractModel]):
         self.type_model = type_model
         self.session = session
 
+    async def get(self, ident: int | str) -> AbstractModel:
+        """
+        Get an ONE model from the database with PK
+        :param ident: Key which need to find entry in database
+        :return:
+        """
+        return await self.session.get(entity=self.type_model, ident=ident)
+
     async def get_by_where(self, whereclause) -> Optional[AbstractModel]:
         """
         Get an ONE model from the database with whereclause
