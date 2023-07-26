@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Column, Select, Start
-from aiogram_dialog.widgets.text import Const, Format, Jinja, Text
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 from sqlalchemy import and_
 
 from src.bot.dialogs import states
@@ -36,7 +36,7 @@ async def get_participants(dialog_manager: DialogManager, db: Database, **kwargs
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get_by_where(Nomination.id == nomination_id)
     participants = nomination.participants
-    user_vote: Vote = await db.vote.get_by_where(
+    user_vote = await db.vote.get_by_where(
         and_(
             Vote.tg_id == dialog_manager.event.from_user.id,
             Vote.participant.has(Participant.nomination_id == nomination_id),
@@ -77,13 +77,15 @@ participants_html = Jinja(
     "\n"
     "В этой номинации представлены следующие участники:\n"
     "{% for participant in participants %}"
-    "{% if user_vote.participant_id == participant.id %}"
-    "<b>{{participant.id}}. {{participant.title}}</b> [голосов: {{participant.votes|length}}] ✅\n"
-    "{% else %}"
-    "<b>{{participant.id}}.</b> {{participant.title}} [голосов: {{participant.votes|length}}]\n"
-    "{% endif %}"
+        "{% if user_vote.participant_id == participant.id %}"
+                "<b>{{participant.id}}. {{participant.title}}</b> [голосов: {{participant.votes|length}}] ✅\n"
+        "{% else %}"
+                "<b>{{participant.id}}.</b> {{participant.title}} [голосов: {{participant.votes|length}}]\n"
+        "{% endif %}"
     "{% endfor %}"
-    "Чтобы проголосовать, просто отправь номер участника.")
+    "{% if not user_vote %}"
+        "Чтобы проголосовать, просто отправь номер участника."
+    "{% endif %}")
 
 
 # fmt: on
@@ -101,12 +103,17 @@ async def vote(message: Message, message_input: MessageInput, manager: DialogMan
     if not message.text.isnumeric():
         await message.reply("Укажите номер выступающего!")
         return
-    participant: Participant = await db.participant.get(int(message.text))
+    participant = await db.participant.get_by_where(
+        and_(
+            Participant.id == int(message.text),
+            Participant.nomination_id == manager.dialog_data["nomination_id"],
+        )
+    )
     if participant:
         await db.vote.new(message.from_user.id, participant.id)
         await db.session.commit()
     else:
-        await message.reply(strings.errors.performance_doesnt_exist)
+        await message.reply("Неверно указан номер выступления")
         return
 
 
