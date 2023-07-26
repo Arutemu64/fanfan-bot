@@ -6,6 +6,7 @@ from aiogram.fsm.storage.base import BaseEventIsolation, BaseStorage
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import DefaultKeyBuilder, RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
+from aiogram.types import ErrorEvent
 from aiogram_dialog import DialogManager, ShowMode, StartMode, setup_dialogs
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from redis.asyncio.client import Redis
@@ -28,16 +29,16 @@ def get_redis_storage(
     )
 
 
-async def on_unknown_intent(event, dialog_manager: DialogManager):
-    await dialog_manager.start(
-        state=states.MAIN.MAIN, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND
+async def on_unknown_intent_or_state(event: ErrorEvent, dialog_manager: DialogManager):
+    await event.update.callback_query.message.answer(
+        "⌛ Ваша сессия истекла, возвращаемся в главное меню..."
     )
-
-
-async def on_unknown_state(event, dialog_manager: DialogManager):
     await dialog_manager.start(
-        state=states.MAIN.MAIN, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND
+        states.MAIN.MAIN,
+        mode=StartMode.RESET_STACK,
+        show_mode=ShowMode.SEND,
     )
+    return True
 
 
 def get_dispatcher(
@@ -45,7 +46,6 @@ def get_dispatcher(
     fsm_strategy: Optional[FSMStrategy] = FSMStrategy.CHAT,
     event_isolation: Optional[BaseEventIsolation] = None,
 ) -> Dispatcher:
-    """This function set up dispatcher with routers, filters and middlewares"""
     dp = Dispatcher(
         storage=storage, fsm_strategy=fsm_strategy, events_isolation=event_isolation
     )
@@ -56,16 +56,19 @@ def get_dispatcher(
     dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
     dp.update.middleware(UserData())
 
-    setup_dialogs(dp)
+    dp.errors.middleware(DatabaseMiddleware(session_pool=session_pool))
+    dp.errors.middleware(UserData())
+
     dp.include_router(commands.setup_router())
     dp.include_router(dialogs.setup_router())
+    setup_dialogs(dp)
 
     dp.errors.register(
-        on_unknown_intent,
+        on_unknown_intent_or_state,
         ExceptionTypeFilter(UnknownIntent),
     )
     dp.errors.register(
-        on_unknown_state,
+        on_unknown_intent_or_state,
         ExceptionTypeFilter(UnknownState),
     )
 

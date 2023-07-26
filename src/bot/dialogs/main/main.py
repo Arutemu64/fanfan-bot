@@ -1,5 +1,6 @@
 import random
 
+from aiogram.types import ErrorEvent
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Row, Start, SwitchTo, Url
 from aiogram_dialog.widgets.text import Const, Format
@@ -12,12 +13,24 @@ from src.db.models import User
 
 
 async def getter(dialog_manager: DialogManager, user: User, **kwargs):
+    if type(dialog_manager.event) is ErrorEvent:
+        if dialog_manager.event.update.message:
+            name = dialog_manager.event.update.message.from_user.first_name
+        elif dialog_manager.event.update.callback_query:
+            name = dialog_manager.event.update.callback_query.from_user.first_name
+    else:
+        name = dialog_manager.event.from_user.first_name
     is_helper = user.role == Role.HELPER
     is_org = user.role == Role.ORG
     if is_org:
         is_helper = True
     random_quote = random.choice(strings.quotes)
-    return {"is_helper": is_helper, "is_org": is_org, "random_quote": random_quote}
+    return {
+        "name": name,
+        "is_helper": is_helper,
+        "is_org": is_org,
+        "random_quote": random_quote,
+    }
 
 
 main = Window(
