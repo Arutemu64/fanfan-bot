@@ -6,12 +6,11 @@ from src.bot.structures import Role
 
 
 def setup_router() -> Router:
-    from . import announce_mode, org, qr, start, voting
+    from . import announce_mode, org, qr, start
 
     common_router = Router()
     common_router.message.filter(RoleFilter([Role.VISITOR, Role.HELPER, Role.ORG]))
     common_router.message.middleware(ReturnToDialog())
-    common_router.include_router(voting.router)
     common_router.include_router(qr.router)
 
     helper_router = Router()

@@ -77,9 +77,7 @@ class Settings(Base):
 class Vote(Base):
     __tablename__ = "votes"
 
-    vote_id: Mapped[int] = mapped_column(
-        primary_key=True, unique=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
     tg_id: Mapped[int] = mapped_column(ForeignKey("users.tg_id"))
     participant_id: Mapped[int] = mapped_column(ForeignKey("participants.id"))
 
