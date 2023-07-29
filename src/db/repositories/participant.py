@@ -15,5 +15,8 @@ class ParticipantRepo(Repository[Participant]):
         """
         super().__init__(type_model=Participant, session=session)
 
-    async def new(self):  # TODO
-        return
+    async def new(self, title: str, nomination_id: str) -> Participant:
+        new_participant = await self.session.merge(
+            Participant(title=title, nomination_id=nomination_id)
+        )
+        return new_participant

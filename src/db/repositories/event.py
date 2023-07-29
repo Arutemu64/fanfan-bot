@@ -15,5 +15,8 @@ class EventRepo(Repository[Event]):
         """
         super().__init__(type_model=Event, session=session)
 
-    async def new(self):  # TODO
-        return
+    async def new(self, participant_id: int = None, title: str = None) -> Event:
+        new_event = await self.session.merge(
+            Event(participant_id=participant_id, title=title)
+        )
+        return new_event

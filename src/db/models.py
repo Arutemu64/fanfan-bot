@@ -53,7 +53,10 @@ class Participant(Base):
     )
 
     nomination: Mapped["Nomination"] = relationship(lazy="selectin")
-    votes: Mapped[List["Vote"]] = relationship(lazy="selectin")
+    votes: Mapped[List["Vote"]] = relationship(
+        lazy="selectin", cascade="all, delete-orphan"
+    )
+    event: Mapped["Event"] = relationship(lazy="selectin", cascade="all, delete-orphan")
 
 
 class Nomination(Base):
@@ -64,7 +67,7 @@ class Nomination(Base):
     votable: Mapped[bool] = mapped_column(server_default="False")
 
     participants: Mapped[List["Participant"]] = relationship(
-        lazy="selectin", order_by=Participant.id.asc()
+        lazy="selectin", order_by=Participant.id.asc(), cascade="all, delete-orphan"
     )
 
 
