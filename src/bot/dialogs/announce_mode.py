@@ -1,19 +1,19 @@
+import os
 import time
 
 from aiogram import Bot
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Back, Button, Start, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Start, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets.schedule import get_schedule_widget
 from src.bot.ui import strings
+from src.cache import Cache
 from src.config import conf
 from src.db import Database
 from src.db.models import Event
-
-announcement_timestamp = 0  # TODO Использовать Redis для кеширования
 
 
 def format_event_text(event: Event, current: bool = False, next: bool = False) -> str:
@@ -52,12 +52,14 @@ async def preview_getter(dialog_manager: DialogManager, **kwargs):
 async def send_announce(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    global announcement_timestamp
-    timestamp = time.time()
-    if (timestamp - announcement_timestamp) < 5:
-        await callback.answer(strings.errors.announce_too_fast, show_alert=True)
-        return
-    announcement_timestamp = timestamp
+    cache: Cache = manager.middleware_data["cache"]
+    global_timestamp = float(await cache.get("announcement_timestamp"))
+    if global_timestamp:
+        timestamp = time.time()
+        if (timestamp - global_timestamp) < int(os.getenv("ANNOUNCE_TIMEOUT")):
+            await callback.answer(strings.errors.announce_too_fast, show_alert=True)
+            return
+    await cache.set("announcement_timestamp", time.time())
 
     db: Database = manager.middleware_data.get("db")
     current_event = await db.event.get(manager.dialog_data["current_event_id"])
@@ -122,7 +124,11 @@ preview_announcement = Window(
     Const(" "),
     Const("Отправляем? 📣"),
     Button(Const(strings.buttons.send), id="send_button", on_click=send_announce),
-    SwitchTo(Const(strings.buttons.cancel), state=states.ANNOUNCE_MODE.MAIN, id="exit_preview"),
+    SwitchTo(
+        Const(strings.buttons.cancel),
+        state=states.ANNOUNCE_MODE.MAIN,
+        id="exit_preview",
+    ),
     state=states.ANNOUNCE_MODE.PREVIEW,
     getter=preview_getter,
 )

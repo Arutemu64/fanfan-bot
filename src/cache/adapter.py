@@ -34,49 +34,49 @@ class Cache:
         """
         return self.client
 
-    # @final
-    # async def get(self, key: KeyLike) -> Any:
-    #     """
-    #     Get a value from cache database
-    #     :param key:
-    #     :return: Value
-    #     """
-    #     return await self.client.get(str(key))
-    #
-    # @final
-    # async def set(self, key: KeyLike, value: Any):
-    #     """
-    #     Set a value to cache database
-    #     :param key: Key to set
-    #     :param value: Value in a serializable type
-    #     :return: Nothing
-    #     """
-    #     await self.client.set(name=str(key), value=value)  # noqa
-    #
-    # @overload
-    # async def exists(self, key: KeyLike):
-    #     """
-    #     Check whether key has already defined or not
-    #     :param key:
-    #     :return: (bool) Result
-    #     """
-    #     ...
-    #
-    # @overload
-    # async def exists(self, *keys: List[KeyLike]):
-    #     """
-    #     Overload of method to check many keys
-    #     :param keys:
-    #     :return:
-    #     """
-    #     ...
-    #
-    # async def exists(self, keys: KeyLike | List[KeyLike]):
-    #     if not isinstance(keys, list):
-    #         return await self.client.exists(
-    #             [
-    #                 str(keys),
-    #             ]
-    #         )  # noqa
-    #     else:
-    #         return await self.client.exists(*list(map(str, keys)))  # noqa
+    @final
+    async def get(self, key: str) -> Any:
+        """
+        Get a value from cache database
+        :param key:
+        :return: Value
+        """
+        return await self.client.get(str(key))
+
+    @final
+    async def set(self, key: str, value: Any):
+        """
+        Set a value to cache database
+        :param key: Key to set
+        :param value: Value in a serializable type
+        :return: Nothing
+        """
+        await self.client.set(name=str(key), value=value)  # noqa
+
+    @overload
+    async def exists(self, key: str):
+        """
+        Check whether key has already defined or not
+        :param key:
+        :return: (bool) Result
+        """
+        ...
+
+    @overload
+    async def exists(self, *keys: List[str]):
+        """
+        Overload of method to check many keys
+        :param keys:
+        :return:
+        """
+        ...
+
+    async def exists(self, keys: str | List[str]):
+        if not isinstance(keys, list):
+            return await self.client.exists(
+                [
+                    str(keys),
+                ]
+            )  # noqa
+        else:
+            return await self.client.exists(*list(map(str, keys)))  # noqa

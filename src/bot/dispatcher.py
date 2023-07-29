@@ -13,7 +13,8 @@ from redis.asyncio.client import Redis
 
 from src.bot import commands, dialogs
 from src.bot.dialogs import states
-from src.bot.middlewares import DatabaseMiddleware, UserData
+from src.bot.middlewares import CacheMiddleware, DatabaseMiddleware, UserData
+from src.cache import Cache
 from src.config import conf
 from src.db.database import create_session_maker
 
@@ -54,9 +55,13 @@ def get_dispatcher(
 
     session_pool = create_session_maker()
     dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
-    dp.update.middleware(UserData())
-
     dp.errors.middleware(DatabaseMiddleware(session_pool=session_pool))
+
+    client_cache = Cache()
+    dp.update.middleware(CacheMiddleware(cache=client_cache))
+    dp.errors.middleware(CacheMiddleware(cache=client_cache))
+
+    dp.update.middleware(UserData())
     dp.errors.middleware(UserData())
 
     dp.include_router(commands.setup_router())
