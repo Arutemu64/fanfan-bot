@@ -1,18 +1,21 @@
 import logging
 from dataclasses import dataclass
-from os import getenv
 
+from environs import Env
 from sqlalchemy.engine import URL
+
+env = Env()
+env.read_env()
 
 
 class DatabaseConfig:
     """Database connection variables"""
 
-    name: str = getenv("POSTGRES_DATABASE")
-    user: str = getenv("POSTGRES_USER", "docker")
-    passwd: str = getenv("POSTGRES_PASSWORD", None)
-    port: int = int(getenv("POSTGRES_PORT", 5432))
-    host: str = getenv("POSTGRES_HOST", "db")
+    name: str = env("POSTGRES_DATABASE")
+    user: str = env("POSTGRES_USER", "docker")
+    passwd: str = env("POSTGRES_PASSWORD", None)
+    port: int = env.int("POSTGRES_PORT", 5432)
+    host: str = env("POSTGRES_HOST", "db")
 
     driver: str = "asyncpg"
     database_system: str = "postgresql"
@@ -34,41 +37,42 @@ class DatabaseConfig:
 class RedisConfig:
     """Redis connection variables"""
 
-    db: str = int(getenv("REDIS_DATABASE", 1))
-    host: str = getenv("REDIS_HOST", "redis")
-    port: int = int(getenv("REDIS_PORT", 6379))
-    passwd: str = getenv("REDIS_PASSWORD")
-    username: int = getenv("REDIS_USERNAME")
-    state_ttl: int = getenv("REDIS_TTL_STATE", None)
-    data_ttl: int = getenv("REDIS_TTL_DATA", None)
+    db: str = env.int("REDIS_DATABASE", 1)
+    host: str = env("REDIS_HOST", "redis")
+    port: int = env.int("REDIS_PORT", 6379)
+    passwd: str = env("REDIS_PASSWORD")
+    username: str = env("REDIS_USERNAME", None)
+    state_ttl: int = env.int("REDIS_TTL_STATE", None)
+    data_ttl: int = env.int("REDIS_TTL_DATA", None)
 
 
 @dataclass
 class BotConfig:
     """Bot configuration"""
 
-    token: str = getenv("BOT_TOKEN")
-    mode: str = getenv("MODE", "polling")
+    token: str = env("BOT_TOKEN")
+    mode: str = env("MODE", "polling")
 
-    channel_id = int(getenv("CHANNEL_ID"))
-    channel_link = getenv("CHANNEL_LINK")
+    channel_id: int = env.int("CHANNEL_ID")
+    channel_link: str = env("CHANNEL_LINK")
 
-    ngrok_auth: str = getenv("NGROK_AUTH")
-    ngrok_region = getenv("NGROK_REGION", "eu")
+    ngrok_auth: str = env("NGROK_AUTH")
+    ngrok_region: str = env("NGROK_REGION", "eu")
 
-    sentry_dsn = getenv("SENTRY_DSN")
-    sentry_env = getenv("SENTRY_ENV")
+    sentry_dsn: str = env("SENTRY_DSN")
+    sentry_env: str = env("SENTRY_ENV")
+
+    events_per_page = env.int("EVENTS_PER_PAGE", 7)
+    announcement_timeout = env.int("ANNOUNCE_TIMEOUT", 30)
 
 
 @dataclass
 class Configuration:
     """All in one configuration's class"""
 
-    debug = bool(getenv("DEBUG", "False") == "True")
-    logging_level = int(getenv("LOGGING_LEVEL", logging.INFO))
-    db_echo = bool(getenv("DB_ECHO", "False") == "True")
-
-    events_per_page = 2
+    debug = env.bool("DEBUG", False)
+    logging_level = env.int("LOGGING_LEVEL", logging.INFO)
+    db_echo = env.bool("DB_ECHO", False)
 
     db = DatabaseConfig()
     bot = BotConfig()

@@ -13,7 +13,7 @@ from src.config import conf
 from src.db import Database
 from src.db.models import Event
 
-per_page = conf.events_per_page
+per_page = conf.bot.events_per_page
 
 
 async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):

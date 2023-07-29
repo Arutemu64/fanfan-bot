@@ -12,6 +12,7 @@ aiogram = "3.0b7"
 aiogram-dialog = "^2.0.0b20"
 alembic = "^1.11.1"
 asyncpg = "^0.28.0"
+environs = "^9.5.0"
 opencv-python-headless = "^4.8.0.74"
 pyngrok = "^6.0.0"
 qreader = {version = "^2.13", extras = ["yolo7"]}
@@ -28,6 +29,14 @@ isort = "^5.12.0"
 
 [tool.poetry.group.dev]
 optional=true
+
+[tool.poetry.group.scripts]
+optional=true
+
+[tool.poetry.group.scripts.dependencies]
+openpyxl = "^3.1.2"
+pandas = "^2.0.3"
+psycopg2 = "^2.9.6"
 
 [tool.isort]
 profile = "black"

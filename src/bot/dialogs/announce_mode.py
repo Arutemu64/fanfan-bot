@@ -56,7 +56,7 @@ async def send_announce(
     global_timestamp = float(await cache.get("announcement_timestamp"))
     if global_timestamp:
         timestamp = time.time()
-        if (timestamp - global_timestamp) < int(os.getenv("ANNOUNCE_TIMEOUT")):
+        if (timestamp - global_timestamp) < conf.bot.announcement_timeout:
             await callback.answer(strings.errors.announce_too_fast, show_alert=True)
             return
     await cache.set("announcement_timestamp", time.time())
