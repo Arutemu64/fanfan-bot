@@ -17,7 +17,7 @@ per_page = conf.events_per_page
 
 
 async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
-    total_pages = math.floor((await db.event.count() / per_page))
+    total_pages = math.ceil((await db.event.count() / per_page))
     dialog_manager.dialog_data["total_pages"] = total_pages
     current_event = await db.event.get_by_where(Event.current == True)  # noqa
     if current_event:
@@ -35,7 +35,6 @@ async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
     events = await db.event.get_range(
         (page * per_page), (page * per_page) + per_page, Event.id
     )
-    # logging.warning(await events_html.render_text(dialog_manager.dialog_data, dialog_manager))
     return {
         "page": page + 1,
         "total_pages": total_pages,
@@ -74,7 +73,11 @@ events_html = Jinja(
     "{% for event in events %}"
         "{% if event.participant %}"
             "{% if loop.previtem %}"
-                "{% if event.participant.nomination.id != loop.previtem.participant.nomination.id %}"
+                "{% if loop.previtem.participant %}"
+                    "{% if event.participant.nomination.id != loop.previtem.participant.nomination.id %}"
+                        "<b>{{event.participant.nomination.title}}</b>\n"
+                    "{% endif %}"
+                "{% else %}"
                     "<b>{{event.participant.nomination.title}}</b>\n"
                 "{% endif %}"
             "{% else %}"
@@ -87,9 +90,9 @@ events_html = Jinja(
             "{% endif %}"
         "{% elif event.title %}"
             "{% if event.current %}"
-                "<b><i>{{event.title}}</i></b>\n"
+                "<b><i>{{event.id}}. {{event.title}}</i></b>\n"
             "{% else %}"
-                "<i>{{event.title}}</i>\n"
+                "<i>{{event.id}}. {{event.title}}</i>\n"
             "{% endif %}"
         "{% endif %}"
     "{% endfor %}"
