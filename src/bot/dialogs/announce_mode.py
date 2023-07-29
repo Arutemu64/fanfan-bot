@@ -13,24 +13,24 @@ from src.config import conf
 from src.db import Database
 from src.db.models import Event
 
-announcement_timestamp = 0
+announcement_timestamp = 0  # TODO Использовать Redis для кеширования
 
 
 def format_event_text(event: Event, current: bool = False, next: bool = False) -> str:
     if current:
         if event.participant:
             return f"<b>Сейчас:</b> <b>{event.id}.</b> {event.participant.title}"
-        elif event.text:
-            return f"<b>Сейчас:</b> {event.text}"
+        elif event.title:
+            return f"<b>Сейчас:</b> {event.title}"
     elif next:
         if event.participant:
             return f"<b>Далее:</b> <b>{event.id}.</b> {event.participant.title}"
-        elif event.text:
-            return f"<b>Далее:</b> {event.text}"
+        elif event.title:
+            return f"<b>Далее:</b> {event.title}"
 
 
-async def send_next(callback: CallbackQuery, button: Button, manager: DialogManager):
-    db: Database = manager.middleware_data["db"]
+async def preview_getter(dialog_manager: DialogManager, **kwargs):
+    db: Database = dialog_manager.middleware_data["db"]
     next_event = await db.event.get_by_where(Event.next == True)  # noqa
     if next_event:
         current_event = next_event
@@ -38,18 +38,8 @@ async def send_next(callback: CallbackQuery, button: Button, manager: DialogMana
     else:
         current_event = await db.event.get_by_where(Event.id == 1)
         next_event = await db.event.get_by_where(Event.id == 2)
-    await manager.start(
-        states.ANNOUNCE_MODE.PREVIEW,
-        data={"current_event": current_event, "next_event": next_event},
-    )
-    return
-
-
-async def preview_getter(dialog_manager: DialogManager, **kwargs):
-    current_event: Event = dialog_manager.start_data.get("current_event")
-    next_event: Event = dialog_manager.start_data.get("next_event")
-    dialog_manager.dialog_data["current_event"] = current_event
-    dialog_manager.dialog_data["next_event"] = next_event
+    dialog_manager.dialog_data["current_event_id"] = current_event.id
+    dialog_manager.dialog_data["next_event_id"] = next_event.id
     current_text = ""
     next_text = ""
     if current_event:
@@ -70,8 +60,8 @@ async def send_announce(
     announcement_timestamp = timestamp
 
     db: Database = manager.middleware_data.get("db")
-    current_event: Event = manager.dialog_data.get("current_event")
-    next_event: Event = manager.dialog_data.get("next_event")
+    current_event = await db.event.get(manager.dialog_data["current_event_id"])
+    next_event = await db.event.get(manager.dialog_data["next_event_id"])
 
     if current_event:
         if current_event.id:
@@ -110,7 +100,11 @@ schedule = get_schedule_widget(
 
 announce_mode = Window(
     Const(strings.menus.announce_mode_text),
-    Button(text=Const(strings.buttons.next), id="next", on_click=send_next),
+    SwitchTo(
+        text=Const(strings.buttons.next),
+        id="preview_next",
+        state=states.ANNOUNCE_MODE.PREVIEW,
+    ),
     SwitchTo(
         text=Const(strings.buttons.show_schedule),
         id="show_schedule",
@@ -128,7 +122,7 @@ preview_announcement = Window(
     Const(" "),
     Const("Отправляем? 📣"),
     Button(Const(strings.buttons.send), id="send_button", on_click=send_announce),
-    Back(Const(strings.buttons.cancel)),
+    SwitchTo(Const(strings.buttons.cancel), state=states.ANNOUNCE_MODE.MAIN, id="exit_preview"),
     state=states.ANNOUNCE_MODE.PREVIEW,
     getter=preview_getter,
 )
