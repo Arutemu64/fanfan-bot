@@ -1,19 +1,15 @@
 import random
 
-from aiogram.types import CallbackQuery, ErrorEvent
+from aiogram.types import ErrorEvent
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo, Url
+from aiogram_dialog.widgets.kbd import Row, Start, SwitchTo, Url
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
-from src.bot.dialogs.widgets.schedule import (
-    ID_SCHEDULE_SCROLL,
-    get_current_schedule_page,
-)
+from src.bot.dialogs.widgets.schedule import set_current_schedule_page
 from src.bot.structures import Role
 from src.bot.ui import strings
 from src.config import conf
-from src.db import Database
 from src.db.models import User
 
 
@@ -38,13 +34,6 @@ async def getter(dialog_manager: DialogManager, user: User, **kwargs):
     }
 
 
-async def update_schedule_page(
-    callback: CallbackQuery, button: Button, manager: DialogManager
-):
-    db: Database = manager.middleware_data["db"]
-    await manager.find(ID_SCHEDULE_SCROLL).set_page(await get_current_schedule_page(db))
-
-
 main = Window(
     Const("<b>📃 Главное меню</b>"),
     Const(text=" "),
@@ -64,7 +53,7 @@ main = Window(
             text=Const(strings.buttons.show_schedule),
             state=states.MAIN.SCHEDULE,
             id="schedule",
-            on_click=update_schedule_page,
+            on_click=set_current_schedule_page,
         ),
         SwitchTo(
             Const(strings.buttons.activities_menu),

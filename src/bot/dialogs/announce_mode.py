@@ -8,9 +8,8 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets.schedule import (
-    ID_SCHEDULE_SCROLL,
-    get_current_schedule_page,
     get_schedule_widget,
+    set_current_schedule_page,
 )
 from src.bot.ui import strings
 from src.cache import Cache
@@ -103,13 +102,6 @@ schedule = get_schedule_widget(
 )
 
 
-async def update_schedule_page(
-    callback: CallbackQuery, button: Button, manager: DialogManager
-):
-    db: Database = manager.middleware_data["db"]
-    await manager.find(ID_SCHEDULE_SCROLL).set_page(await get_current_schedule_page(db))
-
-
 announce_mode = Window(
     Const(strings.menus.announce_mode_text),
     SwitchTo(
@@ -121,7 +113,7 @@ announce_mode = Window(
         text=Const(strings.buttons.show_schedule),
         id="show_schedule",
         state=states.ANNOUNCE_MODE.SCHEDULE,
-        on_click=update_schedule_page,
+        on_click=set_current_schedule_page,
     ),
     Start(text=Const(strings.buttons.back), id="helper_menu", state=states.HELPER.MAIN),
     state=states.ANNOUNCE_MODE.MAIN,

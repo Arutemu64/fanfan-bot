@@ -26,16 +26,6 @@ per_page = conf.bot.events_per_page
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 
-async def get_current_schedule_page(db: Database) -> int:
-    current_event = await db.event.get_by_where(Event.current == True)  # noqa
-    if current_event:
-        current_event_id = current_event.id
-    else:
-        current_event_id = 1
-    current_page = math.floor((current_event_id - 1) / per_page)
-    return current_page
-
-
 async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
     pages = math.ceil((await db.event.count() / per_page))
     current_page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
@@ -49,11 +39,17 @@ async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
     }
 
 
-async def show_current_page(
+async def set_current_schedule_page(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    await manager.find(ID_SCHEDULE_SCROLL).set_page(await get_current_schedule_page(db))
+    current_event = await db.event.get_by_where(Event.current == True)  # noqa
+    if current_event:
+        current_event_id = current_event.id
+    else:
+        current_event_id = 1
+    current_page = math.floor((current_event_id - 1) / per_page)
+    await manager.find(ID_SCHEDULE_SCROLL).set_page(current_page)
 
 
 async def switch_back(callback: CallbackQuery, button: Button, manager: DialogManager):
@@ -105,7 +101,7 @@ def get_schedule_widget(state: State, back_to: State):
         Row(
             FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
             PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
-            Button(text=Const("🔄️"), id="update", on_click=show_current_page),
+            Button(text=Const("🔄️"), id="update", on_click=set_current_schedule_page),
             NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
             LastPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏭️")),
         ),
