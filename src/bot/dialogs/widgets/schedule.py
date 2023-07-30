@@ -26,7 +26,7 @@ per_page = conf.bot.events_per_page
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 
-async def get_current_page(db: Database) -> int:
+async def get_current_schedule_page(db: Database) -> int:
     current_event = await db.event.get_by_where(Event.current == True)  # noqa
     if current_event:
         current_event_id = current_event.id
@@ -39,10 +39,6 @@ async def get_current_page(db: Database) -> int:
 async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
     pages = math.ceil((await db.event.count() / per_page))
     current_page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
-    if dialog_manager.start_data:
-        if dialog_manager.start_data.pop("show_current_page", False):
-            current_page = await get_current_page(db)
-            await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(current_page)
     events = await db.event.get_range(
         (current_page * per_page), (current_page * per_page) + per_page, Event.id
     )
@@ -57,7 +53,7 @@ async def show_current_page(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    await manager.find(ID_SCHEDULE_SCROLL).set_page(await get_current_page(db))
+    await manager.find(ID_SCHEDULE_SCROLL).set_page(await get_current_schedule_page(db))
 
 
 async def switch_back(callback: CallbackQuery, button: Button, manager: DialogManager):
