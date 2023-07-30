@@ -3,9 +3,17 @@ import math
 from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
+from aiogram_dialog.widgets.kbd import (
+    Button,
+    FirstPage,
+    LastPage,
+    NextPage,
+    PrevPage,
+    Row,
+    StubScroll,
+    SwitchTo,
+)
 from aiogram_dialog.widgets.text import Const, Jinja
-from magic_filter import F
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
@@ -15,50 +23,41 @@ from src.db.models import Event
 
 per_page = conf.bot.events_per_page
 
+ID_SCHEDULE_SCROLL = "schedule_scroll"
 
-async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
-    total_pages = math.ceil((await db.event.count() / per_page))
-    dialog_manager.dialog_data["total_pages"] = total_pages
+
+async def get_current_page(db: Database) -> int:
     current_event = await db.event.get_by_where(Event.current == True)  # noqa
     if current_event:
         current_event_id = current_event.id
     else:
-        current_event_id = 0
-    if dialog_manager.dialog_data.get("schedule_page") is None:
-        if current_event_id > 0:
-            page = math.floor((current_event_id - 1) / per_page)
-        else:
-            page = 0
-    else:
-        page = dialog_manager.dialog_data["schedule_page"]
-    dialog_manager.dialog_data["schedule_page"] = page
+        current_event_id = 1
+    current_page = math.floor((current_event_id - 1) / per_page)
+    return current_page
+
+
+async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
+    pages = math.ceil((await db.event.count() / per_page))
+    current_page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
+    if dialog_manager.start_data:
+        if dialog_manager.start_data.pop("show_current_page", False):
+            current_page = await get_current_page(db)
+            await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(current_page)
     events = await db.event.get_range(
-        (page * per_page), (page * per_page) + per_page, Event.id
+        (current_page * per_page), (current_page * per_page) + per_page, Event.id
     )
     return {
-        "page": page + 1,
-        "total_pages": total_pages,
+        "pages": pages,
+        "current_page": current_page + 1,
         "events": events,
-        "is_first_page": page == 0,
-        "is_last_page": page + 1 == total_pages,
     }
 
 
-async def change_page(callback: CallbackQuery, button: Button, manager: DialogManager):
-    match button.widget_id:
-        case "first":
-            manager.dialog_data["schedule_page"] = 0
-        case "previous":
-            manager.dialog_data["schedule_page"] -= 1
-        case "update":
-            manager.dialog_data["schedule_page"] = None
-        case "next":
-            manager.dialog_data["schedule_page"] += 1
-        case "last":
-            manager.dialog_data["schedule_page"] = (
-                manager.dialog_data["total_pages"] - 1
-            )
-    await manager.update(data=manager.dialog_data)
+async def show_current_page(
+    callback: CallbackQuery, button: Button, manager: DialogManager
+):
+    db: Database = manager.middleware_data["db"]
+    await manager.find(ID_SCHEDULE_SCROLL).set_page(await get_current_page(db))
 
 
 async def switch_back(callback: CallbackQuery, button: Button, manager: DialogManager):
@@ -97,7 +96,8 @@ events_html = Jinja(
         "{% endif %}"
     "{% endfor %}"
     "\n\n"
-    "<i>Страница {{ page }} из {{ total_pages }}</i>")
+    "<i>Страница {{ current_page }} из {{ pages }}</i>")
+
 
 # fmt: on
 
@@ -105,36 +105,13 @@ events_html = Jinja(
 def get_schedule_widget(state: State, back_to: State):
     return Window(
         events_html,
+        StubScroll(ID_SCHEDULE_SCROLL, pages="pages"),
         Row(
-            Button(
-                text=Const("⏪"),
-                id="first",
-                on_click=change_page,
-                when=~F["is_first_page"],
-            ),
-            Button(text=Const("  "), id="first_dummy", when=F["is_first_page"]),
-            Button(
-                text=Const("◀️"),
-                id="previous",
-                on_click=change_page,
-                when=~F["is_first_page"],
-            ),
-            Button(text=Const("  "), id="previous_dummy", when=F["is_first_page"]),
-            Button(text=Const("🔄️"), id="update", on_click=change_page),
-            Button(
-                text=Const("▶️"),
-                id="next",
-                on_click=change_page,
-                when=~F["is_last_page"],
-            ),
-            Button(text=Const("  "), id="next_dummy", when=F["is_last_page"]),
-            Button(
-                text=Const("⏭️"),
-                id="last",
-                on_click=change_page,
-                when=~F["is_last_page"],
-            ),
-            Button(text=Const("  "), id="last_dummy", when=F["is_last_page"]),
+            FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
+            PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
+            Button(text=Const("🔄️"), id="update", on_click=show_current_page),
+            NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
+            LastPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏭️")),
         ),
         SwitchTo(text=Const(strings.buttons.back), id="back", state=back_to),
         state=state,

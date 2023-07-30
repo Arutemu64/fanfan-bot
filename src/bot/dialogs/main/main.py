@@ -48,10 +48,11 @@ main = Window(
         url=Const(conf.bot.channel_link),
     ),
     Row(
-        SwitchTo(
+        Start(
             text=Const(strings.buttons.show_schedule),
             state=states.MAIN.SCHEDULE,
             id="schedule",
+            data={"show_current_page": True},
         ),
         SwitchTo(
             Const(strings.buttons.activities_menu),

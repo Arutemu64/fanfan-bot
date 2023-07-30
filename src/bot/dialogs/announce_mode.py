@@ -1,4 +1,3 @@
-import os
 import time
 
 from aiogram import Bot
@@ -107,10 +106,11 @@ announce_mode = Window(
         id="preview_next",
         state=states.ANNOUNCE_MODE.PREVIEW,
     ),
-    SwitchTo(
+    Start(
         text=Const(strings.buttons.show_schedule),
         id="show_schedule",
         state=states.ANNOUNCE_MODE.SCHEDULE,
+        data={"show_current_page": True},
     ),
     Start(text=Const(strings.buttons.back), id="helper_menu", state=states.HELPER.MAIN),
     state=states.ANNOUNCE_MODE.MAIN,
