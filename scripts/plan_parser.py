@@ -33,14 +33,14 @@ async def parse_plan(db: Database):
                 Participant.title == row["voting_title"]
             )
             if participant:
-                print(f"Участник {participant.title[0:40]}... уже добавлен ранее")
+                print(f"Участник {participant.title[0:40]}... уже существует")
                 pass
             else:
-                print(f"Добавляем нового участника {row['voting_title'][0:40]}... в БД")
                 participant = await db.participant.new(
                     title=row["voting_title"], nomination_id=row["code"]
                 )
                 await db.session.flush([participant])
+                print(f"Участник {row['voting_title'][0:40]}... добавлен в БД")
                 participants_count += 1
             event = await db.event.new(participant_id=participant.id)
             await db.session.flush([event])
@@ -49,10 +49,8 @@ async def parse_plan(db: Database):
                 Nomination.id == row["next_code"]
             )
             if nomination:
-                print(f"Номинация {row['next_code']} уже добавлена ранее")
-                pass
+                print(f"Номинация {row['next_code']} уже существует")
             else:
-                print(f"Добавляем новую номинацию {row['info']}...")
                 while True:
                     choice = input(
                         "Разрешить голосование за эту номинацию? Y - да, N - нет\n"
@@ -67,10 +65,12 @@ async def parse_plan(db: Database):
                     nomination_id=row["next_code"], title=row["info"], votable=votable
                 )
                 await db.session.flush([nomination])
+                print(f"Номинация {row['info']} добавлена в БД")
                 nominations_count += 1
         elif row["code"] is None and row["next_code"] is None:  # schedule entry
             event = await db.event.new(title=row["info"])
             await db.session.flush([event])
+            print(f"Событие {row['info']} добавлено в БД")
     await db.session.commit()
     return participants_count, nominations_count
 
