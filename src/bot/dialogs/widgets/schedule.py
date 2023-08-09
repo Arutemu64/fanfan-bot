@@ -27,7 +27,7 @@ ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 
 async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
-    pages = math.ceil((await db.event.count() / per_page))
+    pages = math.ceil((await db.event.get_count() / per_page))
     current_page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
     events = await db.event.get_range(
         (current_page * per_page), (current_page * per_page) + per_page, Event.id

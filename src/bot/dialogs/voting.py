@@ -1,18 +1,37 @@
+import math
 import operator
 from typing import Any
 
+from aiogram import F
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Back, Button, Column, Select, Start
+from aiogram_dialog.widgets.kbd import (
+    Back,
+    Button,
+    Column,
+    CurrentPage,
+    FirstPage,
+    LastPage,
+    NextPage,
+    PrevPage,
+    Row,
+    Select,
+    Start,
+    StubScroll,
+)
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 from sqlalchemy import and_
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
+from src.config import conf
 from src.db import Database
 from src.db.models import Nomination, Participant, Vote
+
+per_page = conf.bot.participants_per_page
+ID_VOTING_SCROLL = "voting_scroll"
 
 
 async def show_nomination(
@@ -35,7 +54,18 @@ async def get_nominations(dialog_manager: DialogManager, db: Database, **kwargs)
 async def get_participants(dialog_manager: DialogManager, db: Database, **kwargs):
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get_by_where(Nomination.id == nomination_id)
-    participants = nomination.participants
+
+    pages = math.ceil(
+        (await db.participant.get_count(Participant.nomination_id == nomination.id))
+        / per_page
+    )
+    current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
+    participants = await db.session.scalars(
+        nomination.participants.select()
+        .slice((current_page * per_page), (current_page * per_page) + per_page)
+        .order_by(Participant.id)
+    )
+
     user_vote = await db.vote.get_by_where(
         and_(
             Vote.tg_id == dialog_manager.event.from_user.id,
@@ -47,6 +77,7 @@ async def get_participants(dialog_manager: DialogManager, db: Database, **kwargs
     else:
         dialog_manager.dialog_data["user_vote_id"] = None
     return {
+        "pages": pages,
         "nomination_title": nomination.title,
         "participants": participants,
         "user_vote": user_vote,
@@ -128,8 +159,24 @@ async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogMa
     await db.session.commit()
 
 
+async def reset_page(callback: CallbackQuery, button: Button, manager: DialogManager):
+    await manager.find(ID_VOTING_SCROLL).set_page(0)
+    return
+
+
 voting = Window(
     participants_html,
+    StubScroll(ID_VOTING_SCROLL, pages="pages"),
+    Row(
+        FirstPage(scroll=ID_VOTING_SCROLL, text=Const("⏪")),
+        PrevPage(scroll=ID_VOTING_SCROLL, text=Const("◀️")),
+        CurrentPage(
+            scroll=ID_VOTING_SCROLL, text=Format(text="{current_page1}/{pages}")
+        ),
+        NextPage(scroll=ID_VOTING_SCROLL, text=Const("▶️")),
+        LastPage(scroll=ID_VOTING_SCROLL, text=Const("⏭️")),
+        when=F["pages"] != 1,
+    ),
     MessageInput(vote, content_types=[ContentType.TEXT]),
     Button(
         Const("Отменить голос"),
@@ -137,7 +184,7 @@ voting = Window(
         when="user_vote",
         on_click=cancel_vote,
     ),
-    Back(text=Const(strings.buttons.back)),
+    Back(text=Const(strings.buttons.back), on_click=reset_page),
     state=states.VOTING.VOTING,
     getter=get_participants,
 )

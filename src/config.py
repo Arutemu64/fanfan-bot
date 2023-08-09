@@ -63,6 +63,7 @@ class BotConfig:
     sentry_env: str = env("SENTRY_ENV")
 
     events_per_page = env.int("EVENTS_PER_PAGE", 7)
+    participants_per_page = env.int("PARTICIPANTS_PER_PAGE", 5)
     announcement_timeout = env.int("ANNOUNCE_TIMEOUT", 30)
 
 

@@ -1,7 +1,13 @@
 from typing import List
 
 from sqlalchemy import BigInteger, ForeignKey
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
+from sqlalchemy.orm import (
+    Mapped,
+    WriteOnlyMapped,
+    declarative_base,
+    mapped_column,
+    relationship,
+)
 
 Base = declarative_base()
 
@@ -66,8 +72,8 @@ class Nomination(Base):
     title: Mapped[str] = mapped_column(unique=True)
     votable: Mapped[bool] = mapped_column(server_default="False")
 
-    participants: Mapped[List["Participant"]] = relationship(
-        lazy="selectin", order_by=Participant.id.asc(), cascade="all, delete-orphan"
+    participants: WriteOnlyMapped["Participant"] = relationship(
+        order_by=Participant.id.asc(), cascade="all, delete-orphan"
     )
 
 

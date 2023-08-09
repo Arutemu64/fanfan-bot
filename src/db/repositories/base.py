@@ -77,10 +77,8 @@ class Repository(Generic[AbstractModel]):
         statement = delete(self.type_model).where(whereclause)
         await self.session.execute(statement)
 
-    async def count(self, whereclause=None) -> int:
-        statement = select(func.count()).select_from(self.type_model)
-        if whereclause:
-            statement = statement.where(whereclause)
+    async def get_count(self, whereclause=True) -> int:
+        statement = select(func.count()).select_from(self.type_model).where(whereclause)
         return (await self.session.execute(statement)).scalar()
 
     @abc.abstractmethod
