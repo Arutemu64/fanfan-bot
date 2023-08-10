@@ -7,12 +7,11 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import DefaultKeyBuilder, RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
 from aiogram.types import ErrorEvent
-from aiogram_dialog import DialogManager, ShowMode, StartMode, setup_dialogs
+from aiogram_dialog import DialogManager, setup_dialogs
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from redis.asyncio.client import Redis
 
 from src.bot import commands, dialogs
-from src.bot.dialogs import states
 from src.bot.middlewares import CacheMiddleware, DatabaseMiddleware, UserData
 from src.cache import Cache
 from src.config import conf
@@ -32,14 +31,8 @@ def get_redis_storage(
 
 async def on_unknown_intent_or_state(event: ErrorEvent, dialog_manager: DialogManager):
     await event.update.callback_query.message.answer(
-        "⌛ Ваша сессия истекла, возвращаемся в главное меню..."
+        "⌛ Ваша сессия истекла, перезапустите бота командой /start"
     )
-    await dialog_manager.start(
-        states.MAIN.MAIN,
-        mode=StartMode.RESET_STACK,
-        show_mode=ShowMode.SEND,
-    )
-    return True
 
 
 def get_dispatcher(
@@ -55,14 +48,11 @@ def get_dispatcher(
 
     session_pool = create_session_maker()
     dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
-    dp.errors.middleware(DatabaseMiddleware(session_pool=session_pool))
 
     client_cache = Cache()
     dp.update.middleware(CacheMiddleware(cache=client_cache))
-    dp.errors.middleware(CacheMiddleware(cache=client_cache))
 
     dp.update.middleware(UserData())
-    dp.errors.middleware(UserData())
 
     dp.include_router(commands.setup_router())
     dp.include_router(dialogs.setup_router())

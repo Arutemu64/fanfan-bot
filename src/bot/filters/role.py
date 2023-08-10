@@ -1,9 +1,7 @@
 from typing import List
 
 from aiogram.filters import BaseFilter
-from aiogram.types import CallbackQuery, Message
 
-from src.bot.ui import strings
 from src.db.models import User
 
 
@@ -16,10 +14,10 @@ class RoleFilter(BaseFilter):
             if user.role in self.roles:
                 return True
             else:
-                if type(event) is CallbackQuery:
-                    await event.answer(strings.errors.no_access, show_alert=True)
-                elif type(event) is Message:
-                    await event.reply(strings.errors.no_access)
+                # if type(event) is CallbackQuery:
+                #     await event.answer(strings.errors.no_access, show_alert=True)
+                # elif type(event) is Message:
+                #     await event.reply(strings.errors.no_access)
                 return False
         else:
             return False

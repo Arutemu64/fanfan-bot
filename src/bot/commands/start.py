@@ -16,4 +16,6 @@ async def start_cmd(message: Message, user: User, dialog_manager: DialogManager)
         await dialog_manager.start(state=states.MAIN.MAIN, mode=StartMode.RESET_STACK)
     else:
         await message.answer(strings.common.welcome)
-        await dialog_manager.start(state=states.REGISTRATION.MAIN)
+        await dialog_manager.start(
+            state=states.REGISTRATION.MAIN, mode=StartMode.RESET_STACK
+        )
