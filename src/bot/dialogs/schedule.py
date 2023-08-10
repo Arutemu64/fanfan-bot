@@ -205,9 +205,13 @@ async def check_subscription(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
+    event = await db.event.get(data)
+    if not event:
+        await message.reply("Такого выступления не существует")
+        return
     subscription = await db.subscription.get_by_where(
         and_(
-            Subscription.event_id == data, Subscription.user_id == message.from_user.id
+            Subscription.event_id == event.id, Subscription.user_id == message.from_user.id
         )
     )
     if subscription:
