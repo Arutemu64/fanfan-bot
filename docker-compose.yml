@@ -15,11 +15,11 @@ services:
   db:
     container_name: 'fanfan-db'
     image: postgres:15-alpine
-    restart: on-failure
+    restart: always
     env_file:
       - .env
     volumes:
-      - /var/lib/docker/volumes/postgres/_data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     ports:
       - "54320:5432"
   redis:
@@ -29,13 +29,16 @@ services:
       dockerfile: RedisDockerfile
     env_file:
       - .env
-    restart: on-failure
+    restart: always
     volumes:
       - redis-data:/data
     ports:
       - "6378:6378"
 
 volumes:
+  db-data:
+    name: "fanfan-db-data"
+    driver: local
   redis-data:
     name: "fanfan-redis-data"
     driver: local
