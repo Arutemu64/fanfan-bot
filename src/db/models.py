@@ -51,9 +51,9 @@ class Event(Base):
     )
     title: Mapped[str] = mapped_column(nullable=True)
     current: Mapped[bool] = mapped_column(nullable=True, unique=True)
-    next: Mapped[bool] = mapped_column(nullable=True, unique=True)
 
     participant: Mapped["Participant"] = relationship(lazy="selectin")
+    subscriptions: WriteOnlyMapped["Subscription"] = relationship(lazy="write_only")
 
     def __str__(self):
         return f"""Event: {str(self.id)}, {self.participant_id}"""
@@ -97,10 +97,21 @@ class Vote(Base):
     __tablename__ = "votes"
 
     id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
-    tg_id: Mapped[int] = mapped_column(ForeignKey("users.tg_id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     participant_id: Mapped[int] = mapped_column(ForeignKey("participants.id"))
 
     participant: Mapped["Participant"] = relationship(lazy="selectin")
 
     def __str__(self):
-        return f"Vote: {self.tg_id} {self.participant_id} {self.nomination_id}"
+        return f"Vote: {self.id} {self.participant_id} {self.nomination_id}"
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    counter: Mapped[int] = mapped_column(server_default="5")
+
+    event: Mapped["Event"] = relationship(lazy="selectin")

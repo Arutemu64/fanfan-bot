@@ -1,13 +1,11 @@
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Start
+from aiogram_dialog import DialogManager, Window
+from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import Settings
 
 
 async def getter(db: Database, **kwargs):
@@ -38,9 +36,7 @@ org_menu = Window(
         id="switch_voting_button",
         on_click=switch_voting,
     ),
-    Start(text=Const(strings.buttons.back), id="mm", state=states.MAIN.MAIN),
-    state=states.ORG.MAIN,
+    SwitchTo(Const(strings.buttons.back), "mm", states.MAIN.MAIN),
+    state=states.MAIN.ORG,
     getter=getter,
 )
-
-dialog = Dialog(org_menu)

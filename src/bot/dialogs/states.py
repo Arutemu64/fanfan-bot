@@ -8,23 +8,17 @@ class REGISTRATION(StatesGroup):
 class MAIN(StatesGroup):
     MAIN = State()
     ACTIVITIES = State()
-    SCHEDULE = State()
+    HELPER = State()
+    ORG = State()
+
+
+class SCHEDULE(StatesGroup):
+    MAIN = State()
+    ASK_MANUAL_EVENT = State()
+    SWAP_EVENTS = State()
+    ASK_SUBSCRIPTION_COUNTER = State()
 
 
 class VOTING(StatesGroup):
     NOMINATIONS = State()
     VOTING = State()
-
-
-class HELPER(StatesGroup):
-    MAIN = State()
-
-
-class ANNOUNCE_MODE(StatesGroup):
-    MAIN = State()
-    SCHEDULE = State()
-    PREVIEW = State()
-
-
-class ORG(StatesGroup):
-    MAIN = State()

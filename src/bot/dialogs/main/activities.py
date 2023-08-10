@@ -77,7 +77,7 @@ activity = Window(
         ),
         Button(text=Const("  "), id="last_dummy", when=F["is_last_page"]),
     ),
-    SwitchTo(text=Const(strings.buttons.back), state=states.MAIN.MAIN, id="mm"),
+    SwitchTo(Const(strings.buttons.back), "mm", states.MAIN.MAIN),
     state=states.MAIN.ACTIVITIES,
     getter=get_activity,
 )
