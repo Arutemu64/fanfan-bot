@@ -9,6 +9,7 @@ from aiogram.fsm.strategy import FSMStrategy
 from aiogram.types import ErrorEvent
 from aiogram_dialog import DialogManager, setup_dialogs
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from aiogram_dialog.context.media_storage import MediaIdStorage
 from redis.asyncio.client import Redis
 
 from src.bot import commands, dialogs
@@ -56,7 +57,10 @@ def get_dispatcher(
 
     dp.include_router(commands.setup_router())
     dp.include_router(dialogs.setup_router())
-    setup_dialogs(dp)
+
+    mediastorage = MediaIdStorage()
+
+    setup_dialogs(dp, media_id_storage=mediastorage)
 
     dp.errors.register(
         on_unknown_intent_or_state,

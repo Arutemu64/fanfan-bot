@@ -5,11 +5,12 @@ from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo, Url
+from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format
 
 from src.bot.dialogs import states
 from src.bot.structures import Role
-from src.bot.ui import strings
+from src.bot.ui import images, strings
 from src.config import conf
 from src.db import Database
 from src.db.models import Event, User
@@ -62,6 +63,7 @@ main = Window(
     Format(strings.menus.main_menu_text),
     Const(text=" "),
     Format("<i>{random_quote}</i>"),
+    StaticMedia(path=images.main_menu.absolute().__str__()),
     Url(
         text=Const(strings.buttons.changelog_channel),
         url=Const("https://t.me/fanfan_bot_dev_notes"),
