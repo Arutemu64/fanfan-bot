@@ -104,16 +104,18 @@ async def set_next_event(
 
     db: Database = manager.middleware_data["db"]
     current_event = await db.event.get_by_where(Event.current == True)  # noqa
-    if not current_event:
-        current_event = await db.event.get(1)
-    next_event = await db.event.get(current_event.id + 1)
-    if not next_event:
-        await callback.answer("Выступления закончились!", show_alert=True)
-        return
+    if current_event:
+        next_event = await db.event.get(current_event.id + 1)
+        if not next_event:
+            await callback.answer("Выступления закончились!", show_alert=True)
+            return
+        current_event.current = None
+        await db.session.flush([current_event])
+    else:
+        next_event = await db.event.get(1)
 
-    current_event.current = None
     next_event.current = True
-    await db.session.flush([current_event, next_event])
+    await db.session.flush([next_event])
     await db.session.commit()
 
     await asyncio.create_task(
