@@ -118,9 +118,7 @@ async def set_next_event(
     await db.session.flush([next_event])
     await db.session.commit()
 
-    await asyncio.create_task(
-        notifier.send_subscription_notifications(bot=callback.bot, db=db)
-    )
+    asyncio.create_task(notifier.send_subscription_notifications(bot=callback.bot))
 
     current_page = math.floor((next_event.id - 1) / per_page)
     await manager.find(ID_SCHEDULE_SCROLL).set_page(current_page)
@@ -147,9 +145,7 @@ async def set_manual_event(
     await db.session.flush([current_event])
     await db.session.commit()
 
-    await asyncio.create_task(
-        notifier.send_subscription_notifications(bot=message.bot, db=db)
-    )
+    asyncio.create_task(notifier.send_subscription_notifications(bot=message.bot))
 
     current_page = math.floor((current_event.id - 1) / per_page)
     await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(current_page)
@@ -184,9 +180,7 @@ async def swap_events(
     await db.session.flush([event1, event2])
     await db.session.commit()
 
-    await asyncio.create_task(
-        notifier.send_subscription_notifications(bot=message.bot, db=db)
-    )
+    asyncio.create_task(notifier.send_subscription_notifications(bot=message.bot))
 
     current_event = await db.event.get_by_where(Event.current == True)  # noqa
     if current_event:
@@ -211,7 +205,8 @@ async def check_subscription(
         return
     subscription = await db.subscription.get_by_where(
         and_(
-            Subscription.event_id == event.id, Subscription.user_id == message.from_user.id
+            Subscription.event_id == event.id,
+            Subscription.user_id == message.from_user.id,
         )
     )
     if subscription:
