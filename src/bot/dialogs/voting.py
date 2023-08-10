@@ -68,7 +68,7 @@ async def get_participants(dialog_manager: DialogManager, db: Database, **kwargs
 
     user_vote = await db.vote.get_by_where(
         and_(
-            Vote.tg_id == dialog_manager.event.from_user.id,
+            Vote.user_id == dialog_manager.event.from_user.id,
             Vote.participant.has(Participant.nomination_id == nomination_id),
         )
     )

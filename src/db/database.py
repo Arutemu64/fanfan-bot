@@ -12,6 +12,7 @@ from .repositories import (
     NominationRepo,
     ParticipantRepo,
     SettingsRepo,
+    TicketRepo,
     UserRepo,
     VoteRepo,
 )
@@ -47,6 +48,7 @@ class Database:
     nomination: NominationRepo
     participant: ParticipantRepo
     settings: SettingsRepo
+    ticket: TicketRepo
     user: UserRepo
     vote: VoteRepo
 
@@ -59,6 +61,7 @@ class Database:
         nomination: NominationRepo = None,
         participant: ParticipantRepo = None,
         settings: SettingsRepo = None,
+        ticket: TicketRepo = None,
         user: UserRepo = None,
         vote: VoteRepo = None,
     ):
@@ -67,5 +70,6 @@ class Database:
         self.nomination = nomination or NominationRepo(session=session)
         self.participant = participant or ParticipantRepo(session=session)
         self.settings = settings or SettingsRepo(session=session)
+        self.ticket = ticket or TicketRepo(session=session)
         self.user = user or UserRepo(session=session)
         self.vote = vote or VoteRepo(session=session)

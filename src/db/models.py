@@ -16,20 +16,30 @@ Base = declarative_base()
 #  Придумать что с этим можно сделать. Пока и так неплохо.
 
 
+class Ticket(Base):
+    __tablename__ = "tickets"
+
+    id: Mapped[str] = mapped_column(primary_key=True, unique=True)
+    role: Mapped[str] = mapped_column(server_default="visitor")
+    used_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    issued_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+
+
 class User(Base):
     __tablename__ = "users"
 
-    ticket_id: Mapped[str] = mapped_column(primary_key=True, unique=True, nullable=True)
-    tg_id: Mapped[int] = mapped_column(
-        BigInteger, unique=True, autoincrement=False, nullable=True
+    id: Mapped[int] = mapped_column(
+        BigInteger, primary_key=True, unique=True, autoincrement=False
     )
-    username: Mapped[str] = mapped_column(nullable=True)
+    username: Mapped[str] = mapped_column()
     role: Mapped[str] = mapped_column(server_default="visitor")
 
     votes: Mapped[List["Vote"]] = relationship(lazy="selectin")
 
     def __str__(self):
-        return f"""User: tg_id={str(self.tg_id)}, username={self.username}, role={self.role}"""
+        return (
+            f"""User: id={str(self.id)}, username={self.username}, role={self.role}"""
+        )
 
 
 class Event(Base):

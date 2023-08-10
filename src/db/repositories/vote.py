@@ -17,12 +17,12 @@ class VoteRepo(Repository[Vote]):
 
     async def new(
         self,
-        tg_id: int = None,
+        user_id: int = None,
         participant_id: str = None,
     ) -> Vote:
         new_vote = await self.session.merge(
             Vote(
-                tg_id=tg_id,
+                user_id=user_id,
                 participant_id=participant_id,
             )
         )

@@ -1,28 +1,38 @@
-from aiogram.enums import ContentType
 from aiogram.types import Message
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window
-from aiogram_dialog.widgets.input import MessageInput
+from aiogram_dialog.widgets.input import TextInput
+from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
 from aiogram_dialog.widgets.text import Const
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
 
 
 async def check_ticket(
-    message: Message, message_input: MessageInput, manager: DialogManager
+    message: Message,
+    widget: ManagedTextInputAdapter,
+    dialog_manager: DialogManager,
+    data: str,
 ):
-    db: Database = manager.middleware_data.get("db")
-    ticket = await db.user.get_by_where(User.ticket_id == message.text)
+    db: Database = dialog_manager.middleware_data["db"]
+    ticket = await db.ticket.get(data)
     if ticket:
-        if ticket.tg_id is None:
-            ticket.tg_id = message.from_user.id
-            ticket.username = message.from_user.username.lower()
+        if ticket.used_by is None:
+            user = await db.user.new(
+                id=message.from_user.id,
+                username=message.from_user.username.lower(),
+                role=ticket.role,
+            )
+            db.session.add(user)
+            await db.session.flush([user])
+            ticket.used_by = user.id
             await db.session.commit()
             await message.answer(strings.success.registration_successful)
-            manager.middleware_data["user"] = ticket
-            await manager.start(state=states.MAIN.MAIN, mode=StartMode.RESET_STACK)
+            dialog_manager.middleware_data["user"] = user
+            await dialog_manager.start(
+                state=states.MAIN.MAIN, mode=StartMode.RESET_STACK
+            )
         else:
             await message.reply(strings.errors.ticket_used)
     else:
@@ -31,7 +41,7 @@ async def check_ticket(
 
 registration = Window(
     Const(strings.errors.please_send_ticket),
-    MessageInput(check_ticket, content_types=[ContentType.TEXT]),
+    TextInput(id="enter_ticket", type_factory=str, on_success=check_ticket),
     state=states.REGISTRATION.MAIN,
 )
 

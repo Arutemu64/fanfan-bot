@@ -19,17 +19,15 @@ class UserRepo(Repository[User]):
 
     async def new(
         self,
-        ticket_id: str,
-        tg_id: int = None,
+        id: int = None,
         username: str = None,
         role: str = Role.VISITOR,
     ) -> User:
-        new_ticket = await self.session.merge(
+        new_user = await self.session.merge(
             User(
-                ticket_id=ticket_id,
-                tg_id=tg_id,
+                id=id,
                 username=username,
                 role=role,
             )
         )
-        return new_ticket
+        return new_user

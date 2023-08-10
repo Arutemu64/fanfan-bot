@@ -56,13 +56,13 @@ async def parse(db: Database):
     df.replace({np.nan: None}, inplace=True)
     tickets_count = 0
     for index, row in df.iterrows():
-        ticket = await db.user.get(row["ticket_id"])
+        ticket = await db.ticket.get(row["id"])
         if ticket:
             print("Билет с таким номером уже существует")
         else:
-            ticket = await db.user.new(ticket_id=row["ticket_id"], role=row["role"])
+            ticket = await db.ticket.new(id=row["id"], role=row["role"])
             await db.session.flush([ticket])
-            print(f"Билет {row['ticket_id']} добавлен в БД")
+            print(f"Билет {row['id']} добавлен в БД")
             tickets_count += 1
     await db.session.commit()
     return nominations_count, participants_count, tickets_count
