@@ -1,14 +1,23 @@
 import json
 from pathlib import Path
 
-from aiogram import F
-from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
+from aiogram_dialog.widgets.kbd import (
+    CurrentPage,
+    FirstPage,
+    LastPage,
+    NextPage,
+    PrevPage,
+    Row,
+    StubScroll,
+    SwitchTo,
+)
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
+
+ID_ACTIVITIES_SCROLL = "activities_scroll"
 
 path_to_activities_folder = Path(__file__).parents[2] / "ui" / "activities"
 activities_json = path_to_activities_folder / "activities.json"
@@ -17,36 +26,17 @@ with open(activities_json, mode="r") as f:
 
 
 async def get_activity(dialog_manager: DialogManager, **kwargs):
-    if dialog_manager.dialog_data.get("current_activity"):
-        activity_id = dialog_manager.dialog_data.get("current_activity")
-    else:
-        activity_id = 0
-        dialog_manager.dialog_data["current_activity"] = activity_id
-    dialog_manager.dialog_data["total_activities"] = len(activities)
+    pages = len(activities)
+    current_activity = await dialog_manager.find(ID_ACTIVITIES_SCROLL).get_page()
+    activity_title = activities[current_activity].get("title", "%title%")
+    activity_text = activities[current_activity].get("text", "%text%")
+    activity_where = activities[current_activity].get("where", "%where%")
     return {
-        "activity_title": activities[activity_id].get("title", "%title%"),
-        "activity_text": activities[activity_id].get("text", "%text%"),
-        "activity_where": activities[activity_id].get("where", "%where%"),
-        "activity_page": activity_id + 1,
-        "total_activities": len(activities),
-        "is_first_page": activity_id == 0,
-        "is_last_page": activity_id + 1 == len(activities),
+        "pages": pages,
+        "activity_title": activity_title,
+        "activity_text": activity_text,
+        "activity_where": activity_where,
     }
-
-
-async def change_page(callback: CallbackQuery, button: Button, manager: DialogManager):
-    match button.widget_id:
-        case "first":
-            manager.dialog_data["current_activity"] = 0
-        case "previous":
-            manager.dialog_data["current_activity"] -= 1
-        case "next":
-            manager.dialog_data["current_activity"] += 1
-        case "last":
-            manager.dialog_data["current_activity"] = (
-                manager.dialog_data["total_activities"] - 1
-            )
-    await manager.update(data=manager.dialog_data)
 
 
 activity = Window(
@@ -55,27 +45,15 @@ activity = Window(
     Format("{activity_text}"),
     Const(" "),
     Format("<b>Где:</b> {activity_where}"),
+    StubScroll(id=ID_ACTIVITIES_SCROLL, pages="pages"),
     Row(
-        Button(
-            text=Const("⏪"), id="first", on_click=change_page, when=~F["is_first_page"]
+        FirstPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("⏪")),
+        PrevPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("◀️")),
+        CurrentPage(
+            scroll=ID_ACTIVITIES_SCROLL, text=Format(text="{current_page1}/{pages}")
         ),
-        Button(text=Const("  "), id="first_dummy", when=F["is_first_page"]),
-        Button(
-            text=Const("◀️"),
-            id="previous",
-            on_click=change_page,
-            when=~F["is_first_page"],
-        ),
-        Button(text=Const("  "), id="previous_dummy", when=F["is_first_page"]),
-        Button(text=Format("{activity_page}/{total_activities}"), id="pager"),
-        Button(
-            text=Const("▶️"), id="next", on_click=change_page, when=~F["is_last_page"]
-        ),
-        Button(text=Const("  "), id="next_dummy", when=F["is_last_page"]),
-        Button(
-            text=Const("⏭️"), id="last", on_click=change_page, when=~F["is_last_page"]
-        ),
-        Button(text=Const("  "), id="last_dummy", when=F["is_last_page"]),
+        NextPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("▶️")),
+        LastPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("⏭️")),
     ),
     SwitchTo(Const(strings.buttons.back), "mm", states.MAIN.MAIN),
     state=states.MAIN.ACTIVITIES,
