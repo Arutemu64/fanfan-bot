@@ -7,8 +7,6 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
-from pyngrok import conf as ngrok_conf
-from pyngrok import ngrok
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
@@ -28,31 +26,32 @@ sentry_sdk.init(
     ],
 )
 
+BOT_TOKEN = conf.bot.token
+BASE_WEBHOOK_URL = f"https://{conf.bot.webhook_domain}/"
+WEB_SERVER_HOST = "127.0.0.1"
+WEB_SERVER_PORT = 8080
+WEBHOOK_PATH = "webhook/"
 
-async def on_startup(bot: Bot):
-    ngrok.set_auth_token(conf.bot.ngrok_auth)
-    ngrok_conf.get_default().region = conf.bot.ngrok_region
-    ngrok_tunnel = ngrok.connect(addr="127.0.0.1:8080", proto="http")
-    await bot.set_webhook(ngrok_tunnel.public_url)
+
+async def on_startup(bot: Bot) -> None:
+    await bot.set_webhook(url=f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}")
 
 
 async def main() -> None:
-    bot = Bot(token=conf.bot.token, parse_mode=ParseMode.HTML)
+    bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
     cache = Cache()
     storage = get_redis_storage(redis=cache.redis_client)
     dp = get_dispatcher(storage=storage, event_isolation=SimpleEventIsolation())
 
-    if conf.bot.mode == "webhook":
-        dp.startup.register(on_startup)
-
     await bot.delete_webhook(drop_pending_updates=True)
 
     if conf.bot.mode == "webhook":
+        dp.startup.register(on_startup)
         app = web.Application()
-        app["bot"] = bot
-        SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="")
+        webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+        webhook_requests_handler.register(app, path=WEBHOOK_PATH)
         setup_application(app, dp, bot=bot)
-        web.run_app(asyncio.run(app), host="127.0.0.1", port=8080)
+        web.run_app(app, host=WEB_SERVER_HOST, port=WEB_SERVER_PORT)
     elif conf.bot.mode == "polling":
         await dp.start_polling(bot)
 

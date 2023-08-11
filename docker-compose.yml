@@ -34,6 +34,19 @@ services:
       - redis-data:/data
     ports:
       - "6378:6378"
+  caddy:
+    container_name: 'fanfan-webhook'
+    build:
+      context: buildfiles
+      dockerfile: CaddyDockerfile
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    profiles:
+      - webhook
 
 volumes:
   db-data:

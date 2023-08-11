@@ -56,8 +56,7 @@ class BotConfig:
     channel_id: int = env.int("CHANNEL_ID")
     channel_link: str = env("CHANNEL_LINK")
 
-    ngrok_auth: str = env("NGROK_AUTH")
-    ngrok_region: str = env("NGROK_REGION", "eu")
+    webhook_domain: str = env("WEBHOOK_DOMAIN")
 
     sentry_dsn: str = env("SENTRY_DSN")
     sentry_env: str = env("SENTRY_ENV")

@@ -1,0 +1,4 @@
+{$WEBHOOK_DOMAIN} {
+    tls {$CERT_EMAIL}
+    reverse_proxy bot:8080
+}
