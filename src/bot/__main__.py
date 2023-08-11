@@ -27,10 +27,10 @@ sentry_sdk.init(
 )
 
 BOT_TOKEN = conf.bot.token
-BASE_WEBHOOK_URL = f"https://{conf.bot.webhook_domain}/"
-WEB_SERVER_HOST = "127.0.0.1"
+BASE_WEBHOOK_URL = f"https://{conf.bot.webhook_domain}"
+WEB_SERVER_HOST = "db"
 WEB_SERVER_PORT = 8080
-WEBHOOK_PATH = "webhook/"
+WEBHOOK_PATH = "/webhook"
 
 
 async def on_startup(bot: Bot) -> None:
@@ -51,7 +51,7 @@ async def main() -> None:
         webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
         webhook_requests_handler.register(app, path=WEBHOOK_PATH)
         setup_application(app, dp, bot=bot)
-        web.run_app(app, host=WEB_SERVER_HOST, port=WEB_SERVER_PORT)
+        await web._run_app(app, host=WEB_SERVER_HOST, port=WEB_SERVER_PORT)
     elif conf.bot.mode == "polling":
         await dp.start_polling(bot)
 
