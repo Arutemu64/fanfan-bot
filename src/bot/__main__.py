@@ -7,12 +7,13 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
+from redis.asyncio.client import Redis
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
-from src.bot.dispatcher import get_dispatcher, get_redis_storage
-from src.cache import Cache
+from src.bot.dispatcher import build_redis_client, get_dispatcher, get_redis_storage
+from src.bot.structures import Settings
 from src.config import conf
 
 sentry_sdk.init(
@@ -37,11 +38,24 @@ async def on_startup(bot: Bot) -> None:
     await bot.set_webhook(url=f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}")
 
 
+async def setup_default_settings(redis: Redis) -> None:
+    settings = Settings(redis)
+    if await settings.voting_enabled.get() is None:
+        await settings.voting_enabled.set(False)
+    if await settings.announcement_timestamp.get() is None:
+        await settings.announcement_timestamp.set(0)
+
+
 async def main() -> None:
     bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
-    cache = Cache()
-    storage = get_redis_storage(redis=cache.redis_client)
-    dp = get_dispatcher(storage=storage, event_isolation=SimpleEventIsolation())
+
+    redis = build_redis_client()
+    await setup_default_settings(redis)
+    storage = get_redis_storage(redis=redis)
+
+    dp = get_dispatcher(
+        storage=storage, event_isolation=SimpleEventIsolation(), redis=redis
+    )
 
     await bot.delete_webhook(drop_pending_updates=True)
 

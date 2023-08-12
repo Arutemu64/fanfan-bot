@@ -5,22 +5,20 @@ from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.text import Case, Const
 
 from src.bot.dialogs import states
+from src.bot.structures import Settings
 from src.bot.ui import strings
-from src.db import Database
 
 
-async def getter(db: Database, **kwargs):
-    voting_enabled = (await db.settings.get_by_where(True)).voting_enabled
+async def getter(settings: Settings, **kwargs):
+    voting_enabled = await settings.voting_enabled.get()
     return {"voting_enabled": voting_enabled}
 
 
 async def switch_voting(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    db: Database = manager.middleware_data.get("db")
-    settings = await db.settings.get_by_where(True)
-    settings.voting_enabled = not settings.voting_enabled
-    await db.session.commit()
+    settings: Settings = manager.middleware_data["settings"]
+    await settings.voting_enabled.set(not await settings.voting_enabled.get())
 
 
 org_menu = Window(

@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional
 
 from aiogram import Dispatcher, F
@@ -13,10 +14,23 @@ from aiogram_dialog.context.media_storage import MediaIdStorage
 from redis.asyncio.client import Redis
 
 from src.bot import commands, dialogs
-from src.bot.middlewares import CacheMiddleware, DatabaseMiddleware, UserData
-from src.cache import Cache
+from src.bot.middlewares import DatabaseMiddleware, SettingsMiddleware, UserData
 from src.config import conf
 from src.db.database import create_session_maker
+
+
+def build_redis_client() -> Redis:
+    """Build redis client"""
+    client = Redis(
+        host=conf.redis.host,
+        db=conf.redis.db,
+        port=conf.redis.port,
+        password=conf.redis.passwd,
+        username=conf.redis.username,
+        decode_responses=True,
+    )
+    asyncio.create_task(client.ping())
+    return client
 
 
 def get_redis_storage(
@@ -40,6 +54,7 @@ def get_dispatcher(
     storage: BaseStorage = MemoryStorage(),
     fsm_strategy: Optional[FSMStrategy] = FSMStrategy.CHAT,
     event_isolation: Optional[BaseEventIsolation] = None,
+    redis: Redis = None,
 ) -> Dispatcher:
     dp = Dispatcher(
         storage=storage, fsm_strategy=fsm_strategy, events_isolation=event_isolation
@@ -49,18 +64,15 @@ def get_dispatcher(
 
     session_pool = create_session_maker()
     dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
-
-    client_cache = Cache()
-    dp.update.middleware(CacheMiddleware(cache=client_cache))
-
     dp.update.middleware(UserData())
+    dp.update.middleware(SettingsMiddleware(redis))
 
     dp.include_router(commands.setup_router())
     dp.include_router(dialogs.setup_router())
 
-    mediastorage = MediaIdStorage()
+    media_storage = MediaIdStorage()
 
-    setup_dialogs(dp, media_id_storage=mediastorage)
+    setup_dialogs(dp, media_id_storage=media_storage)
 
     dp.errors.register(
         on_unknown_intent_or_state,

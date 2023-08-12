@@ -87,12 +87,6 @@ class Nomination(Base):
     )
 
 
-class Settings(Base):
-    __tablename__ = "settings"
-
-    voting_enabled: Mapped[bool] = mapped_column(primary_key=True)
-
-
 class Vote(Base):
     __tablename__ = "votes"
 

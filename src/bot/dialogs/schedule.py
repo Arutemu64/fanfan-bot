@@ -24,9 +24,9 @@ from sqlalchemy import and_
 
 from src.bot.dialogs import states
 from src.bot.services import notifier
+from src.bot.structures import Settings
 from src.bot.structures.role import Role
 from src.bot.ui import strings
-from src.cache import Cache
 from src.config import conf
 from src.db import Database
 from src.db.models import Event, Subscription, User
@@ -93,14 +93,13 @@ async def toggle_helper_tools(
 async def set_next_event(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    cache: Cache = manager.middleware_data["cache"]
-    global_timestamp = float(await cache.get("announcement_timestamp"))
-    if global_timestamp:
-        timestamp = time.time()
-        if (timestamp - global_timestamp) < conf.bot.announcement_timeout:
-            await callback.answer(strings.errors.announce_too_fast, show_alert=True)
-            return
-    await cache.set("announcement_timestamp", time.time())
+    settings: Settings = manager.middleware_data["settings"]
+    global_timestamp = await settings.announcement_timestamp.get()
+    timestamp = time.time()
+    if (timestamp - global_timestamp) < conf.bot.announcement_timeout:
+        await callback.answer(strings.errors.announce_too_fast, show_alert=True)
+        return
+    await settings.announcement_timestamp.set(timestamp)
 
     db: Database = manager.middleware_data["db"]
     current_event = await db.event.get_by_where(Event.current == True)  # noqa

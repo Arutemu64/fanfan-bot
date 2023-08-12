@@ -33,7 +33,7 @@ services:
     volumes:
       - redis-data:/data
     ports:
-      - "6378:6378"
+      - "6379:6379"
   caddy:
     container_name: 'fanfan-webhook'
     build:

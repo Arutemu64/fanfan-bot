@@ -9,7 +9,7 @@ from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format
 
 from src.bot.dialogs import states
-from src.bot.structures import Role
+from src.bot.structures import Role, Settings
 from src.bot.ui import images, strings
 from src.config import conf
 from src.db import Database
@@ -18,14 +18,16 @@ from src.db.models import Event, User
 per_page = conf.bot.events_per_page
 
 
-async def getter(dialog_manager: DialogManager, user: User, db: Database, **kwargs):
+async def getter(
+    dialog_manager: DialogManager, user: User, settings: Settings, **kwargs
+):
     name = dialog_manager.event.from_user.first_name
     is_helper = user.role == Role.HELPER
     is_org = user.role == Role.ORG
     if is_org:
         is_helper = True
     random_quote = random.choice(strings.quotes)
-    voting_enabled = (await db.settings.get_by_where(True)).voting_enabled
+    voting_enabled = await settings.voting_enabled.get()
     dialog_manager.dialog_data["voting_enabled"] = voting_enabled
     return {
         "name": name,
