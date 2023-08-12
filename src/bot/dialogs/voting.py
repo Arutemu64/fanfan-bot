@@ -25,6 +25,7 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from sqlalchemy import and_
 
 from src.bot.dialogs import states
+from src.bot.structures import Settings
 from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
@@ -123,9 +124,8 @@ participants_html = Jinja(
 
 
 async def vote(message: Message, message_input: MessageInput, manager: DialogManager):
-    db: Database = manager.middleware_data["db"]
-    settings = await db.settings.get_by_where(True)
-    if not settings.voting_enabled:
+    settings: Settings = manager.middleware_data["settings"]
+    if not await settings.voting_enabled.get():
         await message.reply(strings.errors.voting_disabled)
         return
     if manager.dialog_data.get("user_vote_id"):
@@ -134,6 +134,7 @@ async def vote(message: Message, message_input: MessageInput, manager: DialogMan
     if not message.text.isnumeric():
         await message.reply("Укажите номер выступающего!")
         return
+    db: Database = manager.middleware_data["db"]
     participant = await db.participant.get_by_where(
         and_(
             Participant.id == int(message.text),
@@ -149,11 +150,11 @@ async def vote(message: Message, message_input: MessageInput, manager: DialogMan
 
 
 async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogManager):
-    db: Database = manager.middleware_data["db"]
-    settings = await db.settings.get_by_where(True)
-    if not settings.voting_enabled:
+    settings: Settings = manager.middleware_data["settings"]
+    if not await settings.voting_enabled.get():
         await callback.answer(strings.errors.voting_disabled)
         return
+    db: Database = manager.middleware_data["db"]
     user_vote: Vote = await db.vote.get(manager.dialog_data["user_vote_id"])
     await db.session.delete(user_vote)
     await db.session.commit()
