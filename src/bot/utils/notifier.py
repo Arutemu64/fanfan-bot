@@ -1,5 +1,8 @@
+import logging
+
 import jinja2
 from aiogram import Bot
+from aiogram.exceptions import TelegramBadRequest
 from sqlalchemy import and_
 
 from src.db import Database
@@ -49,7 +52,12 @@ async def send_subscription_notifications(
             text = template.render(
                 {"current_event": current_event, "subscription": subscription}
             )
-            await bot.send_message(chat_id=subscription.user_id, text=text)
+            try:
+                await bot.send_message(chat_id=subscription.user_id, text=text)
+            except TelegramBadRequest:
+                logging.info(
+                    f"Can't send notification to user {subscription.user_id}, skipping..."
+                )
             if current_event.id - subscription.event_id == 0:
                 await db.session.delete(subscription)
                 await db.session.commit()
