@@ -9,6 +9,9 @@ services:
       - .env
     restart: always
     stop_signal: SIGINT
+    volumes:
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
     networks:
       - internal
     ports:
