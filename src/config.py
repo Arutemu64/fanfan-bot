@@ -52,9 +52,6 @@ class BotConfig:
     token: str = env("BOT_TOKEN")
     mode: str = env("MODE", "polling")
 
-    channel_id: int = env.int("CHANNEL_ID")
-    channel_link: str = env("CHANNEL_LINK")
-
     webhook_domain: str = env("WEBHOOK_DOMAIN")
 
     sentry_dsn: str = env("SENTRY_DSN")
