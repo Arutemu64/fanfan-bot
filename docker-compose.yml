@@ -9,6 +9,10 @@ services:
       - .env
     restart: always
     stop_signal: SIGINT
+    networks:
+      - internal
+    ports:
+      - "8080:8080"
     depends_on:
       - db
       - redis
@@ -20,6 +24,9 @@ services:
       - .env
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      - internal
+      - web
     ports:
       - "54320:5432"
   redis:
@@ -32,6 +39,9 @@ services:
     restart: always
     volumes:
       - redis-data:/data
+    networks:
+      - internal
+      - web
     ports:
       - "6379:6379"
   caddy:
@@ -42,11 +52,21 @@ services:
     env_file:
       - .env
     restart: always
+    networks:
+      - internal
+      - web
     ports:
       - "80:80"
       - "443:443"
     profiles:
       - webhook
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+    driver: bridge
 
 volumes:
   db-data:
