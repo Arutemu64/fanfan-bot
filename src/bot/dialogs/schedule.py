@@ -23,10 +23,10 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from sqlalchemy import and_
 
 from src.bot.dialogs import states
-from src.bot.utils import notifier
 from src.bot.structures import Settings
 from src.bot.structures.role import Role
 from src.bot.ui import strings
+from src.bot.utils import notifier
 from src.config import conf
 from src.db import Database
 from src.db.models import Event, Subscription, User
@@ -49,7 +49,7 @@ async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
     for event in events:
         subscription = await db.session.scalar(
             event.subscriptions.select().where(
-                User.id == dialog_manager.event.from_user.id
+                Subscription.user_id == dialog_manager.event.from_user.id
             )
         )
         subscriptions.append(subscription)
