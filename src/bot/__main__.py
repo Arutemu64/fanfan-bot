@@ -29,7 +29,7 @@ sentry_sdk.init(
 
 BOT_TOKEN = conf.bot.token
 BASE_WEBHOOK_URL = f"https://{conf.bot.webhook_domain}"
-WEB_SERVER_HOST = "db"
+WEB_SERVER_HOST = "bot"
 WEB_SERVER_PORT = 8080
 WEBHOOK_PATH = "/webhook"
 
