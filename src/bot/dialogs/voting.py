@@ -29,7 +29,7 @@ from src.bot.structures import Settings
 from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
-from src.db.models import Nomination, Participant, Vote
+from src.db.models import Nomination, Participant, User, Vote
 
 per_page = conf.bot.participants_per_page
 ID_VOTING_SCROLL = "voting_scroll"
@@ -52,7 +52,9 @@ async def get_nominations(dialog_manager: DialogManager, db: Database, **kwargs)
     return {"nominations_list": nominations_list}
 
 
-async def get_participants(dialog_manager: DialogManager, db: Database, **kwargs):
+async def get_participants(
+    dialog_manager: DialogManager, db: Database, user: User, **kwargs
+):
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get_by_where(Nomination.id == nomination_id)
 
@@ -66,11 +68,9 @@ async def get_participants(dialog_manager: DialogManager, db: Database, **kwargs
         .slice((current_page * per_page), (current_page * per_page) + per_page)
         .order_by(Participant.id)
     )
-
-    user_vote = await db.vote.get_by_where(
-        and_(
-            Vote.user_id == dialog_manager.event.from_user.id,
-            Vote.participant.has(Participant.nomination_id == nomination_id),
+    user_vote: Vote = await db.session.scalar(
+        user.votes.select().where(
+            Vote.participant.has(Participant.nomination_id == nomination_id)
         )
     )
     if user_vote:
@@ -155,7 +155,7 @@ async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogMa
         await callback.answer(strings.errors.voting_disabled)
         return
     db: Database = manager.middleware_data["db"]
-    user_vote: Vote = await db.vote.get(manager.dialog_data["user_vote_id"])
+    user_vote = await db.vote.get(manager.dialog_data["user_vote_id"])
     await db.session.delete(user_vote)
     await db.session.commit()
 

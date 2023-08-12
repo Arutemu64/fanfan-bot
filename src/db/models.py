@@ -34,7 +34,7 @@ class User(Base):
     username: Mapped[str] = mapped_column()
     role: Mapped[str] = mapped_column(server_default="visitor")
 
-    votes: Mapped[List["Vote"]] = relationship(lazy="selectin")
+    votes: WriteOnlyMapped["Vote"] = relationship(lazy="write_only")
 
     def __str__(self):
         return (
@@ -72,7 +72,6 @@ class Participant(Base):
     votes: Mapped[List["Vote"]] = relationship(
         lazy="selectin", cascade="all, delete-orphan"
     )
-    event: Mapped["Event"] = relationship(lazy="selectin", cascade="all, delete-orphan")
 
 
 class Nomination(Base):
