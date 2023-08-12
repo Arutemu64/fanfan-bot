@@ -3,13 +3,20 @@ import logging
 import jinja2
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import and_
 
+from src.bot.ui import strings
 from src.db import Database
 from src.db.database import create_session_maker
 from src.db.models import Event, Subscription
 
 session_pool = create_session_maker()
+
+DELETE_BUTTON = InlineKeyboardBuilder().add(
+    InlineKeyboardButton(text=strings.buttons.viewed, callback_data="delete")
+)
 
 jinja = jinja2.Environment()
 
@@ -52,8 +59,13 @@ async def send_subscription_notifications(
             text = template.render(
                 {"current_event": current_event, "subscription": subscription}
             )
+
             try:
-                await bot.send_message(chat_id=subscription.user_id, text=text)
+                await bot.send_message(
+                    chat_id=subscription.user_id,
+                    text=text,
+                    reply_markup=DELETE_BUTTON.as_markup(),
+                )
             except TelegramBadRequest:
                 logging.info(
                     f"Can't send notification to user {subscription.user_id}, skipping..."

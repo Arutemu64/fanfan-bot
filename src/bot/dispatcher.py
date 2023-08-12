@@ -1,4 +1,3 @@
-import asyncio
 from typing import Optional
 
 from aiogram import Dispatcher, F
@@ -13,7 +12,7 @@ from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from aiogram_dialog.context.media_storage import MediaIdStorage
 from redis.asyncio.client import Redis
 
-from src.bot import commands, dialogs
+from src.bot import dialogs, handlers
 from src.bot.middlewares import DatabaseMiddleware, SettingsMiddleware, UserData
 from src.config import conf
 from src.db.database import create_session_maker
@@ -66,7 +65,7 @@ def get_dispatcher(
     dp.update.middleware(UserData())
     dp.update.middleware(SettingsMiddleware(redis))
 
-    dp.include_router(commands.setup_router())
+    dp.include_router(handlers.setup_router())
     dp.include_router(dialogs.setup_router())
 
     media_storage = MediaIdStorage()
