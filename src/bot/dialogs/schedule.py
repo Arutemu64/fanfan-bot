@@ -23,7 +23,7 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from sqlalchemy import and_
 
 from src.bot.dialogs import states
-from src.bot.services import notifier
+from src.bot.utils import notifier
 from src.bot.structures import Settings
 from src.bot.structures.role import Role
 from src.bot.ui import strings
