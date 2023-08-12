@@ -6,10 +6,10 @@ class VotingEnabled:
         self.redis = redis
 
     async def get(self) -> bool | None:
-        voting_enabled = int(await self.redis.get("voting_enabled"))
-        if voting_enabled == 1:
+        voting_enabled = await self.redis.get("voting_enabled")
+        if voting_enabled == "1":
             return True
-        elif voting_enabled == 0:
+        elif voting_enabled == "0":
             return False
         else:
             return None
