@@ -29,7 +29,6 @@ def build_redis_client() -> Redis:
         username=conf.redis.username,
         decode_responses=True,
     )
-    asyncio.create_task(client.ping())
     return client
 
 
@@ -54,7 +53,7 @@ def get_dispatcher(
     storage: BaseStorage = MemoryStorage(),
     fsm_strategy: Optional[FSMStrategy] = FSMStrategy.CHAT,
     event_isolation: Optional[BaseEventIsolation] = None,
-    redis: Redis = None,
+    redis: Redis = build_redis_client(),
 ) -> Dispatcher:
     dp = Dispatcher(
         storage=storage, fsm_strategy=fsm_strategy, events_isolation=event_isolation

@@ -50,6 +50,7 @@ async def main() -> None:
     bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
 
     redis = build_redis_client()
+    asyncio.create_task(redis.ping())
     await setup_default_settings(redis)
     storage = get_redis_storage(redis=redis)
 
