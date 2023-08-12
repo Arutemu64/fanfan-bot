@@ -13,10 +13,8 @@ path_to_plan = Path(__file__).with_name("technical_plan.csv")
 
 
 async def clean_schedule(db: Database):
-    print("Очищаем расписание...")
-    events = await db.event.get_many(True, limit=1000)
-    for event in events:
-        await db.session.delete(event)
+    await db.session.execute(text("TRUNCATE TABLE schedule CASCADE"))
+    await db.session.execute(text("ALTER SEQUENCE subscriptions_id_seq RESTART WITH 1"))
     await db.session.execute(text("ALTER SEQUENCE schedule_id_seq RESTART WITH 1"))
     await db.session.commit()
 
@@ -49,8 +47,9 @@ async def parse_plan(db: Database):
                 Nomination.id == row["next_code"]
             )
             if nomination:
-                print(f"Номинация {row['next_code']} уже существует")
+                print(f"Номинация {row['info']} уже существует")
             else:
+                print(f"Добавляем номинацию {row['info']}...")
                 while True:
                     choice = input(
                         "Разрешить голосование за эту номинацию? Y - да, N - нет\n"
