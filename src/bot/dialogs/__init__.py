@@ -4,7 +4,7 @@ from src.bot.filters import RoleFilter
 
 
 def setup_router() -> Router:
-    from src.bot.dialogs import main, registration, schedule, voting
+    from src.bot.dialogs import main, org, registration, schedule, voting
 
     registration_router = Router()
     registration_router.include_router(registration.dialog)
@@ -20,6 +20,7 @@ def setup_router() -> Router:
 
     org_router = Router()
     org_router.callback_query.filter(RoleFilter(["org"]))
+    org_router.include_router(org.dialog)
 
     dialog_router = Router()
     dialog_router.include_router(registration_router)

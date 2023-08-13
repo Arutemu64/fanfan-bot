@@ -22,3 +22,11 @@ class SCHEDULE(StatesGroup):
 class VOTING(StatesGroup):
     NOMINATIONS = State()
     VOTING = State()
+
+
+class ORG(StatesGroup):
+    MAIN = State()
+    NEW_TICKET = State()
+    ASK_USERNAME = State()
+    USER_EDITOR = State()
+    CHANGE_ROLE = State()

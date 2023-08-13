@@ -21,8 +21,12 @@ class Ticket(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True, unique=True)
     role: Mapped[str] = mapped_column(server_default="visitor")
-    used_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-    issued_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    used_by: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    issued_by: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
 
 
 class User(Base):
@@ -35,7 +39,18 @@ class User(Base):
     role: Mapped[str] = mapped_column(server_default="visitor")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
 
-    votes: WriteOnlyMapped["Vote"] = relationship(lazy="write_only")
+    ticket: Mapped["Ticket"] = relationship(
+        lazy="selectin", foreign_keys="Ticket.used_by", cascade="all, delete"
+    )
+    issued_tickets: WriteOnlyMapped["Ticket"] = relationship(
+        lazy="write_only",
+        foreign_keys="Ticket.issued_by",
+        passive_deletes=True,
+        cascade="all, delete",
+    )
+    votes: WriteOnlyMapped["Vote"] = relationship(
+        lazy="write_only", passive_deletes=True, cascade="all, delete"
+    )
 
     def __str__(self):
         return (
@@ -91,7 +106,7 @@ class Vote(Base):
     __tablename__ = "votes"
 
     id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     participant_id: Mapped[int] = mapped_column(ForeignKey("participants.id"))
 
     participant: Mapped["Participant"] = relationship(lazy="selectin")
@@ -105,8 +120,8 @@ class Subscription(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id"))
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     counter: Mapped[int] = mapped_column(server_default="5")
 
     event: Mapped["Event"] = relationship(lazy="selectin")
-    user: Mapped["User"] = relationship(lazy="selectin")
+    user: Mapped["User"] = relationship(lazy="selectin", cascade="all, delete")

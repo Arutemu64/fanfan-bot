@@ -104,7 +104,7 @@ main = Window(
             text=Const(strings.buttons.org_menu),
             id="org_menu",
             when="is_org",
-            state=states.MAIN.ORG,
+            state=states.ORG.MAIN,
         ),
     ),
     state=states.MAIN.MAIN,

@@ -1,7 +1,7 @@
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
 from aiogram_dialog.widgets.text import Case, Const
 
 from src.bot.dialogs import states
@@ -24,7 +24,16 @@ async def switch_voting(
 org_menu = Window(
     Const("<b>🔧 Меню организатора</b>"),
     Const(" "),
-    Const(strings.menus.org_menu_text),
+    SwitchTo(
+        state=states.ORG.ASK_USERNAME,
+        id="edit_user",
+        text=Const("👤✏️ Редактировать пользователя"),
+    ),
+    SwitchTo(
+        state=states.ORG.NEW_TICKET,
+        id="new_ticket",
+        text=Const("🎫 Добавить новый билет"),
+    ),
     Button(
         text=Case(
             texts={
@@ -36,7 +45,7 @@ org_menu = Window(
         id="switch_voting_button",
         on_click=switch_voting,
     ),
-    SwitchTo(Const(strings.buttons.back), "mm", states.MAIN.MAIN),
-    state=states.MAIN.ORG,
+    Cancel(Const(strings.buttons.back)),
+    state=states.ORG.MAIN,
     getter=getter,
 )
