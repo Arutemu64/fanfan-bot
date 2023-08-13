@@ -1,11 +1,3 @@
-.PHONY: generate
-generate:
-	alembic revision --m='init' --autogenerate
-
-.PHONY: migrate
-migrate:
-	alembic upgrade head
-
 .PHONY:	black
 black:
 	poetry run black src/ scripts/
@@ -20,3 +12,12 @@ flake:
 
 .PHONY: lint
 lint: black isort flake
+
+# Alembic utils
+.PHONY: generate
+generate:
+	alembic revision --m="$(NAME)" --autogenerate
+
+.PHONY: migrate
+migrate:
+	alembic upgrade head
