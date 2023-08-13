@@ -1972,4 +1972,4 @@ wget = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "236c4f954b77ec97bda475c7ded5cd206ada7c799fcb949dc00d8dafa420b23b"
+content-hash = "af3c0ef7e26f4d4f25229e53b98ca798d7fb8ae0c80bbd8dafc8814a755c5b6c"
