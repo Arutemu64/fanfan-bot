@@ -42,7 +42,7 @@ class Repository(Generic[AbstractModel]):
         return (await self.session.execute(statement)).scalar_one_or_none()
 
     async def get_many(
-        self, whereclause, limit: int = 100, order_by=None
+        self, whereclause, limit: int = None, order_by=None
     ) -> List[AbstractModel]:
         """
         Get many models from the database with whereclause

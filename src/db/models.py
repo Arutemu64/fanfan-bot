@@ -33,6 +33,7 @@ class User(Base):
     )
     username: Mapped[str] = mapped_column()
     role: Mapped[str] = mapped_column(server_default="visitor")
+    receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
 
     votes: WriteOnlyMapped["Vote"] = relationship(lazy="write_only")
 
@@ -108,3 +109,4 @@ class Subscription(Base):
     counter: Mapped[int] = mapped_column(server_default="5")
 
     event: Mapped["Event"] = relationship(lazy="selectin")
+    user: Mapped["User"] = relationship(lazy="selectin")

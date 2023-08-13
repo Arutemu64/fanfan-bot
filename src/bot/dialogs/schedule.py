@@ -64,6 +64,7 @@ async def get_schedule(dialog_manager: DialogManager, db: Database, **kwargs):
         "events": events,
         "is_helper": is_helper,
         "subscriptions": subscriptions,
+        "receive_all_announcements": user.receive_all_announcements,
     }
 
 
@@ -117,7 +118,7 @@ async def set_next_event(
     await db.session.flush([next_event])
     await db.session.commit()
 
-    asyncio.create_task(notifier.send_subscription_notifications(bot=callback.bot))
+    asyncio.create_task(notifier.proceed_subscriptions(bot=callback.bot))
 
     current_page = math.floor((next_event.id - 1) / per_page)
     await manager.find(ID_SCHEDULE_SCROLL).set_page(current_page)
@@ -144,7 +145,7 @@ async def set_manual_event(
     await db.session.flush([current_event])
     await db.session.commit()
 
-    asyncio.create_task(notifier.send_subscription_notifications(bot=message.bot))
+    asyncio.create_task(notifier.proceed_subscriptions(bot=message.bot))
 
     current_page = math.floor((current_event.id - 1) / per_page)
     await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(current_page)
@@ -179,7 +180,7 @@ async def swap_events(
     await db.session.flush([event1, event2])
     await db.session.commit()
 
-    asyncio.create_task(notifier.send_subscription_notifications(bot=message.bot))
+    asyncio.create_task(notifier.proceed_subscriptions(bot=message.bot))
 
     current_event = await db.event.get_by_where(Event.current == True)  # noqa
     if current_event:
@@ -239,6 +240,16 @@ async def setup_subscription(
     await dialog_manager.switch_to(states.SCHEDULE.MAIN)
 
 
+async def toggle_all_notifications(
+    callback: CallbackQuery, button: Button, manager: DialogManager
+):
+    user: User = manager.middleware_data["user"]
+    db: Database = manager.middleware_data["db"]
+    user.receive_all_announcements = not user.receive_all_announcements
+    await db.session.flush([user])
+    await db.session.commit()
+
+
 # fmt: off
 events_html = Jinja(
     "{% for event in events %}"
@@ -290,7 +301,7 @@ schedule = Window(
     Const("<b>📅 Расписание</b>\n"),
     events_html,
     Const(
-        "Чтобы подписаться на выступление (или отписаться), отправьте его номер сообщением 👇"
+        "Чтобы подписаться на конкретное выступление (или отписаться), отправьте его номер сообщением 👇"
     ),
     TextInput(
         id="event_id_input",
@@ -330,6 +341,17 @@ schedule = Window(
             state=states.SCHEDULE.SWAP_EVENTS,
         ),
         when=F["dialog_data"]["helper_tools_toggle"],
+    ),
+    Button(
+        text=Case(
+            texts={
+                True: Const("🔕 Получать только свои уведомления"),
+                False: Const("🔔 Получать все уведомления"),
+            },
+            selector=F["receive_all_announcements"],
+        ),
+        on_click=toggle_all_notifications,
+        id="receive_all_announcements",
     ),
     SchedulePaginator,
     Cancel(text=Const(strings.buttons.back)),
