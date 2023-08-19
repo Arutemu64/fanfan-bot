@@ -60,17 +60,16 @@ def get_dispatcher(
 
     dp.message.filter(F.chat.type == "private")
 
-    session_pool = create_session_maker()
-    dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
-    dp.update.middleware(UserData())
-    dp.update.middleware(SettingsMiddleware(redis))
+    media_storage = MediaIdStorage()
+    setup_dialogs(dp, media_id_storage=media_storage)
 
     dp.include_router(handlers.setup_router())
     dp.include_router(dialogs.setup_router())
 
-    media_storage = MediaIdStorage()
-
-    setup_dialogs(dp, media_id_storage=media_storage)
+    session_pool = create_session_maker()
+    dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
+    dp.update.middleware(UserData())
+    dp.update.middleware(SettingsMiddleware(redis))
 
     dp.errors.register(
         on_unknown_intent_or_state,

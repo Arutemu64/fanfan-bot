@@ -9,15 +9,15 @@ readme = "README.md"
 python = "^3.11"
 aiogram = "3.0.0b9"
 aiogram-dialog = "^2.0.0b21"
-alembic = "^1.11.1"
+alembic = "^1.11.3"
 asyncpg = "^0.28.0"
 environs = "^9.5.0"
 jinja2 = "^3.1.2"
 opencv-python-headless = "^4.8.0.74"
 qreader = {version = "^2.13", extras = ["yolo7"]}
-redis = "^4.6.0"
+redis = "^5.0.0"
 sentry-sdk = "^1.29.2"
-sqlalchemy = "^2.0.19"
+sqlalchemy = "^2.0.20"
 torch = {version = "^2.0.1+cpu", source="torch-cpu"}
 torchvision = {version = "^0.15.2+cpu", source = "torch-cpu"}
 

@@ -1,3 +1,6 @@
+from typing import Optional
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Event
@@ -20,3 +23,7 @@ class EventRepo(Repository[Event]):
             Event(participant_id=participant_id, title=title)
         )
         return new_event
+
+    async def get_current(self) -> Optional[Event]:
+        statement = select(self.type_model).where(Event.current == True)  # noqa
+        return (await self.session.execute(statement)).scalar_one_or_none()

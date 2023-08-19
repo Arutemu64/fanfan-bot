@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import (
@@ -15,13 +14,14 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
+from src.bot import BOT_ROOT_DIR
 from src.bot.dialogs import states
 from src.bot.ui import images, strings
 
 ID_ACTIVITIES_SCROLL = "activities_scroll"
 
-activities_json = Path("/app/src/bot/ui/activities.json")
-with open(activities_json, mode="r") as f:
+activities_json = BOT_ROOT_DIR / "ui/activities.json"
+with open(activities_json, mode="r", encoding="utf-8") as f:
     activities = json.load(f)
 
 

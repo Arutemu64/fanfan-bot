@@ -2,12 +2,12 @@
 
 Revision ID: 001
 Revises: 
-Create Date: 2023-08-12 15:00:26.435977
+Create Date: 2023-08-18 20:36:09.868612
 
 """
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.sql.ddl import CreateSequence
 
 # revision identifiers, used by Alembic.
 revision = '001'
@@ -22,64 +22,69 @@ def upgrade() -> None:
     sa.Column('id', sa.String(), autoincrement=False, nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('votable', sa.Boolean(), server_default='False', nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id'),
-    sa.UniqueConstraint('title')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_nominations')),
+    sa.UniqueConstraint('id', name=op.f('uq_nominations_id')),
+    sa.UniqueConstraint('title', name=op.f('uq_nominations_title'))
     )
     op.create_table('users',
     sa.Column('id', sa.BigInteger(), autoincrement=False, nullable=False),
     sa.Column('username', sa.String(), nullable=False),
     sa.Column('role', sa.String(), server_default='visitor', nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.Column('receive_all_announcements', sa.Boolean(), server_default='False', nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_users')),
+    sa.UniqueConstraint('id', name=op.f('uq_users_id'))
     )
     op.create_table('participants',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('nomination_id', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['nomination_id'], ['nominations.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id'),
-    sa.UniqueConstraint('title')
+    sa.ForeignKeyConstraint(['nomination_id'], ['nominations.id'], name=op.f('fk_participants_nomination_id_nominations'), ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_participants')),
+    sa.UniqueConstraint('id', name=op.f('uq_participants_id')),
+    sa.UniqueConstraint('title', name=op.f('uq_participants_title'))
     )
     op.create_table('tickets',
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('role', sa.String(), server_default='visitor', nullable=False),
     sa.Column('used_by', sa.BigInteger(), nullable=True),
     sa.Column('issued_by', sa.BigInteger(), nullable=True),
-    sa.ForeignKeyConstraint(['issued_by'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['used_by'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.ForeignKeyConstraint(['issued_by'], ['users.id'], name=op.f('fk_tickets_issued_by_users'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['used_by'], ['users.id'], name=op.f('fk_tickets_used_by_users'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_tickets')),
+    sa.UniqueConstraint('id', name=op.f('uq_tickets_id'))
     )
+    op.execute("CREATE SEQUENCE schedule_position_seq")
     op.create_table('schedule',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('position', sa.Integer(), server_default=sa.text("nextval('schedule_position_seq')"), nullable=False),
     sa.Column('participant_id', sa.Integer(), nullable=True),
     sa.Column('title', sa.String(), nullable=True),
     sa.Column('current', sa.Boolean(), nullable=True),
-    sa.ForeignKeyConstraint(['participant_id'], ['participants.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('current'),
-    sa.UniqueConstraint('id')
+    sa.Column('hidden', sa.Boolean(), server_default='False', nullable=True),
+    sa.ForeignKeyConstraint(['participant_id'], ['participants.id'], name=op.f('fk_schedule_participant_id_participants'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_schedule')),
+    sa.UniqueConstraint('current', name=op.f('uq_schedule_current')),
+    sa.UniqueConstraint('id', name=op.f('uq_schedule_id')),
+    sa.UniqueConstraint('position', name=op.f('uq_schedule_position'))
     )
     op.create_table('votes',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('participant_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['participant_id'], ['participants.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.ForeignKeyConstraint(['participant_id'], ['participants.id'], name=op.f('fk_votes_participant_id_participants'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_votes_user_id_users'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_votes')),
+    sa.UniqueConstraint('id', name=op.f('uq_votes_id'))
     )
     op.create_table('subscriptions',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('event_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('counter', sa.Integer(), server_default='5', nullable=False),
-    sa.ForeignKeyConstraint(['event_id'], ['schedule.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.ForeignKeyConstraint(['event_id'], ['schedule.id'], name=op.f('fk_subscriptions_event_id_schedule'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_subscriptions_user_id_users'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_subscriptions')),
+    sa.UniqueConstraint('id', name=op.f('uq_subscriptions_id'))
     )
     # ### end Alembic commands ###
 
@@ -89,6 +94,7 @@ def downgrade() -> None:
     op.drop_table('subscriptions')
     op.drop_table('votes')
     op.drop_table('schedule')
+    op.execute("DROP SEQUENCE schedule_position_seq")
     op.drop_table('tickets')
     op.drop_table('participants')
     op.drop_table('users')

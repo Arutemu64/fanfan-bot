@@ -29,7 +29,7 @@ from src.bot.structures import Settings
 from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
-from src.db.models import Nomination, Participant, User, Vote
+from src.db.models import Event, Nomination, Participant, User, Vote
 
 per_page = conf.bot.participants_per_page
 ID_VOTING_SCROLL = "voting_scroll"
@@ -65,6 +65,7 @@ async def get_participants(
     current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
     participants = await db.session.scalars(
         nomination.participants.select()
+        .where(Participant.event.has(Event.hidden != True))
         .slice((current_page * per_page), (current_page * per_page) + per_page)
         .order_by(Participant.id)
     )
@@ -139,6 +140,7 @@ async def vote(message: Message, message_input: MessageInput, manager: DialogMan
         and_(
             Participant.id == int(message.text),
             Participant.nomination_id == manager.dialog_data["nomination_id"],
+            Participant.event.has(Event.hidden != True),
         )
     )
     if participant:

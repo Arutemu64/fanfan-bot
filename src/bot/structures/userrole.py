@@ -1,7 +1,7 @@
 import enum
 
 
-class Role(enum.StrEnum):
+class UserRole(enum.StrEnum):
     VISITOR = "visitor"
     HELPER = "helper"
     ORG = "org"

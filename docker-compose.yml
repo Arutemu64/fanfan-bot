@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: buildfiles/Dockerfile
     env_file:
-      - .env
+      - .docker-env
     restart: always
     stop_signal: SIGINT
     volumes:
@@ -24,7 +24,7 @@ services:
     image: postgres:15-alpine
     restart: always
     env_file:
-      - .env
+      - .docker-env
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
@@ -38,7 +38,7 @@ services:
       context: buildfiles
       dockerfile: RedisDockerfile
     env_file:
-      - .env
+      - .docker-env
     restart: always
     volumes:
       - redis-data:/data
@@ -53,7 +53,7 @@ services:
       context: buildfiles
       dockerfile: CaddyDockerfile
     env_file:
-      - .env
+      - .docker-env
     restart: always
     networks:
       - internal

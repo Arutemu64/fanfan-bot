@@ -17,6 +17,8 @@ class SCHEDULE(StatesGroup):
     ASK_MANUAL_EVENT = State()
     SWAP_EVENTS = State()
     ASK_SUBSCRIPTION_COUNTER = State()
+    TOGGLE_EVENT_HIDDEN = State()
+    SEARCH = State()
 
 
 class VOTING(StatesGroup):

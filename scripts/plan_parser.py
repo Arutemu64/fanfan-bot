@@ -16,6 +16,9 @@ async def clean_schedule(db: Database):
     await db.session.execute(text("TRUNCATE TABLE schedule CASCADE"))
     await db.session.execute(text("ALTER SEQUENCE subscriptions_id_seq RESTART WITH 1"))
     await db.session.execute(text("ALTER SEQUENCE schedule_id_seq RESTART WITH 1"))
+    await db.session.execute(
+        text("ALTER SEQUENCE schedule_position_seq RESTART WITH 1")
+    )
     await db.session.commit()
 
 

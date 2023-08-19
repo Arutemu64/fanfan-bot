@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.kbd import Radio, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
-from src.bot.structures import Role
+from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
 
@@ -17,9 +17,9 @@ TICKET_ROLE_PICKER_ID = "ticket_role_picker"
 
 async def get_roles(**kwargs):
     roles = [
-        ("Зритель", Role.VISITOR),
-        ("Волонтёр", Role.HELPER),
-        ("Организатор", Role.ORG),
+        ("Зритель", UserRole.VISITOR),
+        ("Волонтёр", UserRole.HELPER),
+        ("Организатор", UserRole.ORG),
     ]
     return {"roles": roles}
 

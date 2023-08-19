@@ -41,6 +41,17 @@ class Repository(Generic[AbstractModel]):
         statement = select(self.type_model).where(whereclause)
         return (await self.session.execute(statement)).scalar_one_or_none()
 
+    async def get_one(self, whereclause, order_by=None) -> Optional[AbstractModel]:
+        """
+        Get an ONE model from the database with whereclause
+        :param whereclause: Clause by which entry will be found
+        :return: First Model
+        """
+        statement = select(self.type_model).where(whereclause)
+        if order_by:
+            statement = statement.order_by(order_by)
+        return (await self.session.execute(statement)).scalar()
+
     async def get_many(
         self, whereclause, limit: int = None, order_by=None
     ) -> List[AbstractModel]:
@@ -62,9 +73,14 @@ class Repository(Generic[AbstractModel]):
         return (await self.session.scalars(statement)).all()
 
     async def get_range(
-        self, start: int, end: int, order_by=None
+        self, start: int, end: int, order_by=None, whereclause=True
     ) -> List[AbstractModel]:
-        statement = select(self.type_model).order_by(order_by).slice(start, end)
+        statement = (
+            select(self.type_model)
+            .where(whereclause)
+            .order_by(order_by)
+            .slice(start, end)
+        )
         return (await self.session.scalars(statement)).all()
 
     async def delete(self, whereclause) -> None:

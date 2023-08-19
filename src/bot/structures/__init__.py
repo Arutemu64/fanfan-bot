@@ -1,4 +1,4 @@
-from .role import Role
 from .settings import Settings
+from .userrole import UserRole
 
-__all__ = ["Role", "Settings"]
+__all__ = ["UserRole", "Settings"]

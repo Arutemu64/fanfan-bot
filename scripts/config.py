@@ -2,7 +2,7 @@ from environs import Env
 from sqlalchemy import URL
 
 env = Env()
-env.read_env(override=True)
+env.read_env()
 
 
 class DatabaseConfig:

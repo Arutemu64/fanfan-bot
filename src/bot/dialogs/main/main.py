@@ -1,4 +1,3 @@
-import math
 import random
 
 from aiogram import F
@@ -9,23 +8,17 @@ from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format
 
 from src.bot.dialogs import states
-from src.bot.structures import Role, Settings
+from src.bot.structures import Settings, UserRole
 from src.bot.ui import images, strings
-from src.config import conf
-from src.db import Database
-from src.db.models import Event, User
-
-per_page = conf.bot.events_per_page
+from src.db.models import User
 
 
 async def getter(
     dialog_manager: DialogManager, user: User, settings: Settings, **kwargs
 ):
     name = dialog_manager.event.from_user.first_name
-    is_helper = user.role == Role.HELPER
-    is_org = user.role == Role.ORG
-    if is_org:
-        is_helper = True
+    is_helper = user.role in [UserRole.HELPER, UserRole.ORG]
+    is_org = user.role == UserRole.ORG
     random_quote = random.choice(strings.quotes)
     voting_enabled = await settings.voting_enabled.get()
     dialog_manager.dialog_data["voting_enabled"] = voting_enabled
@@ -36,19 +29,6 @@ async def getter(
         "random_quote": random_quote,
         "voting_enabled": voting_enabled,
     }
-
-
-async def open_schedule(
-    callback: CallbackQuery, button: Button, manager: DialogManager
-):
-    db: Database = manager.middleware_data["db"]
-    current_event = await db.event.get_by_where(Event.current == True)  # noqa
-    if current_event:
-        current_event_id = current_event.id
-    else:
-        current_event_id = 1
-    current_page = math.floor((current_event_id - 1) / per_page)
-    await manager.start(state=states.SCHEDULE.MAIN, data={"current_page": current_page})
 
 
 async def open_voting(callback: CallbackQuery, button: Button, manager: DialogManager):
@@ -71,10 +51,10 @@ main = Window(
         url=Const("https://t.me/fanfan_bot_dev_notes"),
     ),
     Row(
-        Button(
+        Start(
             text=Const(strings.buttons.show_schedule),
+            state=states.SCHEDULE.MAIN,
             id="schedule",
-            on_click=open_schedule,
         ),
         SwitchTo(
             Const(strings.buttons.activities_menu),

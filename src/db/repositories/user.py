@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot.structures import Role
+from src.bot.structures import UserRole
 
 from ..models import User
 from .base import Repository
@@ -21,7 +21,7 @@ class UserRepo(Repository[User]):
         self,
         id: int = None,
         username: str = None,
-        role: str = Role.VISITOR,
+        role: str = UserRole.VISITOR,
     ) -> User:
         new_user = await self.session.merge(
             User(
