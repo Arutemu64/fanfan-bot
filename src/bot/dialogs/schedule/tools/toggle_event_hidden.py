@@ -56,17 +56,22 @@ async def toggle_event_hidden(
     # Выводим подтверждение
     if event.hidden:
         await message.reply(
-            f"🙈 Выступление <b>{event.participant.title if event.participant else event.title}</b> скрыто"
+            f"🙈 Выступление "
+            f"<b>{event.participant.title if event.participant else event.title}</b> "
+            f"скрыто"
         )
     if not event.hidden:
         await message.reply(
-            f"🙉 Выступление <b>{event.participant.title if event.participant else event.title}</b> открыто"
+            f"🙉 Выступление "
+            f"<b>{event.participant.title if event.participant else event.title}</b> "
+            f"открыто"
         )
 
     # Получаем следующее выступление после скрытия
     next_event_after = await db.event.get_next()
 
-    # Если скрытие повлияло на следующее по расписанию выступление - рассылаем глобальный анонс
+    # Если скрытие повлияло на следующее по расписанию
+    # выступление - рассылаем глобальный анонс
     if next_event_after is not next_event_before:
         send_global_announcement = True
     else:

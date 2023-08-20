@@ -5,7 +5,7 @@ from src.bot.structures import UserRole
 
 
 def setup_router() -> Router:
-    from . import callbacks, org, qr, start
+    from . import callbacks, qr, start
 
     common_router = Router()
     common_router.message.filter(
@@ -19,7 +19,6 @@ def setup_router() -> Router:
 
     org_router = Router()
     org_router.message.filter(RoleFilter([UserRole.ORG]))
-    org_router.include_router(org.router)
 
     commands_router = Router()
     commands_router.include_router(start.router)

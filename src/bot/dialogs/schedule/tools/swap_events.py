@@ -65,7 +65,9 @@ async def swap_events(
 
     # Выводим подтверждение
     await message.reply(
-        f"✅ Выступление <b>{event1.participant.title if event1.participant else event1.title}</b> заменено "
+        f"✅ Выступление "
+        f"<b>{event1.participant.title if event1.participant else event1.title}</b> "
+        f"заменено "
         f"на <b>{event2.participant.title if event2.participant else event2.title}</b>"
     )
 

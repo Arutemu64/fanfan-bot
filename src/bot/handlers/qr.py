@@ -22,4 +22,4 @@ async def photo_msg(message: Message, bot: Bot):
     if decoded_text:
         await message.reply(text=f"Вижу QR-код! Содержимое: {decoded_text}")
     else:
-        await message.reply(text=f"Красивое фото, но QR-кода я на нём не вижу 😔")
+        await message.reply(text="Красивое фото, но QR-кода я на нём не вижу 😔")

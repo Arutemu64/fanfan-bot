@@ -21,17 +21,17 @@ DELETE_BUTTON = InlineKeyboardBuilder().add(
 jinja = jinja2.Environment()
 
 # fmt: off
-subscription_template = jinja.from_string(
+subscription_template = jinja.from_string(  # noqa: E501
     "{% if current_event.id == subscription.event_id %}"
-        "Выступление {{ subscription.event.participant.title or subscription.event.title }} "
+        "Выступление {{ subscription.event.participant.title or subscription.event.title }} "  # noqa: E501
         "<b>НАЧАЛОСЬ!</b>"
     "{% else %}"
-        "До выступления {{ subscription.event.participant.title or subscription.event.title }} "
+        "До выступления {{ subscription.event.participant.title or subscription.event.title }} "  # noqa: E501
         "осталось <b>{{ counter }} выступлений</b>"
     "{% endif %}"
 )
 
-global_announcement_template = jinja.from_string(
+global_announcement_template = jinja.from_string(  # noqa: E501
     "{% if current_event %}"
         "<b>Сейчас:</b> {{ current_event.participant.title or current_event.title }}\n"
     "{% endif %}"
@@ -68,14 +68,14 @@ async def proceed_subscriptions(
                 {"current_event": current_event, "next_event": next_event}
             )
             receive_all_users = await db.user.get_many(
-                User.receive_all_announcements == True
+                User.receive_all_announcements.is_(True)
             )  # noqa
             for user in receive_all_users:
                 await send_personal_notification(bot, user.id, announcement_text)
 
         subscriptions = await db.subscription.get_many(
             and_(
-                Subscription.event.has(Event.hidden != True),
+                Subscription.event.has(Event.hidden.isnot(True)),
                 Subscription.event.has(
                     Subscription.counter >= (Event.position - current_event.position)
                 ),
@@ -86,7 +86,7 @@ async def proceed_subscriptions(
                 and_(
                     Event.position >= current_event.position,
                     Event.position < subscription.event.position,
-                    Event.hidden != True,
+                    Event.hidden.isnot(True),
                 )
             )
             text = subscription_template.render(

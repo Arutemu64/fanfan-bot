@@ -71,7 +71,8 @@ async def setup_subscription(
     await db.session.commit()
     await db.session.refresh(subscription)
     await message.reply(
-        f"✅ Подписка на выступление <b>{subscription.event.title or subscription.event.participant.title}</b>"
+        f"✅ Подписка на выступление "
+        f"<b>{subscription.event.title or subscription.event.participant.title}</b>"
         f" успешно оформлена!"
     )
     await dialog_manager.switch_to(states.SCHEDULE.MAIN)

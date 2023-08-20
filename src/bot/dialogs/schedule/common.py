@@ -25,7 +25,7 @@ EVENTS_PER_PAGE = conf.bot.events_per_page
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 # fmt: off
-EventsList = Jinja(
+EventsList = Jinja(  # noqa: E501
     "{% if dialog_data.search_query %}"
         "<i>(результаты поиска по запросу '{{ dialog_data.search_query }}')</i>\n\n"
     "{% else %}"
@@ -38,7 +38,7 @@ EventsList = Jinja(
             "{% if event.participant %}"
                 "{% if loop.previtem %}"
                     "{% if loop.previtem.participant %}"
-                        "{% if event.participant.nomination.id != loop.previtem.participant.nomination.id %}"
+                        "{% if event.participant.nomination.id != loop.previtem.participant.nomination.id %}"  # noqa: E501
                             "<b>➡️ {{event.participant.nomination.title}}</b>\n"
                         "{% endif %}"
                     "{% else %}"
@@ -87,7 +87,7 @@ def get_events_query_terms(include_hidden: bool, search_query: str = None) -> Li
             )
         )
     if not include_hidden:
-        terms.append(Event.hidden != True)
+        terms.append(Event.hidden.isnot(True))
     return terms
 
 

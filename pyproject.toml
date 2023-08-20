@@ -21,13 +21,29 @@ sqlalchemy = "^2.0.20"
 torch = {version = "^2.0.1+cpu", source="torch-cpu"}
 torchvision = {version = "^0.15.2+cpu", source = "torch-cpu"}
 
-[tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-flake8 = "^6.0.0"
-isort = "^5.12.0"
-
 [tool.poetry.group.dev]
 optional=true
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+mypy = "^1.5.1"
+ruff = "^0.0.285"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I001"]
+exclude = ["src/bot/ui/*"]
+unfixable = ["F401", "E712"]
+
+[tool.mypy]
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+
+[[tool.mypy.overrides]]
+module = [
+  "src.db.*"
+]
+ignore_errors = true
+
 
 [tool.poetry.group.scripts]
 optional=true
@@ -35,9 +51,6 @@ optional=true
 [tool.poetry.group.scripts.dependencies]
 openpyxl = "^3.1.2"
 pandas = "^2.0.3"
-
-[tool.isort]
-profile = "black"
 
 [[tool.poetry.source]]
 name = "PyPI"

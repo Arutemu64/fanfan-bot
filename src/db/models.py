@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import BigInteger, ForeignKey, MetaData, Sequence, func
+from sqlalchemy import BigInteger, ForeignKey, MetaData, Sequence
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import (
     Mapped,

@@ -65,7 +65,7 @@ async def get_participants(
     current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
     participants = await db.session.scalars(
         nomination.participants.select()
-        .where(Participant.event.has(Event.hidden != True))
+        .where(Participant.event.has(Event.hidden.isnot(True)))
         .slice((current_page * per_page), (current_page * per_page) + per_page)
         .order_by(Participant.id)
     )
@@ -105,22 +105,20 @@ nominations = Window(
 )
 
 # fmt: off
-participants_html = Jinja(
+participants_html = Jinja(  # noqa: E501
     "<b>Номинация {{nomination_title}}</b>"
     "\n"
     "В этой номинации представлены следующие участники:\n"
     "{% for participant in participants %}"
         "{% if user_vote.participant_id == participant.id %}"
-                "<b>{{participant.id}}. {{participant.title}}</b> [голосов: {{participant.votes|length}}] ✅\n"
+                "<b>{{participant.id}}. {{participant.title}}</b> [голосов: {{participant.votes|length}}] ✅\n"  # noqa: E501
         "{% else %}"
-                "<b>{{participant.id}}.</b> {{participant.title}} [голосов: {{participant.votes|length}}]\n"
+                "<b>{{participant.id}}.</b> {{participant.title}} [голосов: {{participant.votes|length}}]\n"  # noqa: E501
         "{% endif %}"
     "{% endfor %}"
     "{% if not user_vote %}"
         "Чтобы проголосовать, просто отправь номер участника."
     "{% endif %}")
-
-
 # fmt: on
 
 
@@ -140,7 +138,7 @@ async def vote(message: Message, message_input: MessageInput, manager: DialogMan
         and_(
             Participant.id == int(message.text),
             Participant.nomination_id == manager.dialog_data["nomination_id"],
-            Participant.event.has(Event.hidden != True),
+            Participant.event.has(Event.hidden.isnot(True)),
         )
     )
     if participant:

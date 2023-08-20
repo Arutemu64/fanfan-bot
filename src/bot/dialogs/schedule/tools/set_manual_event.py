@@ -80,7 +80,8 @@ async def set_manual_event(
 
     # Выводим подтверждение
     await message.reply(
-        f"✅ Выступление <b>{new_current_event.participant.title if new_current_event.participant else new_current_event.title}</b> "
+        f"✅ Выступление "
+        f"<b>{new_current_event.participant.title if new_current_event.participant else new_current_event.title}</b> "  # noqa: E501
         f"отмечено как текущее"
     )
 

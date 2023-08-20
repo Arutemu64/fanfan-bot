@@ -1,17 +1,14 @@
 import asyncio
-from contextlib import suppress
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
-from sqlalchemy import and_
 
 from src.bot.dialogs.schedule.common import set_current_schedule_page
 from src.bot.dialogs.schedule.tools.common import throttle_announcement
 from src.bot.ui import strings
 from src.bot.utils import notifier
 from src.db import Database
-from src.db.models import Event
 
 
 async def set_next_event(
@@ -44,7 +41,7 @@ async def set_next_event(
 
     # Выводим подтверждение
     await callback.answer(
-        f"✅ {next_event.participant.title if next_event.participant else next_event.title}"
+        f"✅ {next_event.participant.title if next_event.participant else next_event.title}"  # noqa: E501
     )
 
     # Запускаем проверку подписок

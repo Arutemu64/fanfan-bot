@@ -86,8 +86,9 @@ async def main(session_pool):
         participants_count, nominations_count = await parse_plan(db)
         events_count = await db.event.get_count(True)
         print(
-            f"Парсинг завершён! Было добавлено {str(nominations_count)} новых номинаций, "
-            f"{str(participants_count)} новых участников и {str(events_count)} событий."
+            f"Парсинг завершён! Было добавлено {str(nominations_count)} "
+            f"новых номинаций, {str(participants_count)} новых участников "
+            f"и {str(events_count)} событий."
         )
     return
 

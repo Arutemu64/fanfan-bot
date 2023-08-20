@@ -49,7 +49,8 @@ async def parse(db: Database):
                 participants_count += 1
             else:
                 print(
-                    f"Некорректно указана номинация для {row['title'][0:40]}..., пропускаем парсинг"
+                    f"Некорректно указана номинация для "
+                    f"{row['title'][0:40]}..., пропускаем парсинг"
                 )
     print("Парсинг билетов")
     df = pd.read_excel(path_to_plan.absolute(), sheet_name="tickets")
@@ -74,8 +75,9 @@ async def main(session_pool):
         print("Начинаем парсинг aioparser.xlsx...")
         nominations_count, participants_count, tickets_count = await parse(db)
         print(
-            f"Парсинг завершён! Было добавлено {str(nominations_count)} новых номинаций, "
-            f"{participants_count} новых участников и {tickets_count} новых билетов"
+            f"Парсинг завершён! Было добавлено {str(nominations_count)} "
+            f"новых номинаций, {participants_count} новых участников "
+            f"и {tickets_count} новых билетов"
         )
         pass
     return
