@@ -27,7 +27,14 @@ subscription_template = jinja.from_string(  # noqa: E501
         "<b>НАЧАЛОСЬ!</b>"
     "{% else %}"
         "До выступления {{ subscription.event.participant.title or subscription.event.title }} "  # noqa: E501
-        "осталось <b>{{ counter }} выступлений</b>"
+        "осталось "
+        "{% if (counter % 10 == 1) and (counter % 100 != 11) %}"
+            "<b>{{ counter }} выступление</b>"
+        "{% elif (2 <= counter % 10 <= 4) and (counter % 100 < 10 or counter % 100 >= 20) %}"  # noqa: E501
+            "<b>{{ counter }} выступления</b>"
+        "{% else %}"
+            "<b>{{ counter }} выступлений</b>"
+        "{% endif %}"
     "{% endif %}"
 )
 
@@ -97,6 +104,6 @@ async def proceed_subscriptions(
                 }
             )
             await send_personal_notification(bot, subscription.user_id, text)
-            if current_event.id - subscription.event_id == 0:
+            if current_event is subscription.event:
                 await db.session.delete(subscription)
                 await db.session.commit()

@@ -111,10 +111,20 @@ participants_html = Jinja(  # noqa: E501
     "В этой номинации представлены следующие участники:\n"
     "{% for participant in participants %}"
         "{% if user_vote.participant_id == participant.id %}"
-                "<b>{{participant.id}}. {{participant.title}}</b> [голосов: {{participant.votes|length}}] ✅\n"  # noqa: E501
-        "{% else %}"
-                "<b>{{participant.id}}.</b> {{participant.title}} [голосов: {{participant.votes|length}}]\n"  # noqa: E501
+            "<b>"
         "{% endif %}"
+        "<b>{{participant.id}}.</b> {{participant.title}} "
+        "{% if (participant.votes|length % 10 == 1) and (participant.votes|length % 100 != 11) %}"  # noqa: E501
+            "[{{participant.votes|length}} голос]"
+        "{% elif (2 <= participant.votes|length % 10 <= 4) and (participant.votes|length % 100 < 10 or participant.votes|length % 100 >= 20) %}"  # noqa: E501
+            "[{{participant.votes|length}} голоса]"
+        "{% else %}"
+            "[{{participant.votes|length}} голосов]"
+        "{% endif %}"
+        "{% if user_vote.participant_id == participant.id %}"
+            "</b> ✅"
+        "{% endif %}"
+        "\n\n"
     "{% endfor %}"
     "{% if not user_vote %}"
         "Чтобы проголосовать, просто отправь номер участника."
