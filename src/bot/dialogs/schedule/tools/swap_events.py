@@ -28,6 +28,8 @@ async def swap_events(
     dialog_manager: DialogManager,
     data: str,
 ):
+    db: Database = dialog_manager.middleware_data["db"]
+
     # Проверяем, что номера выступлений введены верно
     args = data.split()
     if len(args) != 2:
@@ -40,8 +42,6 @@ async def swap_events(
         await message.reply("⚠️ Номера выступлений не могут совпадать!")
         return
 
-    db: Database = dialog_manager.middleware_data["db"]
-
     # Получаем выступления (с учётом поиска), проверяем их существование
     terms = get_events_query_terms(True, dialog_manager.dialog_data.get("search_query"))
     event1 = await db.event.get_by_where(and_(Event.id == int(args[0]), *terms))
@@ -53,12 +53,14 @@ async def swap_events(
         await message.reply(text)
         return
 
+    # Получаем следующее выступление до переноса
+    next_event_before = await db.event.get_next()
+
     # Не очень красиво (из-за ограничений в БД) меняем пару выступлений местами
     event1_position, event2_position = event1.position, event2.position
     event1.position, event2.position = event1.position * 10000, event2.position * 10000
     await db.session.flush([event1, event2])
     event1.position, event2.position = event2_position, event1_position
-    await db.session.flush([event1, event2])
     await db.session.commit()
 
     # Выводим подтверждение
@@ -67,13 +69,11 @@ async def swap_events(
         f"на <b>{event2.participant.title if event2.participant else event2.title}</b>"
     )
 
-    # Получаем текущее выступление
-    current_event = await db.event.get_current()
+    # Получаем следующее выступление после переноса
+    next_event_after = await db.event.get_next()
 
-    # Если перенос повлиял на текущее или следующее выступления - рассылаем глобальный анонс
-    if (event1.position in [current_event.position, current_event.position + 1]) or (
-        event2.position in [current_event.position, current_event.position + 1]
-    ):
+    # Если перенос повлиял на следующее выступление - рассылаем глобальный анонс
+    if next_event_after is not next_event_before:
         send_global_announcement = True
     else:
         send_global_announcement = False

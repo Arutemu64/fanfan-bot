@@ -29,7 +29,6 @@ async def toggle_event_hidden(
     dialog_manager: DialogManager,
     data: int,
 ):
-    # Проверяем, что выступление существует
     db: Database = dialog_manager.middleware_data["db"]
 
     # Получаем выступление (с учётом поиска), проверяем его существование
@@ -47,6 +46,9 @@ async def toggle_event_hidden(
         await message.reply("⚠️ Текущее выступление нельзя отметить как скрытое")
         return
 
+    # Получаем следующее выступление до скрытия
+    next_event_before = await db.event.get_next()
+
     # Переключаем статус "скрыто" для выступления
     event.hidden = not event.hidden
     await db.session.commit()
@@ -61,11 +63,11 @@ async def toggle_event_hidden(
             f"🙉 Выступление <b>{event.participant.title if event.participant else event.title}</b> открыто"
         )
 
-    # Получаем текущее выступление
-    current_event = await db.event.get_current()
+    # Получаем следующее выступление после скрытия
+    next_event_after = await db.event.get_next()
 
     # Если скрытие повлияло на следующее по расписанию выступление - рассылаем глобальный анонс
-    if event.position == current_event.position + 1:
+    if next_event_after is not next_event_before:
         send_global_announcement = True
     else:
         send_global_announcement = False

@@ -10,6 +10,7 @@ from sqlalchemy import and_
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
+    ID_SCHEDULE_SCROLL,
     EventsList,
     SchedulePaginator,
     get_events_query_terms,
@@ -30,14 +31,14 @@ async def set_manual_event(
     dialog_manager: DialogManager,
     data: int,
 ):
+    db: Database = dialog_manager.middleware_data["db"]
+
     # Таймаут рассылки анонсов
     if await throttle_announcement(dialog_manager.middleware_data["settings"]):
         pass
     else:
         await message.answer(strings.errors.announce_too_fast)
         return
-
-    db: Database = dialog_manager.middleware_data["db"]
 
     # Сброс текущего выступления
     if data == 0:
@@ -46,26 +47,27 @@ async def set_manual_event(
             current_event.current = None
             await db.session.commit()
         await message.reply("✅ Текущее выступление сброшено!")
+        await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(0)
         await dialog_manager.switch_to(states.SCHEDULE.MAIN)
         return
 
     # Проверяем, что выступление существует (с учётом поиска) и не скрыто
     terms = get_events_query_terms(True, dialog_manager.dialog_data.get("search_query"))
-    next_event = await db.event.get_by_where(and_(Event.id == data, *terms))
-    if not next_event:
+    new_current_event = await db.event.get_by_where(and_(Event.id == data, *terms))
+    if not new_current_event:
         text = "⚠️ Выступление не найдено!"
         if dialog_manager.dialog_data.get("search_query"):
             text += "\n(убедитесь, что оно входит в результаты поиска)"
         await message.reply(text)
         return
-    if next_event.hidden:
+    if new_current_event.hidden:
         await message.reply("⚠️ Скрытое выступление нельзя отметить как текущее!")
         return
 
     # Получаем текущее выступление и снимаем с него флаг "текущее"
     current_event = await db.event.get_current()
     if current_event:
-        if current_event == next_event:
+        if current_event == new_current_event:
             await message.reply("⚠️ Это выступление уже отмечено как текущее!")
             return
         else:
@@ -73,13 +75,12 @@ async def set_manual_event(
             await db.session.flush([current_event])
 
     # Отмечаем выступление как текущее
-    next_event.current = True
-    await db.session.flush([next_event])
+    new_current_event.current = True
     await db.session.commit()
 
     # Выводим подтверждение
     await message.reply(
-        f"✅ Выступление <b>{next_event.participant.title if next_event.participant else next_event.title}</b> "
+        f"✅ Выступление <b>{new_current_event.participant.title if new_current_event.participant else new_current_event.title}</b> "
         f"отмечено как текущее"
     )
 
@@ -89,7 +90,7 @@ async def set_manual_event(
     )
 
     # Отправляем пользователя на страницу с текущим выступлением
-    await set_current_schedule_page(dialog_manager, next_event.id)
+    await set_current_schedule_page(dialog_manager, new_current_event.id)
     await dialog_manager.switch_to(states.SCHEDULE.MAIN)
 
 

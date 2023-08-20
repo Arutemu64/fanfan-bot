@@ -63,25 +63,22 @@ async def proceed_subscriptions(
         current_event = await db.event.get_current()
 
         if send_global_announcement:
-            next_event = await db.event.get_one(
-                and_(Event.position > current_event.position, Event.hidden != True),
-                order_by=Event.position,
-            )
-            announcement = global_announcement_template.render(
+            next_event = await db.event.get_next(current_event)
+            announcement_text = global_announcement_template.render(
                 {"current_event": current_event, "next_event": next_event}
             )
             receive_all_users = await db.user.get_many(
                 User.receive_all_announcements == True
             )  # noqa
             for user in receive_all_users:
-                await send_personal_notification(bot, user.id, announcement)
+                await send_personal_notification(bot, user.id, announcement_text)
 
         subscriptions = await db.subscription.get_many(
             and_(
-                Subscription.counter >= (Subscription.event_id - current_event.id),
-                (Subscription.event_id - current_event.id) >= 0,
-                # Subscription.user.has(User.receive_all_announcements == False),  # noqa
                 Subscription.event.has(Event.hidden != True),
+                Subscription.event.has(
+                    Subscription.counter >= (Event.position - current_event.position)
+                ),
             ),
         )
         for subscription in subscriptions:

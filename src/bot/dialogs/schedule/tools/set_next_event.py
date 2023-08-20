@@ -17,6 +17,8 @@ from src.db.models import Event
 async def set_next_event(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
+    db: Database = manager.middleware_data["db"]
+
     # Таймаут рассылки анонсов
     if await throttle_announcement(manager.middleware_data["settings"]):
         pass
@@ -24,28 +26,20 @@ async def set_next_event(
         await callback.answer(strings.errors.announce_too_fast, show_alert=True)
         return
 
-    # Получаем текущее выступление и ищем следующее не скрытое
-    db: Database = manager.middleware_data["db"]
+    # Получаем текущее и следующее выступления, снимаем флаг с текущего
     current_event = await db.event.get_current()
     if current_event:
-        next_event = await db.event.get_one(
-            whereclause=and_(
-                Event.position > current_event.position,
-                Event.hidden != True,
-            ),
-            order_by=Event.position,
-        )
+        next_event = await db.event.get_next(current_event)
         if not next_event:
             await callback.answer("👏 Выступления закончились!", show_alert=True)
             return
         current_event.current = None
         await db.session.flush([current_event])
     else:
-        next_event = await db.event.get_by_where(Event.position == 1)
+        next_event = await db.event.get_by_position(1)
 
     # Отмечаем следующее как текущее
     next_event.current = True
-    await db.session.flush([next_event])
     await db.session.commit()
 
     # Выводим подтверждение
