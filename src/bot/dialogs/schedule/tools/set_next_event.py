@@ -25,15 +25,13 @@ async def set_next_event(
 
     # Получаем текущее и следующее выступления, снимаем флаг с текущего
     current_event = await db.event.get_current()
+    next_event = await db.event.get_next(current_event)
+    if not next_event:
+        await callback.answer("👏 Выступления закончились!", show_alert=True)
+        return
     if current_event:
-        next_event = await db.event.get_next(current_event)
-        if not next_event:
-            await callback.answer("👏 Выступления закончились!", show_alert=True)
-            return
         current_event.current = None
         await db.session.flush([current_event])
-    else:
-        next_event = await db.event.get_by_position(1)
 
     # Отмечаем следующее как текущее
     next_event.current = True

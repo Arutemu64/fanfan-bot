@@ -24,16 +24,20 @@ class EventRepo(Repository[Event]):
         )
         return new_event
 
+    async def get_by_position(self, position: int) -> Optional[Event]:
+        return await self.get_by_where(Event.position == position)
+
     async def get_current(self) -> Optional[Event]:
         return await self.get_by_where(Event.current == True)  # noqa
 
     async def get_next(self, current_event: Event = None) -> Optional[Event]:
         if not current_event:
             current_event = await self.get_current()
-        return await self.get_one(
-            and_(Event.position > current_event.position, Event.hidden != True),  # noqa
-            order_by=Event.position,
-        )
-
-    async def get_by_position(self, position: int) -> Optional[Event]:
-        return await self.get_by_where(Event.position == position)
+        if current_event:
+            next_event = await self.get_one(
+                and_(Event.position > current_event.position, Event.hidden.isnot(True)),
+                order_by=Event.position,
+            )
+        else:
+            next_event = await self.get_by_position(1)
+        return next_event

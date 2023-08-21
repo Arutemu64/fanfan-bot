@@ -68,6 +68,8 @@ async def proceed_subscriptions(
         db = Database(session)
 
         current_event = await db.event.get_current()
+        if not current_event:
+            return
 
         if send_global_announcement:
             next_event = await db.event.get_next(current_event)
