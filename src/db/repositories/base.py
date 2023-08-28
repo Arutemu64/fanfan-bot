@@ -1,7 +1,8 @@
 import abc
+import math
 from typing import Generic, List, Optional, Type, TypeVar
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Base
@@ -16,86 +17,79 @@ class Repository(Generic[AbstractModel]):
     session: AsyncSession
 
     def __init__(self, type_model: Type[Base], session: AsyncSession):
-        """
-        Initialize abstract repository class
-        :param type_model: Which model will be used for operations
-        :param session: Session in which repository will work
-        """
         self.type_model = type_model
         self.session = session
 
-    async def get(self, ident: int | str) -> AbstractModel:
-        """
-        Get an ONE model from the database with PK
-        :param ident: Key which need to find entry in database
-        :return:
-        """
+    async def get(self, ident: int | str) -> Optional[AbstractModel]:
         return await self.session.get(entity=self.type_model, ident=ident)
 
-    async def get_by_where(self, whereclause) -> Optional[AbstractModel]:
-        """
-        Get an ONE model from the database with whereclause
-        :param whereclause: Clause by which entry will be found
-        :return: Model if only one model was found, else None
-        """
-        statement = select(self.type_model).where(whereclause)
+    async def get_by_where(self, query) -> Optional[AbstractModel]:
+        statement = select(self.type_model).where(query)
         return (await self.session.execute(statement)).scalar_one_or_none()
 
-    async def get_one(self, whereclause, order_by=None) -> Optional[AbstractModel]:
-        """
-        Get an ONE model from the database with whereclause
-        :param whereclause: Clause by which entry will be found
-        :return: First Model
-        """
-        statement = select(self.type_model).where(whereclause)
+    async def get_one(self, query, order_by=None) -> Optional[AbstractModel]:
+        statement = select(self.type_model).where(query)
         if order_by:
             statement = statement.order_by(order_by)
         return (await self.session.execute(statement)).scalar()
 
     async def get_many(
-        self, whereclause, limit: int = None, order_by=None
+        self, query=None, limit: int = None, order_by=None
     ) -> List[AbstractModel]:
-        """
-        Get many models from the database with whereclause
-        :param whereclause: Where clause for finding models
-        :param limit: (Optional) Limit count of results
-        :param order_by: (Optional) Order by clause
-
-        Example:
-        >> Repository.get_many(Model.id == 1, limit=10, order_by=Model.id)
-
-        :return: List of founded models
-        """
-        statement = select(self.type_model).where(whereclause).limit(limit)
+        statement = select(self.type_model)
+        if query is not None:
+            statement = statement.where(query)
+        if limit:
+            statement = statement.limit(limit)
         if order_by:
             statement = statement.order_by(order_by)
-
-        return (await self.session.scalars(statement)).all()
+        return (await self.session.execute(statement)).scalars().all()
 
     async def get_range(
-        self, start: int, end: int, order_by=None, whereclause=True
+        self,
+        start: int,
+        end: int,
+        query=None,
+        order_by=None,
+        options=None,
     ) -> List[AbstractModel]:
-        statement = (
-            select(self.type_model)
-            .where(whereclause)
-            .order_by(order_by)
-            .slice(start, end)
-        )
-        return (await self.session.scalars(statement)).all()
+        statement = select(self.type_model)
+        if query is not None:
+            statement = statement.where(query)
+        if order_by:
+            statement = statement.order_by(order_by)
+        if options:
+            statement = statement.options(options)
+        statement = statement.slice(start, end)
+        return (await self.session.execute(statement)).scalars().all()
 
-    async def delete(self, whereclause) -> None:
-        """
-        Delete model from the database
-
-        :param whereclause: (Optional) Which statement
-        :return: Nothing
-        """
-        statement = delete(self.type_model).where(whereclause)
-        await self.session.execute(statement)
-
-    async def get_count(self, whereclause=True) -> int:
-        statement = select(func.count()).select_from(self.type_model).where(whereclause)
+    async def get_count(self, query=None) -> int:
+        statement = select(func.count()).select_from(self.type_model)
+        if query is not None:
+            statement = statement.where(query)
         return (await self.session.execute(statement)).scalar()
+
+    async def get_page(
+        self,
+        page: int,
+        items_per_page: int = 5,
+        query=None,
+        order_by=None,
+        options=None,
+    ) -> List[AbstractModel]:
+        items = await self.get_range(
+            start=(page * items_per_page),
+            end=(page * items_per_page) + items_per_page,
+            query=query,
+            order_by=order_by,
+            options=options,
+        )
+        return items
+
+    async def get_number_of_pages(self, items_per_page: int, query=None) -> int:
+        count = await self.get_count(query)
+        pages = math.ceil(count / items_per_page)
+        return pages
 
     @abc.abstractmethod
     async def new(self, *args, **kwargs) -> None:

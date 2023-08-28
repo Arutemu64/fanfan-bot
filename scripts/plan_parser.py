@@ -84,7 +84,7 @@ async def main(session_pool):
         await clean_schedule(db)
         print("Расписание очищено! Переходим к парсингу плана...")
         participants_count, nominations_count = await parse_plan(db)
-        events_count = await db.event.get_count(True)
+        events_count = await db.event.get_count()
         print(
             f"Парсинг завершён! Было добавлено {str(nominations_count)} "
             f"новых номинаций, {str(participants_count)} новых участников "

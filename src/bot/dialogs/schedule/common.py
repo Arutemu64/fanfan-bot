@@ -1,5 +1,4 @@
-import math
-from typing import Any, List
+from typing import Any
 
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
@@ -8,31 +7,28 @@ from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
 from aiogram_dialog.widgets.kbd import (
     Button,
     FirstPage,
+    Group,
     LastPage,
     NextPage,
     PrevPage,
     Row,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
-from sqlalchemy import and_, or_, true
+from sqlalchemy import and_
 
+from src.bot.dialogs.schedule.utils.schedule_loader import ScheduleLoader
 from src.bot.structures import UserRole
 from src.config import conf
 from src.db import Database
-from src.db.models import Event, Nomination, Participant, Subscription, User
+from src.db.models import Event, Subscription, User
 
 EVENTS_PER_PAGE = conf.bot.events_per_page
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 # fmt: off
 EventsList = Jinja(  # noqa: E501
-    "{% if dialog_data.search_query %}"
-        "<i>(результаты поиска по запросу '{{ dialog_data.search_query }}')</i>\n\n"
-    "{% else %}"
-        "\n\n"
-    "{% endif %}"
     "{% if events|length == 0 %}"
-        "Выступления не найдены"
+        "⚠️ Выступления не найдены\n"
     "{% else %}"
         "{% for event in events %}"
             "{% if event.participant %}"
@@ -54,97 +50,66 @@ EventsList = Jinja(  # noqa: E501
             "{% if event.current %}"
                 "<b>"
             "{% endif %}"
-            "<b>{{event.id}}.</b> {{event.participant.title or event.title}}"
+            "<b>{{event.id}}.</b> {{event.joined_title}}"
             "{% if event.current %}"
                 "</b> 👈"
             "{% endif %}"
             "{% if event.hidden %}"
                 "</s>"
             "{% endif %}"
-            "{% if subscriptions[loop.index-1] %}"
+            "{% if event.id in subscribed_event_ids %}"
                 " 🔔"
             "{% endif %}"
             "\n\n"
         "{% endfor %}"
-    "{% endif %}")
-
-
+    "{% endif %}"
+    "{% if dialog_data.search_query %}"
+    "\n\n"
+    "🔍 <i>Результаты поиска по запросу '{{ dialog_data.search_query }}'</i>\n\n"
+    "{% endif %}"
+)
 # fmt: on
-
-
-def get_events_query_terms(include_hidden: bool, search_query: str = None) -> List:
-    terms = [true()]
-    if search_query:
-        terms.append(
-            or_(
-                Event.title.ilike(f"%{search_query}%"),
-                Event.participant.has(Participant.title.ilike(f"%{search_query}%")),
-                Event.participant.has(
-                    Participant.nomination.has(
-                        Nomination.title.ilike(f"%{search_query}%")
-                    )
-                ),
-            )
-        )
-    if not include_hidden:
-        terms.append(Event.hidden.isnot(True))
-    return terms
 
 
 async def get_schedule(
     dialog_manager: DialogManager, db: Database, user: User, **kwargs
 ):
-    terms = get_events_query_terms(
-        False if user.role == UserRole.VISITOR else True,
+    schedule_loader = ScheduleLoader(
+        db=db,
+        events_per_page=EVENTS_PER_PAGE,
+        include_hidden=False if user.role == UserRole.VISITOR else True,
         search_query=dialog_manager.dialog_data.get("search_query"),
     )
-    pages = math.ceil((await db.event.get_count(and_(*terms)) / EVENTS_PER_PAGE))
-    if pages == 0:
-        pages = 1
+    pages = await schedule_loader.get_pages_count()
     current_page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
-    events = await db.event.get_range(
-        start=(current_page * EVENTS_PER_PAGE),
-        end=(current_page * EVENTS_PER_PAGE) + EVENTS_PER_PAGE,
-        order_by=Event.position,
-        whereclause=and_(*terms),
-    )
-    subscriptions = []
-    for event in events:
-        subscription = await db.session.scalar(
-            event.subscriptions.select().where(
-                Subscription.user_id == dialog_manager.event.from_user.id
-            )
+    events = await schedule_loader.get_page_events(current_page)
+    subscriptions = await db.subscription.get_many(
+        and_(
+            Subscription.user_id == user.id,
+            Subscription.event_id.in_([event.id for event in events]),
         )
-        subscriptions.append(subscription)
-    if user.role in [UserRole.HELPER, UserRole.ORG]:
-        is_helper = True
-    else:
-        is_helper = False
+    )
+    subscribed_event_ids = [subscription.event_id for subscription in subscriptions]
     return {
-        "pages": pages,
+        "pages": pages if pages > 0 else 1,
         "current_page": current_page + 1,
         "events": events,
-        "is_helper": is_helper,
-        "subscriptions": subscriptions,
-        "receive_all_announcements": user.receive_all_announcements,
+        "is_helper": True if user.role in [UserRole.HELPER, UserRole.ORG] else False,
+        "subscribed_event_ids": subscribed_event_ids,
     }
 
 
-async def set_current_schedule_page(manager: DialogManager, event_id: int = None):
+async def set_schedule_page(manager: DialogManager, event: Event):
     db: Database = manager.middleware_data["db"]
     user: User = manager.middleware_data["user"]
 
-    if event_id:
-        event = await db.event.get(event_id)
-    else:
-        event = await db.event.get_current()
     if event:
-        terms = get_events_query_terms(
-            False if user.role == UserRole.VISITOR else True,
-            search_query=manager.dialog_data.get("search_query"),
+        include_hidden = False if user.role == UserRole.VISITOR else True
+        search_query = manager.dialog_data.get("search_query")
+        events_loader = ScheduleLoader(
+            db, EVENTS_PER_PAGE, include_hidden, search_query
         )
-        rows = await db.event.get_count(and_(Event.position < event.position, *terms))
-        page = math.floor(rows / EVENTS_PER_PAGE)
+        page = await events_loader.get_page_number(event)
         await manager.find(ID_SCHEDULE_SCROLL).set_page(page)
     else:
         await manager.find(ID_SCHEDULE_SCROLL).set_page(0)
@@ -153,11 +118,15 @@ async def set_current_schedule_page(manager: DialogManager, event_id: int = None
 async def on_click_update_schedule(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    await set_current_schedule_page(manager)
+    db: Database = manager.middleware_data["db"]
+    current_event = await db.event.get_current()
+    await set_schedule_page(manager, current_event)
 
 
 async def on_start_update_schedule(start_data: Any, manager: DialogManager):
-    await set_current_schedule_page(manager)
+    db: Database = manager.middleware_data["db"]
+    current_event = await db.event.get_current()
+    await set_schedule_page(manager, current_event)
 
 
 async def on_wrong_event_id(
@@ -169,20 +138,45 @@ async def on_wrong_event_id(
     await message.reply("⚠️ Неверно указан номер выступления")
 
 
-SchedulePaginator = Row(
-    FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
-    PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
+async def set_search_query(
+    message: Message,
+    widget: ManagedTextInputAdapter,
+    dialog_manager: DialogManager,
+    data: str,
+):
+    dialog_manager.dialog_data["search_query"] = data
+    await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(0)
+
+
+async def reset_search(callback: CallbackQuery, button: Button, manager: DialogManager):
+    db: Database = manager.middleware_data["db"]
+    manager.dialog_data.pop("search_query")
+    current_event = await db.event.get_current()
+    await set_schedule_page(manager, current_event)
+
+
+SchedulePaginator = Group(
     Button(
-        text=Format(text="{current_page}/{pages} 🔄️"),
-        id="update",
-        on_click=on_click_update_schedule,
-        when=~F["dialog_data"]["search_query"],
-    ),
-    Button(
-        text=Format(text="{current_page}/{pages}"),
-        id="page_indicator_search",
+        text=Const("🔍❌ Сбросить поиск"),
+        id="reset_search",
+        on_click=reset_search,
         when=F["dialog_data"]["search_query"],
     ),
-    NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
-    LastPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏭️")),
+    Row(
+        FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
+        PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
+        Button(
+            text=Format(text="{current_page}/{pages} 🔄️"),
+            id="update",
+            on_click=on_click_update_schedule,
+            when=~F["dialog_data"]["search_query"],
+        ),
+        Button(
+            text=Format(text="{current_page}/{pages}"),
+            id="page_indicator_search",
+            when=F["dialog_data"]["search_query"],
+        ),
+        NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
+        LastPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏭️")),
+    ),
 )

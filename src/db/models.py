@@ -1,10 +1,18 @@
-from typing import List
-
-from sqlalchemy import BigInteger, ForeignKey, MetaData, Sequence
+from sqlalchemy import (
+    BigInteger,
+    ForeignKey,
+    MetaData,
+    Sequence,
+    case,
+    func,
+    select,
+)
 from sqlalchemy.ext.declarative import as_declarative
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import (
     Mapped,
     WriteOnlyMapped,
+    column_property,
     declared_attr,
     mapped_column,
     relationship,
@@ -61,20 +69,45 @@ class User(Base):
     role: Mapped[str] = mapped_column(server_default="visitor")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
 
-    ticket: Mapped["Ticket"] = relationship(
-        lazy="selectin", foreign_keys="Ticket.used_by", cascade="all, delete-orphan"
-    )
-    votes: WriteOnlyMapped["Vote"] = relationship(
-        lazy="write_only", passive_deletes=True, cascade="all, delete-orphan"
-    )
-    subscriptions: WriteOnlyMapped["Subscription"] = relationship(
-        lazy="write_only", passive_deletes=True, cascade="all, delete-orphan"
-    )
-
     def __str__(self):
         return (
             f"""User: id={str(self.id)}, username={self.username}, role={self.role}"""
         )
+
+
+class Vote(Base):
+    __tablename__ = "votes"
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    participant_id: Mapped[int] = mapped_column(
+        ForeignKey("participants.id", ondelete="CASCADE")
+    )
+
+    participant: Mapped["Participant"] = relationship(lazy="selectin")
+
+    def __str__(self):
+        return f"Vote: {self.id} {self.participant_id} {self.participant.nomination.id}"
+
+
+class Participant(Base):
+    __tablename__ = "participants"
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(unique=True, index=True)
+    nomination_id: Mapped[str] = mapped_column(
+        ForeignKey("nominations.id", ondelete="SET NULL"), nullable=True
+    )
+
+    event: WriteOnlyMapped["Event"] = relationship(
+        lazy="write_only", cascade="all, delete-orphan", viewonly=True
+    )
+    nomination: Mapped["Nomination"] = relationship(lazy="selectin")
+
+    votes_count = column_property(
+        select(func.count()).where(Vote.participant_id == id).scalar_subquery(),
+        deferred=True,
+    )
 
 
 class Event(Base):
@@ -93,29 +126,40 @@ class Event(Base):
     current: Mapped[bool] = mapped_column(nullable=True, unique=True)
     hidden: Mapped[bool] = mapped_column(nullable=True, server_default="False")
 
-    participant: Mapped["Participant"] = relationship(lazy="selectin")
-    subscriptions: WriteOnlyMapped["Subscription"] = relationship(
-        lazy="write_only", cascade="all, delete-orphan", passive_deletes=True
-    )
+    participant: Mapped["Participant"] = relationship(lazy="selectin", viewonly=True)
+
+    real_position = 0
+
+    @hybrid_property
+    def joined_title(self) -> str:
+        return self.title or self.participant.title
+
+    @classmethod
+    def __declare_last__(cls):
+        sub_q = select(
+            cls.id.label("id"),
+            case(
+                (
+                    cls.hidden.isnot(True),
+                    func.row_number().over(
+                        order_by=cls.position, partition_by=cls.hidden
+                    ),
+                ),
+                else_=None,
+            ).label("row_number"),
+        ).subquery()
+
+        cls.real_position = column_property(
+            select(sub_q.c.row_number)
+            .where(
+                sub_q.c.id == cls.id,  # noqa
+            )
+            .scalar_subquery(),
+            expire_on_flush=True,
+        )
 
     def __str__(self):
         return f"""Event: {str(self.id)}, {self.participant_id}"""
-
-
-class Participant(Base):
-    __tablename__ = "participants"
-
-    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(unique=True, index=True)
-    nomination_id: Mapped[str] = mapped_column(
-        ForeignKey("nominations.id", ondelete="SET NULL"), nullable=True
-    )
-
-    event: Mapped["Event"] = relationship(lazy="selectin", cascade="all, delete-orphan")
-    nomination: Mapped["Nomination"] = relationship(lazy="selectin")
-    votes: Mapped[List["Vote"]] = relationship(
-        lazy="selectin", cascade="all, delete-orphan"
-    )
 
 
 class Nomination(Base):
@@ -124,25 +168,6 @@ class Nomination(Base):
     id: Mapped[str] = mapped_column(primary_key=True, unique=True, autoincrement=False)
     title: Mapped[str] = mapped_column(unique=True, index=True)
     votable: Mapped[bool] = mapped_column(server_default="False")
-
-    participants: WriteOnlyMapped["Participant"] = relationship(
-        order_by=Participant.id.asc()
-    )
-
-
-class Vote(Base):
-    __tablename__ = "votes"
-
-    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    participant_id: Mapped[int] = mapped_column(
-        ForeignKey("participants.id", ondelete="CASCADE")
-    )
-
-    participant: Mapped["Participant"] = relationship(lazy="selectin")
-
-    def __str__(self):
-        return f"Vote: {self.id} {self.participant_id} {self.participant.nomination.id}"
 
 
 class Subscription(Base):
@@ -154,4 +179,3 @@ class Subscription(Base):
     counter: Mapped[int] = mapped_column(server_default="5")
 
     event: Mapped["Event"] = relationship(lazy="selectin")
-    user: Mapped["User"] = relationship(lazy="selectin")

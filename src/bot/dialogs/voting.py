@@ -1,4 +1,3 @@
-import math
 import operator
 from typing import Any
 
@@ -23,6 +22,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 from sqlalchemy import and_
+from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
 from src.bot.structures import Settings
@@ -31,7 +31,7 @@ from src.config import conf
 from src.db import Database
 from src.db.models import Event, Nomination, Participant, User, Vote
 
-per_page = conf.bot.participants_per_page
+participants_per_page = conf.bot.participants_per_page
 ID_VOTING_SCROLL = "voting_scroll"
 
 
@@ -45,10 +45,9 @@ async def show_nomination(
 
 async def get_nominations(dialog_manager: DialogManager, db: Database, **kwargs):
     nominations_list = []
-    nominations = await db.nomination.get_many(True)
+    nominations = await db.nomination.get_many(Nomination.votable.is_(True))
     for nomination in nominations:
-        if nomination.votable:
-            nominations_list.append((nomination.title, nomination.id))
+        nominations_list.append((nomination.title, nomination.id))
     return {"nominations_list": nominations_list}
 
 
@@ -56,22 +55,25 @@ async def get_participants(
     dialog_manager: DialogManager, db: Database, user: User, **kwargs
 ):
     nomination_id = dialog_manager.dialog_data["nomination_id"]
-    nomination = await db.nomination.get_by_where(Nomination.id == nomination_id)
+    nomination = await db.nomination.get(nomination_id)
 
-    pages = math.ceil(
-        (await db.participant.get_count(Participant.nomination_id == nomination.id))
-        / per_page
+    terms = and_(
+        Participant.nomination_id == nomination.id,
+        Participant.event.any(Event.hidden.isnot(True)),
     )
+    pages = await db.participant.get_number_of_pages(participants_per_page, terms)
     current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
-    participants = await db.session.scalars(
-        nomination.participants.select()
-        .where(Participant.event.has(Event.hidden.isnot(True)))
-        .slice((current_page * per_page), (current_page * per_page) + per_page)
-        .order_by(Participant.id)
+    participants = await db.participant.get_page(
+        current_page,
+        participants_per_page,
+        query=terms,
+        order_by=Participant.id,
+        options=undefer(Participant.votes_count),
     )
-    user_vote: Vote = await db.session.scalar(
-        user.votes.select().where(
-            Vote.participant.has(Participant.nomination_id == nomination_id)
+    user_vote = await db.vote.get_by_where(
+        and_(
+            Vote.user_id == user.id,
+            Vote.participant.has(Participant.nomination_id == nomination_id),
         )
     )
     if user_vote:
@@ -114,12 +116,12 @@ participants_html = Jinja(  # noqa: E501
             "<b>"
         "{% endif %}"
         "<b>{{participant.id}}.</b> {{participant.title}} "
-        "{% if (participant.votes|length % 10 == 1) and (participant.votes|length % 100 != 11) %}"  # noqa: E501
-            "[{{participant.votes|length}} голос]"
-        "{% elif (2 <= participant.votes|length % 10 <= 4) and (participant.votes|length % 100 < 10 or participant.votes|length % 100 >= 20) %}"  # noqa: E501
-            "[{{participant.votes|length}} голоса]"
+        "{% if (participant.votes_count % 10 == 1) and (participant.votes_count % 100 != 11) %}"  # noqa: E501
+            "[{{participant.votes_count}} голос]"
+        "{% elif (2 <= participant.votes_count % 10 <= 4) and (participant.votes_count % 100 < 10 or participant.votes_count % 100 >= 20) %}"  # noqa: E501
+            "[{{participant.votes_count}} голоса]"
         "{% else %}"
-            "[{{participant.votes|length}} голосов]"
+            "[{{participant.votes_count}} голосов]"
         "{% endif %}"
         "{% if user_vote.participant_id == participant.id %}"
             "</b> ✅"
@@ -148,7 +150,7 @@ async def vote(message: Message, message_input: MessageInput, manager: DialogMan
         and_(
             Participant.id == int(message.text),
             Participant.nomination_id == manager.dialog_data["nomination_id"],
-            Participant.event.has(Event.hidden.isnot(True)),
+            Participant.event.any(Event.hidden.isnot(True)),
         )
     )
     if participant:

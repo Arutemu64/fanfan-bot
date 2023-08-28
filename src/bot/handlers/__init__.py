@@ -20,10 +20,10 @@ def setup_router() -> Router:
     org_router = Router()
     org_router.message.filter(RoleFilter([UserRole.ORG]))
 
-    commands_router = Router()
-    commands_router.include_router(start.router)
-    commands_router.include_router(common_router)
-    commands_router.include_router(helper_router)
-    commands_router.include_router(org_router)
+    handlers_router = Router()
+    handlers_router.include_router(start.router)
+    handlers_router.include_router(common_router)
+    handlers_router.include_router(helper_router)
+    handlers_router.include_router(org_router)
 
-    return commands_router
+    return handlers_router

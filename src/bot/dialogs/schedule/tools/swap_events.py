@@ -1,25 +1,24 @@
 import asyncio
 
+from aiogram import F
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
-from sqlalchemy import and_
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    get_events_query_terms,
     get_schedule,
-    set_current_schedule_page,
+    set_schedule_page,
+    set_search_query,
 )
+from src.bot.dialogs.schedule.utils import notifier
 from src.bot.ui import strings
-from src.bot.utils import notifier
 from src.db import Database
-from src.db.models import Event
 
 
 async def swap_events(
@@ -29,6 +28,10 @@ async def swap_events(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
+
+    if len(data.split()) == 1:
+        await set_search_query(message, widget, dialog_manager, data)
+        return
 
     # Проверяем, что номера выступлений введены верно
     args = data.split()
@@ -42,19 +45,16 @@ async def swap_events(
         await message.reply("⚠️ Номера выступлений не могут совпадать!")
         return
 
-    # Получаем выступления (с учётом поиска), проверяем их существование
-    terms = get_events_query_terms(True, dialog_manager.dialog_data.get("search_query"))
-    event1 = await db.event.get_by_where(and_(Event.id == int(args[0]), *terms))
-    event2 = await db.event.get_by_where(and_(Event.id == int(args[1]), *terms))
+    # Получаем выступления, проверяем их существование
+    event1 = await db.event.get(int(args[0]))
+    event2 = await db.event.get(int(args[1]))
     if not event1 or not event2:
-        text = "⚠️ Пара выступлений не найдена!"
-        if dialog_manager.dialog_data.get("search_query"):
-            text += "\n(убедитесь, что она входит в результаты поиска)"
-        await message.reply(text)
+        await message.reply("⚠️ Пара выступлений не найдена!")
         return
 
     # Получаем следующее выступление до переноса
-    next_event_before = await db.event.get_next()
+    current_event = await db.event.get_current()
+    next_event_before = await db.event.get_next(current_event)
 
     # Не очень красиво (из-за ограничений в БД) меняем пару выступлений местами
     event1_position, event2_position = event1.position, event2.position
@@ -62,17 +62,17 @@ async def swap_events(
     await db.session.flush([event1, event2])
     event1.position, event2.position = event2_position, event1_position
     await db.session.commit()
+    await db.session.refresh(event1, ["real_position"])
+    await db.session.refresh(event2, ["real_position"])
 
     # Выводим подтверждение
     await message.reply(
-        f"✅ Выступление "
-        f"<b>{event1.participant.title if event1.participant else event1.title}</b> "
-        f"заменено "
-        f"на <b>{event2.participant.title if event2.participant else event2.title}</b>"
+        f"✅ Выступление <b>{event1.joined_title}</b> "
+        f"заменено на <b>{event2.joined_title}</b>"
     )
 
     # Получаем следующее выступление после переноса
-    next_event_after = await db.event.get_next()
+    next_event_after = await db.event.get_next(current_event)
 
     # Если перенос повлиял на следующее выступление - рассылаем глобальный анонс
     if next_event_after is not next_event_before:
@@ -88,13 +88,17 @@ async def swap_events(
     )
 
     # Отправляем пользователя на страницу с первым из переносимых выступлений
-    await set_current_schedule_page(dialog_manager, event1.id)
-    await dialog_manager.switch_to(states.SCHEDULE.MAIN)
+    await set_schedule_page(dialog_manager, event1)
 
 
 swap_events_window = Window(
     Const("<b>🔃 Укажите номера двух выступлений, которые нужно поменять местами:</b>"),
+    Const("""<i>(через пробел, например: "5 2")</i>\n"""),
     EventsList,
+    Const(
+        "🔍 <i>Для поиска отправьте запрос сообщением</i>",
+        when=~F["dialog_data"]["search_query"],
+    ),
     SchedulePaginator,
     TextInput(
         id="swap_events_input",

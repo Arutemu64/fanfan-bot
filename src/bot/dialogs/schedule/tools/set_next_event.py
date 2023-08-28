@@ -4,10 +4,10 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
-from src.bot.dialogs.schedule.common import set_current_schedule_page
+from src.bot.dialogs.schedule.common import set_schedule_page
 from src.bot.dialogs.schedule.tools.common import throttle_announcement
+from src.bot.dialogs.schedule.utils import notifier
 from src.bot.ui import strings
-from src.bot.utils import notifier
 from src.db import Database
 
 
@@ -25,22 +25,22 @@ async def set_next_event(
 
     # Получаем текущее и следующее выступления, снимаем флаг с текущего
     current_event = await db.event.get_current()
-    next_event = await db.event.get_next(current_event)
-    if not next_event:
-        await callback.answer("👏 Выступления закончились!", show_alert=True)
-        return
     if current_event:
+        next_event = await db.event.get_next(current_event)
+        if not next_event:
+            await callback.answer("👏 Выступления закончились!", show_alert=True)
+            return
         current_event.current = None
         await db.session.flush([current_event])
+    else:
+        next_event = await db.event.get_by_position(1)
 
     # Отмечаем следующее как текущее
     next_event.current = True
     await db.session.commit()
 
     # Выводим подтверждение
-    await callback.answer(
-        f"✅ {next_event.participant.title if next_event.participant else next_event.title}"  # noqa: E501
-    )
+    await callback.answer(f"✅ {next_event.joined_title}")
 
     # Запускаем проверку подписок
     asyncio.create_task(
@@ -48,4 +48,4 @@ async def set_next_event(
     )
 
     # Отправляем пользователя на страницу со текущим выступлением
-    await set_current_schedule_page(manager, next_event.id)
+    await set_schedule_page(manager, next_event)

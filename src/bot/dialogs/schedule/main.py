@@ -11,17 +11,10 @@ from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
     get_schedule,
-    on_wrong_event_id,
-)
-from src.bot.dialogs.schedule.search import reset_search
-from src.bot.dialogs.schedule.subscriptions import (
-    SUBSCRIBE_EVENT_ID_INPUT,
-    check_subscription,
+    set_search_query,
 )
 from src.bot.dialogs.schedule.tools.set_next_event import set_next_event
 from src.bot.ui import strings
-from src.db import Database
-from src.db.models import User
 
 
 async def toggle_helper_tools(
@@ -34,28 +27,17 @@ async def toggle_helper_tools(
         manager.dialog_data["helper_tools_toggle"] = True
 
 
-async def toggle_all_notifications(
-    callback: CallbackQuery, button: Button, manager: DialogManager
-):
-    user: User = manager.middleware_data["user"]
-    db: Database = manager.middleware_data["db"]
-    user.receive_all_announcements = not user.receive_all_announcements
-    await db.session.flush([user])
-    await db.session.commit()
-
-
 schedule_main_window = Window(
-    Const("<b>📅 Расписание</b>"),
+    Const("<b>📅 Расписание</b>\n"),
     EventsList,
     Const(
-        "Чтобы подписаться на выступление (или отписаться), отправьте его номер 🔔",
-        when="events",
+        "🔍 <i>Для поиска отправьте запрос сообщением</i>",
+        when=~F["dialog_data"]["search_query"],
     ),
     TextInput(
-        id=SUBSCRIBE_EVENT_ID_INPUT,
-        type_factory=int,
-        on_success=check_subscription,
-        on_error=on_wrong_event_id,
+        id="SEARCH_INPUT",
+        type_factory=str,
+        on_success=set_search_query,
     ),
     StubScroll(ID_SCHEDULE_SCROLL, pages="pages"),
     Group(
@@ -99,28 +81,10 @@ schedule_main_window = Window(
         on_click=toggle_helper_tools,
         when=F["is_helper"] & F["events"],
     ),
-    Button(
-        text=Case(
-            texts={
-                True: Const("🔕 Получать только свои уведомления"),
-                False: Const("🔔 Получать все уведомления"),
-            },
-            selector=F["receive_all_announcements"],
-        ),
-        on_click=toggle_all_notifications,
-        id="receive_all_announcements",
-    ),
     SwitchTo(
-        text=Const("🔍 Поиск"),
-        id="search_button",
-        state=states.SCHEDULE.SEARCH,
-        when=~F["dialog_data"]["search_query"],
-    ),
-    Button(
-        text=Const("🔍❌ Сбросить поиск"),
-        id="reset_search",
-        on_click=reset_search,
-        when=F["dialog_data"]["search_query"],
+        text=Const("🔔 Уведомления"),
+        state=states.SCHEDULE.SUBSCRIPTIONS_MANAGEMENT,
+        id="open_notifications_menu",
     ),
     SchedulePaginator,
     Cancel(text=Const(strings.buttons.back)),

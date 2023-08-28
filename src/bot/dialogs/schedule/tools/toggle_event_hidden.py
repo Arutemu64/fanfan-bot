@@ -1,44 +1,42 @@
 import asyncio
 
+from aiogram import F
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
-from sqlalchemy import and_
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    get_events_query_terms,
     get_schedule,
-    on_wrong_event_id,
-    set_current_schedule_page,
+    set_schedule_page,
+    set_search_query,
 )
+from src.bot.dialogs.schedule.utils import notifier
 from src.bot.ui import strings
-from src.bot.utils import notifier
 from src.db import Database
-from src.db.models import Event
 
 
-async def toggle_event_hidden(
+async def proceed_input(
     message: Message,
     widget: ManagedTextInputAdapter,
     dialog_manager: DialogManager,
-    data: int,
+    data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
 
-    # Получаем выступление (с учётом поиска), проверяем его существование
-    terms = get_events_query_terms(True, dialog_manager.dialog_data.get("search_query"))
-    event = await db.event.get_by_where(and_(Event.id == data, *terms))
+    if not data.isnumeric():
+        await set_search_query(message, widget, dialog_manager, data)
+        return
+
+    # Получаем выступление, проверяем его существование
+    event = await db.event.get(int(data))
     if not event:
-        text = "⚠️ Выступление не найдено!"
-        if dialog_manager.dialog_data.get("search_query"):
-            text += "\n(убедитесь, что оно входит в результаты поиска)"
-        await message.reply(text)
+        await message.reply("⚠️ Выступление не найдено!")
         return
 
     # Проверяем, что выступление не отмечено как текущее
@@ -47,28 +45,22 @@ async def toggle_event_hidden(
         return
 
     # Получаем следующее выступление до скрытия
-    next_event_before = await db.event.get_next()
+    current_event = await db.event.get_current()
+    next_event_before = await db.event.get_next(current_event)
 
     # Переключаем статус "скрыто" для выступления
     event.hidden = not event.hidden
     await db.session.commit()
+    await db.session.refresh(event, ["real_position"])
 
     # Выводим подтверждение
     if event.hidden:
-        await message.reply(
-            f"🙈 Выступление "
-            f"<b>{event.participant.title if event.participant else event.title}</b> "
-            f"скрыто"
-        )
+        await message.reply(f"🙈 Выступление <b>{event.joined_title}</b> скрыто")
     if not event.hidden:
-        await message.reply(
-            f"🙉 Выступление "
-            f"<b>{event.participant.title if event.participant else event.title}</b> "
-            f"открыто"
-        )
+        await message.reply(f"🙉 Выступление <b>{event.joined_title}</b> открыто")
 
     # Получаем следующее выступление после скрытия
-    next_event_after = await db.event.get_next()
+    next_event_after = await db.event.get_next(current_event)
 
     # Если скрытие повлияло на следующее по расписанию
     # выступление - рассылаем глобальный анонс
@@ -85,19 +77,23 @@ async def toggle_event_hidden(
     )
 
     # Отправляем пользователя на страницу со скрытым/открытым выступлением
-    await set_current_schedule_page(dialog_manager, event.id)
-    await dialog_manager.switch_to(states.SCHEDULE.MAIN)
+    await set_schedule_page(dialog_manager, event)
 
 
 toggle_event_hidden_window = Window(
-    Const("<b>🙈 Укажите номер выступления, которое Вы хотите скрыть/отобразить:</b>"),
+    Const(
+        "<b>🙈 Укажите номер выступления, которое " "Вы хотите скрыть/отобразить:</b>\n"
+    ),
     EventsList,
+    Const(
+        "🔍 <i>Для поиска отправьте запрос сообщением</i>",
+        when=~F["dialog_data"]["search_query"],
+    ),
     SchedulePaginator,
     TextInput(
         id="toggle_event_hidden",
-        type_factory=int,
-        on_success=toggle_event_hidden,
-        on_error=on_wrong_event_id,
+        type_factory=str,
+        on_success=proceed_input,
     ),
     SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
     state=states.SCHEDULE.TOGGLE_EVENT_HIDDEN,
