@@ -52,8 +52,9 @@ class BotConfig:
 
     token: str = env("BOT_TOKEN")
     mode: str = env("MODE", "polling")
-
     webhook_domain: str = env("WEBHOOK_DOMAIN")
+
+    admin_list = env.list("ADMIN_LIST")
 
     sentry_logging_enabled: bool = env.bool("SENTRY_LOGGING_ENABLED", False)
     if sentry_logging_enabled:
