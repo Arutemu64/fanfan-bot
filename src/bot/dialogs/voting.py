@@ -25,11 +25,11 @@ from sqlalchemy import and_
 from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
-from src.bot.structures import Settings
 from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
 from src.db.models import Event, Nomination, Participant, User, Vote
+from src.redis.global_settings import GlobalSettings
 
 participants_per_page = conf.bot.participants_per_page
 ID_VOTING_SCROLL = "voting_scroll"
@@ -135,7 +135,7 @@ participants_html = Jinja(  # noqa: E501
 
 
 async def vote(message: Message, message_input: MessageInput, manager: DialogManager):
-    settings: Settings = manager.middleware_data["settings"]
+    settings: GlobalSettings = manager.middleware_data["settings"]
     if not await settings.voting_enabled.get():
         await message.reply(strings.errors.voting_disabled)
         return
@@ -162,7 +162,7 @@ async def vote(message: Message, message_input: MessageInput, manager: DialogMan
 
 
 async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogManager):
-    settings: Settings = manager.middleware_data["settings"]
+    settings: GlobalSettings = manager.middleware_data["settings"]
     if not await settings.voting_enabled.get():
         await callback.answer(strings.errors.voting_disabled)
         return

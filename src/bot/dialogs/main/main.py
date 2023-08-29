@@ -8,13 +8,14 @@ from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format
 
 from src.bot.dialogs import states
-from src.bot.structures import Settings, UserRole
+from src.bot.structures import UserRole
 from src.bot.ui import images, strings
 from src.db.models import User
+from src.redis.global_settings import GlobalSettings
 
 
 async def getter(
-    dialog_manager: DialogManager, user: User, settings: Settings, **kwargs
+    dialog_manager: DialogManager, user: User, settings: GlobalSettings, **kwargs
 ):
     name = dialog_manager.event.from_user.first_name
     is_helper = user.role in [UserRole.HELPER, UserRole.ORG]

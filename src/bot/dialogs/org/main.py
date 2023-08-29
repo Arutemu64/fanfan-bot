@@ -5,11 +5,11 @@ from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
 from aiogram_dialog.widgets.text import Case, Const
 
 from src.bot.dialogs import states
-from src.bot.structures import Settings
 from src.bot.ui import strings
+from src.redis.global_settings import GlobalSettings
 
 
-async def getter(settings: Settings, **kwargs):
+async def getter(settings: GlobalSettings, **kwargs):
     voting_enabled = await settings.voting_enabled.get()
     return {"voting_enabled": voting_enabled}
 
@@ -17,7 +17,7 @@ async def getter(settings: Settings, **kwargs):
 async def switch_voting(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    settings: Settings = manager.middleware_data["settings"]
+    settings: GlobalSettings = manager.middleware_data["settings"]
     await settings.voting_enabled.set(not await settings.voting_enabled.get())
 
 

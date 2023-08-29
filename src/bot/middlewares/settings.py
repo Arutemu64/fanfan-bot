@@ -4,11 +4,11 @@ from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message
 from redis.asyncio.client import Redis
 
-from src.bot.structures import Settings
+from src.redis.global_settings import GlobalSettings
 
 
-class SettingsMiddleware(BaseMiddleware):
-    """This middleware throw a Settings class to handler"""
+class GlobalSettingsMiddleware(BaseMiddleware):
+    """This middleware throw a GlobalSettings class to handler"""
 
     def __init__(self, redis: Redis):
         self.redis = redis
@@ -19,5 +19,5 @@ class SettingsMiddleware(BaseMiddleware):
         event: Union[Message, CallbackQuery],
         data: Dict[str, Any],
     ) -> Any:
-        data["settings"] = Settings(self.redis)
+        data["settings"] = GlobalSettings(self.redis)
         return await handler(event, data)

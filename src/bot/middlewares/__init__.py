@@ -1,5 +1,5 @@
 from .database import DatabaseMiddleware
-from .settings import SettingsMiddleware
+from .settings import GlobalSettingsMiddleware
 from .userdata import UserData
 
-__all__ = ["DatabaseMiddleware", "SettingsMiddleware", "UserData"]
+__all__ = ["DatabaseMiddleware", "GlobalSettingsMiddleware", "UserData"]

@@ -12,9 +12,10 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
-from src.bot.dispatcher import build_redis_client, get_dispatcher, get_redis_storage
-from src.bot.structures import Settings
+from src.bot.dispatcher import get_dispatcher
 from src.config import conf
+from src.redis import build_redis_client, get_redis_storage
+from src.redis.global_settings import GlobalSettings
 
 sentry_sdk.init(
     dsn=conf.bot.sentry_dsn,
@@ -39,11 +40,9 @@ async def on_startup(bot: Bot) -> None:
 
 
 async def setup_default_settings(redis: Redis) -> None:
-    settings = Settings(redis)
-    if await settings.voting_enabled.get() is None:
-        await settings.voting_enabled.set(False)
-    if await settings.announcement_timestamp.get() is None:
-        await settings.announcement_timestamp.set(0)
+    settings = GlobalSettings(redis)
+    await settings.voting_enabled.create(False)
+    await settings.announcement_timestamp.create(0)
 
 
 async def main() -> None:

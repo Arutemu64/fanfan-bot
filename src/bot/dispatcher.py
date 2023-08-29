@@ -4,7 +4,6 @@ from aiogram import Dispatcher, F
 from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.base import BaseEventIsolation, BaseStorage
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.fsm.storage.redis import DefaultKeyBuilder, RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
 from aiogram.types import ErrorEvent
 from aiogram_dialog import DialogManager, setup_dialogs
@@ -13,33 +12,9 @@ from aiogram_dialog.context.media_storage import MediaIdStorage
 from redis.asyncio.client import Redis
 
 from src.bot import dialogs, handlers
-from src.bot.middlewares import DatabaseMiddleware, SettingsMiddleware, UserData
-from src.config import conf
+from src.bot.middlewares import DatabaseMiddleware, GlobalSettingsMiddleware, UserData
 from src.db.database import create_session_maker
-
-
-def build_redis_client() -> Redis:
-    """Build redis client"""
-    client = Redis(
-        host=conf.redis.host,
-        db=conf.redis.db,
-        port=conf.redis.port,
-        password=conf.redis.passwd,
-        username=conf.redis.username,
-        decode_responses=True,
-    )
-    return client
-
-
-def get_redis_storage(
-    redis: Redis, state_ttl=conf.redis.state_ttl, data_ttl=conf.redis.data_ttl
-):
-    return RedisStorage(
-        redis=redis,
-        state_ttl=state_ttl,
-        data_ttl=data_ttl,
-        key_builder=DefaultKeyBuilder(with_destiny=True),
-    )
+from src.redis import build_redis_client
 
 
 async def on_unknown_intent_or_state(event: ErrorEvent, dialog_manager: DialogManager):
@@ -69,7 +44,7 @@ def get_dispatcher(
     session_pool = create_session_maker()
     dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
     dp.update.middleware(UserData())
-    dp.update.middleware(SettingsMiddleware(redis))
+    dp.update.middleware(GlobalSettingsMiddleware(redis))
 
     dp.errors.register(
         on_unknown_intent_or_state,
