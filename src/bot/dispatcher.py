@@ -12,7 +12,13 @@ from aiogram_dialog.context.media_storage import MediaIdStorage
 from redis.asyncio.client import Redis
 
 from src.bot import dialogs, handlers
-from src.bot.middlewares import DatabaseMiddleware, GlobalSettingsMiddleware, UserData
+from src.bot.middlewares import (
+    DatabaseMiddleware,
+    GlobalSettingsMiddleware,
+    SentryLoggingMiddleware,
+    UserData,
+)
+from src.config import conf
 from src.db.database import create_session_maker
 from src.redis import build_redis_client
 
@@ -40,6 +46,9 @@ def get_dispatcher(
 
     dp.include_router(handlers.setup_router())
     dp.include_router(dialogs.setup_router())
+
+    if conf.bot.sentry_logging_enabled:
+        dp.update.middleware(SentryLoggingMiddleware())
 
     session_pool = create_session_maker()
     dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))

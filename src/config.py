@@ -55,8 +55,10 @@ class BotConfig:
 
     webhook_domain: str = env("WEBHOOK_DOMAIN")
 
-    sentry_dsn: str = env("SENTRY_DSN")
-    sentry_env: str = env("SENTRY_ENV")
+    sentry_logging_enabled: bool = env.bool("SENTRY_LOGGING_ENABLED", False)
+    if sentry_logging_enabled:
+        sentry_dsn: str = env("SENTRY_DSN")
+        sentry_env: str = env("SENTRY_ENV")
 
     events_per_page = env.int("EVENTS_PER_PAGE", 7)
     participants_per_page = env.int("PARTICIPANTS_PER_PAGE", 5)

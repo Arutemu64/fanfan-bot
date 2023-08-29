@@ -17,17 +17,6 @@ from src.config import conf
 from src.redis import build_redis_client, get_redis_storage
 from src.redis.global_settings import GlobalSettings
 
-sentry_sdk.init(
-    dsn=conf.bot.sentry_dsn,
-    traces_sample_rate=1.0,
-    environment=conf.bot.sentry_env,
-    integrations=[
-        AsyncioIntegration(),
-        AioHttpIntegration(),
-        SqlalchemyIntegration(),
-    ],
-)
-
 BOT_TOKEN = conf.bot.token
 BASE_WEBHOOK_URL = f"https://{conf.bot.webhook_domain}"
 WEB_SERVER_HOST = "bot"
@@ -46,6 +35,18 @@ async def setup_default_settings(redis: Redis) -> None:
 
 
 async def main() -> None:
+    if conf.bot.sentry_logging_enabled:
+        sentry_sdk.init(
+            dsn=conf.bot.sentry_dsn,
+            traces_sample_rate=1.0,
+            environment=conf.bot.sentry_env,
+            integrations=[
+                AsyncioIntegration(),
+                AioHttpIntegration(),
+                SqlalchemyIntegration(),
+            ],
+        )
+
     bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
 
     redis = build_redis_client()
