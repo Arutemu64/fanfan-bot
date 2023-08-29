@@ -15,5 +15,9 @@ class UserData(BaseMiddleware):
     ) -> Any:
         db: Database = data["db"]
         user = await db.user.get(data["event_from_user"].id)
+        if user:
+            if user.username != data["event_from_user"].username:
+                user.username = data["event_from_user"].username
+                await db.session.commit()
         data["user"] = user
         return await handler(event, data)

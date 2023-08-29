@@ -3,10 +3,12 @@ from aiogram_dialog import Dialog, DialogManager, StartMode, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
 from aiogram_dialog.widgets.text import Const
+from sqlalchemy import func
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import Ticket
 
 
 async def check_ticket(
@@ -16,15 +18,14 @@ async def check_ticket(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    ticket = await db.ticket.get(data)
+    ticket = await db.ticket.get_by_where(func.lower(Ticket.id) == data.lower())
     if ticket:
         if ticket.used_by is None:
             user = await db.user.new(
                 id=message.from_user.id,
-                username=message.from_user.username.lower(),
+                username=message.from_user.username,
                 role=ticket.role,
             )
-            db.session.add(user)
             await db.session.flush([user])
             ticket.used_by = user.id
             await db.session.commit()

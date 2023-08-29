@@ -7,7 +7,8 @@ from aiogram_dialog import DialogManager, StartMode, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
 from aiogram_dialog.widgets.kbd import Button, Select, SwitchTo
-from aiogram_dialog.widgets.text import Const, Format, Jinja
+from aiogram_dialog.widgets.text import Const, Format, List
+from sqlalchemy import func
 
 from src.bot.dialogs import states
 from src.bot.structures import UserRole
@@ -17,15 +18,15 @@ from src.db.models import User
 
 USERNAME_INPUT_ID = "username_input"
 USER_ROLE_PICKER_ID = "user_role_picker"
+ROLES = [
+    (UserRole.VISITOR, "Зритель"),
+    (UserRole.HELPER, "Волонтёр"),
+    (UserRole.ORG, "Организатор"),
+]
 
 
 async def get_roles(**kwargs):
-    roles = [
-        ("Зритель", UserRole.VISITOR),
-        ("Волонтёр", UserRole.HELPER),
-        ("Организатор", UserRole.ORG),
-    ]
-    return {"roles": roles}
+    return {"roles": ROLES}
 
 
 async def show_user_editor(
@@ -36,37 +37,34 @@ async def show_user_editor(
 ):
     db: Database = dialog_manager.middleware_data["db"]
     username = data.replace("@", "")
-    user = await db.user.get_by_where(User.username == username)
+    user = await db.user.get_by_where(func.lower(User.username) == username.lower())
     if user:
-        dialog_manager.dialog_data["username"] = username
+        dialog_manager.dialog_data["user_id"] = user.id
         await dialog_manager.switch_to(states.ORG.USER_EDITOR)
     else:
         await message.reply("Пользователь не найден")
 
 
 async def get_user_info(dialog_manager: DialogManager, db: Database, **kwargs):
-    username = dialog_manager.dialog_data["username"]
-    user = await db.user.get_by_where(User.username == username)
+    user = await db.user.get(dialog_manager.dialog_data["user_id"])
     return {
-        "id": user.id,
-        "username": user.username,
-        "role": user.role,
+        "user_info": [
+            ("ID", user.id),
+            ("Юзернейм", user.username),
+            ("Роль", ROLES[[x[0] for x in ROLES].index(user.role)][1]),
+        ]
     }
 
 
 async def delete_user(callback: CallbackQuery, button: Button, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
-    username = manager.dialog_data["username"]
-    user = await db.user.get_by_where(User.username == username)
-    user_id = user.id
-    # await db.session.execute(user.votes.delete())
-    # await db.session.execute(user.issued_tickets.delete())
+    user = await db.user.get(manager.dialog_data["user_id"])
+    user_id, username = user.id, user.username
     await db.session.delete(user)
     await db.session.commit()
     await manager.bg(user_id=user_id).start(
         state=states.REGISTRATION.MAIN, mode=StartMode.RESET_STACK
     )
-
     await callback.answer(f"Пользователь @{username} удален!")
     await manager.switch_to(states.ORG.MAIN)
 
@@ -75,8 +73,7 @@ async def change_user_role(
     callback: CallbackQuery, widget: Any, manager: DialogManager, item_id: str
 ):
     db: Database = manager.middleware_data["db"]
-    username = manager.dialog_data["username"]
-    user = await db.user.get_by_where(User.username == username)
+    user = await db.user.get(manager.dialog_data["user_id"])
     user.role = item_id
     await db.session.commit()
     try:
@@ -88,7 +85,7 @@ async def change_user_role(
         )
     except TelegramBadRequest:
         pass
-    await callback.answer(f"Роль пользователя @{username} была изменена!")
+    await callback.answer(f"Роль пользователя @{user.username} была изменена!")
     await manager.switch_to(states.ORG.USER_EDITOR)
 
 
@@ -103,15 +100,9 @@ ask_username_window = Window(
     state=states.ORG.ASK_USERNAME,
 )
 
-# fmt: off
-UserInfo = Jinja("ID: {{ id }}\n"
-                 "Юзернейм: @{{ username }}\n"
-                 "Роль: {{ role }}\n")
-# fmt: on
-
 user_editor = Window(
     Const("<b>👤✏️ Редактирование пользователя</b>\n"),
-    UserInfo,
+    List(Format("{item[0]}: {item[1]}"), items="user_info"),
     SwitchTo(
         text=Const("Изменить роль пользователя"),
         id="change_user_role",
@@ -128,9 +119,9 @@ user_editor = Window(
 changing_role_window = Window(
     Const("Выберите роль для пользователя:"),
     Select(
-        Format("{item[0]}"),
+        Format("{item[1]}"),
         id=USER_ROLE_PICKER_ID,
-        item_id_getter=operator.itemgetter(1),
+        item_id_getter=operator.itemgetter(0),
         items="roles",
         on_click=change_user_role,
     ),
