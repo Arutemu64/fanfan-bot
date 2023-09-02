@@ -13,11 +13,14 @@ from src.bot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
     EventsList,
     SchedulePaginator,
-    get_schedule,
+    schedule_getter,
     set_schedule_page,
     set_search_query,
 )
-from src.bot.dialogs.schedule.tools.common import throttle_announcement
+from src.bot.dialogs.schedule.tools.common import (
+    check_permission,
+    throttle_announcement,
+)
 from src.bot.dialogs.schedule.utils import notifier
 from src.bot.ui import strings
 from src.db import Database
@@ -31,6 +34,12 @@ async def proceed_input(
 ):
     db: Database = dialog_manager.middleware_data["db"]
 
+    # Проверяем права
+    if not check_permission(db, message.from_user.id):
+        await message.reply(strings.errors.no_access)
+        return
+
+    # Поиск
     if not data.isnumeric():
         await set_search_query(message, widget, dialog_manager, data)
         return
@@ -58,7 +67,7 @@ async def proceed_input(
     if not new_current_event:
         await message.reply("⚠️ Выступление не найдено!")
         return
-    if new_current_event.hidden:
+    if new_current_event.skip:
         await message.reply("⚠️ Скрытое выступление нельзя отметить как текущее!")
         return
 
@@ -106,5 +115,5 @@ set_manual_event_window = Window(
     ),
     SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
     state=states.SCHEDULE.ASK_MANUAL_EVENT,
-    getter=get_schedule,
+    getter=schedule_getter,
 )

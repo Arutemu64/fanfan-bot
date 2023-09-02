@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Ticket
-from .base import Repository
+from .abstract import Repository
 
 
 class TicketRepo(Repository[Ticket]):

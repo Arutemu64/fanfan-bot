@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Vote
-from .base import Repository
+from .abstract import Repository
 
 
 class VoteRepo(Repository[Vote]):

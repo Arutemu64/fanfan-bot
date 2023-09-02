@@ -1,9 +1,11 @@
 import abc
 import math
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, List, Optional, Sequence, Type, TypeVar
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.interfaces import ORMOption
+from sqlalchemy.sql.base import ExecutableOption
 
 from ..models import Base
 
@@ -20,23 +22,31 @@ class Repository(Generic[AbstractModel]):
         self.type_model = type_model
         self.session = session
 
-    async def get(self, ident: int | str) -> Optional[AbstractModel]:
-        return await self.session.get(entity=self.type_model, ident=ident)
+    async def get(
+        self,
+        ident: int | str,
+        options: Sequence[ORMOption] = None,
+    ) -> Optional[AbstractModel]:
+        return await self.session.get(
+            entity=self.type_model,
+            ident=ident,
+            options=options,
+        )
 
     async def get_by_where(self, query) -> Optional[AbstractModel]:
-        statement = select(self.type_model).where(query)
+        statement = select(self.type_model).where(query).limit(1)
         return (await self.session.execute(statement)).scalar_one_or_none()
 
-    async def get_one(self, query, order_by=None) -> Optional[AbstractModel]:
-        statement = select(self.type_model).where(query)
-        if order_by:
-            statement = statement.order_by(order_by)
-        return (await self.session.execute(statement)).scalar()
-
     async def get_many(
-        self, query=None, limit: int = None, order_by=None
+        self,
+        query=None,
+        limit: int = None,
+        order_by=None,
+        options: List[ExecutableOption] = None,
     ) -> List[AbstractModel]:
         statement = select(self.type_model)
+        if options:
+            statement = statement.options(*options)
         if query is not None:
             statement = statement.where(query)
         if limit:
@@ -51,15 +61,15 @@ class Repository(Generic[AbstractModel]):
         end: int,
         query=None,
         order_by=None,
-        options=None,
+        options: List[ExecutableOption] = None,
     ) -> List[AbstractModel]:
         statement = select(self.type_model)
+        if options:
+            statement = statement.options(*options)
         if query is not None:
             statement = statement.where(query)
         if order_by:
             statement = statement.order_by(order_by)
-        if options:
-            statement = statement.options(options)
         statement = statement.slice(start, end)
         return (await self.session.execute(statement)).scalars().all()
 
@@ -75,7 +85,7 @@ class Repository(Generic[AbstractModel]):
         items_per_page: int = 5,
         query=None,
         order_by=None,
-        options=None,
+        options: List[ExecutableOption] = None,
     ) -> List[AbstractModel]:
         items = await self.get_range(
             start=(page * items_per_page),

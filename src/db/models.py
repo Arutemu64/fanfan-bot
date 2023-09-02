@@ -3,7 +3,6 @@ from sqlalchemy import (
     ForeignKey,
     MetaData,
     Sequence,
-    case,
     func,
     select,
 )
@@ -119,44 +118,22 @@ class Event(Base):
     position: Mapped[int] = mapped_column(
         unique=True, server_default=position_sequence.next_value()
     )
+    real_position: Mapped[int] = mapped_column(
+        unique=True, nullable=True
+    )  # Обновляется триггером в БД, не забывать делать
+    # refresh после изменения position или skip
     participant_id: Mapped[int] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE"), nullable=True
     )
     title: Mapped[str] = mapped_column(nullable=True)
     current: Mapped[bool] = mapped_column(nullable=True, unique=True)
-    hidden: Mapped[bool] = mapped_column(nullable=True, server_default="False")
+    skip: Mapped[bool] = mapped_column(nullable=True, server_default="False")
 
     participant: Mapped["Participant"] = relationship(lazy="selectin", viewonly=True)
-
-    real_position = 0
 
     @hybrid_property
     def joined_title(self) -> str:
         return self.title or self.participant.title
-
-    @classmethod
-    def __declare_last__(cls):
-        sub_q = select(
-            cls.id.label("id"),
-            case(
-                (
-                    cls.hidden.isnot(True),
-                    func.row_number().over(
-                        order_by=cls.position, partition_by=cls.hidden
-                    ),
-                ),
-                else_=None,
-            ).label("row_number"),
-        ).subquery()
-
-        cls.real_position = column_property(
-            select(sub_q.c.row_number)
-            .where(
-                sub_q.c.id == cls.id,  # noqa
-            )
-            .scalar_subquery(),
-            expire_on_flush=True,
-        )
 
     def __str__(self):
         return f"""Event: {str(self.id)}, {self.participant_id}"""

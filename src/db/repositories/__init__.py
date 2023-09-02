@@ -1,4 +1,4 @@
-from .base import Repository
+from .abstract import Repository
 from .event import EventRepo
 from .nomination import NominationRepo
 from .participant import ParticipantRepo

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Nomination
-from .base import Repository
+from .abstract import Repository
 
 
 class NominationRepo(Repository[Nomination]):

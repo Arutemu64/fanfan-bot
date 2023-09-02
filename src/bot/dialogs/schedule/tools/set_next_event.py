@@ -5,7 +5,10 @@ from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
 from src.bot.dialogs.schedule.common import set_schedule_page
-from src.bot.dialogs.schedule.tools.common import throttle_announcement
+from src.bot.dialogs.schedule.tools.common import (
+    check_permission,
+    throttle_announcement,
+)
 from src.bot.dialogs.schedule.utils import notifier
 from src.bot.ui import strings
 from src.db import Database
@@ -15,6 +18,11 @@ async def set_next_event(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
+
+    # Проверяем права
+    if not check_permission(db, manager.event.from_user.id):
+        await callback.answer(strings.errors.no_access, show_alert=True)
+        return
 
     # Таймаут рассылки анонсов
     if await throttle_announcement(manager.middleware_data["settings"]):

@@ -5,7 +5,7 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 
 from src.bot.ui import strings
 from src.db import Database
@@ -77,21 +77,23 @@ async def proceed_subscriptions(
             announcement_text = global_announcement_template.render(
                 {"current_event": current_event, "next_event": next_event}
             )
-            receive_all_users = await db.user.get_many(
-                User.receive_all_announcements.is_(True)
-            )
-            for user in receive_all_users:
-                await send_personal_notification(bot, user.id, announcement_text)
+            user_ids = (
+                await db.session.execute(
+                    select(User.id).where(User.receive_all_announcements.is_(True))
+                )
+            ).all()
+            for user_id in list(zip(*user_ids))[0]:
+                await send_personal_notification(bot, user_id, announcement_text)
 
         subscriptions = await db.subscription.get_many(
             Subscription.event.has(
                 and_(
-                    Event.hidden.isnot(True),
+                    Event.skip.isnot(True),
                     Subscription.counter
                     >= (Event.real_position - current_event.real_position),
-                    (Event.real_position - current_event.real_position) > 0,
+                    (Event.real_position - current_event.real_position) >= 0,
                 ),
-            )
+            ),
         )
         for subscription in subscriptions:
             text = subscription_template.render(

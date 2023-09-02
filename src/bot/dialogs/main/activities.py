@@ -25,7 +25,7 @@ with open(activities_json, mode="r", encoding="utf-8") as f:
     activities = json.load(f)
 
 
-async def get_activity(dialog_manager: DialogManager, **kwargs):
+async def activity_getter(dialog_manager: DialogManager, **kwargs):
     pages = len(activities)
     current_activity = await dialog_manager.find(ID_ACTIVITIES_SCROLL).get_page()
     activity_title = activities[current_activity].get("title", "%title%")
@@ -71,7 +71,7 @@ activity = Window(
         NextPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("⏭️")),
     ),
-    SwitchTo(Const(strings.buttons.back), "mm", states.MAIN.MAIN),
+    SwitchTo(Const(strings.buttons.back), "main_menu", states.MAIN.MAIN),
     state=states.MAIN.ACTIVITIES,
-    getter=get_activity,
+    getter=activity_getter,
 )

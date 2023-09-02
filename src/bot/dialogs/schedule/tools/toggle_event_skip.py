@@ -12,10 +12,11 @@ from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    get_schedule,
+    schedule_getter,
     set_schedule_page,
     set_search_query,
 )
+from src.bot.dialogs.schedule.tools.common import check_permission
 from src.bot.dialogs.schedule.utils import notifier
 from src.bot.ui import strings
 from src.db import Database
@@ -29,6 +30,12 @@ async def proceed_input(
 ):
     db: Database = dialog_manager.middleware_data["db"]
 
+    # Проверяем права
+    if not check_permission(db, message.from_user.id):
+        await message.reply(strings.errors.no_access)
+        return
+
+    # Поиск
     if not data.isnumeric():
         await set_search_query(message, widget, dialog_manager, data)
         return
@@ -49,15 +56,15 @@ async def proceed_input(
     next_event_before = await db.event.get_next(current_event)
 
     # Переключаем статус "скрыто" для выступления
-    event.hidden = not event.hidden
+    event.skip = not event.skip
     await db.session.commit()
     await db.session.refresh(event, ["real_position"])
 
     # Выводим подтверждение
-    if event.hidden:
-        await message.reply(f"🙈 Выступление <b>{event.joined_title}</b> скрыто")
-    if not event.hidden:
-        await message.reply(f"🙉 Выступление <b>{event.joined_title}</b> открыто")
+    if event.skip:
+        await message.reply(f"🙈 Выступление <b>{event.joined_title}</b> пропущено")
+    if not event.skip:
+        await message.reply(f"🙉 Выступление <b>{event.joined_title}</b> возвращено")
 
     # Получаем следующее выступление после скрытия
     next_event_after = await db.event.get_next(current_event)
@@ -80,7 +87,7 @@ async def proceed_input(
     await set_schedule_page(dialog_manager, event)
 
 
-toggle_event_hidden_window = Window(
+toggle_event_skip_window = Window(
     Const(
         "<b>🙈 Укажите номер выступления, которое " "Вы хотите скрыть/отобразить:</b>\n"
     ),
@@ -91,11 +98,11 @@ toggle_event_hidden_window = Window(
     ),
     SchedulePaginator,
     TextInput(
-        id="toggle_event_hidden",
+        id="toggle_event_skip",
         type_factory=str,
         on_success=proceed_input,
     ),
     SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
-    state=states.SCHEDULE.TOGGLE_EVENT_HIDDEN,
-    getter=get_schedule,
+    state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
+    getter=schedule_getter,
 )

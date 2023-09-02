@@ -2,13 +2,13 @@ import operator
 from typing import Any
 
 from aiogram import F
-from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.input import MessageInput
+from aiogram_dialog.widgets.input import TextInput
+from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
 from aiogram_dialog.widgets.kbd import (
-    Back,
     Button,
+    Cancel,
     Column,
     CurrentPage,
     FirstPage,
@@ -17,8 +17,8 @@ from aiogram_dialog.widgets.kbd import (
     PrevPage,
     Row,
     Select,
-    Start,
     StubScroll,
+    SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 from sqlalchemy import and_
@@ -28,10 +28,10 @@ from src.bot.dialogs import states
 from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
-from src.db.models import Event, Nomination, Participant, User, Vote
+from src.db.models import Event, Nomination, Participant, Vote
 from src.redis.global_settings import GlobalSettings
 
-participants_per_page = conf.bot.participants_per_page
+PARTICIPANTS_PER_PAGE = conf.bot.participants_per_page
 ID_VOTING_SCROLL = "voting_scroll"
 
 
@@ -43,7 +43,7 @@ async def show_nomination(
     return
 
 
-async def get_nominations(dialog_manager: DialogManager, db: Database, **kwargs):
+async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwargs):
     nominations_list = []
     nominations = await db.nomination.get_many(Nomination.votable.is_(True))
     for nomination in nominations:
@@ -51,28 +51,26 @@ async def get_nominations(dialog_manager: DialogManager, db: Database, **kwargs)
     return {"nominations_list": nominations_list}
 
 
-async def get_participants(
-    dialog_manager: DialogManager, db: Database, user: User, **kwargs
-):
+async def participants_getter(dialog_manager: DialogManager, db: Database, **kwargs):
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get(nomination_id)
 
     terms = and_(
         Participant.nomination_id == nomination.id,
-        Participant.event.any(Event.hidden.isnot(True)),
+        Participant.event.any(Event.skip.isnot(True)),
     )
-    pages = await db.participant.get_number_of_pages(participants_per_page, terms)
+    pages = await db.participant.get_number_of_pages(PARTICIPANTS_PER_PAGE, terms)
     current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
     participants = await db.participant.get_page(
         current_page,
-        participants_per_page,
+        PARTICIPANTS_PER_PAGE,
         query=terms,
         order_by=Participant.id,
-        options=undefer(Participant.votes_count),
+        options=[undefer(Participant.votes_count)],
     )
     user_vote = await db.vote.get_by_where(
         and_(
-            Vote.user_id == user.id,
+            Vote.user_id == dialog_manager.event.from_user.id,
             Vote.participant.has(Participant.nomination_id == nomination_id),
         )
     )
@@ -101,9 +99,9 @@ nominations = Window(
             on_click=show_nomination,
         ),
     ),
-    Start(text=Const(strings.buttons.back), id="mm", state=states.MAIN.MAIN),
+    Cancel(Const(strings.buttons.back)),
     state=states.VOTING.NOMINATIONS,
-    getter=get_nominations,
+    getter=nominations_getter,
 )
 
 # fmt: off
@@ -134,23 +132,29 @@ participants_html = Jinja(  # noqa: E501
 # fmt: on
 
 
-async def vote(message: Message, message_input: MessageInput, manager: DialogManager):
-    settings: GlobalSettings = manager.middleware_data["settings"]
+async def add_vote(
+    message: Message,
+    widget: ManagedTextInputAdapter,
+    dialog_manager: DialogManager,
+    data: int,
+):
+    db: Database = dialog_manager.middleware_data["db"]
+    settings: GlobalSettings = dialog_manager.middleware_data["settings"]
+
     if not await settings.voting_enabled.get():
         await message.reply(strings.errors.voting_disabled)
         return
-    if manager.dialog_data.get("user_vote_id"):
+    if dialog_manager.dialog_data.get("user_vote_id"):
         await message.reply(strings.errors.already_voted)
         return
     if not message.text.isnumeric():
         await message.reply("Укажите номер выступающего!")
         return
-    db: Database = manager.middleware_data["db"]
     participant = await db.participant.get_by_where(
         and_(
-            Participant.id == int(message.text),
-            Participant.nomination_id == manager.dialog_data["nomination_id"],
-            Participant.event.any(Event.hidden.isnot(True)),
+            Participant.id == data,
+            Participant.nomination_id == dialog_manager.dialog_data["nomination_id"],
+            Participant.event.any(Event.skip.isnot(True)),
         )
     )
     if participant:
@@ -190,16 +194,25 @@ voting = Window(
         LastPage(scroll=ID_VOTING_SCROLL, text=Const("⏭️")),
         when=F["pages"] != 1,
     ),
-    MessageInput(vote, content_types=[ContentType.TEXT]),
+    TextInput(
+        id="vote_id_input",
+        type_factory=int,
+        on_success=add_vote,
+    ),
     Button(
         Const("Отменить голос"),
         id="cancel_vote",
         when="user_vote",
         on_click=cancel_vote,
     ),
-    Back(text=Const(strings.buttons.back), on_click=reset_page),
+    SwitchTo(
+        text=Const(strings.buttons.back),
+        on_click=reset_page,
+        state=states.VOTING.NOMINATIONS,
+        id="nominations",
+    ),
     state=states.VOTING.VOTING,
-    getter=get_participants,
+    getter=participants_getter,
 )
 
 dialog = Dialog(nominations, voting)

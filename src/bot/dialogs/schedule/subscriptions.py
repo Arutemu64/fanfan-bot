@@ -15,23 +15,23 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from sqlalchemy import and_
+from sqlalchemy.orm import load_only
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    get_schedule,
     on_wrong_event_id,
+    schedule_getter,
 )
-from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
-from src.db.models import Event, Subscription, User
+from src.db.models import Subscription, User
 
 EVENT_ID_INPUT = "subscribe_event_id_input"
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
-SUBSCRIPTIONS_PER_PAGE = conf.bot.participants_per_page
+SUBSCRIPTIONS_PER_PAGE = conf.bot.events_per_page
 
 # fmt: off
 SubscriptionsList = Jinja(  # noqa: E501
@@ -70,11 +70,11 @@ SubscriptionsList = Jinja(  # noqa: E501
 # fmt: on
 
 
-async def get_subscriptions(
-    dialog_manager: DialogManager, db: Database, user: User, **kwargs
-):
+async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+    data = await dialog_manager.middleware_data["state"].get_data()
     pages = await db.subscription.get_number_of_pages(
-        SUBSCRIPTIONS_PER_PAGE, Subscription.user_id == user.id
+        SUBSCRIPTIONS_PER_PAGE,
+        Subscription.user_id == dialog_manager.event.from_user.id,
     )
     if pages == 0:
         pages = 1
@@ -82,14 +82,14 @@ async def get_subscriptions(
     subscriptions = await db.subscription.get_page(
         current_page,
         SUBSCRIPTIONS_PER_PAGE,
-        Subscription.user_id == user.id,
+        Subscription.user_id == dialog_manager.event.from_user.id,
         order_by=Subscription.event_id,
     )
     current_event = await db.event.get_current()
     return {
         "pages": pages,
         "subscriptions": subscriptions,
-        "receive_all_announcements": user.receive_all_announcements,
+        "receive_all_announcements": data["receive_all_announcements"],
         "current_event_position": current_event.real_position if current_event else 0,
     }
 
@@ -101,24 +101,18 @@ async def proceed_input(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    user: User = dialog_manager.middleware_data["user"]
 
     if not data.isnumeric():
         dialog_manager.dialog_data["search_query"] = data
         return
 
-    event = await db.event.get_by_where(
-        and_(
-            Event.id == int(data),
-            Event.hidden.isnot(True if user.role == UserRole.VISITOR else None),
-        )
-    )
+    event = await db.event.get(int(data))
 
     if not event:
         await message.reply("⚠️ Выступление не найдено!")
         return
-    if event.hidden:
-        await message.reply("⚠️ Нельзя подписаться на скрытое выступление!")
+    if event.skip:
+        await message.reply("⚠️ На это выступление нельзя подписаться!")
         return
     subscription = await db.subscription.get_by_where(
         and_(
@@ -131,7 +125,7 @@ async def proceed_input(
         return
     else:
         dialog_manager.dialog_data["selected_event_title"] = event.joined_title
-        await dialog_manager.switch_to(states.SCHEDULE.ASK_SUBSCRIPTION_COUNTER)
+        await dialog_manager.switch_to(states.SCHEDULE.SET_SUBSCRIPTION_COUNTER)
 
 
 async def setup_subscription(
@@ -141,8 +135,8 @@ async def setup_subscription(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    event_count = await db.event.get_count()
-    if (data > event_count) or (data < 0):
+
+    if not 0 < data < await db.event.get_count():
         await message.reply("⚠️ Некорректное значение")
         return
 
@@ -161,16 +155,7 @@ async def setup_subscription(
         f" успешно оформлена!"
     )
 
-    await dialog_manager.switch_to(states.SCHEDULE.SUBSCRIPTIONS_MANAGEMENT)
-
-
-async def toggle_all_notifications(
-    callback: CallbackQuery, button: Button, manager: DialogManager
-):
-    user: User = manager.middleware_data["user"]
-    db: Database = manager.middleware_data["db"]
-    user.receive_all_announcements = not user.receive_all_announcements
-    await db.session.commit()
+    await dialog_manager.switch_to(states.SCHEDULE.SUBSCRIPTIONS)
 
 
 async def remove_subscription(
@@ -180,6 +165,9 @@ async def remove_subscription(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
+
+    if data.bit_length() > 32:
+        print("⚠️ Некорректное значение")
 
     subscription = await db.subscription.get_by_where(Subscription.event_id == data)
     if subscription:
@@ -191,7 +179,22 @@ async def remove_subscription(
         return
 
 
-setup_subscription_window = Window(
+async def toggle_all_notifications(
+    callback: CallbackQuery, button: Button, manager: DialogManager
+):
+    db: Database = manager.middleware_data["db"]
+    user = await db.user.get(
+        manager.event.from_user.id,
+        options=[load_only(User.receive_all_announcements)],
+    )
+    user.receive_all_announcements = not user.receive_all_announcements
+    await db.session.commit()
+    await manager.middleware_data["state"].update_data(
+        receive_all_announcements=user.receive_all_announcements
+    )
+
+
+set_subscription_counter_window = Window(
     Format(
         "🔢 За сколько выступлений до начала "
         "<b>{dialog_data[selected_event_title]}</b> начать оповещать Вас?"
@@ -199,13 +202,13 @@ setup_subscription_window = Window(
     TextInput(id="counter_input", type_factory=int, on_success=setup_subscription),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SCHEDULE.EVENT_CHOOSER,
+        state=states.SCHEDULE.EVENT_SELECTOR,
         id="back",
     ),
-    state=states.SCHEDULE.ASK_SUBSCRIPTION_COUNTER,
+    state=states.SCHEDULE.SET_SUBSCRIPTION_COUNTER,
 )
 
-event_selection_window = Window(
+event_selector_window = Window(
     Const("<b>➕ Пришлите номер выступления, на которое хотите подписаться:</b>\n"),
     EventsList,
     Const(
@@ -220,11 +223,11 @@ event_selection_window = Window(
     ),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SCHEDULE.SUBSCRIPTIONS_MANAGEMENT,
+        state=states.SCHEDULE.MAIN,
         id="back",
     ),
-    getter=get_schedule,
-    state=states.SCHEDULE.EVENT_CHOOSER,
+    getter=schedule_getter,
+    state=states.SCHEDULE.EVENT_SELECTOR,
 )
 
 subscriptions_window = Window(
@@ -243,7 +246,7 @@ subscriptions_window = Window(
     ),
     SwitchTo(
         text=Const("➕ Подписаться на выступление"),
-        state=states.SCHEDULE.EVENT_CHOOSER,
+        state=states.SCHEDULE.EVENT_SELECTOR,
         id="subscribe",
     ),
     Button(
@@ -270,9 +273,9 @@ subscriptions_window = Window(
     ),
     SwitchTo(
         text=Const(strings.buttons.back),
+        id="back_to_schedule",
         state=states.SCHEDULE.MAIN,
-        id="back",
     ),
-    getter=get_subscriptions,
-    state=states.SCHEDULE.SUBSCRIPTIONS_MANAGEMENT,
+    getter=subscriptions_getter,
+    state=states.SCHEDULE.SUBSCRIPTIONS,
 )

@@ -2,7 +2,14 @@ from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Row, StubScroll, SwitchTo
+from aiogram_dialog.widgets.kbd import (
+    Button,
+    Cancel,
+    Group,
+    Row,
+    StubScroll,
+    SwitchTo,
+)
 from aiogram_dialog.widgets.text import Case, Const
 
 from src.bot.dialogs import states
@@ -10,7 +17,7 @@ from src.bot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
     EventsList,
     SchedulePaginator,
-    get_schedule,
+    schedule_getter,
     set_search_query,
 )
 from src.bot.dialogs.schedule.tools.set_next_event import set_next_event
@@ -61,9 +68,9 @@ schedule_main_window = Window(
                 state=states.SCHEDULE.SWAP_EVENTS,
             ),
             SwitchTo(
-                text=Const("🙈 Скрыть/отобразить"),
-                id="hide_events",
-                state=states.SCHEDULE.TOGGLE_EVENT_HIDDEN,
+                text=Const("🙈 Пропустить/вернуть"),
+                id="skip_events",
+                state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
             ),
         ),
         when=F["dialog_data"]["helper_tools_toggle"],
@@ -83,11 +90,11 @@ schedule_main_window = Window(
     ),
     SwitchTo(
         text=Const("🔔 Уведомления"),
-        state=states.SCHEDULE.SUBSCRIPTIONS_MANAGEMENT,
         id="open_notifications_menu",
+        state=states.SCHEDULE.SUBSCRIPTIONS,
     ),
     SchedulePaginator,
     Cancel(text=Const(strings.buttons.back)),
     state=states.SCHEDULE.MAIN,
-    getter=get_schedule,
+    getter=schedule_getter,
 )

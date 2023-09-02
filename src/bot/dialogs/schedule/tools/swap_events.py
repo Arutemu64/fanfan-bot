@@ -12,10 +12,11 @@ from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    get_schedule,
+    schedule_getter,
     set_schedule_page,
     set_search_query,
 )
+from src.bot.dialogs.schedule.tools.common import check_permission
 from src.bot.dialogs.schedule.utils import notifier
 from src.bot.ui import strings
 from src.db import Database
@@ -29,6 +30,12 @@ async def swap_events(
 ):
     db: Database = dialog_manager.middleware_data["db"]
 
+    # Проверяем права
+    if not check_permission(db, message.from_user.id):
+        await message.reply(strings.errors.no_access)
+        return
+
+    # Поиск
     if len(data.split()) == 1:
         await set_search_query(message, widget, dialog_manager, data)
         return
@@ -107,5 +114,5 @@ swap_events_window = Window(
     ),
     SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
     state=states.SCHEDULE.SWAP_EVENTS,
-    getter=get_schedule,
+    getter=schedule_getter,
 )

@@ -16,7 +16,6 @@ from src.bot.middlewares import (
     DatabaseMiddleware,
     GlobalSettingsMiddleware,
     SentryLoggingMiddleware,
-    UserData,
 )
 from src.config import conf
 from src.db.database import create_session_maker
@@ -52,7 +51,6 @@ def get_dispatcher(
 
     session_pool = create_session_maker()
     dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
-    dp.update.middleware(UserData())
     dp.update.middleware(GlobalSettingsMiddleware(redis))
 
     dp.errors.register(
