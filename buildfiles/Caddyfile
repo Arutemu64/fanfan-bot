@@ -1,7 +1,0 @@
-{
-    email {$CERT_EMAIL}
-}
-
-{$WEBHOOK_DOMAIN} {
-    reverse_proxy bot:8080
-}

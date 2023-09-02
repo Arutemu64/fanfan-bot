@@ -12,10 +12,8 @@ services:
     volumes:
       - ./alembic:/app/alembic
       - ./alembic.ini:/app/alembic.ini
-    networks:
-      - internal
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       - db
       - redis
@@ -27,9 +25,6 @@ services:
       - .docker-env
     volumes:
       - db-data:/var/lib/postgresql/data
-    networks:
-      - internal
-      - web
     ports:
       - "54320:5432"
   redis:
@@ -42,34 +37,8 @@ services:
     restart: always
     volumes:
       - redis-data:/data
-    networks:
-      - internal
-      - web
     ports:
       - "6379:6379"
-  caddy:
-    container_name: 'fanfan-webhook'
-    build:
-      context: buildfiles
-      dockerfile: CaddyDockerfile
-    env_file:
-      - .docker-env
-    restart: always
-    networks:
-      - internal
-      - web
-    ports:
-      - "80:80"
-      - "443:443"
-    profiles:
-      - webhook
-
-networks:
-  web:
-    external: true
-  internal:
-    external: false
-    driver: bridge
 
 volumes:
   db-data:

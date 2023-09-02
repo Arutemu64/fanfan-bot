@@ -18,10 +18,11 @@ from src.redis import build_redis_client, get_redis_storage
 from src.redis.global_settings import GlobalSettings
 
 BOT_TOKEN = conf.bot.token
+
 BASE_WEBHOOK_URL = f"https://{conf.bot.webhook_domain}"
-WEB_SERVER_HOST = "bot"
-WEB_SERVER_PORT = 8080
-WEBHOOK_PATH = "/webhook"
+WEBHOOK_PATH = conf.bot.webhook_path
+WEB_SERVER_HOST = conf.bot.web_server_host
+WEB_SERVER_PORT = conf.bot.web_server_port
 
 
 async def on_startup(bot: Bot) -> None:

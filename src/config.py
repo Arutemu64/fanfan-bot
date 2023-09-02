@@ -52,7 +52,11 @@ class BotConfig:
 
     token: str = env("BOT_TOKEN")
     mode: str = env("MODE", "polling")
-    webhook_domain: str = env("WEBHOOK_DOMAIN")
+    if mode == "webhook":
+        webhook_domain: str = env("WEBHOOK_DOMAIN")
+        webhook_path: str = env("WEBHOOK_PATH")
+        web_server_host: str = env("WEB_SERVER_HOST")
+        web_server_port: int = env.int("WEB_SERVER_PORT")
 
     admin_list = env.list("ADMIN_LIST")
     admin_list = [x.lower() for x in admin_list]
