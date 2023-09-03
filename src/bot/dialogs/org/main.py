@@ -8,7 +8,7 @@ from src.bot.dialogs import states
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import Event, User
+from src.db.models import Event, Nomination, User
 from src.redis.global_settings import GlobalSettings
 
 # fmt: off
@@ -20,7 +20,7 @@ StatsTemplate = Jinja(  # noqa
             "\n\n"
         "{% endif %}"
         "{% for sub in info.subs %}"
-            """  {{ "├─" if not loop.last else "└─" }}<b>{{ sub.name }}</b>: {{ sub.value }}\n"""  # noqa: E501
+            """ {{ "├─" if not loop.last else "└─" }}<b>{{ sub.name }}</b>: {{ sub.value }}\n"""  # noqa: E501
         "{% endfor %}"
     """{% endfor %}"""
 )
@@ -74,7 +74,9 @@ async def org_menu_getter(db: Database, settings: GlobalSettings, **kwargs):
                 "subs": (
                     {
                         "name": "🥇 С голосованием",
-                        "value": await db.nomination.get_count(),
+                        "value": await db.nomination.get_count(
+                            Nomination.votable.is_(True)
+                        ),
                     },
                 ),
             },
