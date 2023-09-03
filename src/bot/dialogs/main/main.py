@@ -17,12 +17,12 @@ from src.redis.global_settings import GlobalSettings
 async def main_menu_getter(
     dialog_manager: DialogManager, settings: GlobalSettings, db: Database, **kwargs
 ):
-    data = await dialog_manager.middleware_data["state"].get_data()
+    user_data = await dialog_manager.middleware_data["state"].get_data()
     dialog_manager.dialog_data["voting_enabled"] = await settings.voting_enabled.get()
     return {
         "name": dialog_manager.event.from_user.first_name,
-        "is_helper": data["user_role"] in [UserRole.HELPER, UserRole.ORG],
-        "is_org": data["user_role"] == UserRole.ORG,
+        "is_helper": user_data["user_role"] in [UserRole.HELPER, UserRole.ORG],
+        "is_org": user_data["user_role"] == UserRole.ORG,
         "random_quote": random.choice(strings.quotes),
         "voting_enabled": dialog_manager.dialog_data["voting_enabled"],
     }
@@ -78,6 +78,11 @@ main = Window(
             state=states.ORG.MAIN,
             when="is_org",
         ),
+    ),
+    Start(
+        text=Const("⚙️ Настройки"),
+        id="open_settings",
+        state=states.SETTINGS.MAIN,
     ),
     state=states.MAIN.MAIN,
     getter=main_menu_getter,

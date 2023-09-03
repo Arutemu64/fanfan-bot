@@ -66,6 +66,7 @@ class User(Base):
     )
     username: Mapped[str] = mapped_column(index=True)
     role: Mapped[str] = mapped_column(server_default="visitor")
+    items_per_page: Mapped[int] = mapped_column(nullable=False, server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
 
     def __str__(self):

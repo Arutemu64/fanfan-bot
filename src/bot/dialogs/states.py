@@ -10,6 +10,11 @@ class MAIN(StatesGroup):
     ACTIVITIES = State()
 
 
+class SETTINGS(StatesGroup):
+    MAIN = State()
+    SET_ITEMS_PER_PAGE = State()
+
+
 class SCHEDULE(StatesGroup):
     MAIN = State()
 

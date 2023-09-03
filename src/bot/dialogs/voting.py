@@ -27,14 +27,11 @@ from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
 from src.bot.ui import strings
-from src.config import conf
 from src.db import Database
 from src.db.models import Event, Nomination, Participant, Vote
 from src.redis.global_settings import GlobalSettings
 
-PARTICIPANTS_PER_PAGE = conf.bot.participants_per_page
 ID_NOMINATIONS_SCROLL = "nominations_scroll"
-NOMINATIONS_PER_PAGE = 5
 ID_VOTING_SCROLL = "voting_scroll"
 
 
@@ -67,10 +64,11 @@ participants_html = Jinja(  # noqa: E501
 
 
 async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+    user_data = await dialog_manager.middleware_data["state"].get_data()
     current_page = await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
     nominations = await db.nomination.get_page(
         current_page,
-        NOMINATIONS_PER_PAGE,
+        user_data["items_per_page"],
         Nomination.votable.is_(True),
         order_by=Nomination.title,
     )
@@ -84,6 +82,7 @@ async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwar
 
 
 async def participants_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+    user_data = await dialog_manager.middleware_data["state"].get_data()
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get(nomination_id)
 
@@ -91,11 +90,11 @@ async def participants_getter(dialog_manager: DialogManager, db: Database, **kwa
         Participant.nomination_id == nomination.id,
         Participant.event.any(Event.skip.isnot(True)),
     )
-    pages = await db.participant.get_number_of_pages(PARTICIPANTS_PER_PAGE, terms)
+    pages = await db.participant.get_number_of_pages(user_data["items_per_page"], terms)
     current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
     participants = await db.participant.get_page(
         current_page,
-        PARTICIPANTS_PER_PAGE,
+        user_data["items_per_page"],
         query=terms,
         order_by=Participant.id,
         options=[undefer(Participant.votes_count)],
@@ -236,9 +235,10 @@ voting = Window(
 
 async def on_voting_start(start_data: Any, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
+    user_data = await manager.middleware_data["state"].get_data()
     manager.dialog_data["pages"] = math.ceil(
         await db.nomination.get_count(Nomination.votable.is_(True))
-        / NOMINATIONS_PER_PAGE
+        / user_data["items_per_page"]
     )
 
 

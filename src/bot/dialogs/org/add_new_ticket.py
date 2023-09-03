@@ -4,7 +4,7 @@ from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
-from aiogram_dialog.widgets.kbd import Radio, SwitchTo
+from aiogram_dialog.widgets.kbd import Column, Radio, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
@@ -16,12 +16,13 @@ TICKET_ROLE_PICKER_ID = "ticket_role_picker"
 
 
 async def get_roles(**kwargs):
-    roles = [
-        ("Зритель", UserRole.VISITOR),
-        ("Волонтёр", UserRole.HELPER),
-        ("Организатор", UserRole.ORG),
-    ]
-    return {"roles": roles}
+    return {
+        "roles": [
+            (UserRole.VISITOR, UserRole.get_role_name(UserRole.VISITOR)),
+            (UserRole.HELPER, UserRole.get_role_name(UserRole.HELPER)),
+            (UserRole.ORG, UserRole.get_role_name(UserRole.ORG)),
+        ]
+    }
 
 
 async def add_new_ticket(
@@ -49,13 +50,15 @@ async def add_new_ticket(
 
 
 new_ticket_window = Window(
-    Const("Выберите роль для билета и введите его номер:"),
-    Radio(
-        Format("🔘 {item[0]}"),
-        Format("⚪️ {item[0]}"),
-        id=TICKET_ROLE_PICKER_ID,
-        item_id_getter=operator.itemgetter(1),
-        items="roles",
+    Const("Выберите роль для билета и отправьте его номер:"),
+    Column(
+        Radio(
+            Format("🔘 {item[1]}"),
+            Format("⚪️ {item[1]}"),
+            id=TICKET_ROLE_PICKER_ID,
+            item_id_getter=operator.itemgetter(0),
+            items="roles",
+        ),
     ),
     TextInput(id="ticket_id", type_factory=str, on_success=add_new_ticket),
     SwitchTo(state=states.ORG.MAIN, id="org_menu", text=Const(strings.buttons.back)),

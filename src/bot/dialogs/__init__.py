@@ -5,13 +5,22 @@ from src.bot.structures import UserRole
 
 
 def setup_router() -> Router:
-    from src.bot.dialogs import helper, main, org, registration, schedule, voting
+    from src.bot.dialogs import (
+        helper,
+        main,
+        org,
+        registration,
+        schedule,
+        settings,
+        voting,
+    )
 
     common_router = Router()
     common_router.include_router(registration.dialog)
     common_router.include_router(main.dialog)
     common_router.include_router(schedule.dialog)
     common_router.include_router(voting.dialog)
+    common_router.include_router(settings.dialog)
 
     helper_router = Router()
     helper_router.include_router(helper.dialog)

@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, StartMode, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
-from aiogram_dialog.widgets.kbd import Button, Select, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Column, Select, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, List
 from sqlalchemy import func
 
@@ -18,15 +18,16 @@ from src.db.models import User
 
 USERNAME_INPUT_ID = "username_input"
 USER_ROLE_PICKER_ID = "user_role_picker"
-ROLES = [
-    (UserRole.VISITOR, "Зритель"),
-    (UserRole.HELPER, "Волонтёр"),
-    (UserRole.ORG, "Организатор"),
-]
 
 
 async def get_roles(**kwargs):
-    return {"roles": ROLES}
+    return {
+        "roles": [
+            (UserRole.VISITOR, UserRole.get_role_name(UserRole.VISITOR)),
+            (UserRole.HELPER, UserRole.get_role_name(UserRole.HELPER)),
+            (UserRole.ORG, UserRole.get_role_name(UserRole.ORG)),
+        ]
+    }
 
 
 async def show_user_editor(
@@ -51,7 +52,7 @@ async def get_user_info(dialog_manager: DialogManager, db: Database, **kwargs):
         "user_info": [
             ("ID", user.id),
             ("Юзернейм", user.username),
-            ("Роль", ROLES[[x[0] for x in ROLES].index(user.role)][1]),
+            ("Роль", UserRole.get_role_name(user.role)),
         ]
     }
 
@@ -118,12 +119,14 @@ user_editor = Window(
 
 changing_role_window = Window(
     Const("Выберите роль для пользователя:"),
-    Select(
-        Format("{item[1]}"),
-        id=USER_ROLE_PICKER_ID,
-        item_id_getter=operator.itemgetter(0),
-        items="roles",
-        on_click=change_user_role,
+    Column(
+        Select(
+            Format("{item[1]}"),
+            id=USER_ROLE_PICKER_ID,
+            item_id_getter=operator.itemgetter(0),
+            items="roles",
+            on_click=change_user_role,
+        ),
     ),
     SwitchTo(id="back", text=Const(strings.buttons.back), state=states.ORG.USER_EDITOR),
     getter=get_roles,

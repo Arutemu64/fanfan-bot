@@ -23,6 +23,7 @@ async def on_start_main(start_data: Any, manager: DialogManager):
             await db.session.commit()
         await state.update_data(
             user_role=user.role,
+            items_per_page=user.items_per_page,
             receive_all_announcements=user.receive_all_announcements,
         )
     else:

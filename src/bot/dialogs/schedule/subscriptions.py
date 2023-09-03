@@ -25,13 +25,11 @@ from src.bot.dialogs.schedule.common import (
     schedule_getter,
 )
 from src.bot.ui import strings
-from src.config import conf
 from src.db import Database
 from src.db.models import Subscription, User
 
 EVENT_ID_INPUT = "subscribe_event_id_input"
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
-SUBSCRIPTIONS_PER_PAGE = conf.bot.events_per_page
 
 # fmt: off
 SubscriptionsList = Jinja(  # noqa: E501
@@ -71,9 +69,9 @@ SubscriptionsList = Jinja(  # noqa: E501
 
 
 async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    data = await dialog_manager.middleware_data["state"].get_data()
+    user_data = await dialog_manager.middleware_data["state"].get_data()
     pages = await db.subscription.get_number_of_pages(
-        SUBSCRIPTIONS_PER_PAGE,
+        user_data["items_per_page"],
         Subscription.user_id == dialog_manager.event.from_user.id,
     )
     if pages == 0:
@@ -81,7 +79,7 @@ async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kw
     current_page = await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page()
     subscriptions = await db.subscription.get_page(
         current_page,
-        SUBSCRIPTIONS_PER_PAGE,
+        user_data["items_per_page"],
         Subscription.user_id == dialog_manager.event.from_user.id,
         order_by=Subscription.event_id,
     )
@@ -89,7 +87,7 @@ async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kw
     return {
         "pages": pages,
         "subscriptions": subscriptions,
-        "receive_all_announcements": data["receive_all_announcements"],
+        "receive_all_announcements": user_data["receive_all_announcements"],
         "current_event_position": current_event.real_position if current_event else 0,
     }
 
