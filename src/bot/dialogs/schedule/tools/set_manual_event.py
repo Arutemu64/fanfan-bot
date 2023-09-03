@@ -4,7 +4,7 @@ from aiogram import F
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
+from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
 
@@ -28,7 +28,7 @@ from src.db import Database
 
 async def proceed_input(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
 ):

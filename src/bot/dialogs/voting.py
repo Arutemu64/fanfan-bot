@@ -5,7 +5,7 @@ from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
+from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
     Cancel,
@@ -134,7 +134,7 @@ participants_html = Jinja(  # noqa: E501
 
 async def add_vote(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: int,
 ):

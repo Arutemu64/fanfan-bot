@@ -3,7 +3,7 @@ from typing import Any
 from aiogram.types import Message
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
+from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.text import Const
 from sqlalchemy import func
 
@@ -17,7 +17,7 @@ from src.db.models import Ticket
 
 async def check_ticket(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
 ):

@@ -1,7 +1,7 @@
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter, TextInput
+from aiogram_dialog.widgets.input.text import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
     CurrentPage,
@@ -96,7 +96,7 @@ async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kw
 
 async def proceed_input(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
 ):
@@ -130,7 +130,7 @@ async def proceed_input(
 
 async def setup_subscription(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: int,
 ):
@@ -160,7 +160,7 @@ async def setup_subscription(
 
 async def remove_subscription(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: int,
 ):

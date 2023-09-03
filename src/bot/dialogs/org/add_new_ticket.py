@@ -3,7 +3,7 @@ import operator
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
+from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import Radio, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
@@ -26,7 +26,7 @@ async def get_roles(**kwargs):
 
 async def add_new_ticket(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
 ):

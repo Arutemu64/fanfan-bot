@@ -1,7 +1,7 @@
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager
-from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
+from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
     FirstPage,
@@ -118,7 +118,7 @@ async def on_click_update_schedule(
 
 async def on_wrong_event_id(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     error: ValueError,
 ):
@@ -127,7 +127,7 @@ async def on_wrong_event_id(
 
 async def set_search_query(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
 ):

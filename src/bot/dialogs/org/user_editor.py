@@ -5,7 +5,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, StartMode, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.input.text import ManagedTextInputAdapter
+from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button, Select, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, List
 from sqlalchemy import func
@@ -31,7 +31,7 @@ async def get_roles(**kwargs):
 
 async def show_user_editor(
     message: Message,
-    widget: ManagedTextInputAdapter,
+    widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
 ):
