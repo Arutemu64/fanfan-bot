@@ -14,13 +14,13 @@ help:
 black:
 	poetry run black src/ scripts/
 
-.PHONY: ruff
-ruff:
-	poetry run ruff check src/ scripts/ --fix --respect-gitignore
-
 .PHONY:	mypy
 mypy:
 	poetry run mypy --strict --pretty --explicit-package-bases --install-types src/ scripts/
+
+.PHONY: ruff
+ruff:
+	poetry run ruff check src/ scripts/ --fix --respect-gitignore
 
 .PHONY: lint
 lint: black ruff
@@ -43,11 +43,11 @@ requirements:
 # Alembic utils
 .PHONY: generate
 generate:
-	alembic revision --m="$(NAME)" --autogenerate
+	poetry run alembic revision --m="$(NAME)" --autogenerate
 
 .PHONY: migrate
 migrate:
-	alembic upgrade head
+	poetry run alembic upgrade head
 
 # Docker utils
 .PHONY: project-start

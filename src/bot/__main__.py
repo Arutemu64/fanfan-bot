@@ -19,14 +19,11 @@ from src.redis.global_settings import GlobalSettings
 
 BOT_TOKEN = conf.bot.token
 
-BASE_WEBHOOK_URL = f"https://{conf.bot.webhook_domain}"
-WEBHOOK_PATH = conf.bot.webhook_path
-WEB_SERVER_HOST = conf.bot.web_server_host
-WEB_SERVER_PORT = conf.bot.web_server_port
-
 
 async def on_startup(bot: Bot) -> None:
-    await bot.set_webhook(url=f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}")
+    await bot.set_webhook(
+        url=f"https://{conf.bot.webhook_domain}{conf.bot.webhook_path}"
+    )
 
 
 async def setup_default_settings(redis: Redis) -> None:
@@ -65,9 +62,11 @@ async def main() -> None:
         dp.startup.register(on_startup)
         app = web.Application()
         webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
-        webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+        webhook_requests_handler.register(app, path=conf.bot.webhook_path)
         setup_application(app, dp, bot=bot)
-        await web._run_app(app, host=WEB_SERVER_HOST, port=WEB_SERVER_PORT)
+        await web._run_app(
+            app, host=conf.bot.web_server_host, port=conf.bot.web_server_port
+        )
     elif conf.bot.mode == "polling":
         await dp.start_polling(bot)
 

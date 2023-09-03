@@ -1,29 +1,28 @@
-FROM python:3.11-slim-bookworm as builder
+FROM python:3.11-slim as python-base
 
-RUN pip install poetry==1.5.1
+ENV POETRY_VERSION=1.5.1 \
+    POETRY_HOME=/opt/poetry \
+    POETRY_VENV=/opt/poetry-venv \
+    POETRY_CACHE_DIR=/opt/.cache
 
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+FROM python-base as poetry-base
 
-WORKDIR /app
-COPY ../pyproject.toml poetry.lock ./
+RUN python3 -m venv $POETRY_VENV \
+    && $POETRY_VENV/bin/pip install -U pip setuptools \
+    && $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION}
 
-RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root
-
-FROM python:3.11-slim-bookworm as runtime
+FROM python-base as app
 
 RUN apt update && apt install -y make libzbar0 libgl1-mesa-glx libglib2.0-0
 
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
-
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
+ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
 WORKDIR /app
-COPY alembic.ini .
-COPY alembic ./alembic
-COPY Makefile .
-COPY src ./src
-CMD ["python", "-m", "src.bot"]
+COPY ../poetry.lock pyproject.toml ./
+
+RUN poetry check && \
+    poetry install --no-interaction --no-cache --no-root
+
+COPY .. .
+CMD ["poetry", "run", "python", "-m", "src.bot"]
