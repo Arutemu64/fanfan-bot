@@ -157,3 +157,11 @@ class Subscription(Base):
     counter: Mapped[int] = mapped_column(server_default="5")
 
     event: Mapped["Event"] = relationship(lazy="selectin")
+
+
+class Settings(Base):
+    __tablename__ = "settings"
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, server_default="1")
+    voting_enabled: Mapped[bool] = mapped_column(server_default="False")
+    announcement_timestamp: Mapped[float] = mapped_column(server_default="0")

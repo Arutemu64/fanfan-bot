@@ -11,25 +11,22 @@ from src.bot.dialogs import states
 from src.bot.structures import UserRole
 from src.bot.ui import images, strings
 from src.db import Database
-from src.redis.global_settings import GlobalSettings
 
 
-async def main_menu_getter(
-    dialog_manager: DialogManager, settings: GlobalSettings, db: Database, **kwargs
-):
-    user_data = await dialog_manager.middleware_data["state"].get_data()
-    dialog_manager.dialog_data["voting_enabled"] = await settings.voting_enabled.get()
+async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+    user_role = await db.user.get_role(dialog_manager.event.from_user.id)
     return {
         "name": dialog_manager.event.from_user.first_name,
-        "is_helper": user_data["user_role"] in [UserRole.HELPER, UserRole.ORG],
-        "is_org": user_data["user_role"] == UserRole.ORG,
+        "is_helper": user_role in [UserRole.HELPER, UserRole.ORG],
+        "is_org": user_role == UserRole.ORG,
         "random_quote": random.choice(strings.quotes),
-        "voting_enabled": dialog_manager.dialog_data["voting_enabled"],
+        "voting_enabled": await db.settings.get_voting_enabled(),
     }
 
 
 async def open_voting(callback: CallbackQuery, button: Button, manager: DialogManager):
-    if manager.dialog_data.get("voting_enabled"):
+    db: Database = manager.middleware_data["db"]
+    if await db.settings.get_voting_enabled():
         await manager.start(state=states.VOTING.NOMINATIONS)
     else:
         await callback.answer(strings.errors.voting_disabled, show_alert=True)

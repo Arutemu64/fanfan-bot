@@ -69,9 +69,8 @@ SubscriptionsList = Jinja(  # noqa: E501
 
 
 async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user_data = await dialog_manager.middleware_data["state"].get_data()
     pages = await db.subscription.get_number_of_pages(
-        user_data["items_per_page"],
+        dialog_manager.dialog_data["events_per_page"],
         Subscription.user_id == dialog_manager.event.from_user.id,
     )
     if pages == 0:
@@ -79,7 +78,7 @@ async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kw
     current_page = await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page()
     subscriptions = await db.subscription.get_page(
         current_page,
-        user_data["items_per_page"],
+        dialog_manager.dialog_data["events_per_page"],
         Subscription.user_id == dialog_manager.event.from_user.id,
         order_by=Subscription.event_id,
     )
@@ -87,7 +86,9 @@ async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kw
     return {
         "pages": pages,
         "subscriptions": subscriptions,
-        "receive_all_announcements": user_data["receive_all_announcements"],
+        "receive_all_announcements": await db.user.get_receive_all_announcements_setting(
+            dialog_manager.event.from_user.id
+        ),
         "current_event_position": current_event.real_position if current_event else 0,
     }
 

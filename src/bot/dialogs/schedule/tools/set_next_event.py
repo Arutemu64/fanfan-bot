@@ -25,7 +25,7 @@ async def set_next_event(
         return
 
     # Таймаут рассылки анонсов
-    if await throttle_announcement(manager.middleware_data["settings"]):
+    if await throttle_announcement(db):
         pass
     else:
         await callback.answer(strings.errors.announce_too_fast, show_alert=True)

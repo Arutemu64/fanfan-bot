@@ -3,18 +3,17 @@ import time
 from src.bot.structures import UserRole
 from src.config import conf
 from src.db import Database
-from src.redis.global_settings import GlobalSettings
 
 ANNOUNCEMENT_TIMEOUT = conf.bot.announcement_timeout
 
 
-async def throttle_announcement(settings: GlobalSettings) -> bool:
-    global_timestamp = await settings.announcement_timestamp.get()
+async def throttle_announcement(db: Database) -> bool:
+    global_timestamp = await db.settings.get_announcement_timestamp()
     timestamp = time.time()
     if (timestamp - global_timestamp) < ANNOUNCEMENT_TIMEOUT:
         return False
     else:
-        await settings.announcement_timestamp.set(timestamp)
+        await db.settings.set_announcement_timestamp(timestamp)
         return True
 
 

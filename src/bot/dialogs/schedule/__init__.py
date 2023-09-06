@@ -19,14 +19,17 @@ from .utils.schedule_loader import ScheduleLoader
 
 async def on_start_schedule(start_data: dict, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
-    user_data = await manager.middleware_data["state"].get_data()
+    user = await db.user.get(manager.event.from_user.id)
+
+    manager.dialog_data["role"] = user.role
+    manager.dialog_data["events_per_page"] = user.items_per_page
 
     current_event = await db.event.get_current()
     await set_schedule_page(manager, current_event)
 
     schedule_loader = ScheduleLoader(
         db=db,
-        events_per_page=user_data["items_per_page"],
+        events_per_page=manager.dialog_data["events_per_page"],
     )
     manager.dialog_data["pages"] = await schedule_loader.get_pages_count()
 

@@ -29,7 +29,6 @@ from src.bot.dialogs import states
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import Event, Nomination, Participant, Vote
-from src.redis.global_settings import GlobalSettings
 
 ID_NOMINATIONS_SCROLL = "nominations_scroll"
 ID_VOTING_SCROLL = "voting_scroll"
@@ -64,11 +63,10 @@ participants_html = Jinja(  # noqa: E501
 
 
 async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user_data = await dialog_manager.middleware_data["state"].get_data()
     current_page = await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
     nominations = await db.nomination.get_page(
         current_page,
-        user_data["items_per_page"],
+        dialog_manager.dialog_data["items_per_page"],
         Nomination.votable.is_(True),
         order_by=Nomination.title,
     )
@@ -82,7 +80,6 @@ async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwar
 
 
 async def participants_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user_data = await dialog_manager.middleware_data["state"].get_data()
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get(nomination_id)
 
@@ -90,11 +87,13 @@ async def participants_getter(dialog_manager: DialogManager, db: Database, **kwa
         Participant.nomination_id == nomination.id,
         Participant.event.any(Event.skip.isnot(True)),
     )
-    pages = await db.participant.get_number_of_pages(user_data["items_per_page"], terms)
+    pages = await db.participant.get_number_of_pages(
+        dialog_manager.dialog_data["items_per_page"], terms
+    )
     current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
     participants = await db.participant.get_page(
         current_page,
-        user_data["items_per_page"],
+        dialog_manager.dialog_data["items_per_page"],
         query=terms,
         order_by=Participant.id,
         options=[undefer(Participant.votes_count)],
@@ -132,9 +131,8 @@ async def add_vote(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    settings: GlobalSettings = dialog_manager.middleware_data["settings"]
 
-    if not await settings.voting_enabled.get():
+    if not await db.settings.get_voting_enabled():
         await message.reply(strings.errors.voting_disabled)
         return
     if dialog_manager.dialog_data.get("user_vote_id"):
@@ -159,11 +157,10 @@ async def add_vote(
 
 
 async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogManager):
-    settings: GlobalSettings = manager.middleware_data["settings"]
-    if not await settings.voting_enabled.get():
+    db: Database = manager.middleware_data["db"]
+    if not await db.settings.get_voting_enabled():
         await callback.answer(strings.errors.voting_disabled)
         return
-    db: Database = manager.middleware_data["db"]
     user_vote = await db.vote.get(manager.dialog_data["user_vote_id"])
     await db.session.delete(user_vote)
     await db.session.commit()
@@ -235,10 +232,12 @@ voting = Window(
 
 async def on_voting_start(start_data: Any, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
-    user_data = await manager.middleware_data["state"].get_data()
+    manager.dialog_data["items_per_page"] = await db.user.get_items_per_page_setting(
+        manager.event.from_user.id
+    )
     manager.dialog_data["pages"] = math.ceil(
         await db.nomination.get_count(Nomination.votable.is_(True))
-        / user_data["items_per_page"]
+        / manager.dialog_data["items_per_page"]
     )
 
 

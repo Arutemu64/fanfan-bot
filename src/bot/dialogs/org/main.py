@@ -9,7 +9,6 @@ from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import Event, Nomination, User
-from src.redis.global_settings import GlobalSettings
 
 # fmt: off
 StatsTemplate = Jinja(  # noqa
@@ -27,8 +26,8 @@ StatsTemplate = Jinja(  # noqa
 # fmt: on
 
 
-async def org_menu_getter(db: Database, settings: GlobalSettings, **kwargs):
-    voting_enabled = await settings.voting_enabled.get()
+async def org_menu_getter(db: Database, **kwargs):
+    voting_enabled = await db.settings.get_voting_enabled()
     return {
         "voting_enabled": voting_enabled,
         "bot_info": (
@@ -91,8 +90,8 @@ async def org_menu_getter(db: Database, settings: GlobalSettings, **kwargs):
 async def switch_voting(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    settings: GlobalSettings = manager.middleware_data["settings"]
-    await settings.voting_enabled.set(not await settings.voting_enabled.get())
+    db: Database = manager.middleware_data["db"]
+    await db.settings.toggle_voting()
 
 
 org_menu = Window(

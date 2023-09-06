@@ -7,15 +7,15 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
-from redis.asyncio.client import Redis
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from src.bot.dispatcher import get_dispatcher
 from src.config import conf
+from src.db.database import Database, create_session_maker
 from src.redis import build_redis_client, get_redis_storage
-from src.redis.global_settings import GlobalSettings
 
 BOT_TOKEN = conf.bot.token
 
@@ -26,10 +26,12 @@ async def on_startup(bot: Bot) -> None:
     )
 
 
-async def setup_default_settings(redis: Redis) -> None:
-    settings = GlobalSettings(redis)
-    await settings.voting_enabled.create(False)
-    await settings.announcement_timestamp.create(0)
+async def setup_default_settings(session_pool) -> None:
+    async with session_pool() as session:
+        db = Database(session)
+        if not await db.settings.exists():
+            await db.settings.create(voting_enabled=False, announcement_timestamp=0)
+            await db.session.commit()
 
 
 async def main() -> None:
@@ -42,6 +44,7 @@ async def main() -> None:
                 AsyncioIntegration(),
                 AioHttpIntegration(),
                 SqlalchemyIntegration(),
+                RedisIntegration(),
             ],
         )
 
@@ -49,11 +52,15 @@ async def main() -> None:
 
     redis = build_redis_client()
     asyncio.create_task(redis.ping())
-    await setup_default_settings(redis)
     storage = get_redis_storage(redis=redis)
 
+    session_pool = create_session_maker()
+    await setup_default_settings(session_pool)
+
     dp = get_dispatcher(
-        storage=storage, event_isolation=SimpleEventIsolation(), redis=redis
+        storage=storage,
+        event_isolation=SimpleEventIsolation(),
+        session_pool=session_pool,
     )
 
     await bot.delete_webhook(drop_pending_updates=True)
