@@ -109,3 +109,7 @@ class Repository(Generic[AbstractModel]):
         :return: Nothing
         """
         ...
+
+    @abc.abstractmethod
+    async def exists(self, *args, **kwargs) -> None:
+        ...

@@ -7,6 +7,7 @@ from src.bot.dialogs import states
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import ReceivedAchievement
 
 ID_ITEMS_PER_PAGE_INPUT = "items_per_page_input"
 
@@ -43,6 +44,20 @@ async def update_items_per_page(
     await dialog_manager.switch_to(state=states.SETTINGS.MAIN)
 
 
+async def reset_achievements_and_points(
+    callback: CallbackQuery, button: Button, manager: DialogManager
+):
+    db: Database = manager.middleware_data["db"]
+    await db.user.set_points(user_id=manager.event.from_user.id, points=0)
+    achievements = await db.received_achievement.get_many(
+        ReceivedAchievement.user_id == manager.event.from_user.id
+    )
+    for achievement in achievements:
+        await db.session.delete(achievement)
+    await db.session.commit()
+    await callback.answer("✅ Успешно!")
+
+
 set_items_per_page_window = Window(
     Const(
         "🔢 <b>Укажите, сколько выступлений/участников выводить "
@@ -71,6 +86,11 @@ settings_window = Window(
         id="set_items_per_page_button",
         on_click=update_counter_value,
         state=states.SETTINGS.SET_ITEMS_PER_PAGE,
+    ),
+    Button(
+        text=Const("[ТЕСТ] ♻️ Сбросить достижения и очки"),
+        id="reset_achievements_and_points",
+        on_click=reset_achievements_and_points,
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.SETTINGS.MAIN,

@@ -15,6 +15,7 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from src.bot.dialogs.schedule.utils.schedule_loader import ScheduleLoader
 from src.bot.structures import UserRole
+from src.bot.structures.userdata import UserData
 from src.db import Database
 from src.db.models import Event
 
@@ -67,9 +68,11 @@ EventsList = Jinja(  # noqa: E501
 
 
 async def schedule_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+    user_data: UserData = await dialog_manager.middleware_data["state"].get_data()
+
     schedule_loader = ScheduleLoader(
         db=db,
-        events_per_page=dialog_manager.dialog_data["events_per_page"],
+        events_per_page=user_data["items_per_page"],
         search_query=dialog_manager.dialog_data.get("search_query"),
     )
     pages = dialog_manager.dialog_data["pages"]
@@ -87,23 +90,22 @@ async def schedule_getter(dialog_manager: DialogManager, db: Database, **kwargs)
         "events": events,
         "subscription_ids": subscription_ids,
         "is_helper": True
-        if dialog_manager.dialog_data["role"] in [UserRole.HELPER, UserRole.ORG]
+        if user_data["role"] in [UserRole.HELPER, UserRole.ORG]
         else False,
     }
 
 
 async def set_schedule_page(manager: DialogManager, event: Event):
     db: Database = manager.middleware_data["db"]
+    user_data: UserData = await manager.middleware_data["state"].get_data()
 
     if event:
         search_query = manager.dialog_data.get("search_query")
-        events_loader = ScheduleLoader(
-            db, manager.dialog_data["events_per_page"], search_query
-        )
+        events_loader = ScheduleLoader(db, user_data["items_per_page"], search_query)
         page = await events_loader.get_page_number(event)
         await manager.find(ID_SCHEDULE_SCROLL).set_page(page)
     else:
-        await manager.find(ID_SCHEDULE_SCROLL).set_page(0)
+        pass
 
 
 async def on_click_update_schedule(
@@ -131,24 +133,30 @@ async def set_search_query(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
+    user_data: UserData = await dialog_manager.middleware_data["state"].get_data()
+
     dialog_manager.dialog_data["search_query"] = data
 
     schedule_loader = ScheduleLoader(
         db=db,
-        events_per_page=dialog_manager.dialog_data["events_per_page"],
+        events_per_page=user_data["items_per_page"],
         search_query=dialog_manager.dialog_data.get("search_query"),
     )
     dialog_manager.dialog_data["pages"] = await schedule_loader.get_pages_count()
+
     await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(0)
+    current_event = await db.event.get_current()
+    await set_schedule_page(dialog_manager, current_event)
 
 
 async def reset_search(callback: CallbackQuery, button: Button, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
+    user_data: UserData = await manager.middleware_data["state"].get_data()
 
     manager.dialog_data.pop("search_query")
     schedule_loader = ScheduleLoader(
         db=db,
-        events_per_page=manager.dialog_data["events_per_page"],
+        events_per_page=user_data["items_per_page"],
     )
     manager.dialog_data["pages"] = await schedule_loader.get_pages_count()
 
@@ -164,20 +172,15 @@ SchedulePaginator = Group(
         when=F["dialog_data"]["search_query"],
     ),
     Row(
-        FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
+        FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪ · 1")),
         PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
         Button(
-            text=Format(text="{current_page}/{pages} 🔄️"),
+            text=Format(text="{current_page} 🔄️"),
             id="update_schedule",
             on_click=on_click_update_schedule,
-            when=~F["dialog_data"]["search_query"],
-        ),
-        Button(
-            text=Format(text="{current_page}/{pages}"),
-            id="page_indicator_search",
-            when=F["dialog_data"]["search_query"],
+            # when=~F["dialog_data"]["search_query"],
         ),
         NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
-        LastPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏭️")),
+        LastPage(scroll=ID_SCHEDULE_SCROLL, text=Format("{pages} · ⏭️")),
     ),
 )

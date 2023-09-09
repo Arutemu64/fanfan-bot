@@ -5,14 +5,13 @@ from src.bot.structures import UserRole
 
 
 def setup_router() -> Router:
-    from . import callbacks, qr, start
+    from . import callbacks, start
 
     common_router = Router()
     common_router.message.filter(
         RoleFilter([UserRole.VISITOR, UserRole.HELPER, UserRole.ORG])
     )
     common_router.include_router(callbacks.router)
-    common_router.include_router(qr.router)
 
     helper_router = Router()
     helper_router.message.filter(RoleFilter([UserRole.HELPER, UserRole.ORG]))

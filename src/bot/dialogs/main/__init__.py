@@ -6,22 +6,28 @@ from src.bot.dialogs import states
 from src.bot.ui import strings
 from src.db import Database
 
+from .achievements import achievements_window
 from .activities import activity
 from .main import main
+from .qr_pass import qr_pass_window
+from .qr_scanner import qr_scanner_window
 
 
 async def on_start_main(start_data: Any, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
 
     # Проверка регистрации
-    user = await db.user.get(manager.event.from_user.id)
-    if user:
-        if user.username != manager.event.from_user.username:
-            user.username = manager.event.from_user.username
-            await db.session.commit()
-    else:
+    if not await db.user.exists(user_id=manager.event.from_user.id):
         await manager.event.answer(strings.common.welcome)
         await manager.start(states.REGISTRATION.MAIN, mode=StartMode.RESET_STACK)
 
 
-dialog = Dialog(activity, main, launch_mode=LaunchMode.ROOT, on_start=on_start_main)
+dialog = Dialog(
+    main,
+    activity,
+    achievements_window,
+    qr_scanner_window,
+    qr_pass_window,
+    launch_mode=LaunchMode.ROOT,
+    on_start=on_start_main,
+)

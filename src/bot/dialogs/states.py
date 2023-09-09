@@ -8,6 +8,9 @@ class REGISTRATION(StatesGroup):
 class MAIN(StatesGroup):
     MAIN = State()
     ACTIVITIES = State()
+    ACHIEVEMENTS = State()
+    QR_PASS = State()
+    QR_SCANNER = State()
 
 
 class SETTINGS(StatesGroup):
@@ -41,4 +44,14 @@ class ORG(StatesGroup):
     NEW_TICKET = State()
     ASK_USERNAME = State()
     USER_EDITOR = State()
+    CHANGE_ROLE = State()
+
+
+class USER_MANAGER(StatesGroup):
+    MAIN = State()
+    MANUAL_USER_SEARCH = State()
+
+    ADD_POINTS = State()
+    ADD_ACHIEVEMENT = State()
+
     CHANGE_ROLE = State()

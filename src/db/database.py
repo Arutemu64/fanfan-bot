@@ -8,12 +8,15 @@ from sqlalchemy.orm import sessionmaker
 from src.config import conf
 
 from .repositories import (
+    AchievementRepo,
     EventRepo,
     NominationRepo,
     ParticipantRepo,
+    ReceivedAchievementRepo,
     SettingsRepo,
     SubscriptionRepo,
     TicketRepo,
+    TransactionRepo,
     UserRepo,
     VoteRepo,
 )
@@ -46,11 +49,14 @@ class Database:
     """
 
     event: EventRepo
+    achievement: AchievementRepo
     nomination: NominationRepo
     participant: ParticipantRepo
+    received_achievement: ReceivedAchievementRepo
     settings: SettingsRepo
     subscription: SubscriptionRepo
     ticket: TicketRepo
+    transaction: TransactionRepo
     user: UserRepo
     vote: VoteRepo
 
@@ -59,21 +65,29 @@ class Database:
     def __init__(
         self,
         session: AsyncSession,
+        achievement: AchievementRepo = None,
         event: EventRepo = None,
         nomination: NominationRepo = None,
         participant: ParticipantRepo = None,
+        received_achievement: ReceivedAchievementRepo = None,
         settings: SettingsRepo = None,
         subscription: SubscriptionRepo = None,
         ticket: TicketRepo = None,
+        transaction: TransactionRepo = None,
         user: UserRepo = None,
         vote: VoteRepo = None,
     ):
         self.session = session
+        self.achievement = achievement or AchievementRepo(session=session)
         self.event = event or EventRepo(session=session)
         self.nomination = nomination or NominationRepo(session=session)
         self.participant = participant or ParticipantRepo(session=session)
+        self.received_achievement = received_achievement or ReceivedAchievementRepo(
+            session=session
+        )
         self.settings = settings or SettingsRepo(session=session)
         self.subscription = subscription or SubscriptionRepo(session=session)
         self.ticket = ticket or TicketRepo(session=session)
+        self.transaction = transaction or TransactionRepo(session=session)
         self.user = user or UserRepo(session=session)
         self.vote = vote or VoteRepo(session=session)

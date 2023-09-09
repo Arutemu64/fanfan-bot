@@ -1,10 +1,7 @@
-from src.bot.ui.strings import buttons
-
-main_menu_text = """Привет, {name}! Сейчас ты находишься в главном меню. Сюда всегда можно попасть по команде /start."""
+main_menu_text = """"""
 
 
-helper_menu_text = f"""<s><b>{buttons.announce_mode}</b>
-С помощью данного режима вы можете оперативно оповещать зрителей о том, что происходит на сцене</s>"""
+helper_menu_text = f""
 
 org_menu_text = """<s><code>/role @ник роль</code>
 Сменить роль пользователю.

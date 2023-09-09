@@ -1,8 +1,11 @@
+import operator
+
 from aiogram import F
-from aiogram.types import CallbackQuery
-from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
-from aiogram_dialog.widgets.text import Case, Const, Jinja
+from aiogram.types import CallbackQuery, Message
+from aiogram_dialog import Dialog, DialogManager, Window
+from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
+from aiogram_dialog.widgets.kbd import Button, Cancel, Column, Radio, Start, SwitchTo
+from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
 from src.bot.dialogs import states
 from src.bot.structures import UserRole
@@ -10,19 +13,34 @@ from src.bot.ui import strings
 from src.db import Database
 from src.db.models import Event, Nomination, User
 
+ID_TICKET_ROLE_PICKER = "ticket_role_picker"
+
+
+async def get_roles(**kwargs):
+    return {
+        "roles": [
+            (UserRole.VISITOR, UserRole.get_role_name(UserRole.VISITOR)),
+            (UserRole.HELPER, UserRole.get_role_name(UserRole.HELPER)),
+            (UserRole.ORG, UserRole.get_role_name(UserRole.ORG)),
+        ]
+    }
+
+
 # fmt: off
 StatsTemplate = Jinja(  # noqa
     "{% for info in bot_info %}"
-        "{% if info.name %}"
-            """<b>{{ info.name }}</b>: {{ info.value }}\n"""
-        "{% else %}"
-            "\n\n"
-        "{% endif %}"
-        "{% for sub in info.subs %}"
-            """ {{ "├─" if not loop.last else "└─" }}<b>{{ sub.name }}</b>: {{ sub.value }}\n"""  # noqa: E501
-        "{% endfor %}"
+    "{% if info.name %}"
+    """<b>{{ info.name }}</b>: {{ info.value }}\n"""
+    "{% else %}"
+    "\n\n"
+    "{% endif %}"
+    "{% for sub in info.subs %}"
+    """ {{ "├─" if not loop.last else "└─" }}<b>{{ sub.name }}</b>: {{ sub.value }}\n"""  # noqa: E501
+    "{% endfor %}"
     """{% endfor %}"""
 )
+
+
 # fmt: on
 
 
@@ -48,7 +66,7 @@ async def org_menu_getter(db: Database, **kwargs):
                         "value": await db.user.get_count(User.role == UserRole.HELPER),
                     },
                     {
-                        "name": "🧑‍🍳 Организаторов",
+                        "name": "⭐ Организаторов",
                         "value": await db.user.get_count(User.role == UserRole.ORG),
                     },
                 ),
@@ -94,14 +112,54 @@ async def switch_voting(
     await db.settings.toggle_voting()
 
 
+async def add_new_ticket(
+    message: Message,
+    widget: ManagedTextInput,
+    dialog_manager: DialogManager,
+    data: str,
+):
+    db: Database = dialog_manager.middleware_data["db"]
+    role = dialog_manager.find(ID_TICKET_ROLE_PICKER).get_checked()
+
+    if await db.ticket.exists(data):
+        await message.reply("⚠️ Билет с таким номером уже существует!")
+        return
+
+    new_ticket = await db.ticket.new(id=data, role=role, issued_by=message.from_user.id)
+    db.session.add(new_ticket)
+    await db.session.commit()
+
+    await message.answer(
+        f"""✅ Билет "{new_ticket.id}" с ролью {new_ticket.role} успешно добавлен!"""
+    )
+    await dialog_manager.switch_to(states.ORG.MAIN)
+
+
+new_ticket_window = Window(
+    Const("✔️ Отметьте роль для билета ниже и напишите его номер"),
+    Column(
+        Radio(
+            Format("🔘 {item[1]}"),
+            Format("⚪️ {item[1]}"),
+            id=ID_TICKET_ROLE_PICKER,
+            item_id_getter=operator.itemgetter(0),
+            items="roles",
+        ),
+    ),
+    TextInput(id="ticket_id", type_factory=str, on_success=add_new_ticket),
+    SwitchTo(state=states.ORG.MAIN, id="org_menu", text=Const(strings.buttons.back)),
+    getter=get_roles,
+    state=states.ORG.NEW_TICKET,
+)
+
 org_menu = Window(
-    Const("<b>🔧 Меню организатора</b>\n"),
-    Const("🔢 <b>Статистика использования бота:</b>\n"),
+    Const("<b>⭐ МЕНЮ ОРГАНИЗАТОРА</b>\n"),
+    Const("📊 <b>Статистика использования бота:</b>\n"),
     StatsTemplate,
-    SwitchTo(
-        state=states.ORG.ASK_USERNAME,
-        id="edit_user",
-        text=Const("👤✏️ Редактировать пользователя"),
+    Start(
+        state=states.USER_MANAGER.MANUAL_USER_SEARCH,
+        id="user_search",
+        text=Const("🔍 Найти пользователя"),
     ),
     SwitchTo(
         state=states.ORG.NEW_TICKET,
@@ -123,3 +181,5 @@ org_menu = Window(
     state=states.ORG.MAIN,
     getter=org_menu_getter,
 )
+
+dialog = Dialog(org_menu, new_ticket_window)

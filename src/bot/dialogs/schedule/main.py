@@ -35,7 +35,7 @@ async def toggle_helper_tools(
 
 
 schedule_main_window = Window(
-    Const("<b>📅 Расписание</b>\n"),
+    Const("<b>📅 РАСПИСАНИЕ</b>\n"),
     EventsList,
     Const(
         "🔍 <i>Для поиска отправьте запрос сообщением</i>",

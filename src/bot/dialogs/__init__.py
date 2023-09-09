@@ -12,6 +12,7 @@ def setup_router() -> Router:
         registration,
         schedule,
         settings,
+        user_manager,
         voting,
     )
 
@@ -24,6 +25,7 @@ def setup_router() -> Router:
 
     helper_router = Router()
     helper_router.include_router(helper.dialog)
+    helper_router.include_router(user_manager.dialog)
     helper_router.callback_query.filter(RoleFilter([UserRole.HELPER, UserRole.ORG]))
 
     org_router = Router()

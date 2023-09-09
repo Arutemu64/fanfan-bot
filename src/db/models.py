@@ -58,6 +58,16 @@ class Ticket(Base):
     )
 
 
+class ReceivedAchievement(Base):
+    __tablename__ = "received_achievements"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    achievement_id: Mapped[int] = mapped_column(
+        ForeignKey("achievements.id", ondelete="CASCADE")
+    )
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -66,8 +76,15 @@ class User(Base):
     )
     username: Mapped[str] = mapped_column(index=True)
     role: Mapped[str] = mapped_column(server_default="visitor")
+
+    points: Mapped[int] = mapped_column(server_default="0")
+
     items_per_page: Mapped[int] = mapped_column(nullable=False, server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
+
+    achievements_count = column_property(
+        select(func.count()).where(ReceivedAchievement.user_id == id).scalar_subquery(),
+    )
 
     def __str__(self):
         return (
@@ -165,3 +182,26 @@ class Settings(Base):
     id: Mapped[int] = mapped_column(primary_key=True, unique=True, server_default="1")
     voting_enabled: Mapped[bool] = mapped_column(server_default="False")
     announcement_timestamp: Mapped[float] = mapped_column(server_default="0")
+
+
+class Achievement(Base):
+    __tablename__ = "achievements"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column()
+    description: Mapped[str] = mapped_column(nullable=True)
+
+    achievement_count = column_property(select(func.count(id)).scalar_subquery())
+
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    from_user: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
+    to_user: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
+
+    points_added: Mapped[int] = mapped_column(nullable=True)
+    achievement_added: Mapped[int] = mapped_column(
+        ForeignKey(Achievement.id, ondelete="CASCADE"), nullable=True
+    )

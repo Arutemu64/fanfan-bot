@@ -1,4 +1,6 @@
-from sqlalchemy import select, update
+from typing import Optional
+
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.structures import UserRole
@@ -33,6 +35,17 @@ class UserRepo(Repository[User]):
         )
         return new_user
 
+    async def exists(
+        self, user_id: Optional[int] = None, username: Optional[str] = None
+    ) -> Optional[int]:
+        stmt = select(User.id)
+        if user_id:
+            stmt = stmt.where(User.id == user_id)
+        elif username:
+            stmt = stmt.where(func.lower(User.username) == username.lower())
+        stmt = stmt.limit(1)
+        return (await self.session.execute(stmt)).scalar_one_or_none()
+
     async def get_role(self, user_id: int) -> str:
         return await self.session.scalar(
             select(User.role).where(User.id == user_id).limit(1)
@@ -59,9 +72,22 @@ class UserRepo(Repository[User]):
             update(User.receive_all_announcements)
             .where(User.id == user_id)
             .values(
-                receive_all_announcements=not await self.get_receive_all_announcements_setting(
+                receive_all_announcements=not await self.get_receive_all_announcements_setting(  # noqa: E501
                     user_id
                 )
             )
         )
         await self.session.commit()
+
+    async def add_points(self, user_id: int, points: int):
+        user_points = await self.session.scalar(
+            select(User.points).where(User.id == user_id).limit(1)
+        )
+        await self.session.execute(
+            update(User).where(User.id == user_id).values(points=user_points + points)
+        )
+
+    async def set_points(self, user_id: int, points: int):
+        await self.session.execute(
+            update(User).where(User.id == user_id).values(points=points)
+        )

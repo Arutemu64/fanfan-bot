@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Ticket
@@ -26,3 +27,11 @@ class TicketRepo(Repository[Ticket]):
             Ticket(id=id, role=role, used_by=used_by, issued_by=issued_by)
         )
         return new_ticket
+
+    async def exists(self, ticket_id: str) -> bool:
+        if await self.session.scalar(
+            select(Ticket.id).where(Ticket.id == ticket_id).limit(1)
+        ):
+            return True
+        else:
+            return False
