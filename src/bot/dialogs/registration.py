@@ -9,7 +9,6 @@ from sqlalchemy import func
 
 from src.bot.dialogs import states
 from src.bot.structures import UserRole
-from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
 from src.db.models import Ticket
@@ -33,15 +32,17 @@ async def check_ticket(
             await db.session.flush([user])
             ticket.used_by = user.id
             await db.session.commit()
-            await message.answer(strings.success.registration_successful)
+            await message.answer(
+                "✅ Регистрация прошла успешно! Желаем хорошо провести время!"
+            )
             await dialog_manager.start(
                 state=states.MAIN.MAIN,
                 mode=StartMode.RESET_STACK,
             )
         else:
-            await message.reply(strings.errors.ticket_used)
+            await message.reply("⚠️ Ваш билет был использован ранее!")
     else:
-        await message.reply(strings.errors.ticket_not_found)
+        await message.reply("⚠️ Ваш билет не найден!")
 
 
 async def check_admin(start_data: Any, manager: DialogManager):
@@ -61,7 +62,7 @@ async def check_admin(start_data: Any, manager: DialogManager):
 
 
 registration = Window(
-    Const(strings.errors.please_send_ticket),
+    Const("🎟️ Для доступа к боту пришли номер своего билета"),
     TextInput(id="ticket_id_input", type_factory=str, on_success=check_ticket),
     state=states.REGISTRATION.MAIN,
 )

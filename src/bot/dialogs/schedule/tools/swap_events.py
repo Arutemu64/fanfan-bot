@@ -32,7 +32,7 @@ async def swap_events(
 
     # Проверяем права
     if not check_permission(db, message.from_user.id):
-        await message.reply(strings.errors.no_access)
+        await message.reply(strings.errors.access_denied)
         return
 
     # Поиск

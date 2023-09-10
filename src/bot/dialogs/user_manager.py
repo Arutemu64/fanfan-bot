@@ -24,6 +24,7 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja, List
 
 from src.bot.dialogs import states
+from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.structures.userdata import UserData
 from src.bot.ui import strings
@@ -186,7 +187,7 @@ async def change_user_role(
             "⚠️ Произошла ошибка при смене роли пользователю!", show_alert=True
         )
         return
-    await callback.answer(f"Роль пользователя @{user.username} была изменена!")
+    await callback.answer(f"✅ Роль пользователя @{user.username} была изменена!")
     await manager.switch_to(states.USER_MANAGER.MAIN)
 
 
@@ -206,8 +207,7 @@ async def show_user_editor(
         dialog_manager.dialog_data["user_id"] = user_id
         await dialog_manager.switch_to(states.USER_MANAGER.MAIN)
     else:
-        text = f"""⚠️ Пользователь с таким {"ID" if data.isnumeric() else "никнеймом"} не найден!"""  # noqa: E501
-        await message.answer(text)
+        await message.answer(strings.errors.user_not_found)
 
 
 add_points_window = Window(
@@ -288,10 +288,10 @@ manual_user_search_window = Window(
 )
 
 user_manager_window = Window(
-    Const("<b>👤 ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ</b>\n"),
+    Title(strings.titles.user_manager),
     List(Format("<b>{item[0]}</b> {item[1]}"), items="user_info"),
     SwitchTo(
-        text=Const("🪙 Начислить очков"),
+        text=Const("🪙 Добавить очков"),
         id="add_points",
         state=states.USER_MANAGER.ADD_POINTS,
     ),

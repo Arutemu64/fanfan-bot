@@ -7,7 +7,6 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import and_, select
 
-from src.bot.ui import strings
 from src.db import Database
 from src.db.database import create_session_maker
 from src.db.models import Event, Subscription, User
@@ -15,7 +14,7 @@ from src.db.models import Event, Subscription, User
 session_pool = create_session_maker()
 
 DELETE_BUTTON = InlineKeyboardBuilder().add(
-    InlineKeyboardButton(text=strings.buttons.viewed, callback_data="delete")
+    InlineKeyboardButton(text="👀 Прочитано", callback_data="delete")
 )
 
 jinja = jinja2.Environment()

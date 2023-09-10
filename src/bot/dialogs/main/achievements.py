@@ -13,6 +13,7 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from src.bot.dialogs import states
+from src.bot.dialogs.widgets import Title
 from src.bot.structures.userdata import UserData
 from src.bot.ui import strings
 from src.db import Database
@@ -55,7 +56,7 @@ async def achievements_getter(dialog_manager: DialogManager, db: Database, **kwa
 
 
 achievements_window = Window(
-    Const("🏆 ДОСТИЖЕНИЯ\n"),
+    Title(strings.titles.achievements),
     AchievementsList,
     StubScroll(id=ID_ACHIEVEMENTS_SCROLL, pages="pages"),
     Row(

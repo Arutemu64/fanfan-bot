@@ -7,31 +7,18 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo
 from aiogram_dialog.widgets.media import StaticMedia
-from aiogram_dialog.widgets.text import Case, Const, Format, Jinja, Progress
+from aiogram_dialog.widgets.text import Case, Const, Format, Progress
 
+from src.bot import UI_DIR
 from src.bot.dialogs import states
+from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.structures.userdata import UserData
 from src.bot.ui import images, strings
 from src.db import Database
 
-# fmt: off
-MainMenuText = Jinja(  # noqa
-    """Привет, {{ event["from_user"]["first_name"] }}! """
-    "Сейчас ты находишься в главном меню. Сюда всегда можно попасть по команде <b>/start</b>.\n\n"  # noqa: E501
-    "У тебя {{ user.points }} "
-    "{% if (user.points % 10 == 1) and (user.points % 100 != 11) %}"
-    "очков "
-    "{% elif (2 <= user.points % 10 <= 4) and (user.points % 100 < 10 or user.points % 100 >= 20) %}"  # noqa: E501
-    "очка "
-    "{% else %}"
-    "очков "
-    "{% endif %}"
-    "🪙\n"
-)
-
-
-# fmt: on
+with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
+    quotes = f.read().splitlines()
 
 
 async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
@@ -54,7 +41,7 @@ async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs
         "user": user,
         "is_helper": user.role in [UserRole.HELPER, UserRole.ORG],
         "is_org": user.role == UserRole.ORG,
-        "random_quote": random.choice(strings.quotes),
+        "random_quote": random.choice(quotes),
         "voting_enabled": await db.settings.get_voting_enabled(),
         "total_achievements": total_achievements,
         "achievements_progress": achievements_progress,
@@ -70,7 +57,7 @@ async def open_voting(callback: CallbackQuery, button: Button, manager: DialogMa
 
 
 main = Window(
-    Const("🏠 Главное меню"),
+    Title(strings.titles.main_menu),
     Format(
         "Привет, {name}! Сейчас ты находишься в главном меню. "
         "Сюда всегда можно попасть по команде <b>/start</b>."
@@ -80,42 +67,44 @@ main = Window(
     Const(" "),
     Format("🏆 Достижений: {user.achievements_count} из {total_achievements}"),
     Progress(field="achievements_progress", width=9, filled="🟩", empty="⬜"),
+    Const(" "),
+    Format("<i>{random_quote}</i>"),
     StaticMedia(path=images.main_menu.absolute().__str__()),
     Row(
         SwitchTo(
-            text=Const("🎫 Мой FAN-Pass"),
+            text=Const(strings.titles.qr_pass),
             id="open_qr_pass",
             state=states.MAIN.QR_PASS,
         ),
         SwitchTo(
-            text=Const("🤳 QR-сканер"),
+            text=Const(strings.titles.qr_scanner),
             id="open_scanner",
             state=states.MAIN.QR_SCANNER,
         ),
     ),
     Row(
         SwitchTo(
-            Const(strings.buttons.activities_menu),
+            Const(strings.titles.activities),
             id="open_activities",
             state=states.MAIN.ACTIVITIES,
         ),
         Start(
-            text=Const(strings.buttons.show_schedule),
+            text=Const(strings.titles.schedule),
             id="open_schedule",
             state=states.SCHEDULE.MAIN,
         ),
     ),
     Row(
         SwitchTo(
-            text=Const("🏆 Достижения"),
+            text=Const(strings.titles.achievements),
             id="open_achievements",
             state=states.MAIN.ACHIEVEMENTS,
         ),
         Button(
             text=Case(
                 texts={
-                    True: Const(strings.buttons.voting),
-                    False: Const(strings.buttons.voting_locked),
+                    True: Const(strings.titles.voting),
+                    False: Const(f"{strings.titles.voting} 🔒"),
                 },
                 selector=F["voting_enabled"],
             ),
@@ -125,20 +114,20 @@ main = Window(
     ),
     Row(
         Start(
-            text=Const(strings.buttons.helper_menu),
+            text=Const(strings.titles.helper_menu),
             id="open_helper_menu",
             when="is_helper",
             state=states.HELPER.MAIN,
         ),
         Start(
-            text=Const(strings.buttons.org_menu),
+            text=Const(strings.titles.org_menu),
             id="open_org_menu",
             state=states.ORG.MAIN,
             when="is_org",
         ),
     ),
     Start(
-        text=Const("⚙️ Настройки"),
+        text=Const(strings.titles.settings),
         id="open_settings",
         state=states.SETTINGS.MAIN,
     ),

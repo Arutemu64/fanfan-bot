@@ -1,4 +1,3 @@
-from src.bot.ui.strings import buttons, common, errors, menus, success
-from src.bot.ui.strings.quotes import quotes
+from src.bot.ui.strings import buttons, errors, titles
 
-__all__ = ["buttons", "common", "errors", "menus", "success", "quotes"]
+__all__ = ["buttons", "errors", "titles"]

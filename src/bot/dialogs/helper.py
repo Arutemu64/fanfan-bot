@@ -3,10 +3,11 @@ from aiogram_dialog.widgets.kbd import Cancel, Start
 from aiogram_dialog.widgets.text import Const
 
 from src.bot.dialogs import states
+from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 
 helper_menu = Window(
-    Const("<b>📣 МЕНЮ ВОЛОНТЁРА</b>"),
+    Title(strings.titles.helper_menu),
     Const("Для волонтёров доступны следующие функции:\n"),
     Const(
         "<b>🧰 Инструменты волонтёра</b> в <code>📅 Расписании</code> - "

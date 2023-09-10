@@ -8,6 +8,7 @@ from aiogram_dialog.widgets.kbd import Button, Cancel, Column, Radio, Start, Swi
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
 from src.bot.dialogs import states
+from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
@@ -153,7 +154,7 @@ new_ticket_window = Window(
 )
 
 org_menu = Window(
-    Const("<b>⭐ МЕНЮ ОРГАНИЗАТОРА</b>\n"),
+    Title(strings.titles.org_menu),
     Const("📊 <b>Статистика использования бота:</b>\n"),
     StatsTemplate,
     Start(
@@ -169,8 +170,8 @@ org_menu = Window(
     Button(
         text=Case(
             texts={
-                True: Const(strings.buttons.disable_voting),
-                False: Const(strings.buttons.enable_voting),
+                True: Const("🟢 Включить голосование"),
+                False: Const("🔴 Выключить голосование"),
             },
             selector=F["voting_enabled"],
         ),

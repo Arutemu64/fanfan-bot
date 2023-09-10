@@ -26,6 +26,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
+from src.bot.dialogs.widgets import FormatTitle, Title
 from src.bot.structures.userdata import UserData
 from src.bot.ui import strings
 from src.db import Database
@@ -36,10 +37,7 @@ ID_VOTING_SCROLL = "voting_scroll"
 
 
 # fmt: off
-participants_html = Jinja(  # noqa: E501
-    "<b>Номинация {{nomination_title}}</b>"
-    "\n"
-    "В этой номинации представлены следующие участники:\n"
+VotingList = Jinja(  # noqa: E501
     "{% for participant in participants %}"
         "{% if user_vote.participant_id == participant.id %}"
             "<b>"
@@ -56,10 +54,7 @@ participants_html = Jinja(  # noqa: E501
             "</b> ✅"
         "{% endif %}"
         "\n\n"
-    "{% endfor %}"
-    "{% if not user_vote %}"
-        "Чтобы проголосовать, просто отправь номер участника."
-    "{% endif %}")
+    "{% endfor %}")
 # fmt: on
 
 
@@ -137,7 +132,7 @@ async def add_vote(
         await message.reply(strings.errors.voting_disabled)
         return
     if dialog_manager.dialog_data.get("user_vote_id"):
-        await message.reply(strings.errors.already_voted)
+        await message.reply("⚠️ Вы уже голосовали в этой категории!")
         return
     if not message.text.isnumeric():
         await message.reply("Укажите номер выступающего!")
@@ -168,8 +163,7 @@ async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogMa
 
 
 nominations = Window(
-    Const("<b>📊 ГОЛОСОВАНИЕ</b>"),
-    Const(" "),
+    Title(strings.titles.voting),
     Const("Для голосования доступны следующие номинации:"),
     Column(
         Select(
@@ -198,7 +192,9 @@ nominations = Window(
 
 
 voting = Window(
-    participants_html,
+    FormatTitle("🎖️ Номинация {nomination_title}"),
+    VotingList,
+    Const("⌨️ Чтобы проголосовать, отправь номер участника.", when=~F["user_vote"]),
     StubScroll(ID_VOTING_SCROLL, pages="pages"),
     Row(
         FirstPage(scroll=ID_VOTING_SCROLL, text=Const("⏪")),

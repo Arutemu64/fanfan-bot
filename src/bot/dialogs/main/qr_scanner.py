@@ -13,6 +13,7 @@ from aiogram_dialog.widgets.text import Const
 from qreader import QReader
 
 from src.bot.dialogs import states
+from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
 
@@ -35,7 +36,7 @@ async def proceed_qr_code(manager: DialogManager, message: Message, decoded_text
                     data=int(decoded_text.split()[1]),
                 )
             else:
-                await message.answer("⚠️ Пользователь не найден!")
+                await message.answer(strings.errors.user_not_found)
 
 
 async def on_photo_received(
@@ -62,8 +63,8 @@ async def on_photo_received(
 
 
 qr_scanner_window = Window(
-    Const("🤳 QR-СКАНЕР\n"),
-    Const("📸 Отправьте фото с QR-кодом"),
+    Title(strings.titles.qr_scanner),
+    Const("📸 Отправь фото с QR-кодом"),
     SwitchTo(text=Const(strings.buttons.back), state=states.MAIN.MAIN, id="back"),
     MessageInput(func=on_photo_received, content_types=ContentType.PHOTO),
     state=states.MAIN.QR_SCANNER,

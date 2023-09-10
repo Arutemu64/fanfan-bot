@@ -47,7 +47,7 @@ async def activity_getter(dialog_manager: DialogManager, **kwargs):
 
 # fmt: off
 activity_html = Jinja(
-    "<b>{{ activity_title }}</b>"
+    "<b>{{ activity_title|upper }}</b>"
     "\n\n"
     "{{ activity_text }}"
     "\n\n"

@@ -24,6 +24,7 @@ from src.bot.dialogs.schedule.common import (
     on_wrong_event_id,
     schedule_getter,
 )
+from src.bot.dialogs.widgets import Title
 from src.bot.structures.userdata import UserData
 from src.bot.ui import strings
 from src.db import Database
@@ -233,7 +234,7 @@ event_selector_window = Window(
 )
 
 subscriptions_window = Window(
-    Const("<b>🔔 ВАШИ ПОДПИСКИ</b>\n"),
+    Title(strings.titles.notifications),
     Const(""),
     SubscriptionsList,
     Const(

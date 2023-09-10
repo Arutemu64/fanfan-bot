@@ -21,6 +21,7 @@ from src.bot.dialogs.schedule.common import (
     set_search_query,
 )
 from src.bot.dialogs.schedule.tools.set_next_event import set_next_event
+from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 
 
@@ -35,7 +36,7 @@ async def toggle_helper_tools(
 
 
 schedule_main_window = Window(
-    Const("<b>📅 РАСПИСАНИЕ</b>\n"),
+    Title(strings.titles.schedule),
     EventsList,
     Const(
         "🔍 <i>Для поиска отправьте запрос сообщением</i>",
@@ -89,7 +90,7 @@ schedule_main_window = Window(
         when=F["is_helper"] & F["events"],
     ),
     SwitchTo(
-        text=Const("🔔 Уведомления"),
+        text=Const(strings.titles.notifications),
         id="open_notifications_menu",
         state=states.SCHEDULE.SUBSCRIPTIONS,
     ),

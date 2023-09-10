@@ -21,7 +21,7 @@ async def set_next_event(
 
     # Проверяем права
     if not check_permission(db, manager.event.from_user.id):
-        await callback.answer(strings.errors.no_access, show_alert=True)
+        await callback.answer(strings.errors.access_denied, show_alert=True)
         return
 
     # Таймаут рассылки анонсов
