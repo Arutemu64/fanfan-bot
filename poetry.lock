@@ -1847,12 +1847,12 @@ ultralytics = "*"
 
 [[package]]
 name = "qreader"
-version = "3.4"
+version = "3.7"
 description = "Robust and Straight-Forward solution for reading difficult and tricky QR codes within images in Python. Supported by a YOLOv8 QR Segmentation model."
 optional = false
 python-versions = "*"
 files = [
-    {file = "qreader-3.4.tar.gz", hash = "sha256:a4004dcd205440667f499d1ae68c6e6f4a94fe887c759ba174ea7865913659d4"},
+    {file = "qreader-3.7.tar.gz", hash = "sha256:c838ce997fe19957457a06e0362256c30ba7cdf8cc2a996bb9d1c0c57f550849"},
 ]
 
 [package.dependencies]
@@ -2443,4 +2443,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "4123cc3add7b84a566bc2d92df44c02851967a28eb9ccaf45fb65c8e355538fa"
+content-hash = "cbfc508c7b4e7c414c4c255abff709058948f38b36df4664e8e2904f436d1cfb"
