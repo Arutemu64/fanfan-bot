@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Achievement, ReceivedAchievement
@@ -36,7 +36,10 @@ class AchievementRepo(Repository[Achievement]):
         if user_id:
             stmt = stmt.outerjoin(
                 ReceivedAchievement,
-                Achievement.id == ReceivedAchievement.achievement_id,
+                and_(
+                    Achievement.id == ReceivedAchievement.achievement_id,
+                    ReceivedAchievement.user_id == user_id,
+                ),
             )
             return (await self.session.execute(stmt)).all()
         else:
