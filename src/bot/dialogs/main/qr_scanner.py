@@ -15,7 +15,7 @@ from qreader import QReader
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
-from src.db import Database
+from src.bot.utils.qr import proceed_qr_code
 
 qreader = QReader()
 
@@ -24,19 +24,6 @@ async def indicator(bot: Bot, chat_id: int):
     while True:
         await bot.send_chat_action(chat_id=chat_id, action="choose_sticker")
         await asyncio.sleep(5)
-
-
-async def proceed_qr_code(manager: DialogManager, message: Message, decoded_text: str):
-    db: Database = manager.middleware_data["db"]
-    if len(decoded_text.split()) == 2:
-        if decoded_text.split()[0] == "user" and decoded_text.split()[1].isnumeric():
-            if await db.user.exists(user_id=int(decoded_text.split()[1])):
-                await manager.start(
-                    state=states.USER_MANAGER.MAIN,
-                    data=int(decoded_text.split()[1]),
-                )
-            else:
-                await message.answer(strings.errors.user_not_found)
 
 
 async def on_photo_received(
@@ -54,10 +41,15 @@ async def on_photo_received(
     image = cv2.cvtColor(
         cv2.imdecode(np.frombuffer(binary.read(), np.uint8), 1), cv2.COLOR_BGR2RGB
     )
-    decoded_text = qreader.detect_and_decode(image=image)[0]
+    decoded_text = qreader.detect_and_decode(image=image)
     indicator_task.cancel()
     if decoded_text:
-        await proceed_qr_code(manager, message, decoded_text)
+        await proceed_qr_code(
+            manager=manager,
+            db=manager.middleware_data["db"],
+            qr_text=decoded_text[0],
+            message=message,
+        )
     else:
         await message.reply(text="Красивое фото, но QR-кода я на нём не вижу 😔")
 

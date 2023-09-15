@@ -14,3 +14,10 @@ async def start_cmd(message: Message, dialog_manager: DialogManager):
         state=states.MAIN.MAIN,
         mode=StartMode.RESET_STACK,
     )
+
+
+@router.message(Command("qr"))
+async def start_native_qr_scanner(message: Message, dialog_manager: DialogManager):
+    await dialog_manager.start(
+        state=states.MAIN.QR_SCANNER,
+    )

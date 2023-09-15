@@ -5,7 +5,7 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Progress
 
@@ -15,6 +15,7 @@ from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.structures.userdata import UserData
 from src.bot.ui import images, strings
+from src.config import conf
 from src.db import Database
 
 with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
@@ -45,6 +46,9 @@ async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs
         "voting_enabled": await db.settings.get_voting_enabled(),
         "total_achievements": total_achievements,
         "achievements_progress": achievements_progress,
+        "use_webapp_qr_scanner": conf.bot.use_webapp_qr_scanner
+        if conf.bot.mode == "webhook"
+        else False,
     }
 
 
@@ -76,10 +80,20 @@ main = Window(
             id="open_qr_pass",
             state=states.MAIN.QR_PASS,
         ),
-        SwitchTo(
+        WebApp(
+            Const(strings.titles.qr_scanner),
+            url=Const(
+                f"""https://{conf.bot.webhook_domain}{conf.bot.webhook_path}/qr_scanner"""
+                if conf.bot.mode == "webhook"
+                else ""
+            ),
+            when=F["use_webapp_qr_scanner"],
+        ),
+        SwitchTo(  # Fallback to offline QR scanner
             text=Const(strings.titles.qr_scanner),
             id="open_scanner",
             state=states.MAIN.QR_SCANNER,
+            when=~F["use_webapp_qr_scanner"],
         ),
     ),
     Row(

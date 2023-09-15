@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 from aiogram import Dispatcher, F
 from aiogram.filters import ExceptionTypeFilter
@@ -6,7 +6,7 @@ from aiogram.fsm.storage.base import BaseEventIsolation, BaseStorage
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.strategy import FSMStrategy
 from aiogram.types import ErrorEvent
-from aiogram_dialog import DialogManager, setup_dialogs
+from aiogram_dialog import BgManagerFactory, DialogManager, setup_dialogs
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from aiogram_dialog.context.media_storage import MediaIdStorage
 from sqlalchemy.orm import sessionmaker
@@ -31,7 +31,7 @@ def get_dispatcher(
     fsm_strategy: Optional[FSMStrategy] = FSMStrategy.CHAT,
     event_isolation: Optional[BaseEventIsolation] = None,
     session_pool: sessionmaker = create_session_maker(),
-) -> Dispatcher:
+) -> Tuple[Dispatcher, BgManagerFactory]:
     dp = Dispatcher(
         storage=storage, fsm_strategy=fsm_strategy, events_isolation=event_isolation
     )
@@ -39,7 +39,7 @@ def get_dispatcher(
     dp.message.filter(F.chat.type == "private")
 
     media_storage = MediaIdStorage()
-    setup_dialogs(dp, media_id_storage=media_storage)
+    bgm_factory = setup_dialogs(dp, media_id_storage=media_storage)
 
     dp.include_router(handlers.setup_router())
     dp.include_router(dialogs.setup_router())
@@ -58,4 +58,4 @@ def get_dispatcher(
         ExceptionTypeFilter(UnknownState),
     )
 
-    return dp
+    return dp, bgm_factory

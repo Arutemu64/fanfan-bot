@@ -57,6 +57,7 @@ class BotConfig:
         webhook_path: str = env("WEBHOOK_PATH")
         web_server_host: str = env("WEB_SERVER_HOST")
         web_server_port: int = env.int("WEB_SERVER_PORT")
+        use_webapp_qr_scanner: bool = env.bool("USE_WEBAPP_QR_SCANNER", True)
 
     admin_list = env.list("ADMIN_LIST", [])
     admin_list = [x.lower() for x in admin_list]

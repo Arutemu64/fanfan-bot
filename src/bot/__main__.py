@@ -13,6 +13,7 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from src.bot.dispatcher import get_dispatcher
+from src.bot.webapp.routes import open_qr_scanner, proceed_qr_post
 from src.config import conf
 from src.db.database import Database, create_session_maker
 from src.redis import build_redis_client, get_redis_storage
@@ -39,6 +40,7 @@ async def main() -> None:
         sentry_sdk.init(
             dsn=conf.bot.sentry_dsn,
             traces_sample_rate=1.0,
+            profiles_sample_rate=1.0,
             environment=conf.bot.sentry_env,
             integrations=[
                 AsyncioIntegration(),
@@ -57,7 +59,7 @@ async def main() -> None:
     session_pool = create_session_maker()
     await setup_default_settings(session_pool)
 
-    dp = get_dispatcher(
+    dp, bgm_factory = get_dispatcher(
         storage=storage,
         event_isolation=SimpleEventIsolation(),
         session_pool=session_pool,
@@ -67,7 +69,17 @@ async def main() -> None:
 
     if conf.bot.mode == "webhook":
         dp.startup.register(on_startup)
+
         app = web.Application()
+        app["bot"] = bot
+        app["session_pool"] = session_pool
+        app["bgm_factory"] = bgm_factory
+
+        app.router.add_get(f"{conf.bot.webhook_path}/qr_scanner", open_qr_scanner)
+        app.router.add_post(
+            f"{conf.bot.webhook_path}/qr_scanner/proceed", proceed_qr_post
+        )
+
         webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
         webhook_requests_handler.register(app, path=conf.bot.webhook_path)
         setup_application(app, dp, bot=bot)
