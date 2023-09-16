@@ -75,10 +75,8 @@ async def main() -> None:
         app["session_pool"] = session_pool
         app["bgm_factory"] = bgm_factory
 
-        app.router.add_get(f"{conf.bot.webhook_path}/qr_scanner", open_qr_scanner)
-        app.router.add_post(
-            f"{conf.bot.webhook_path}/qr_scanner/proceed", proceed_qr_post
-        )
+        app.router.add_get("/qr_scanner", open_qr_scanner)
+        app.router.add_post("/qr_scanner", proceed_qr_post)
 
         webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
         webhook_requests_handler.register(app, path=conf.bot.webhook_path)

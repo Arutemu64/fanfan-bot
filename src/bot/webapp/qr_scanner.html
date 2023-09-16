@@ -42,7 +42,7 @@
             var initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
             Telegram.WebApp.showScanQrPopup("Наведите смартфон на QR-код с логотипом фестиваля", function (qr_text) {
                 $.ajax({
-                    url: '/ff-bot/qr_scanner/proceed',
+                    url: '/qr_scanner',
                     method: 'post',
                     dataType: 'json',
                     data: {
