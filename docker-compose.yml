@@ -4,7 +4,7 @@ services:
     container_name: 'fanfan-bot'
     build:
       context: .
-      dockerfile: buildfiles/Dockerfile
+      dockerfile: buildfiles/BotDockerfile
     env_file:
       - .docker-env
     restart: always
@@ -17,6 +17,19 @@ services:
     depends_on:
       - db
       - redis
+  panel:
+    container_name: 'fanfan-panel'
+    build:
+      context: .
+      dockerfile: buildfiles/PanelDockerfile
+    env_file:
+      - .docker-env
+    restart: always
+    stop_signal: SIGINT
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      - db
   db:
     container_name: 'fanfan-db'
     image: postgres:15-alpine

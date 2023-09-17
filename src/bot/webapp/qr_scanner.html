@@ -50,8 +50,8 @@
                         qr_text: qr_text
                     }
                 });
-            Telegram.WebApp.closeScanQrPopup();
-            Telegram.WebApp.close();
+                Telegram.WebApp.closeScanQrPopup();
+                Telegram.WebApp.close();
             });
         } else if (is_telegram_client && !is_telegram_api_updated) {
             Telegram.WebApp.showAlert("⚠️ Ваш клиент Telegram не поддерживает Bot API 6.4.\n" +

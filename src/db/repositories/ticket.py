@@ -29,9 +29,8 @@ class TicketRepo(Repository[Ticket]):
         return new_ticket
 
     async def exists(self, ticket_id: str) -> bool:
-        if await self.session.scalar(
-            select(Ticket.id).where(Ticket.id == ticket_id).limit(1)
-        ):
+        stmt = select(Ticket.id).where(Ticket.id == ticket_id).limit(1)
+        if (await self.session.execute(stmt)).scalar_one_or_none():
             return True
         else:
             return False

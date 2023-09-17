@@ -37,8 +37,12 @@ async def parse_plan(db: Database):
                 print(f"Участник {participant.title[0:40]}... уже существует")
                 pass
             else:
+                nomination = await db.nomination.get_by_where(
+                    Nomination.code == row["code"]
+                )
                 participant = await db.participant.new(
-                    title=row["voting_title"], nomination_id=row["code"]
+                    title=row["voting_title"],
+                    nomination_id=nomination.id,
                 )
                 await db.session.flush([participant])
                 print(f"Участник {row['voting_title'][0:40]}... добавлен в БД")
@@ -47,7 +51,7 @@ async def parse_plan(db: Database):
             await db.session.flush([event])
         elif row["code"] is None and row["next_code"] is not None:  # nomination
             nomination = await db.nomination.get_by_where(
-                Nomination.id == row["next_code"]
+                Nomination.code == row["next_code"]
             )
             if nomination:
                 print(f"Номинация {row['info']} уже существует")
@@ -64,7 +68,7 @@ async def parse_plan(db: Database):
                         votable = False
                         break
                 nomination = await db.nomination.new(
-                    nomination_id=row["next_code"], title=row["info"], votable=votable
+                    code=row["next_code"], title=row["info"], votable=votable
                 )
                 await db.session.flush([nomination])
                 print(f"Номинация {row['info']} добавлена в БД")

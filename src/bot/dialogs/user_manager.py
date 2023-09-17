@@ -22,6 +22,7 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja, List
+from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
@@ -29,6 +30,7 @@ from src.bot.structures import UserRole
 from src.bot.structures.userdata import UserData
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import User
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 
@@ -66,7 +68,10 @@ def points_pluralize(points: int) -> str:
 
 async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs):
     user_data: UserData = await dialog_manager.middleware_data["state"].get_data()
-    user = await db.user.get(dialog_manager.dialog_data["user_id"])
+    user = await db.user.get(
+        dialog_manager.dialog_data["user_id"],
+        options=[undefer(User.achievements_count)],
+    )
     total_achievements_count = await db.achievement.get_count()
     return {
         "is_org": user_data["role"] == UserRole.ORG,
@@ -99,7 +104,6 @@ async def achievements_getter(dialog_manager: DialogManager, db: Database, **kwa
         achievements, received_achievements = zip(*results)
     else:
         achievements, received_achievements = [], []
-    print(results)
     return {
         "achievements": achievements,
         "received_achievements": received_achievements,
@@ -121,8 +125,8 @@ async def add_points(
         user_id=dialog_manager.dialog_data["user_id"], points=points
     )
     await db.transaction.new(
-        from_user=dialog_manager.event.from_user.id,
-        to_user=dialog_manager.dialog_data["user_id"],
+        from_user_id=dialog_manager.event.from_user.id,
+        to_user_id=dialog_manager.dialog_data["user_id"],
         points_added=points,
     )
     await db.session.commit()
@@ -156,9 +160,9 @@ async def add_achievement(
         user_id=dialog_manager.dialog_data["user_id"], achievement_id=data
     )
     await db.transaction.new(
-        from_user=dialog_manager.event.from_user.id,
-        to_user=dialog_manager.dialog_data["user_id"],
-        achievement_added=data,
+        from_user_id=dialog_manager.event.from_user.id,
+        to_user_id=dialog_manager.dialog_data["user_id"],
+        achievement_id_added=data,
     )
     await db.session.commit()
     await bot.send_message(

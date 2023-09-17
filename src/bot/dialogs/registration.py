@@ -21,7 +21,7 @@ async def check_ticket(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    ticket = await db.ticket.get_by_where(func.lower(Ticket.id) == data.lower())
+    ticket = await db.ticket.get_by_where(func.lower(Ticket.number) == data.lower())
     if ticket:
         if ticket.used_by is None:
             user = await db.user.new(

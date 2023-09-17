@@ -20,7 +20,7 @@ async def set_next_event(
     db: Database = manager.middleware_data["db"]
 
     # Проверяем права
-    if not check_permission(db, manager.event.from_user.id):
+    if not await check_permission(db, manager.event.from_user.id):
         await callback.answer(strings.errors.access_denied, show_alert=True)
         return
 

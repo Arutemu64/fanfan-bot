@@ -28,8 +28,7 @@ class EventRepo(Repository[Event]):
         if query is None:
             statement = select(func.max(Event.position))
         else:
-            statement = select(func.count()).select_from(self.type_model)
-            statement = statement.where(query)
+            statement = select(func.count()).select_from(self.type_model).where(query)
         return (await self.session.execute(statement)).scalar()
 
     async def get_by_position(self, position: int) -> Optional[Event]:

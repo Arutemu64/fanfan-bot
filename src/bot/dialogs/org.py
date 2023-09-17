@@ -1,16 +1,26 @@
 import operator
 
+import jwt
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
-from aiogram_dialog.widgets.kbd import Button, Cancel, Column, Radio, Start, SwitchTo
+from aiogram_dialog.widgets.kbd import (
+    Button,
+    Cancel,
+    Column,
+    Radio,
+    Start,
+    SwitchTo,
+    Url,
+)
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
+from src.config import conf
 from src.db import Database
 from src.db.models import Event, Nomination, User
 
@@ -45,10 +55,16 @@ StatsTemplate = Jinja(  # noqa
 # fmt: on
 
 
-async def org_menu_getter(db: Database, **kwargs):
+async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
     voting_enabled = await db.settings.get_voting_enabled()
+    jwt_token = jwt.encode(
+        payload={"user_id": dialog_manager.event.from_user.id},
+        key=conf.bot.secret_key,
+        algorithm="HS256",
+    )
     return {
         "voting_enabled": voting_enabled,
+        "web_panel_login_link": f"{conf.bot.web_panel_link}/login?token={jwt_token}",
         "bot_info": (
             {
                 "name": "🎫 Билетов",
@@ -157,6 +173,10 @@ org_menu = Window(
     Title(strings.titles.org_menu),
     Const("📊 <b>Статистика использования бота:</b>\n"),
     StatsTemplate,
+    Url(
+        text=Const("🌐 Перейти в панель администратора"),
+        url=Format("{web_panel_login_link}"),
+    ),
     Start(
         state=states.USER_MANAGER.MANUAL_USER_SEARCH,
         id="user_search",
@@ -170,8 +190,8 @@ org_menu = Window(
     Button(
         text=Case(
             texts={
-                True: Const("🟢 Включить голосование"),
-                False: Const("🔴 Выключить голосование"),
+                True: Const("🔴 Выключить голосование"),
+                False: Const("🟢 Включить голосование"),
             },
             selector=F["voting_enabled"],
         ),

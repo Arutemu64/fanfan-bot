@@ -112,7 +112,7 @@ async def participants_getter(dialog_manager: DialogManager, db: Database, **kwa
     }
 
 
-async def open_nomination(
+async def select_nomination(
     callback: CallbackQuery, widget: Any, dialog_manager: DialogManager, item_id: str
 ):
     dialog_manager.dialog_data["nomination_id"] = item_id
@@ -171,7 +171,8 @@ nominations = Window(
             id="nomination",
             item_id_getter=operator.itemgetter(1),
             items="nominations_list",
-            on_click=open_nomination,
+            type_factory=int,
+            on_click=select_nomination,
         ),
     ),
     StubScroll(ID_NOMINATIONS_SCROLL, pages="pages"),

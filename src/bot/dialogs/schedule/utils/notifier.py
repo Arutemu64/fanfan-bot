@@ -81,7 +81,7 @@ async def proceed_subscriptions(
                     select(User.id).where(User.receive_all_announcements.is_(True))
                 )
             ).all()
-            for user_id in list(zip(*user_ids))[0]:
+            for user_id in [i[0] for i in user_ids]:
                 await send_personal_notification(bot, user_id, announcement_text)
 
         subscriptions = await db.subscription.get_many(

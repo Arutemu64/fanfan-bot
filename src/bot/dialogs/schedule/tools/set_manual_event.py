@@ -35,7 +35,7 @@ async def proceed_input(
     db: Database = dialog_manager.middleware_data["db"]
 
     # Проверяем права
-    if not check_permission(db, message.from_user.id):
+    if not await check_permission(db, message.from_user.id):
         await message.reply(strings.errors.access_denied)
         return
 
@@ -45,7 +45,7 @@ async def proceed_input(
         return
 
     # Таймаут рассылки анонсов
-    if await throttle_announcement(dialog_manager.middleware_data["settings"]):
+    if await throttle_announcement(db):
         pass
     else:
         await message.answer(strings.errors.announce_too_fast)

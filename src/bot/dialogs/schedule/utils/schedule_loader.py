@@ -42,6 +42,8 @@ class ScheduleLoader:
             events_count = (
                 await self.db.session.execute(select(func.max(Event.position)))
             ).scalar()
+        if not events_count:
+            events_count = 0
         return math.ceil(events_count / self.events_per_page)
 
     async def get_page_number(self, event: Event) -> int:

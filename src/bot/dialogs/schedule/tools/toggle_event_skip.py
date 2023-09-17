@@ -31,7 +31,7 @@ async def proceed_input(
     db: Database = dialog_manager.middleware_data["db"]
 
     # Проверяем права
-    if not check_permission(db, message.from_user.id):
+    if not await check_permission(db, message.from_user.id):
         await message.reply(strings.errors.access_denied)
         return
 

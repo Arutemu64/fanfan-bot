@@ -17,17 +17,17 @@ class TransactionRepo(Repository[Transaction]):
 
     async def new(
         self,
-        from_user: int,
-        to_user: int,
+        from_user_id: int,
+        to_user_id: int,
         points_added: int = None,
-        achievement_added: int = None,
+        achievement_id_added: int = None,
     ) -> Transaction:
         new_transaction = await self.session.merge(
             Transaction(
-                from_user=from_user,
-                to_user=to_user,
+                from_user_id=from_user_id,
+                to_user_id=to_user_id,
                 points_added=points_added,
-                achievement_added=achievement_added,
+                achievement_id_added=achievement_id_added,
             )
         )
         return new_transaction

@@ -8,6 +8,7 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Progress
+from sqlalchemy.orm import undefer
 
 from src.bot import UI_DIR
 from src.bot.dialogs import states
@@ -17,6 +18,7 @@ from src.bot.structures.userdata import UserData
 from src.bot.ui import images, strings
 from src.config import conf
 from src.db import Database
+from src.db.models import User
 
 with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
     quotes = f.read().splitlines()
@@ -24,7 +26,10 @@ with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
 
 async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
     state: FSMContext = dialog_manager.middleware_data["state"]
-    user = await db.user.get(dialog_manager.event.from_user.id)
+    user = await db.user.get(
+        dialog_manager.event.from_user.id,
+        options=[undefer(User.achievements_count)],
+    )
     if user.username != dialog_manager.event.from_user.username:
         user.username = dialog_manager.event.from_user.username
         await db.session.commit()

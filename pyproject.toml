@@ -3,24 +3,43 @@ name = "fanfan-bot"
 version = "0.1.0"
 description = ""
 authors = ["Arutemu64 <arutemu64@outlook.com>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-aiogram = "^3.0.0"
-aiogram-dialog = "^2.0.0"
 alembic = "^1.12.0"
-asyncpg = "^0.28.0"
 environs = "^9.5.0"
+flask-login = "^0.6.2"
 jinja2 = "^3.1.2"
-opencv-python-headless = "^4.8.0.74"
+pyjwt = "^2.8.0"
 qrcode = "^7.4.2"
-qreader = {version = "^3.9"}
 redis = "^5.0.0"
 sentry-sdk = "^1.31.0"
+
+[tool.poetry.group.bot]
+optional=true
+
+[tool.poetry.group.bot.dependencies]
+aiogram = "^3.0.0"
+aiogram-dialog = "^2.0.0"
+asyncpg = "^0.28.0"
+opencv-python-headless = "^4.8.0.74"
+qreader = {version = "^3.9"}
 sqlalchemy = "^2.0.20"
 torch = {version = "^2.0.1+cpu", source="torch-cpu"}
 torchvision = {version = "^0.15.2+cpu", source = "torch-cpu"}
+
+[tool.poetry.group.panel]
+optional=true
+
+[tool.poetry.group.panel.dependencies]
+flask = "^2.3.3"
+flask-admin = "^1.6.1"
+flask-sqlalchemy = "^3.1.1"
+flask-wtf = "^1.1.1"
+gunicorn = "^21.2.0"
+openpyxl = "^3.1.2"
+pandas = "^2.0.3"
+psycopg2-binary = "^2.9.7"
 
 [tool.poetry.group.dev]
 optional=true
@@ -35,25 +54,6 @@ line-length = 88
 select = ["E", "F", "I001"]
 exclude = ["src/bot/ui/*"]
 unfixable = ["F401", "E712"]
-
-[tool.mypy]
-plugins = ["sqlalchemy.ext.mypy.plugin"]
-
-[[tool.mypy.overrides]]
-module = [
-  "src.db.*"
-]
-ignore_errors = true
-
-
-
-
-[tool.poetry.group.scripts]
-optional=true
-
-[tool.poetry.group.scripts.dependencies]
-openpyxl = "^3.1.2"
-pandas = "^2.0.3"
 
 [[tool.poetry.source]]
 name = "PyPI"

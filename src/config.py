@@ -17,15 +17,15 @@ class DatabaseConfig:
     port: int = env.int("POSTGRES_PORT", 5432)
     host: str = env("POSTGRES_HOST", "db")
 
-    driver: str = "asyncpg"
+    # driver: str = "asyncpg"
     database_system: str = "postgresql"
 
-    def build_connection_str(self) -> str:
+    def build_connection_str(self, driver: str = "asyncpg") -> str:
         """
         This function build a connection string
         """
         return URL.create(
-            drivername=f"{self.database_system}+{self.driver}",
+            drivername=f"{self.database_system}+{driver}",
             username=self.user,
             database=self.name,
             password=self.passwd,
@@ -51,6 +51,7 @@ class BotConfig:
     """Bot configuration"""
 
     token: str = env("BOT_TOKEN")
+    secret_key: str = env("SECRET_KEY")
     mode: str = env("MODE", "polling")
     if mode == "webhook":
         webhook_domain: str = env("WEBHOOK_DOMAIN")
@@ -58,6 +59,8 @@ class BotConfig:
         web_server_host: str = env("WEB_SERVER_HOST")
         web_server_port: int = env.int("WEB_SERVER_PORT")
         use_webapp_qr_scanner: bool = env.bool("USE_WEBAPP_QR_SCANNER", True)
+
+    web_panel_link: str = env("WEB_PANEL_LINK")
 
     admin_list = env.list("ADMIN_LIST", [])
     admin_list = [x.lower() for x in admin_list]
