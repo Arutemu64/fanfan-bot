@@ -51,9 +51,7 @@ async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs
         "voting_enabled": await db.settings.get_voting_enabled(),
         "total_achievements": total_achievements,
         "achievements_progress": achievements_progress,
-        "use_webapp_qr_scanner": conf.bot.use_webapp_qr_scanner
-        if conf.bot.mode == "webhook"
-        else False,
+        "use_webapp_qr_scanner": conf.bot.mode == "webhook",
     }
 
 
@@ -92,14 +90,14 @@ main = Window(
                 if conf.bot.mode == "webhook"
                 else ""
             ),
-            when=F["use_webapp_qr_scanner"],
         ),
-        SwitchTo(  # Fallback to offline QR scanner
-            text=Const(strings.titles.qr_scanner),
-            id="open_scanner",
-            state=states.MAIN.QR_SCANNER,
-            when=~F["use_webapp_qr_scanner"],
-        ),
+        # SwitchTo(  # Fallback to offline QR scanner
+        #     text=Const(strings.titles.qr_scanner),
+        #     id="open_scanner",
+        #     state=states.MAIN.QR_SCANNER,
+        #     when=~F["use_webapp_qr_scanner"],
+        # ),
+        when=F["use_webapp_qr_scanner"],
     ),
     Row(
         SwitchTo(

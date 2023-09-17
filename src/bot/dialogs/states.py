@@ -10,7 +10,7 @@ class MAIN(StatesGroup):
     ACTIVITIES = State()
     ACHIEVEMENTS = State()
     QR_PASS = State()
-    QR_SCANNER = State()
+    # QR_SCANNER = State()
 
 
 class SETTINGS(StatesGroup):

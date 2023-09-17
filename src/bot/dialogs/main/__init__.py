@@ -9,7 +9,8 @@ from .achievements import achievements_window
 from .activities import activity
 from .main import main
 from .qr_pass import qr_pass_window
-from .qr_scanner import qr_scanner_window
+
+# from .qr_scanner import qr_scanner_window
 
 
 async def on_start_main(start_data: Any, manager: DialogManager):
@@ -28,7 +29,7 @@ dialog = Dialog(
     main,
     activity,
     achievements_window,
-    qr_scanner_window,
+    # qr_scanner_window,
     qr_pass_window,
     launch_mode=LaunchMode.ROOT,
     on_start=on_start_main,

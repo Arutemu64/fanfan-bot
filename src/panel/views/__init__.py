@@ -15,7 +15,8 @@ from src.db.models import (
     ReceivedAchievement,
     Ticket,
     Transaction,
-    User, Vote,
+    User,
+    Vote,
 )
 from src.panel.views.model_views import (
     AchievementView,
@@ -25,7 +26,8 @@ from src.panel.views.model_views import (
     ReceivedAchievementView,
     TicketView,
     TransactionView,
-    UserView, VoteView,
+    UserView,
+    VoteView,
 )
 
 
