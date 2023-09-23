@@ -2,7 +2,6 @@ import math
 import random
 
 from aiogram import F
-from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo, WebApp
@@ -14,7 +13,6 @@ from src.bot import UI_DIR
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
-from src.bot.structures.userdata import UserData
 from src.bot.ui import images, strings
 from src.config import conf
 from src.db import Database
@@ -25,7 +23,6 @@ with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
 
 
 async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    state: FSMContext = dialog_manager.middleware_data["state"]
     user = await db.user.get(
         dialog_manager.event.from_user.id,
         options=[undefer(User.achievements_count)],
@@ -33,8 +30,6 @@ async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs
     if user.username != dialog_manager.event.from_user.username:
         user.username = dialog_manager.event.from_user.username
         await db.session.commit()
-    user_data: UserData = {"role": user.role, "items_per_page": user.items_per_page}
-    await state.update_data(user_data)
     total_achievements = await db.achievement.get_count()
     if total_achievements > 0:
         achievements_progress = math.floor(
@@ -42,13 +37,17 @@ async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs
         )
     else:
         achievements_progress = 100
+    dialog_manager.dialog_data["achievements_per_page"] = user.items_per_page
+    dialog_manager.dialog_data[
+        "voting_enabled"
+    ] = await db.settings.get_voting_enabled()
     return {
         "name": dialog_manager.event.from_user.first_name,
         "user": user,
-        "is_helper": user.role in [UserRole.HELPER, UserRole.ORG],
+        "is_helper": user.role > UserRole.VISITOR,
         "is_org": user.role == UserRole.ORG,
         "random_quote": random.choice(quotes),
-        "voting_enabled": await db.settings.get_voting_enabled(),
+        "voting_enabled": dialog_manager.dialog_data["voting_enabled"],
         "total_achievements": total_achievements,
         "achievements_progress": achievements_progress,
         "use_webapp_qr_scanner": conf.bot.mode == "webhook",
@@ -56,8 +55,7 @@ async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs
 
 
 async def open_voting(callback: CallbackQuery, button: Button, manager: DialogManager):
-    db: Database = manager.middleware_data["db"]
-    if await db.settings.get_voting_enabled():
+    if manager.dialog_data["voting_enabled"]:
         await manager.start(state=states.VOTING.NOMINATIONS)
     else:
         await callback.answer(strings.errors.voting_disabled, show_alert=True)

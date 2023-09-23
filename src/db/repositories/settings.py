@@ -23,7 +23,7 @@ class SettingsRepo(Repository[Settings]):
         else:
             return False
 
-    async def create(
+    async def new(
         self, voting_enabled: bool, announcement_timestamp: float
     ) -> Settings:
         settings = await self.session.merge(
@@ -43,13 +43,10 @@ class SettingsRepo(Repository[Settings]):
     async def get_announcement_timestamp(self) -> float:
         return await self._get_setting(Settings.announcement_timestamp)
 
-    async def toggle_voting(self):
+    async def set_voting_enabled(self, value: bool):
         await self.session.execute(
-            update(Settings)
-            .where(Settings.id == 1)
-            .values(voting_enabled=not await self.get_voting_enabled())
+            update(Settings).where(Settings.id == 1).values(voting_enabled=value)
         )
-        await self.session.commit()
 
     async def set_announcement_timestamp(self, timestamp: float):
         await self.session.execute(

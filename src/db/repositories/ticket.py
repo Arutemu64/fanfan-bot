@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from typing import Optional
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Ticket
@@ -28,9 +30,11 @@ class TicketRepo(Repository[Ticket]):
         )
         return new_ticket
 
-    async def exists(self, ticket_id: str) -> bool:
-        stmt = select(Ticket.id).where(Ticket.id == ticket_id).limit(1)
-        if (await self.session.execute(stmt)).scalar_one_or_none():
-            return True
-        else:
-            return False
+    async def check_ticket(self, ticket_id: str) -> Optional[Ticket]:
+        return (
+            await self.session.execute(
+                select(Ticket.id)
+                .where(func.lower(Ticket.id) == ticket_id.lower())
+                .limit(1)
+            )
+        ).scalar_one_or_none()

@@ -1,20 +1,21 @@
 import operator
 
 import jwt
-from aiogram import F
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 from aiogram_dialog import Dialog, DialogManager, Window
+from aiogram_dialog.dialog import ChatEvent
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
-    Button,
     Cancel,
+    Checkbox,
     Column,
+    ManagedCheckbox,
     Radio,
     Start,
     SwitchTo,
     Url,
 )
-from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
@@ -25,16 +26,11 @@ from src.db import Database
 from src.db.models import Event, Nomination, User
 
 ID_TICKET_ROLE_PICKER = "ticket_role_picker"
+ID_VOTING_ENABLED_CHECKBOX = "voting_enabled_checkbox"
 
 
 async def get_roles(**kwargs):
-    return {
-        "roles": [
-            (UserRole.VISITOR, UserRole.get_role_name(UserRole.VISITOR)),
-            (UserRole.HELPER, UserRole.get_role_name(UserRole.HELPER)),
-            (UserRole.ORG, UserRole.get_role_name(UserRole.ORG)),
-        ]
-    }
+    return {"roles": list(map(lambda item: (item.value, item.label), UserRole))}
 
 
 # fmt: off
@@ -56,14 +52,15 @@ StatsTemplate = Jinja(  # noqa
 
 
 async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    voting_enabled = await db.settings.get_voting_enabled()
+    await dialog_manager.find(ID_VOTING_ENABLED_CHECKBOX).set_checked(
+        await db.settings.get_voting_enabled()
+    )
     jwt_token = jwt.encode(
         payload={"user_id": dialog_manager.event.from_user.id},
         key=conf.bot.secret_key,
         algorithm="HS256",
     )
     return {
-        "voting_enabled": voting_enabled,
         "web_panel_login_link": f"{conf.bot.web_panel_link}/login?token={jwt_token}",
         "bot_info": (
             {
@@ -123,10 +120,13 @@ async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs)
 
 
 async def switch_voting(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    event: ChatEvent, checkbox: ManagedCheckbox, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    await db.settings.toggle_voting()
+    await db.settings.set_voting_enabled(
+        manager.find(ID_VOTING_ENABLED_CHECKBOX).is_checked()
+    )
+    await db.session.commit()
 
 
 async def add_new_ticket(
@@ -187,16 +187,11 @@ org_menu = Window(
         id="new_ticket",
         text=Const("🎫 Добавить новый билет"),
     ),
-    Button(
-        text=Case(
-            texts={
-                True: Const("🔴 Выключить голосование"),
-                False: Const("🟢 Включить голосование"),
-            },
-            selector=F["voting_enabled"],
-        ),
-        id="switch_voting_button",
-        on_click=switch_voting,
+    Checkbox(
+        Const("🔴 Выключить голосование"),
+        Const("🟢 Включить голосование"),
+        id=ID_VOTING_ENABLED_CHECKBOX,
+        on_state_changed=switch_voting,
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.ORG.MAIN,

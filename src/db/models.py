@@ -10,16 +10,18 @@ from sqlalchemy import (
     func,
     select,
 )
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import (
     Mapped,
-    WriteOnlyMapped,
     as_declarative,
     column_property,
     declared_attr,
     mapped_column,
     relationship,
 )
+
+from src.bot.structures import UserRole
 
 metadata = MetaData(
     naming_convention={
@@ -36,7 +38,6 @@ metadata = MetaData(
 class Base:
     """Abstract model with declarative base functionality."""
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     time_created: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -60,9 +61,10 @@ class Base:
 class Ticket(Base):
     __tablename__ = "tickets"
 
-    number: Mapped[str] = mapped_column(unique=True)
-    role: Mapped[str] = mapped_column(server_default="visitor")
-
+    id: Mapped[str] = mapped_column(primary_key=True)
+    role: Mapped[int] = mapped_column(
+        postgresql.ENUM(UserRole), server_default="VISITOR"
+    )
     used_by_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
@@ -74,12 +76,13 @@ class Ticket(Base):
     issued_by: Mapped["User"] = relationship(lazy="selectin", foreign_keys=issued_by_id)
 
     def __str__(self):
-        return self.number
+        return self.id
 
 
 class ReceivedAchievement(Base):
     __tablename__ = "received_achievements"
 
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     achievement_id: Mapped[int] = mapped_column(
         ForeignKey("achievements.id", ondelete="CASCADE")
@@ -96,13 +99,12 @@ class User(Base, UserMixin):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
     username: Mapped[str] = mapped_column(index=True, unique=False, nullable=True)
-
-    role: Mapped[str] = mapped_column(server_default="visitor")
-
-    points: Mapped[int] = mapped_column(server_default="0")
-
+    role: Mapped[UserRole] = mapped_column(
+        postgresql.ENUM(UserRole), server_default="VISITOR"
+    )
     items_per_page: Mapped[int] = mapped_column(server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
+    points: Mapped[int] = mapped_column(server_default="0")
 
     achievements_count = column_property(
         select(func.count()).where(ReceivedAchievement.user_id == id).scalar_subquery(),
@@ -118,6 +120,7 @@ class Event(Base):
 
     position_sequence = Sequence("schedule_position_seq", start=1)
 
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     position: Mapped[int] = mapped_column(
         unique=True, nullable=False, server_default=position_sequence.next_value()
     )
@@ -129,8 +132,8 @@ class Event(Base):
         ForeignKey("participants.id", ondelete="CASCADE"), nullable=True
     )
     title: Mapped[str] = mapped_column(nullable=True)
-    current: Mapped[bool] = mapped_column(nullable=True, unique=True)
     skip: Mapped[bool] = mapped_column(nullable=True, server_default="False")
+    current: Mapped[bool] = mapped_column(nullable=True, unique=True)
 
     participant: Mapped["Participant"] = relationship(lazy="selectin", viewonly=True)
 
@@ -145,6 +148,7 @@ class Event(Base):
 class Achievement(Base):
     __tablename__ = "achievements"
 
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column(nullable=True)
 
@@ -155,6 +159,7 @@ class Achievement(Base):
 class Vote(Base):
     __tablename__ = "votes"
 
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     participant_id: Mapped[int] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE")
@@ -173,9 +178,7 @@ class Participant(Base):
         ForeignKey("nominations.id", ondelete="SET NULL"), nullable=True
     )
 
-    event: WriteOnlyMapped["Event"] = relationship(
-        lazy="write_only", cascade="all, delete-orphan", viewonly=True
-    )
+    event: Mapped["Event"] = relationship(lazy="selectin")
     nomination: Mapped["Nomination"] = relationship(lazy="selectin")
 
     votes_count = column_property(
@@ -183,12 +186,14 @@ class Participant(Base):
         deferred=True,
     )
 
+    def __str__(self):
+        return self.title
+
 
 class Nomination(Base):
     __tablename__ = "nominations"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    code: Mapped[str] = mapped_column(unique=True)
+    id: Mapped[str] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(unique=True)
     votable: Mapped[bool] = mapped_column(server_default="False")
 
@@ -204,7 +209,7 @@ class Nomination(Base):
 class Settings(Base):
     __tablename__ = "settings"
 
-    id: Mapped[int] = mapped_column(primary_key=True, unique=True, server_default="1")
+    id: Mapped[int] = mapped_column(primary_key=True, server_default="1")
     voting_enabled: Mapped[bool] = mapped_column(server_default="False")
     announcement_timestamp: Mapped[float] = mapped_column(server_default="0")
 
@@ -212,6 +217,7 @@ class Settings(Base):
 class Subscription(Base):
     __tablename__ = "subscriptions"
 
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id", ondelete="CASCADE"))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     counter: Mapped[int] = mapped_column(server_default="5")
@@ -222,6 +228,7 @@ class Subscription(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
 
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
 

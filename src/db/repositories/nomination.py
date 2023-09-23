@@ -15,8 +15,8 @@ class NominationRepo(Repository[Nomination]):
         """
         super().__init__(type_model=Nomination, session=session)
 
-    async def new(self, code: str, title: str, votable: bool = True) -> Nomination:
+    async def new(self, id: str, title: str, votable: bool = True) -> Nomination:
         new_nomination = await self.session.merge(
-            Nomination(code=code, title=title, votable=votable)
+            Nomination(id=id, title=title, votable=votable)
         )
         return new_nomination

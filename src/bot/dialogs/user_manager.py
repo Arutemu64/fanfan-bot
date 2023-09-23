@@ -25,9 +25,9 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja, List
 from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
+from src.bot.dialogs.common import DELETE_BUTTON
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
-from src.bot.structures.userdata import UserData
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import User
@@ -48,13 +48,7 @@ AchievementsList = Jinja(  # noqa
 
 
 async def get_roles(**kwargs):
-    return {
-        "roles": [
-            (UserRole.VISITOR, UserRole.get_role_name(UserRole.VISITOR)),
-            (UserRole.HELPER, UserRole.get_role_name(UserRole.HELPER)),
-            (UserRole.ORG, UserRole.get_role_name(UserRole.ORG)),
-        ]
-    }
+    return {"roles": list(map(lambda item: (item.value, item.label), UserRole))}
 
 
 def points_pluralize(points: int) -> str:
@@ -67,18 +61,17 @@ def points_pluralize(points: int) -> str:
 
 
 async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user_data: UserData = await dialog_manager.middleware_data["state"].get_data()
     user = await db.user.get(
         dialog_manager.dialog_data["user_id"],
         options=[undefer(User.achievements_count)],
     )
     total_achievements_count = await db.achievement.get_count()
     return {
-        "is_org": user_data["role"] == UserRole.ORG,
+        "is_org": dialog_manager.dialog_data["role"] == UserRole.ORG,
         "user_info": [
             ("Никнейм:", user.username),
             ("ID:", user.id),
-            ("Роль:", UserRole.get_role_name(user.role)),
+            ("Роль:", user.role.label),
             ("", ""),
             ("Очков:", user.points),
             (
@@ -90,14 +83,15 @@ async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs
 
 
 async def achievements_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user_data: UserData = await dialog_manager.middleware_data["state"].get_data()
     current_page = await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page()
-    pages = await db.achievement.get_number_of_pages(user_data["items_per_page"])
+    pages = await db.achievement.get_number_of_pages(
+        dialog_manager.dialog_data["achievements_per_page"]
+    )
     if pages == 0:
         pages = 1
     results = await db.achievement.get_achievements_page(
         page=current_page,
-        achievements_per_page=user_data["items_per_page"],
+        achievements_per_page=dialog_manager.dialog_data["achievements_per_page"],
         user_id=dialog_manager.dialog_data["user_id"],
     )
     if results:
@@ -133,6 +127,7 @@ async def add_points(
     await bot.send_message(
         chat_id=dialog_manager.dialog_data["user_id"],
         text=f"💰 Вы получили {widget.get_value()} {points_pluralize(points)}!",
+        reply_markup=DELETE_BUTTON.as_markup(),
     )
     await dialog_manager.switch_to(states.USER_MANAGER.MAIN)
 
@@ -168,6 +163,7 @@ async def add_achievement(
     await bot.send_message(
         chat_id=dialog_manager.dialog_data["user_id"],
         text=f"🏆 Вы получили достижение <b>{achievement.title}</b>!",
+        reply_markup=DELETE_BUTTON.as_markup(),
     )
     await dialog_manager.switch_to(states.USER_MANAGER.MAIN)
 
@@ -317,7 +313,12 @@ user_manager_window = Window(
 
 
 async def on_user_manager_start(start_data: int, manager: DialogManager):
+    db: Database = manager.middleware_data["db"]
     manager.dialog_data["user_id"] = start_data
+
+    user = await db.user.get(manager.event.from_user.id)
+    manager.dialog_data["role"] = user.role
+    manager.dialog_data["achievements_per_page"] = user.items_per_page
 
 
 dialog = Dialog(

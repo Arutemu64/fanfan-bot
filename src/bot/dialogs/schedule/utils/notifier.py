@@ -3,19 +3,14 @@ import logging
 import jinja2
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import and_, select
 
+from src.bot.dialogs.common import DELETE_BUTTON
 from src.db import Database
 from src.db.database import create_session_maker
 from src.db.models import Event, Subscription, User
 
 session_pool = create_session_maker()
-
-DELETE_BUTTON = InlineKeyboardBuilder().add(
-    InlineKeyboardButton(text="👀 Прочитано", callback_data="delete")
-)
 
 jinja = jinja2.Environment()
 

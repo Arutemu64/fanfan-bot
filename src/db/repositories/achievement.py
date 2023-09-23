@@ -16,12 +16,6 @@ class AchievementRepo(Repository[Achievement]):
         """
         super().__init__(type_model=Achievement, session=session)
 
-    # async def new(self, title: str, nomination_id: str) -> Achievement:
-    #     new_participant = await self.session.merge(
-    #         Achievement(title=title, nomination_id=nomination_id)
-    #     )
-    #     return new_participant
-
     async def get_achievements_page(
         self, page: int, achievements_per_page: int, user_id: int = None
     ):

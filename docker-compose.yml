@@ -32,7 +32,9 @@ services:
       - db
   db:
     container_name: 'fanfan-db'
-    image: postgres:15-alpine
+    build:
+      context: buildfiles
+      dockerfile: DBDockerfile
     restart: always
     env_file:
       - .docker-env

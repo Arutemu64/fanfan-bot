@@ -18,7 +18,7 @@ async def throttle_announcement(db: Database) -> bool:
 
 
 async def check_permission(db: Database, user_id: int) -> bool:
-    if await db.user.get_role(user_id) in [UserRole.HELPER, UserRole.ORG]:
+    if await db.user.get_role(user_id) > UserRole.VISITOR:
         return True
     else:
         return False

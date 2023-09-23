@@ -24,7 +24,7 @@ class UserRepo(Repository[User]):
         self,
         id: int = None,
         username: str = None,
-        role: str = UserRole.VISITOR,
+        role: UserRole = UserRole.VISITOR,
     ) -> User:
         new_user = await self.session.merge(
             User(
@@ -46,48 +46,35 @@ class UserRepo(Repository[User]):
         stmt = stmt.limit(1)
         return (await self.session.execute(stmt)).scalar_one_or_none()
 
-    async def get_role(self, user_id: int) -> str:
+    async def get_role(self, user_id: int) -> UserRole:
         return await self.session.scalar(
             select(User.role).where(User.id == user_id).limit(1)
         )
 
-    async def get_items_per_page_setting(self, user_id: int) -> int:
+    async def get_items_per_page(self, user_id: int) -> int:
         return await self.session.scalar(
             select(User.items_per_page).where(User.id == user_id).limit(1)
         )
 
-    async def set_items_per_page_setting(self, user_id: int, value: int):
+    async def set_items_per_page(self, user_id: int, value: int):
         await self.session.execute(
             update(User).where(User.id == user_id).values(items_per_page=value)
         )
-        await self.session.commit()
 
-    async def get_receive_all_announcements_setting(self, user_id: int) -> bool:
-        return await self.session.scalar(
-            select(User.receive_all_announcements).where(User.id == user_id).limit(1)
-        )
-
-    async def toggle_receive_all_announcements(self, user_id: int):
+    async def set_receive_all_announcements(self, user_id: int, value: bool):
         await self.session.execute(
-            update(User.receive_all_announcements)
+            update(User)
             .where(User.id == user_id)
-            .values(
-                receive_all_announcements=not await self.get_receive_all_announcements_setting(  # noqa: E501
-                    user_id
-                )
-            )
-        )
-        await self.session.commit()
-
-    async def add_points(self, user_id: int, points: int):
-        user_points = await self.session.scalar(
-            select(User.points).where(User.id == user_id).limit(1)
-        )
-        await self.session.execute(
-            update(User).where(User.id == user_id).values(points=user_points + points)
+            .values(receive_all_announcements=value)
         )
 
     async def set_points(self, user_id: int, points: int):
         await self.session.execute(
             update(User).where(User.id == user_id).values(points=points)
         )
+
+    async def add_points(self, user_id: int, points: int):
+        user_points = await self.session.scalar(
+            select(User.points).where(User.id == user_id).limit(1)
+        )
+        await self.set_points(user_id, user_points + points)

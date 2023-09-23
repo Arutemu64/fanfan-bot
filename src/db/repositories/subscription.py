@@ -1,3 +1,6 @@
+from typing import Optional
+
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Subscription
@@ -29,3 +32,19 @@ class SubscriptionRepo(Repository[Subscription]):
             )
         )
         return new_subscription
+
+    async def check_subscription(
+        self, event_id: int, user_id: int
+    ) -> Optional[Subscription]:
+        return (
+            await self.session.execute(
+                select(Subscription)
+                .where(
+                    and_(
+                        Subscription.event_id == event_id,
+                        Subscription.user_id == user_id,
+                    )
+                )
+                .limit(1)
+            )
+        ).scalar_one_or_none()

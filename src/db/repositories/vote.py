@@ -1,6 +1,9 @@
+from typing import Optional
+
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Vote
+from ..models import Participant, Vote
 from .abstract import Repository
 
 
@@ -27,3 +30,20 @@ class VoteRepo(Repository[Vote]):
             )
         )
         return new_vote
+
+    async def check_vote(
+        self,
+        user_id: int,
+        nomination_id: str = None,
+        participant_id: int = None,
+    ) -> Optional[Vote]:
+        terms = [(Vote.user_id == user_id)]
+        if nomination_id:
+            terms.append(
+                Vote.participant.has(Participant.nomination_id == nomination_id)
+            )
+        elif participant_id:
+            terms.append(Vote.participant_id == participant_id)
+        return (
+            await self.session.execute(select(Vote).where(and_(*terms)).limit(1))
+        ).scalar_one_or_none()

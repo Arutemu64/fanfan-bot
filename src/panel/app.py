@@ -6,6 +6,7 @@ from flask_admin import Admin
 from flask_login import LoginManager, login_required, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 
+from src.bot.structures import UserRole
 from src.config import conf
 from src.db.models import Base, User
 from src.panel.views import add_views
@@ -17,7 +18,7 @@ db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 admin = Admin(app, name="ff-bot", template_mode="bootstrap4", url="/")
 
-app.config["SQLALCHEMY_DATABASE_URI"] = conf.db.build_connection_str(driver="psycopg2")
+app.config["SQLALCHEMY_DATABASE_URI"] = conf.db.build_connection_str(driver="psycopg")
 app.config["SECRET_KEY"] = env("SECRET_KEY")
 
 db.init_app(app)
@@ -39,7 +40,7 @@ def login():
         algorithms=["HS256"],
     )
     user: User = db.session.get(User, jwt_decoded["user_id"])
-    if user.role == "org":
+    if user.role == UserRole.ORG:
         login_user(user)
         flask.flash("Вы успешно вошли.", category="success")
         return flask.redirect(flask.url_for("admin.index"))
@@ -57,7 +58,7 @@ def logout():
 
 
 def main():
-    app.run(debug=True)
+    app.run(debug=env.bool("DEBUG"))
 
 
 if __name__ == "__main__" and conf.bot.mode == "polling":

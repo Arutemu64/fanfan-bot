@@ -5,13 +5,11 @@ from aiogram_dialog import Dialog, DialogManager, StartMode, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.text import Const
-from sqlalchemy import func
 
 from src.bot.dialogs import states
 from src.bot.structures import UserRole
 from src.config import conf
 from src.db import Database
-from src.db.models import Ticket
 
 
 async def check_ticket(
@@ -21,7 +19,7 @@ async def check_ticket(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    ticket = await db.ticket.get_by_where(func.lower(Ticket.number) == data.lower())
+    ticket = await db.ticket.check_ticket(data)
     if ticket:
         if ticket.used_by is None:
             user = await db.user.new(

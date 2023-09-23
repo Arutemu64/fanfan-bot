@@ -27,10 +27,9 @@ from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import FormatTitle, Title
-from src.bot.structures.userdata import UserData
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import Event, Nomination, Participant, Vote
+from src.db.models import Event, Nomination, Participant
 
 ID_NOMINATIONS_SCROLL = "nominations_scroll"
 ID_VOTING_SCROLL = "voting_scroll"
@@ -59,17 +58,16 @@ VotingList = Jinja(  # noqa: E501
 
 
 async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user_data: UserData = await dialog_manager.middleware_data["state"].get_data()
     current_page = await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
     nominations = await db.nomination.get_page(
         current_page,
-        user_data["items_per_page"],
+        dialog_manager.dialog_data["items_per_page"],
         Nomination.votable.is_(True),
         order_by=Nomination.title,
     )
     nominations_list = []
     for nomination in nominations:
-        nominations_list.append((nomination.title, nomination.id))
+        nominations_list.append((nomination.id, nomination.title))
     return {
         "pages": dialog_manager.dialog_data["pages"],
         "nominations_list": nominations_list,
@@ -77,28 +75,26 @@ async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwar
 
 
 async def participants_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user_data: UserData = await dialog_manager.middleware_data["state"].get_data()
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get(nomination_id)
 
     terms = and_(
         Participant.nomination_id == nomination.id,
-        Participant.event.any(Event.skip.isnot(True)),
+        Participant.event.has(Event.skip.isnot(True)),
     )
-    pages = await db.participant.get_number_of_pages(user_data["items_per_page"], terms)
+    pages = await db.participant.get_number_of_pages(
+        dialog_manager.dialog_data["items_per_page"], terms
+    )
     current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
     participants = await db.participant.get_page(
         current_page,
-        user_data["items_per_page"],
+        dialog_manager.dialog_data["items_per_page"],
         query=terms,
         order_by=Participant.id,
         options=[undefer(Participant.votes_count)],
     )
-    user_vote = await db.vote.get_by_where(
-        and_(
-            Vote.user_id == dialog_manager.event.from_user.id,
-            Vote.participant.has(Participant.nomination_id == nomination_id),
-        )
+    user_vote = await db.vote.check_vote(
+        dialog_manager.event.from_user.id, nomination_id=nomination_id
     )
     if user_vote:
         dialog_manager.dialog_data["user_vote_id"] = user_vote.id
@@ -134,21 +130,18 @@ async def add_vote(
     if dialog_manager.dialog_data.get("user_vote_id"):
         await message.reply("⚠️ Вы уже голосовали в этой категории!")
         return
-    if not message.text.isnumeric():
-        await message.reply("Укажите номер выступающего!")
-        return
     participant = await db.participant.get_by_where(
         and_(
             Participant.id == data,
             Participant.nomination_id == dialog_manager.dialog_data["nomination_id"],
-            Participant.event.any(Event.skip.isnot(True)),
+            Participant.event.has(Event.skip.isnot(True)),
         )
     )
     if participant:
         await db.vote.new(message.from_user.id, participant.id)
         await db.session.commit()
     else:
-        await message.reply("Неверно указан номер выступления")
+        await message.reply("⚠️ Неверно указан номер участника")
         return
 
 
@@ -167,11 +160,11 @@ nominations = Window(
     Const("Для голосования доступны следующие номинации:"),
     Column(
         Select(
-            Format("{item[0]}"),
+            Format("{item[1]}"),
             id="nomination",
-            item_id_getter=operator.itemgetter(1),
+            item_id_getter=operator.itemgetter(0),
             items="nominations_list",
-            type_factory=int,
+            type_factory=str,
             on_click=select_nomination,
         ),
     ),
@@ -229,11 +222,14 @@ voting = Window(
 
 
 async def on_voting_start(start_data: Any, manager: DialogManager):
-    user_data: UserData = await manager.middleware_data["state"].get_data()
     db: Database = manager.middleware_data["db"]
+
+    user = await db.user.get(manager.event.from_user.id)
+    manager.dialog_data["items_per_page"] = user.items_per_page
+
     manager.dialog_data["pages"] = math.ceil(
         await db.nomination.get_count(Nomination.votable.is_(True))
-        / user_data["items_per_page"]
+        / manager.dialog_data["items_per_page"]
     )
 
 

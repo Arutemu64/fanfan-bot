@@ -5,7 +5,6 @@ from aiogram_dialog.widgets.text import Const, Format, List
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
-from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import ReceivedAchievement
@@ -19,7 +18,7 @@ async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs
         "user_info": [
             ("Никнейм:", user.username),
             ("ID:", user.id),
-            ("Роль:", UserRole.get_role_name(user.role)),
+            ("Роль:", user.role.label),
             ("", ""),
             ("Элементов на страницу:", user.items_per_page),
         ]
@@ -31,7 +30,7 @@ async def update_counter_value(
 ):
     db: Database = manager.middleware_data["db"]
     await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(
-        await db.user.get_items_per_page_setting(manager.event.from_user.id)
+        await db.user.get_items_per_page(manager.event.from_user.id)
     )
 
 
@@ -41,9 +40,10 @@ async def update_items_per_page(
     dialog_manager: DialogManager,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    await db.user.set_items_per_page_setting(
+    await db.user.set_items_per_page(
         dialog_manager.event.from_user.id, int(widget.get_value())
     )
+    await db.session.commit()
     await event.answer("✅ Успешно!")
     await dialog_manager.switch_to(state=states.SETTINGS.MAIN)
 

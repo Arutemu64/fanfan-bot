@@ -7,7 +7,7 @@ from sqlalchemy import text
 
 from scripts.config import DatabaseConfig
 from src.db.database import Database, create_async_engine, create_session_maker
-from src.db.models import Nomination, Participant
+from src.db.models import Participant
 
 path_to_plan = Path(__file__).with_name("technical_plan.csv")
 
@@ -37,12 +37,9 @@ async def parse_plan(db: Database):
                 print(f"Участник {participant.title[0:40]}... уже существует")
                 pass
             else:
-                nomination = await db.nomination.get_by_where(
-                    Nomination.code == row["code"]
-                )
                 participant = await db.participant.new(
                     title=row["voting_title"],
-                    nomination_id=nomination.id,
+                    nomination_id=row["code"],
                 )
                 await db.session.flush([participant])
                 print(f"Участник {row['voting_title'][0:40]}... добавлен в БД")
@@ -50,25 +47,13 @@ async def parse_plan(db: Database):
             event = await db.event.new(participant_id=participant.id)
             await db.session.flush([event])
         elif row["code"] is None and row["next_code"] is not None:  # nomination
-            nomination = await db.nomination.get_by_where(
-                Nomination.code == row["next_code"]
-            )
+            nomination = await db.nomination.get(row["next_code"])
             if nomination:
                 print(f"Номинация {row['info']} уже существует")
             else:
                 print(f"Добавляем номинацию {row['info']}...")
-                while True:
-                    choice = input(
-                        "Разрешить голосование за эту номинацию? Y - да, N - нет\n"
-                    )
-                    if choice.lower() == "y":
-                        votable = True
-                        break
-                    elif choice.lower() == "n":
-                        votable = False
-                        break
                 nomination = await db.nomination.new(
-                    code=row["next_code"], title=row["info"], votable=votable
+                    id=row["next_code"], title=row["info"], votable=True
                 )
                 await db.session.flush([nomination])
                 print(f"Номинация {row['info']} добавлена в БД")

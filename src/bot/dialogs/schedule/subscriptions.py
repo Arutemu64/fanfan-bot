@@ -1,21 +1,21 @@
 from aiogram import F
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
+from aiogram_dialog.dialog import ChatEvent
 from aiogram_dialog.widgets.input.text import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
-    Button,
+    Checkbox,
     CurrentPage,
     FirstPage,
     LastPage,
+    ManagedCheckbox,
     NextPage,
     PrevPage,
     Row,
     StubScroll,
     SwitchTo,
 )
-from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
-from sqlalchemy import and_
-from sqlalchemy.orm import load_only
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
@@ -25,13 +25,13 @@ from src.bot.dialogs.schedule.common import (
     schedule_getter,
 )
 from src.bot.dialogs.widgets import Title
-from src.bot.structures.userdata import UserData
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import Subscription, User
+from src.db.models import Subscription
 
 EVENT_ID_INPUT = "subscribe_event_id_input"
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
+ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 
 # fmt: off
 SubscriptionsList = Jinja(  # noqa: E501
@@ -71,10 +71,8 @@ SubscriptionsList = Jinja(  # noqa: E501
 
 
 async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user_data: UserData = await dialog_manager.middleware_data["state"].get_data()
-
     pages = await db.subscription.get_number_of_pages(
-        user_data["items_per_page"],
+        dialog_manager.dialog_data["events_per_page"],
         Subscription.user_id == dialog_manager.event.from_user.id,
     )
     if pages == 0:
@@ -82,7 +80,7 @@ async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kw
     current_page = await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page()
     subscriptions = await db.subscription.get_page(
         current_page,
-        user_data["items_per_page"],
+        dialog_manager.dialog_data["events_per_page"],
         Subscription.user_id == dialog_manager.event.from_user.id,
         order_by=Subscription.event_id,
     )
@@ -90,9 +88,6 @@ async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kw
     return {
         "pages": pages,
         "subscriptions": subscriptions,
-        "receive_all_announcements": await db.user.get_receive_all_announcements_setting(  # noqa: E501
-            dialog_manager.event.from_user.id
-        ),
         "current_event_position": current_event.real_position if current_event else 0,
     }
 
@@ -117,13 +112,7 @@ async def proceed_input(
     if event.skip:
         await message.reply("⚠️ На это выступление нельзя подписаться!")
         return
-    subscription = await db.subscription.get_by_where(
-        and_(
-            Subscription.event_id == event.id,
-            Subscription.user_id == message.from_user.id,
-        )
-    )
-    if subscription:
+    if await db.subscription.check_subscription(event.id, message.from_user.id):
         await message.reply("⚠️ Вы уже подписаны на это выступление!")
         return
     else:
@@ -172,7 +161,9 @@ async def remove_subscription(
     if data.bit_length() > 32:
         print("⚠️ Некорректное значение")
 
-    subscription = await db.subscription.get_by_where(Subscription.event_id == data)
+    subscription = await db.subscription.check_subscription(
+        data, dialog_manager.event.from_user.id
+    )
     if subscription:
         await db.session.delete(subscription)
         await db.session.commit()
@@ -183,18 +174,14 @@ async def remove_subscription(
 
 
 async def toggle_all_notifications(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    event: ChatEvent, checkbox: ManagedCheckbox, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    user = await db.user.get(
-        manager.event.from_user.id,
-        options=[load_only(User.receive_all_announcements)],
+    await db.user.set_receive_all_announcements(
+        user_id=manager.event.from_user.id,
+        value=checkbox.is_checked(),
     )
-    user.receive_all_announcements = not user.receive_all_announcements
     await db.session.commit()
-    await manager.middleware_data["state"].update_data(
-        receive_all_announcements=user.receive_all_announcements
-    )
 
 
 set_subscription_counter_window = Window(
@@ -226,7 +213,7 @@ event_selector_window = Window(
     ),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SCHEDULE.MAIN,
+        state=states.SCHEDULE.SUBSCRIPTIONS,
         id="back",
     ),
     getter=schedule_getter,
@@ -252,16 +239,11 @@ subscriptions_window = Window(
         state=states.SCHEDULE.EVENT_SELECTOR,
         id="subscribe",
     ),
-    Button(
-        text=Case(
-            texts={
-                True: Const("🔕 Получать только свои уведомления"),
-                False: Const("🔔 Получать уведомления о всех выступлениях"),
-            },
-            selector=F["receive_all_announcements"],
-        ),
-        on_click=toggle_all_notifications,
-        id="receive_all_announcements",
+    Checkbox(
+        Const("🔕 Получать только свои уведомления"),
+        Const("🔔 Получать все уведомления"),
+        id=ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX,
+        on_state_changed=toggle_all_notifications,
     ),
     StubScroll(ID_SUBSCRIPTIONS_SCROLL, pages="pages"),
     Row(

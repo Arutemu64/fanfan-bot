@@ -31,7 +31,7 @@ async def setup_default_settings(session_pool) -> None:
     async with session_pool() as session:
         db = Database(session)
         if not await db.settings.exists():
-            await db.settings.create(voting_enabled=False, announcement_timestamp=0)
+            await db.settings.new(voting_enabled=False, announcement_timestamp=0)
             await db.session.commit()
 
 
