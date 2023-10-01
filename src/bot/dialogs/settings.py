@@ -15,13 +15,12 @@ ID_ITEMS_PER_PAGE_INPUT = "items_per_page_input"
 async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs):
     user = await db.user.get(dialog_manager.event.from_user.id)
     return {
-        "user_info": [
+        "user": user,
+        "user_info_list": [
             ("Никнейм:", user.username),
             ("ID:", user.id),
             ("Роль:", user.role.label),
-            ("", ""),
-            ("Элементов на страницу:", user.items_per_page),
-        ]
+        ],
     }
 
 
@@ -53,7 +52,7 @@ async def reset_achievements_and_points(
 ):
     db: Database = manager.middleware_data["db"]
     await db.user.set_points(user_id=manager.event.from_user.id, points=0)
-    achievements = await db.received_achievement.get_many(
+    achievements = await db.received_achievement._get_many(
         ReceivedAchievement.user_id == manager.event.from_user.id
     )
     for achievement in achievements:
@@ -81,9 +80,9 @@ set_items_per_page_window = Window(
 
 settings_window = Window(
     Title(strings.titles.settings),
-    List(Format("<b>{item[0]}</b> {item[1]}"), items="user_info"),
+    List(Format("<b>{item[0]}</b> {item[1]}"), items="user_info_list"),
     SwitchTo(
-        text=Const("🔢 Задать количество элементов на страницу"),
+        text=Format("🔢 Элементов на страницу: {user.items_per_page}"),
         id="set_items_per_page_button",
         on_click=update_counter_value,
         state=states.SETTINGS.SET_ITEMS_PER_PAGE,

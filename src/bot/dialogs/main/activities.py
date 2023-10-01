@@ -21,15 +21,15 @@ from src.bot.ui import images, strings
 ID_ACTIVITIES_SCROLL = "activities_scroll"
 
 activities_json = BOT_ROOT_DIR / "ui/activities.json"
-with open(activities_json, mode="r", encoding="utf-8") as f:
+with open(activities_json, encoding="utf-8") as f:
     activities = json.load(f)
 
 
 async def activity_getter(dialog_manager: DialogManager, **kwargs):
     pages = len(activities)
     current_activity = await dialog_manager.find(ID_ACTIVITIES_SCROLL).get_page()
-    activity_title = activities[current_activity].get("title", "%title%")
-    activity_text = activities[current_activity].get("text", "%text%")
+    activity_title = activities[current_activity].get("title")
+    activity_text = activities[current_activity].get("text")
     activity_where = activities[current_activity].get("where")
     activity_image = (
         images.activities.joinpath(activities[current_activity].get("image"))

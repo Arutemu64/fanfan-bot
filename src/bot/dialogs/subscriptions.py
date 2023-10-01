@@ -1,9 +1,10 @@
 from aiogram import F
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.dialog import ChatEvent
+from aiogram_dialog.dialog import ChatEvent, Dialog
 from aiogram_dialog.widgets.input.text import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
+    Cancel,
     Checkbox,
     CurrentPage,
     FirstPage,
@@ -18,78 +19,87 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from src.bot.dialogs import states
+from src.bot.dialogs.getters import schedule_list
 from src.bot.dialogs.schedule.common import (
+    ID_SCHEDULE_SCROLL,
     EventsList,
     SchedulePaginator,
     on_wrong_event_id,
-    schedule_getter,
 )
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import Subscription
 
 EVENT_ID_INPUT = "subscribe_event_id_input"
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
 ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 
 # fmt: off
-SubscriptionsList = Jinja(  # noqa: E501
+SubscriptionsList = Jinja(
     "{% if subscriptions|length == 0 %}"
-        "У вас нет подписок 🔕\n"
+    "У вас нет подписок 🔕\n"
     "{% else %}"
-        "{% for subscription in subscriptions %}"
-            "<b>{{ subscription.event.id }}.</b> {{ subscription.event.joined_title }}"
-            "{% if subscription.event.real_position - current_event_position > 0 %}"
-                "{% set counter = subscription.event.real_position - current_event_position %}"  # noqa: E501
-                " <b>[осталось "
-                "{% if (counter % 10 == 1) and (counter % 100 != 11) %}"
-                    "{{ counter }} выступление"
-                "{% elif (2 <= counter % 10 <= 4) and (counter % 100 < 10 or counter % 100 >= 20) %}"  # noqa: E501
-                    "{{ counter }} выступления"
-                "{% else %}"
-                    "{{ counter }} выступлений"
-                "{% endif %}"
-                "{% if counter > subscription.counter %}"
-                    ", начнём оповещать за "
-                    "{% if (subscription.counter % 10 == 1) and (subscription.counter % 100 != 11) %}"  # noqa: E501
-                        "{{ subscription.counter }} выступление]</b>"
-                    "{% elif (2 <= subscription.counter % 10 <= 4) and (subscription.counter % 100 < 10 or subscription.counter % 100 >= 20) %}"  # noqa: E501
-                        "{{ subscription.counter }} выступления]</b>"
-                    "{% else %}"
-                        "{{ subscription.counter }} выступлений]</b>"
-                    "{% endif %}"
-                "{% else %}"
-                    "]</b>"
-                "{% endif %}"
-            "{% endif %}"
-            "\n\n"
-        "{% endfor %}"
+    "{% for subscription in subscriptions %}"
+    "<b>{{ subscription.event.id }}.</b> {{ subscription.event.joined_title }}"
+    "{% if subscription.event.real_position - current_event_position > 0 %}"
+    "{% set counter = subscription.event.real_position - current_event_position %}"  # noqa: E501
+    " <b>[осталось "
+    "{% if (counter % 10 == 1) and (counter % 100 != 11) %}"
+    "{{ counter }} выступление"
+    "{% elif (2 <= counter % 10 <= 4) and (counter % 100 < 10 or counter % 100 >= 20) %}"  # noqa: E501
+    "{{ counter }} выступления"
+    "{% else %}"
+    "{{ counter }} выступлений"
+    "{% endif %}"
+    "{% if counter > subscription.counter %}"
+    ", начнём оповещать за "
+    "{% if (subscription.counter % 10 == 1) and (subscription.counter % 100 != 11) %}"  # noqa: E501
+    "{{ subscription.counter }} выступление]</b>"
+    "{% elif (2 <= subscription.counter % 10 <= 4) and (subscription.counter % 100 < 10 or subscription.counter % 100 >= 20) %}"  # noqa: E501
+    "{{ subscription.counter }} выступления]</b>"
+    "{% else %}"
+    "{{ subscription.counter }} выступлений]</b>"
+    "{% endif %}"
+    "{% else %}"
+    "]</b>"
+    "{% endif %}"
+    "{% endif %}"
+    "\n\n"
+    "{% endfor %}"
     "{% endif %}"
 )
 # fmt: on
 
 
 async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    pages = await db.subscription.get_number_of_pages(
-        dialog_manager.dialog_data["events_per_page"],
-        Subscription.user_id == dialog_manager.event.from_user.id,
+    pages = await db.subscription.get_pages_count(
+        subscriptions_per_page=dialog_manager.dialog_data["events_per_page"],
+        user_id=dialog_manager.event.from_user.id,
     )
-    if pages == 0:
-        pages = 1
-    current_page = await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page()
     subscriptions = await db.subscription.get_page(
-        current_page,
-        dialog_manager.dialog_data["events_per_page"],
-        Subscription.user_id == dialog_manager.event.from_user.id,
-        order_by=Subscription.event_id,
+        page=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page(),
+        subscriptions_per_page=dialog_manager.dialog_data["events_per_page"],
+        user_id=dialog_manager.event.from_user.id,
     )
     current_event = await db.event.get_current()
     return {
-        "pages": pages,
+        "pages": pages if pages > 0 else pages + 1,
         "subscriptions": subscriptions,
         "current_event_position": current_event.real_position if current_event else 0,
     }
+
+
+async def schedule_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+    page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
+    data = await schedule_list(
+        db=db,
+        events_per_page=dialog_manager.dialog_data["events_per_page"],
+        page=page,
+        user_id=dialog_manager.event.from_user.id,
+        search_query=dialog_manager.dialog_data.get("search_query"),
+    )
+    data.update({"page": page + 1})
+    return data
 
 
 async def proceed_input(
@@ -112,12 +122,12 @@ async def proceed_input(
     if event.skip:
         await message.reply("⚠️ На это выступление нельзя подписаться!")
         return
-    if await db.subscription.check_subscription(event.id, message.from_user.id):
+    if await db.subscription.get_subscription_for_user(event.id, message.from_user.id):
         await message.reply("⚠️ Вы уже подписаны на это выступление!")
         return
     else:
         dialog_manager.dialog_data["selected_event_title"] = event.joined_title
-        await dialog_manager.switch_to(states.SCHEDULE.SET_SUBSCRIPTION_COUNTER)
+        await dialog_manager.switch_to(states.SUBSCRIPTIONS.SET_SUBSCRIPTION_COUNTER)
 
 
 async def setup_subscription(
@@ -147,7 +157,7 @@ async def setup_subscription(
         f" успешно оформлена!"
     )
 
-    await dialog_manager.switch_to(states.SCHEDULE.SUBSCRIPTIONS)
+    await dialog_manager.switch_to(states.SUBSCRIPTIONS.MAIN)
 
 
 async def remove_subscription(
@@ -159,13 +169,15 @@ async def remove_subscription(
     db: Database = dialog_manager.middleware_data["db"]
 
     if data.bit_length() > 32:
-        print("⚠️ Некорректное значение")
+        await message.reply("⚠️ Некорректное значение!")
+        return
 
-    subscription = await db.subscription.check_subscription(
-        data, dialog_manager.event.from_user.id
+    subscription = await db.subscription.get_subscription_for_user(
+        event_id=data,
+        user_id=dialog_manager.event.from_user.id,
     )
     if subscription:
-        await db.session.delete(subscription)
+        await db.subscription.delete(subscription.id)
         await db.session.commit()
         await message.reply("🗑️ Подписка удалена!")
     else:
@@ -192,10 +204,10 @@ set_subscription_counter_window = Window(
     TextInput(id="counter_input", type_factory=int, on_success=setup_subscription),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SCHEDULE.EVENT_SELECTOR,
+        state=states.SUBSCRIPTIONS.EVENT_SELECTOR,
         id="back",
     ),
-    state=states.SCHEDULE.SET_SUBSCRIPTION_COUNTER,
+    state=states.SUBSCRIPTIONS.SET_SUBSCRIPTION_COUNTER,
 )
 
 event_selector_window = Window(
@@ -213,14 +225,14 @@ event_selector_window = Window(
     ),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SCHEDULE.SUBSCRIPTIONS,
+        state=states.SUBSCRIPTIONS.MAIN,
         id="back",
     ),
     getter=schedule_getter,
-    state=states.SCHEDULE.EVENT_SELECTOR,
+    state=states.SUBSCRIPTIONS.EVENT_SELECTOR,
 )
 
-subscriptions_window = Window(
+main_subscriptions_window = Window(
     Title(strings.titles.notifications),
     Const(""),
     SubscriptionsList,
@@ -236,7 +248,7 @@ subscriptions_window = Window(
     ),
     SwitchTo(
         text=Const("➕ Подписаться на выступление"),
-        state=states.SCHEDULE.EVENT_SELECTOR,
+        state=states.SUBSCRIPTIONS.EVENT_SELECTOR,
         id="subscribe",
     ),
     Checkbox(
@@ -256,11 +268,27 @@ subscriptions_window = Window(
         LastPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("⏭️")),
         when=F["pages"] != 1,
     ),
-    SwitchTo(
+    Cancel(
         text=Const(strings.buttons.back),
-        id="back_to_schedule",
-        state=states.SCHEDULE.MAIN,
     ),
     getter=subscriptions_getter,
-    state=states.SCHEDULE.SUBSCRIPTIONS,
+    state=states.SUBSCRIPTIONS.MAIN,
+)
+
+
+async def on_start_subscriptions(start_data: dict, manager: DialogManager):
+    db: Database = manager.middleware_data["db"]
+    user = await db.user.get(manager.event.from_user.id)
+    manager.dialog_data["events_per_page"] = user.items_per_page
+    await manager.find(ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX).set_checked(
+        user.receive_all_announcements
+    )
+    pass
+
+
+dialog = Dialog(
+    main_subscriptions_window,
+    event_selector_window,
+    set_subscription_counter_window,
+    on_start=on_start_subscriptions,
 )

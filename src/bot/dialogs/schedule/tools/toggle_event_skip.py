@@ -7,12 +7,13 @@ from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
+from sqlalchemy import text
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    schedule_getter,
+    main_schedule_getter,
     set_schedule_page,
     set_search_query,
 )
@@ -56,6 +57,7 @@ async def proceed_input(
     next_event_before = await db.event.get_next(current_event)
 
     # Переключаем статус "скрыто" для выступления
+    await db.session.execute(text("SET CONSTRAINTS ALL DEFERRED"))
     event.skip = not event.skip
     await db.session.commit()
     await db.session.refresh(event, ["real_position"])
@@ -88,9 +90,7 @@ async def proceed_input(
 
 
 toggle_event_skip_window = Window(
-    Const(
-        "<b>🙈 Укажите номер выступления, которое " "Вы хотите скрыть/отобразить:</b>\n"
-    ),
+    Const("<b>🙈 Укажите номер выступления, которое Вы хотите скрыть/отобразить:</b>\n"),
     EventsList,
     Const(
         "🔍 <i>Для поиска отправьте запрос сообщением</i>",
@@ -104,5 +104,5 @@ toggle_event_skip_window = Window(
     ),
     SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
     state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
-    getter=schedule_getter,
+    getter=main_schedule_getter,
 )

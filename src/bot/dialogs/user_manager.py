@@ -22,20 +22,19 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja, List
-from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
 from src.bot.dialogs.common import DELETE_BUTTON
+from src.bot.dialogs.getters import achievements_list
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 
 # fmt: off
-AchievementsList = Jinja(  # noqa
+AchievementsList = Jinja(
     "{% for achievement in achievements %}"
         """<b>{{ achievement.id }}. {{ achievement.title }}</b> {{ "✅" if achievement.id in received_achievements else "" }}\n"""  # noqa
         "{% if achievement.description %}"
@@ -62,8 +61,8 @@ def points_pluralize(points: int) -> str:
 
 async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs):
     user = await db.user.get(
-        dialog_manager.dialog_data["user_id"],
-        options=[undefer(User.achievements_count)],
+        user_id=dialog_manager.dialog_data["user_id"],
+        load_achievements_count=True,
     )
     total_achievements_count = await db.achievement.get_count()
     return {
@@ -83,26 +82,12 @@ async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs
 
 
 async def achievements_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    current_page = await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page()
-    pages = await db.achievement.get_number_of_pages(
-        dialog_manager.dialog_data["achievements_per_page"]
-    )
-    if pages == 0:
-        pages = 1
-    results = await db.achievement.get_achievements_page(
-        page=current_page,
+    return await achievements_list(
+        db=db,
         achievements_per_page=dialog_manager.dialog_data["achievements_per_page"],
+        page=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
         user_id=dialog_manager.dialog_data["user_id"],
     )
-    if results:
-        achievements, received_achievements = zip(*results)
-    else:
-        achievements, received_achievements = [], []
-    return {
-        "achievements": achievements,
-        "received_achievements": received_achievements,
-        "pages": pages,
-    }
 
 
 async def add_points(
@@ -150,7 +135,6 @@ async def add_achievement(
     ):
         await message.answer("⚠️ У пользователя уже есть это достижение!")
         return
-
     await db.received_achievement.new(
         user_id=dialog_manager.dialog_data["user_id"], achievement_id=data
     )
@@ -169,17 +153,23 @@ async def add_achievement(
 
 
 async def change_user_role(
-    callback: CallbackQuery, widget: Any, manager: DialogManager, item_id: str
+    callback: CallbackQuery,
+    widget: Any,
+    manager: DialogManager,
+    item_id: int,
 ):
     db: Database = manager.middleware_data["db"]
-    user = await db.user.get(manager.dialog_data["user_id"])
-    user.role = item_id
+    await db.user.change_role(
+        user_id=manager.dialog_data["user_id"],
+        role=UserRole(item_id).name,
+    )
     await db.session.commit()
     try:
         await callback.bot.send_message(
-            chat_id=user.id, text="🔄️ Ваша роль была изменена, перезапуск бота..."
+            chat_id=manager.dialog_data["user_id"],
+            text="🔄️ Ваша роль была изменена, перезапуск бота...",
         )
-        await manager.bg(chat_id=user.id).start(
+        await manager.bg(chat_id=manager.dialog_data["user_id"]).start(
             state=states.MAIN.MAIN, mode=StartMode.RESET_STACK
         )
     except TelegramBadRequest:
@@ -187,7 +177,9 @@ async def change_user_role(
             "⚠️ Произошла ошибка при смене роли пользователю!", show_alert=True
         )
         return
-    await callback.answer(f"✅ Роль пользователя @{user.username} была изменена!")
+    await callback.answer(
+        f"""✅ Роль пользователя @{manager.dialog_data["username"]} была изменена!"""
+    )
     await manager.switch_to(states.USER_MANAGER.MAIN)
 
 
@@ -266,6 +258,7 @@ role_change_window = Window(
             id="user_role_picker",
             item_id_getter=operator.itemgetter(0),
             items="roles",
+            type_factory=int,
             on_click=change_user_role,
         ),
     ),
@@ -319,6 +312,7 @@ async def on_user_manager_start(start_data: int, manager: DialogManager):
     user = await db.user.get(manager.event.from_user.id)
     manager.dialog_data["role"] = user.role
     manager.dialog_data["achievements_per_page"] = user.items_per_page
+    manager.dialog_data["username"] = user.username
 
 
 dialog = Dialog(

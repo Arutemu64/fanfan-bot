@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Optional, Union
 
 from aiogram.filters import BaseFilter
 from aiogram.types import CallbackQuery, Message
@@ -7,7 +7,7 @@ from src.db import Database
 
 
 class RoleFilter(BaseFilter):
-    def __init__(self, roles: List = None) -> None:
+    def __init__(self, roles: Optional[List] = None) -> None:
         self.roles = roles
 
     async def __call__(

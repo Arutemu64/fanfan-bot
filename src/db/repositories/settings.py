@@ -7,21 +7,11 @@ from .abstract import Repository
 
 
 class SettingsRepo(Repository[Settings]):
-    """
-    User repository for CRUD and other SQL queries
-    """
-
     def __init__(self, session: AsyncSession):
-        """
-        Initialize user repository as for all users or only for one user
-        """
         super().__init__(type_model=Settings, session=session)
 
-    async def exists(self) -> bool:
-        if await self.session.get(Settings, 1):
-            return True
-        else:
-            return False
+    async def exists(self):
+        return await super()._exists(Settings.id == 1)
 
     async def new(
         self, voting_enabled: bool, announcement_timestamp: float

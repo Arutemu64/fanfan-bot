@@ -23,7 +23,6 @@ from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.config import conf
 from src.db import Database
-from src.db.models import Event, Nomination, User
 
 ID_TICKET_ROLE_PICKER = "ticket_role_picker"
 ID_VOTING_ENABLED_CHECKBOX = "voting_enabled_checkbox"
@@ -34,7 +33,7 @@ async def get_roles(**kwargs):
 
 
 # fmt: off
-StatsTemplate = Jinja(  # noqa
+StatsTemplate = Jinja(
     "{% for info in bot_info %}"
     "{% if info.name %}"
     """<b>{{ info.name }}</b>: {{ info.value }}\n"""
@@ -73,15 +72,15 @@ async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs)
                 "subs": (
                     {
                         "name": "👀 Зрителей",
-                        "value": await db.user.get_count(User.role == UserRole.VISITOR),
+                        "value": await db.user.get_count(role=UserRole.VISITOR),
                     },
                     {
                         "name": "📣 Волонтёров",
-                        "value": await db.user.get_count(User.role == UserRole.HELPER),
+                        "value": await db.user.get_count(role=UserRole.HELPER),
                     },
                     {
                         "name": "⭐ Организаторов",
-                        "value": await db.user.get_count(User.role == UserRole.ORG),
+                        "value": await db.user.get_count(role=UserRole.ORG),
                     },
                 ),
             },
@@ -91,7 +90,7 @@ async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs)
                 "subs": (
                     {
                         "name": "🫣 Пропущено",
-                        "value": await db.event.get_count(Event.skip.is_(True)),
+                        "value": await db.event.get_count(skipped=True),
                     },
                 ),
             },
@@ -106,7 +105,7 @@ async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs)
                     {
                         "name": "🥇 С голосованием",
                         "value": await db.nomination.get_count(
-                            Nomination.votable.is_(True)
+                            votable=True,
                         ),
                     },
                 ),

@@ -16,7 +16,7 @@ async def parse(db: Database):
     df = pd.read_excel(path_to_plan.absolute(), sheet_name="nominations")
     df.replace({np.nan: None}, inplace=True)
     nominations_count = 0
-    for index, row in df.iterrows():
+    for _index, row in df.iterrows():
         nomination = await db.nomination.get(row["id"])
         if nomination:
             print(f"Номинация {row['id']} уже существует")
@@ -32,7 +32,7 @@ async def parse(db: Database):
     df = pd.read_excel(path_to_plan.absolute(), sheet_name="participants")
     df.replace({np.nan: None}, inplace=True)
     participants_count = 0
-    for index, row in df.iterrows():
+    for _index, row in df.iterrows():
         participant = await db.participant.get_by_where(
             Participant.title == row["title"]
         )
@@ -56,7 +56,7 @@ async def parse(db: Database):
     df = pd.read_excel(path_to_plan.absolute(), sheet_name="tickets")
     df.replace({np.nan: None}, inplace=True)
     tickets_count = 0
-    for index, row in df.iterrows():
+    for _index, row in df.iterrows():
         ticket = await db.ticket.get(row["id"])
         if ticket:
             print("Билет с таким номером уже существует")
@@ -75,7 +75,7 @@ async def main(session_pool):
         print("Начинаем парсинг aioparser.xlsx...")
         nominations_count, participants_count, tickets_count = await parse(db)
         print(
-            f"Парсинг завершён! Было добавлено {str(nominations_count)} "
+            f"Парсинг завершён! Было добавлено {nominations_count!s} "
             f"новых номинаций, {participants_count} новых участников "
             f"и {tickets_count} новых билетов"
         )

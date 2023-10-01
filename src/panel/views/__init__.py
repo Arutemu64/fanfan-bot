@@ -18,6 +18,7 @@ from src.db.models import (
     User,
     Vote,
 )
+from src.panel import db
 from src.panel.views.model_views import (
     AchievementView,
     EventView,
@@ -46,7 +47,8 @@ class ParseC2View(BaseView):
         if request.method == "POST":
             flask.flash("POST", category="warning")
             return self.render("parse_c2.html", form=form)
-        flask.flash("GET", category="warning")
+        user = db.session.get(User, 517108)
+        flask.flash(user.username, category="warning")
         return self.render("parse_c2.html", form=form)
 
 
@@ -71,7 +73,7 @@ def add_views(db: SQLAlchemy, admin: Admin):
     admin.add_views(NominationView(Nomination, db.session, "Номинации", "Программа"))
     admin.add_views(VoteView(Vote, db.session, "Голосование", "Программа"))
     admin.add_views(TransactionView(Transaction, db.session, "Транзакции"))
-    # admin.add_view(
-    #     ParseC2View(name="Парсинг C2", endpoint="parse_c2", category="Парсинг")
-    # )
+    admin.add_view(
+        ParseC2View(name="Парсинг C2", endpoint="parse_c2", category="Парсинг")
+    )
     admin.add_link(LogoutMenuLink(name="Выйти", category="", url="/logout"))

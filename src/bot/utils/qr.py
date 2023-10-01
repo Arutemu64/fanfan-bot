@@ -1,3 +1,5 @@
+from typing import Optional
+
 from aiogram import Bot
 from aiogram.types import Message
 from aiogram_dialog import BaseDialogManager, DialogManager
@@ -12,7 +14,7 @@ async def proceed_qr_code(
     db: Database,
     qr_text: str,
     message: Message = None,
-    user_id: int = None,
+    user_id: Optional[int] = None,
     bot: Bot = None,
 ):
     match qr_text.split()[0]:

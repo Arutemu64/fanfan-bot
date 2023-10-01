@@ -12,6 +12,7 @@ def setup_router() -> Router:
         registration,
         schedule,
         settings,
+        subscriptions,
         user_manager,
         voting,
     )
@@ -22,6 +23,7 @@ def setup_router() -> Router:
     common_router.include_router(schedule.dialog)
     common_router.include_router(voting.dialog)
     common_router.include_router(settings.dialog)
+    common_router.include_router(subscriptions.dialog)
 
     helper_router = Router()
     helper_router.include_router(helper.dialog)

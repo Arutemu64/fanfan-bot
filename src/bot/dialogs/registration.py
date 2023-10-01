@@ -19,7 +19,7 @@ async def check_ticket(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    ticket = await db.ticket.check_ticket(data)
+    ticket = await db.ticket.exists(data)
     if ticket:
         if ticket.used_by is None:
             user = await db.user.new(

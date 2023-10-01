@@ -114,8 +114,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['participant_id'], ['participants.id'], name=op.f('fk_schedule_participant_id_participants'), ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_schedule')),
     sa.UniqueConstraint('current', name=op.f('uq_schedule_current')),
-    sa.UniqueConstraint('position', name=op.f('uq_schedule_position')),
-    sa.UniqueConstraint('real_position', name=op.f('uq_schedule_real_position'))
+    sa.UniqueConstraint('position', name=op.f('uq_schedule_position'), deferrable=True),
+    sa.UniqueConstraint('real_position', name=op.f('uq_schedule_real_position'), deferrable=True)
     )
     op.create_table('votes',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),

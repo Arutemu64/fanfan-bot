@@ -1,6 +1,5 @@
-import math
 import operator
-from typing import Any
+from typing import Any, TypedDict
 
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
@@ -22,52 +21,61 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
-from sqlalchemy import and_
-from sqlalchemy.orm import undefer
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import FormatTitle, Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import Event, Nomination, Participant
 
 ID_NOMINATIONS_SCROLL = "nominations_scroll"
 ID_VOTING_SCROLL = "voting_scroll"
 
 
+class UserVoteData(TypedDict):
+    id: int
+    participant_id: int
+
+
 # fmt: off
-VotingList = Jinja(  # noqa: E501
+VotingList = Jinja(
     "{% for participant in participants %}"
-        "{% if user_vote.participant_id == participant.id %}"
-            "<b>"
-        "{% endif %}"
-        "<b>{{participant.id}}.</b> {{participant.title}} "
-        "{% if (participant.votes_count % 10 == 1) and (participant.votes_count % 100 != 11) %}"  # noqa: E501
-            "[{{participant.votes_count}} голос]"
-        "{% elif (2 <= participant.votes_count % 10 <= 4) and (participant.votes_count % 100 < 10 or participant.votes_count % 100 >= 20) %}"  # noqa: E501
-            "[{{participant.votes_count}} голоса]"
-        "{% else %}"
-            "[{{participant.votes_count}} голосов]"
-        "{% endif %}"
-        "{% if user_vote.participant_id == participant.id %}"
-            "</b> ✅"
-        "{% endif %}"
-        "\n\n"
+    "{% if vote.participant_id == participant.id %}"
+    "<b>"
+    "{% endif %}"
+    "<b>{{participant.id}}.</b> {{participant.title}} "
+    "{% if (participant.votes_count % 10 == 1) and (participant.votes_count % 100 != 11) %}"  # noqa: E501
+    "[{{participant.votes_count}} голос]"
+    "{% elif (2 <= participant.votes_count % 10 <= 4) and (participant.votes_count % 100 < 10 or participant.votes_count % 100 >= 20) %}"  # noqa: E501
+    "[{{participant.votes_count}} голоса]"
+    "{% else %}"
+    "[{{participant.votes_count}} голосов]"
+    "{% endif %}"
+    "{% if vote.participant_id == participant.id %}"
+    "</b> ✅"
+    "{% endif %}"
+    "\n\n"
     "{% endfor %}")
+
+
 # fmt: on
 
 
 async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    current_page = await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
     nominations = await db.nomination.get_page(
-        current_page,
-        dialog_manager.dialog_data["items_per_page"],
-        Nomination.votable.is_(True),
-        order_by=Nomination.title,
+        page=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page(),
+        nominations_per_page=dialog_manager.dialog_data["items_per_page"],
+        votable=True,
+    )
+    voted_nominations = await db.vote.check_list_of_user_voted_nominations(
+        user_id=dialog_manager.event.from_user.id,
+        nomination_ids=[n.id for n in nominations],
     )
     nominations_list = []
-    for nomination in nominations:
-        nominations_list.append((nomination.id, nomination.title))
+    for n in nominations:
+        if n.id in voted_nominations:
+            n.title = n.title + " ✅"
+        nominations_list.append((n.id, n.title))
+    dialog_manager.dialog_data["vote"] = None
     return {
         "pages": dialog_manager.dialog_data["pages"],
         "nominations_list": nominations_list,
@@ -78,40 +86,42 @@ async def participants_getter(dialog_manager: DialogManager, db: Database, **kwa
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get(nomination_id)
 
-    terms = and_(
-        Participant.nomination_id == nomination.id,
-        Participant.event.has(Event.skip.isnot(True)),
+    terms = {
+        "participants_per_page": dialog_manager.dialog_data["items_per_page"],
+        "nomination_id": nomination_id,
+        "event_skip": False,
+    }
+    pages = await db.participant.get_pages_count(
+        **terms,
     )
-    pages = await db.participant.get_number_of_pages(
-        dialog_manager.dialog_data["items_per_page"], terms
-    )
-    current_page = await dialog_manager.find(ID_VOTING_SCROLL).get_page()
     participants = await db.participant.get_page(
-        current_page,
-        dialog_manager.dialog_data["items_per_page"],
-        query=terms,
-        order_by=Participant.id,
-        options=[undefer(Participant.votes_count)],
+        page=await dialog_manager.find(ID_VOTING_SCROLL).get_page(),
+        load_votes_count=True,
+        **terms,
     )
-    user_vote = await db.vote.check_vote(
-        dialog_manager.event.from_user.id, nomination_id=nomination_id
-    )
-    if user_vote:
-        dialog_manager.dialog_data["user_vote_id"] = user_vote.id
-    else:
-        dialog_manager.dialog_data["user_vote_id"] = None
     return {
         "pages": pages,
         "nomination_title": nomination.title,
         "participants": participants,
-        "user_vote": user_vote,
+        "vote": dialog_manager.dialog_data["vote"],
     }
 
 
 async def select_nomination(
     callback: CallbackQuery, widget: Any, dialog_manager: DialogManager, item_id: str
 ):
+    db: Database = dialog_manager.middleware_data["db"]
     dialog_manager.dialog_data["nomination_id"] = item_id
+    user_vote = await db.vote.get_user_vote(
+        user_id=dialog_manager.event.from_user.id, nomination_id=item_id
+    )
+    if user_vote:
+        dialog_manager.dialog_data["vote"]: UserVoteData = {
+            "id": user_vote.id,
+            "participant_id": user_vote.participant_id,
+        }
+    else:
+        dialog_manager.dialog_data["vote"] = None
     await dialog_manager.find(ID_VOTING_SCROLL).set_page(0)
     await dialog_manager.switch_to(states.VOTING.VOTING)
 
@@ -124,22 +134,19 @@ async def add_vote(
 ):
     db: Database = dialog_manager.middleware_data["db"]
 
+    if dialog_manager.dialog_data.get("vote"):
+        await message.reply("⚠️ Вы уже голосовали в этой категории!")
+        return
     if not await db.settings.get_voting_enabled():
         await message.reply(strings.errors.voting_disabled)
         return
-    if dialog_manager.dialog_data.get("user_vote_id"):
-        await message.reply("⚠️ Вы уже голосовали в этой категории!")
-        return
-    participant = await db.participant.get_by_where(
-        and_(
-            Participant.id == data,
-            Participant.nomination_id == dialog_manager.dialog_data["nomination_id"],
-            Participant.event.has(Event.skip.isnot(True)),
-        )
-    )
-    if participant:
-        await db.vote.new(message.from_user.id, participant.id)
+    if await db.participant.exists(data):
+        user_vote = await db.vote.new(message.from_user.id, data)
         await db.session.commit()
+        dialog_manager.dialog_data["vote"]: UserVoteData = {
+            "id": user_vote.id,
+            "participant_id": user_vote.participant_id,
+        }
     else:
         await message.reply("⚠️ Неверно указан номер участника")
         return
@@ -150,14 +157,14 @@ async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogMa
     if not await db.settings.get_voting_enabled():
         await callback.answer(strings.errors.voting_disabled)
         return
-    user_vote = await db.vote.get(manager.dialog_data["user_vote_id"])
-    await db.session.delete(user_vote)
+    await db.vote.delete(manager.dialog_data["vote"]["id"])
     await db.session.commit()
+    manager.dialog_data["vote"] = None
 
 
 nominations = Window(
     Title(strings.titles.voting),
-    Const("Для голосования доступны следующие номинации:"),
+    Const("Для голосования доступны следующие номинации"),
     Column(
         Select(
             Format("{item[1]}"),
@@ -184,7 +191,6 @@ nominations = Window(
     getter=nominations_getter,
 )
 
-
 voting = Window(
     FormatTitle("🎖️ Номинация {nomination_title}"),
     VotingList,
@@ -208,7 +214,7 @@ voting = Window(
     Button(
         Const("Отменить голос"),
         id="cancel_vote",
-        when="user_vote",
+        when="vote",
         on_click=cancel_vote,
     ),
     SwitchTo(
@@ -223,13 +229,11 @@ voting = Window(
 
 async def on_voting_start(start_data: Any, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
-
     user = await db.user.get(manager.event.from_user.id)
     manager.dialog_data["items_per_page"] = user.items_per_page
-
-    manager.dialog_data["pages"] = math.ceil(
-        await db.nomination.get_count(Nomination.votable.is_(True))
-        / manager.dialog_data["items_per_page"]
+    manager.dialog_data["pages"] = await db.nomination.get_pages_count(
+        nominations_per_page=manager.dialog_data["items_per_page"],
+        votable=True,
     )
 
 

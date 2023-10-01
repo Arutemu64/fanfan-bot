@@ -25,7 +25,9 @@ class SCHEDULE(StatesGroup):
     SWAP_EVENTS = State()
     TOGGLE_EVENT_SKIP = State()
 
-    SUBSCRIPTIONS = State()
+
+class SUBSCRIPTIONS(StatesGroup):
+    MAIN = State()
     EVENT_SELECTOR = State()
     SET_SUBSCRIPTION_COUNTER = State()
 
@@ -42,9 +44,6 @@ class HELPER(StatesGroup):
 class ORG(StatesGroup):
     MAIN = State()
     NEW_TICKET = State()
-    ASK_USERNAME = State()
-    USER_EDITOR = State()
-    CHANGE_ROLE = State()
 
 
 class USER_MANAGER(StatesGroup):

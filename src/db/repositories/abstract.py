@@ -1,8 +1,7 @@
-import abc
 import math
 from typing import Generic, List, Optional, Sequence, Type, TypeVar
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.interfaces import ORMOption
 from sqlalchemy.sql.base import ExecutableOption
@@ -22,10 +21,14 @@ class Repository(Generic[AbstractModel]):
         self.type_model = type_model
         self.session = session
 
-    async def get(
+    async def _exists(self, query) -> Optional[int | str]:
+        stmt = select(self.type_model.id).where(query).limit(1)
+        return await self.session.scalar(stmt)
+
+    async def _get(
         self,
         ident: int | str,
-        options: Sequence[ORMOption] = None,
+        options: Optional[Sequence[ORMOption]] = None,
     ) -> Optional[AbstractModel]:
         return await self.session.get(
             entity=self.type_model,
@@ -33,16 +36,16 @@ class Repository(Generic[AbstractModel]):
             options=options,
         )
 
-    async def get_by_where(self, query) -> Optional[AbstractModel]:
+    async def _get_by_where(self, query) -> Optional[AbstractModel]:
         statement = select(self.type_model).where(query).limit(1)
         return (await self.session.execute(statement)).scalar_one_or_none()
 
-    async def get_many(
+    async def _get_many(
         self,
         query=None,
-        limit: int = None,
+        limit: Optional[int] = None,
         order_by=None,
-        options: List[ExecutableOption] = None,
+        options: Optional[List[ExecutableOption]] = None,
     ) -> List[AbstractModel]:
         statement = select(self.type_model)
         if options:
@@ -55,13 +58,13 @@ class Repository(Generic[AbstractModel]):
             statement = statement.order_by(order_by)
         return (await self.session.execute(statement)).scalars().all()
 
-    async def get_range(
+    async def _get_range(
         self,
         start: int,
         end: int,
         query=None,
         order_by=None,
-        options: List[ExecutableOption] = None,
+        options: Optional[List[ExecutableOption]] = None,
     ) -> List[AbstractModel]:
         statement = select(self.type_model)
         if options:
@@ -73,21 +76,26 @@ class Repository(Generic[AbstractModel]):
         statement = statement.slice(start, end)
         return (await self.session.execute(statement)).scalars().all()
 
-    async def get_count(self, query=None) -> int:
+    async def _get_count(self, query=None) -> int:
         statement = select(func.count()).select_from(self.type_model)
         if query is not None:
             statement = statement.where(query)
         return (await self.session.execute(statement)).scalar()
 
-    async def get_page(
+    async def _get_pages_count(self, items_per_page: int, query=None) -> int:
+        count = await self._get_count(query)
+        pages = math.ceil(count / items_per_page)
+        return pages
+
+    async def _get_page(
         self,
         page: int,
         items_per_page: int = 5,
         query=None,
         order_by=None,
-        options: List[ExecutableOption] = None,
+        options: Optional[List[ExecutableOption]] = None,
     ) -> List[AbstractModel]:
-        items = await self.get_range(
+        items = await self._get_range(
             start=(page * items_per_page),
             end=(page * items_per_page) + items_per_page,
             query=query,
@@ -96,20 +104,19 @@ class Repository(Generic[AbstractModel]):
         )
         return items
 
-    async def get_number_of_pages(self, items_per_page: int, query=None) -> int:
-        count = await self.get_count(query)
-        pages = math.ceil(count / items_per_page)
-        return pages
+    async def _delete(self, query):
+        stmt = delete(self.type_model).where(query)
+        await self.session.execute(stmt)
 
-    @abc.abstractmethod
-    async def new(self, *args, **kwargs) -> None:
-        """
-        This method is need to be implemented in child classes,
-        it is responsible for adding a new model to the database
-        :return: Nothing
-        """
-        ...
-
-    @abc.abstractmethod
-    async def exists(self, *args, **kwargs) -> None:
-        ...
+    # @abc.abstractmethod
+    # async def new(self, *args, **kwargs) -> None:
+    #     """
+    #     This method is need to be implemented in child classes,
+    #     it is responsible for adding a new model to the database
+    #     :return: Nothing
+    #     """
+    #     ...
+    #
+    # @abc.abstractmethod
+    # async def exists(self, *args, **kwargs) -> None:
+    #     ...

@@ -10,10 +10,11 @@ from aiogram_dialog.widgets.kbd import (
     NextPage,
     PrevPage,
     Row,
+    StubScroll,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
-from src.bot.dialogs.schedule.utils.schedule_loader import ScheduleLoader
+from src.bot.dialogs.getters import schedule_list
 from src.bot.structures import UserRole
 from src.db import Database
 from src.db.models import Event
@@ -21,7 +22,7 @@ from src.db.models import Event
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 # fmt: off
-EventsList = Jinja(  # noqa: E501
+EventsList = Jinja(
     "{% if events|length == 0 %}"
         "⚠️ Выступления не найдены\n"
     "{% else %}"
@@ -52,7 +53,7 @@ EventsList = Jinja(  # noqa: E501
             "{% if event.skip %}"
                 "</s>"
             "{% endif %}"
-            "{% if event.id in subscription_ids %}"
+            "{% if event.id in subscribed_event_ids %}"
                 " 🔔"
             "{% endif %}"
             "\n\n"
@@ -66,41 +67,28 @@ EventsList = Jinja(  # noqa: E501
 # fmt: on
 
 
-async def schedule_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    schedule_loader = ScheduleLoader(
+async def main_schedule_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+    page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
+    data = await schedule_list(
         db=db,
         events_per_page=dialog_manager.dialog_data["events_per_page"],
+        page=page,
+        user_id=dialog_manager.event.from_user.id,
         search_query=dialog_manager.dialog_data.get("search_query"),
     )
-    pages = dialog_manager.dialog_data["pages"]
-    current_page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
-    results = await schedule_loader.get_page_events(
-        current_page, user_id=dialog_manager.event.from_user.id
-    )
-    if results:
-        events, subscription_ids = zip(*results)
-    else:
-        events, subscription_ids = [], []
-    return {
-        "pages": pages if pages > 0 else 1,
-        "current_page": current_page + 1,
-        "events": events,
-        "subscription_ids": subscription_ids,
-        "is_helper": dialog_manager.dialog_data["role"] > UserRole.VISITOR,
-    }
+    data.update({"is_helper": dialog_manager.dialog_data["role"] > UserRole.VISITOR})
+    data.update({"page": page + 1})
+    return data
 
 
 async def set_schedule_page(manager: DialogManager, event: Event):
     db: Database = manager.middleware_data["db"]
-
     if event:
-        search_query = manager.dialog_data.get("search_query")
-        events_loader = ScheduleLoader(
-            db=db,
+        page = await db.event.get_page_number(
+            event=event,
             events_per_page=manager.dialog_data["events_per_page"],
-            search_query=search_query,
+            search_query=manager.dialog_data.get("search_query"),
         )
-        page = await events_loader.get_page_number(event)
         await manager.find(ID_SCHEDULE_SCROLL).set_page(page)
     else:
         pass
@@ -110,7 +98,6 @@ async def on_click_update_schedule(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-
     current_event = await db.event.get_current()
     await set_schedule_page(manager, current_event)
 
@@ -130,37 +117,19 @@ async def set_search_query(
     dialog_manager: DialogManager,
     data: str,
 ):
-    db: Database = dialog_manager.middleware_data["db"]
-
     dialog_manager.dialog_data["search_query"] = data
-
-    schedule_loader = ScheduleLoader(
-        db=db,
-        events_per_page=dialog_manager.dialog_data["events_per_page"],
-        search_query=dialog_manager.dialog_data.get("search_query"),
-    )
-    dialog_manager.dialog_data["pages"] = await schedule_loader.get_pages_count()
-
     await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(0)
-    current_event = await db.event.get_current()
-    await set_schedule_page(dialog_manager, current_event)
 
 
 async def reset_search(callback: CallbackQuery, button: Button, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
-
     manager.dialog_data.pop("search_query")
-    schedule_loader = ScheduleLoader(
-        db=db,
-        events_per_page=manager.dialog_data["events_per_page"],
-    )
-    manager.dialog_data["pages"] = await schedule_loader.get_pages_count()
-
     current_event = await db.event.get_current()
     await set_schedule_page(manager, current_event)
 
 
 SchedulePaginator = Group(
+    StubScroll(ID_SCHEDULE_SCROLL, pages="pages"),
     Button(
         text=Const("🔍❌ Сбросить поиск"),
         id="reset_search",
@@ -171,7 +140,7 @@ SchedulePaginator = Group(
         FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪ · 1")),
         PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
         Button(
-            text=Format(text="{current_page} 🔄️"),
+            text=Format(text="{page} 🔄️"),
             id="update_schedule",
             on_click=on_click_update_schedule,
         ),

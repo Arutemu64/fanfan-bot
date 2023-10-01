@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     MetaData,
     Sequence,
+    String,
     func,
     select,
 )
@@ -38,6 +39,7 @@ metadata = MetaData(
 class Base:
     """Abstract model with declarative base functionality."""
 
+    id: Mapped[int | str]
     time_created: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -139,7 +141,16 @@ class Event(Base):
 
     @hybrid_property
     def joined_title(self) -> str:
-        return self.title or self.participant.title
+        return self.title or (self.participant.title if self.participant else None)
+
+    @joined_title.expression
+    def joined_title(cls):
+        stmt = (
+            select(Participant.title)
+            .where(Participant.id == cls.participant_id)
+            .as_scalar()
+        )
+        return func.coalesce(cls.title, stmt).cast(String)
 
     def __str__(self):
         return self.joined_title

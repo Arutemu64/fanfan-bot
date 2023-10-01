@@ -1,40 +1,30 @@
-from sqlalchemy import and_, select
+from typing import List, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Achievement, ReceivedAchievement
+from ..models import Achievement
 from .abstract import Repository
 
 
 class AchievementRepo(Repository[Achievement]):
-    """
-    User repository for CRUD and other SQL queries
-    """
-
     def __init__(self, session: AsyncSession):
-        """
-        Initialize user repository as for all users or only for one user
-        """
         super().__init__(type_model=Achievement, session=session)
 
-    async def get_achievements_page(
-        self, page: int, achievements_per_page: int, user_id: int = None
-    ):
-        if user_id:
-            stmt = select(Achievement, ReceivedAchievement.achievement_id)
-        else:
-            stmt = select(Achievement)
-        stmt = stmt.order_by(Achievement.id).slice(
-            start=(page * achievements_per_page),
-            stop=(page * achievements_per_page) + achievements_per_page,
+    async def get(self, achievement_id: int) -> Optional[Achievement]:
+        return await super()._get(ident=achievement_id)
+
+    async def get_count(self) -> int:
+        return await super()._get_count()
+
+    async def get_pages_count(self, achievements_per_page: int) -> int:
+        return await super()._get_pages_count(items_per_page=achievements_per_page)
+
+    async def get_page(
+        self,
+        page: int,
+        achievements_per_page: int,
+    ) -> List[Achievement]:
+        return await super()._get_page(
+            page=page,
+            items_per_page=achievements_per_page,
         )
-        if user_id:
-            stmt = stmt.outerjoin(
-                ReceivedAchievement,
-                and_(
-                    Achievement.id == ReceivedAchievement.achievement_id,
-                    ReceivedAchievement.user_id == user_id,
-                ),
-            )
-            return (await self.session.execute(stmt)).all()
-        else:
-            return (await self.session.execute(stmt)).scalars()

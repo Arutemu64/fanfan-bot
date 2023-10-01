@@ -7,12 +7,13 @@ from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
+from sqlalchemy import text
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    schedule_getter,
+    main_schedule_getter,
     set_schedule_page,
     set_search_query,
 )
@@ -63,11 +64,9 @@ async def swap_events(
     current_event = await db.event.get_current()
     next_event_before = await db.event.get_next(current_event)
 
-    # Не очень красиво (из-за ограничений в БД) меняем пару выступлений местами
-    event1_position, event2_position = event1.position, event2.position
-    event1.position, event2.position = event1.position * 10000, event2.position * 10000
-    await db.session.flush([event1, event2])
-    event1.position, event2.position = event2_position, event1_position
+    # Меняем пару выступлений местами
+    await db.session.execute(text("SET CONSTRAINTS ALL DEFERRED"))
+    event1.position, event2.position = event2.position, event1.position
     await db.session.commit()
     await db.session.refresh(event1, ["real_position"])
     await db.session.refresh(event2, ["real_position"])
@@ -114,5 +113,5 @@ swap_events_window = Window(
     ),
     SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
     state=states.SCHEDULE.SWAP_EVENTS,
-    getter=schedule_getter,
+    getter=main_schedule_getter,
 )

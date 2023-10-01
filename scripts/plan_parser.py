@@ -28,9 +28,9 @@ async def parse_plan(db: Database):
     df.replace({np.nan: None}, inplace=True)
     participants_count = 0
     nominations_count = 0
-    for index, row in df.iterrows():
+    for _index, row in df.iterrows():
         if row["code"] is not None:  # participant
-            participant = await db.participant.get_by_where(
+            participant = await db.participant._get_by_where(
                 Participant.title == row["voting_title"]
             )
             if participant:
@@ -75,9 +75,9 @@ async def main(session_pool):
         participants_count, nominations_count = await parse_plan(db)
         events_count = await db.event.get_count()
         print(
-            f"Парсинг завершён! Было добавлено {str(nominations_count)} "
-            f"новых номинаций, {str(participants_count)} новых участников "
-            f"и {str(events_count)} событий."
+            f"Парсинг завершён! Было добавлено {nominations_count!s} "
+            f"новых номинаций, {participants_count!s} новых участников "
+            f"и {events_count!s} событий."
         )
     return
 
