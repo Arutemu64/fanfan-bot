@@ -72,19 +72,15 @@ SubscriptionsList = Jinja(
 
 
 async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    pages = await db.subscription.get_pages_count(
-        subscriptions_per_page=dialog_manager.dialog_data["events_per_page"],
-        user_id=dialog_manager.event.from_user.id,
-    )
-    subscriptions = await db.subscription.get_page(
+    page = await db.subscription.paginate(
         page=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page(),
         subscriptions_per_page=dialog_manager.dialog_data["events_per_page"],
         user_id=dialog_manager.event.from_user.id,
     )
     current_event = await db.event.get_current()
     return {
-        "pages": pages if pages > 0 else pages + 1,
-        "subscriptions": subscriptions,
+        "pages": page.total,
+        "subscriptions": page.items,
         "current_event_position": current_event.real_position if current_event else 0,
     }
 

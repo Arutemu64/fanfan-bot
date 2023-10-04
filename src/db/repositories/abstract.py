@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.interfaces import ORMOption
 from sqlalchemy.sql.base import ExecutableOption
 
+from ...bot.structures import Page
 from ..models import Base
 
 AbstractModel = TypeVar("AbstractModel")
@@ -82,19 +83,14 @@ class Repository(Generic[AbstractModel]):
             statement = statement.where(query)
         return (await self.session.execute(statement)).scalar()
 
-    async def _get_pages_count(self, items_per_page: int, query=None) -> int:
-        count = await self._get_count(query)
-        pages = math.ceil(count / items_per_page)
-        return pages
-
-    async def _get_page(
+    async def _paginate(
         self,
         page: int,
-        items_per_page: int = 5,
+        items_per_page: int,
         query=None,
         order_by=None,
         options: Optional[List[ExecutableOption]] = None,
-    ) -> List[AbstractModel]:
+    ) -> Page[AbstractModel]:
         items = await self._get_range(
             start=(page * items_per_page),
             end=(page * items_per_page) + items_per_page,
@@ -102,7 +98,12 @@ class Repository(Generic[AbstractModel]):
             order_by=order_by,
             options=options,
         )
-        return items
+        total = math.ceil(await self._get_count(query) / items_per_page)
+        return Page(
+            items=items,
+            number=page,
+            total=total if total > 0 else 1,
+        )
 
     async def _delete(self, query):
         stmt = delete(self.type_model).where(query)

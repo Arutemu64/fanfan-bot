@@ -61,23 +61,23 @@ VotingList = Jinja(
 
 
 async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    nominations = await db.nomination.get_page(
+    page = await db.nomination.paginate(
         page=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page(),
         nominations_per_page=dialog_manager.dialog_data["items_per_page"],
         votable=True,
     )
     voted_nominations = await db.vote.check_list_of_user_voted_nominations(
         user_id=dialog_manager.event.from_user.id,
-        nomination_ids=[n.id for n in nominations],
+        nomination_ids=[n.id for n in page.items],
     )
     nominations_list = []
-    for n in nominations:
-        if n.id in voted_nominations:
-            n.title = n.title + " ✅"
-        nominations_list.append((n.id, n.title))
+    for nomination in page.items:
+        if nomination.id in voted_nominations:
+            nomination.title = nomination.title + " ✅"
+        nominations_list.append((nomination.id, nomination.title))
     dialog_manager.dialog_data["vote"] = None
     return {
-        "pages": dialog_manager.dialog_data["pages"],
+        "pages": page.total,
         "nominations_list": nominations_list,
     }
 
@@ -85,24 +85,17 @@ async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwar
 async def participants_getter(dialog_manager: DialogManager, db: Database, **kwargs):
     nomination_id = dialog_manager.dialog_data["nomination_id"]
     nomination = await db.nomination.get(nomination_id)
-
-    terms = {
-        "participants_per_page": dialog_manager.dialog_data["items_per_page"],
-        "nomination_id": nomination_id,
-        "event_skip": False,
-    }
-    pages = await db.participant.get_pages_count(
-        **terms,
-    )
-    participants = await db.participant.get_page(
+    page = await db.participant.paginate(
         page=await dialog_manager.find(ID_VOTING_SCROLL).get_page(),
+        participants_per_page=dialog_manager.dialog_data["items_per_page"],
+        nomination_id=nomination_id,
+        event_skip=False,
         load_votes_count=True,
-        **terms,
     )
     return {
-        "pages": pages,
+        "pages": page.total,
         "nomination_title": nomination.title,
-        "participants": participants,
+        "participants": page.items,
         "vote": dialog_manager.dialog_data["vote"],
     }
 
@@ -231,10 +224,6 @@ async def on_voting_start(start_data: Any, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
     user = await db.user.get(manager.event.from_user.id)
     manager.dialog_data["items_per_page"] = user.items_per_page
-    manager.dialog_data["pages"] = await db.nomination.get_pages_count(
-        nominations_per_page=manager.dialog_data["items_per_page"],
-        votable=True,
-    )
 
 
 dialog = Dialog(nominations, voting, on_start=on_voting_start)

@@ -1,7 +1,8 @@
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ...bot.structures import Page
 from ..models import Achievement
 from .abstract import Repository
 
@@ -16,15 +17,12 @@ class AchievementRepo(Repository[Achievement]):
     async def get_count(self) -> int:
         return await super()._get_count()
 
-    async def get_pages_count(self, achievements_per_page: int) -> int:
-        return await super()._get_pages_count(items_per_page=achievements_per_page)
-
-    async def get_page(
+    async def paginate(
         self,
         page: int,
         achievements_per_page: int,
-    ) -> List[Achievement]:
-        return await super()._get_page(
+    ) -> Page[Achievement]:
+        return await super()._paginate(
             page=page,
             items_per_page=achievements_per_page,
         )

@@ -1,7 +1,8 @@
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ...bot.structures import Page
 from ..models import Nomination
 from .abstract import Repository
 
@@ -24,18 +25,10 @@ class NominationRepo(Repository[Nomination]):
             query=Nomination.votable.is_(votable) if votable is not None else None
         )
 
-    async def get_pages_count(
-        self, nominations_per_page: int, votable: Optional[bool] = None
-    ) -> int:
-        return await super()._get_pages_count(
-            items_per_page=nominations_per_page,
-            query=Nomination.votable.is_(votable) if votable is not None else True,
-        )
-
-    async def get_page(
+    async def paginate(
         self, page: int, nominations_per_page: int, votable: Optional[bool] = None
-    ) -> List[Nomination]:
-        return await super()._get_page(
+    ) -> Page[Nomination]:
+        return await super()._paginate(
             page=page,
             items_per_page=nominations_per_page,
             query=Nomination.votable.is_(votable) if votable is not None else True,

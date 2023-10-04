@@ -1,9 +1,10 @@
 import math
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy import ColumnElement, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ...bot.structures import Page
 from ..models import Event, Nomination, Participant
 from .abstract import Repository
 
@@ -46,6 +47,16 @@ class EventRepo(Repository[Event]):
         else:
             return None
 
+    async def paginate(
+        self, page: int, events_per_page: int, search_query: Optional[str] = None
+    ) -> Page[Event]:
+        return await super()._paginate(
+            page=page,
+            items_per_page=events_per_page,
+            query=_generate_search_terms(search_query) if search_query else None,
+            order_by=Event.position,
+        )
+
     async def get_count(
         self,
         search_query: Optional[str] = None,
@@ -57,24 +68,6 @@ class EventRepo(Repository[Event]):
         if skipped is not None:
             terms.append(Event.skip.is_(skipped))
         return await super()._get_count(query=and_(*terms))
-
-    async def get_pages_count(
-        self, events_per_page: int, search_query: Optional[str] = None
-    ) -> int:
-        events_count = await super()._get_count(
-            query=_generate_search_terms(search_query) if search_query else None
-        )
-        return math.ceil(events_count / events_per_page)
-
-    async def get_page(
-        self, page: int, events_per_page: int, search_query: Optional[str] = None
-    ) -> List[Event]:
-        return await super()._get_page(
-            page=page,
-            items_per_page=events_per_page,
-            query=_generate_search_terms(search_query) if search_query else None,
-            order_by=Event.position,
-        )
 
     async def get_page_number(
         self,

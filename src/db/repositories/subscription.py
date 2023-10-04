@@ -3,6 +3,7 @@ from typing import List, Optional
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ...bot.structures import Page
 from ..models import Event, Subscription
 from .abstract import Repository
 
@@ -26,16 +27,10 @@ class SubscriptionRepo(Repository[Subscription]):
         )
         return new_subscription
 
-    async def get_pages_count(self, subscriptions_per_page: int, user_id: int) -> int:
-        return await super()._get_pages_count(
-            items_per_page=subscriptions_per_page,
-            query=Subscription.user_id == user_id,
-        )
-
-    async def get_page(
+    async def paginate(
         self, page: int, subscriptions_per_page: int, user_id: int
-    ) -> List[Subscription]:
-        return await super()._get_page(
+    ) -> Page[Subscription]:
+        return await super()._paginate(
             page=page,
             items_per_page=subscriptions_per_page,
             query=Subscription.user_id == user_id,
