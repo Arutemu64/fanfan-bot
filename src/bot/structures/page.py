@@ -1,12 +1,11 @@
+from dataclasses import dataclass
 from typing import Generic, List, TypeVar
-
-from pydantic import BaseModel, ConfigDict
 
 AbstractModel = TypeVar("AbstractModel")
 
 
-class Page(BaseModel, Generic[AbstractModel]):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+@dataclass
+class Page(Generic[AbstractModel]):
     items: List[AbstractModel]
     number: int
     total: int

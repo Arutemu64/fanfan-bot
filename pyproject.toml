@@ -26,7 +26,6 @@ aiogram-dialog = "^2.0.0"
 asyncpg = "^0.28.0"
 #torch = {version = "^2.0.1+cpu", source="torch-cpu"}
 #torchvision = {version = "^0.15.2+cpu", source = "torch-cpu"}
-pydantic = "2.3.0"
 #opencv-python-headless = "^4.8.0.74"
 #qreader = {version = "^3.9"}
 sqlalchemy = "^2.0.20"
