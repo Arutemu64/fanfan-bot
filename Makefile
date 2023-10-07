@@ -12,15 +12,15 @@ help:
 
 .PHONY:	black
 black:
-	poetry run black src/ scripts/
+	poetry run black src/
 
 .PHONY:	mypy
 mypy:
-	poetry run mypy --strict --pretty --explicit-package-bases --install-types src/ scripts/
+	poetry run mypy --strict --pretty --explicit-package-bases --install-types src/
 
 .PHONY: ruff
 ruff:
-	poetry run ruff check src/ scripts/ --fix --respect-gitignore
+	poetry run ruff check src/ --fix --respect-gitignore
 
 .PHONY: lint
 lint: black ruff

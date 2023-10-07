@@ -5,7 +5,7 @@ description = ""
 authors = ["Arutemu64 <arutemu64@outlook.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "3.11.*"
 alembic = "^1.12.0"
 alembic-postgresql-enum = "^0.1.9"
 alembic-utils = "^0.8.1"
@@ -39,6 +39,7 @@ flask-admin = "^1.6.1"
 flask-sqlalchemy = "^3.1.1"
 flask-wtf = "^1.1.1"
 gunicorn = "^21.2.0"
+numpy = "^1.26.0"
 openpyxl = "^3.1.2"
 pandas = "^2.0.3"
 psycopg = {version = "^3.1.10", extras = ["binary"]}

@@ -1,0 +1,11 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<h2>Парсинг</h2>
+<form method="post" class="form form-vertical" enctype="multipart/form-data">
+    <div class="d-flex justify-content-center align-items-center">
+        {{ form.hidden_tag() }}
+        {{ form.file }}
+        <input class="btn btn-primary" type="submit" value="Парсить!">
+    </div>
+</form>
+{% endblock %}
