@@ -14,6 +14,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
+from src.bot import TEMPLATES_DIR
 from src.bot.dialogs.getters import schedule_list
 from src.bot.structures import UserRole
 from src.db import Database
@@ -21,50 +22,8 @@ from src.db.models import Event
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
-# fmt: off
-EventsList = Jinja(
-    "{% if events|length == 0 %}"
-        "⚠️ Выступления не найдены\n"
-    "{% else %}"
-        "{% for event in events %}"
-            "{% if event.participant %}"
-                "{% if loop.previtem %}"
-                    "{% if loop.previtem.participant %}"
-                        "{% if event.participant.nomination.id != loop.previtem.participant.nomination.id %}"  # noqa: E501
-                            "<b>➡️ {{event.participant.nomination.title}}</b>\n"
-                        "{% endif %}"
-                    "{% else %}"
-                        "<b>➡️ {{event.participant.nomination.title}}</b>\n"
-                    "{% endif %}"
-                "{% else %}"
-                    "<b>➡️ {{event.participant.nomination.title}}</b>\n"
-                "{% endif %}"
-            "{% endif %}"
-            "{% if event.skip %}"
-                "<s>"
-            "{% endif %}"
-            "{% if event.current %}"
-                "<b>"
-            "{% endif %}"
-            "<b>{{event.id}}.</b> {{event.joined_title}}"
-            "{% if event.current %}"
-                "</b> 👈"
-            "{% endif %}"
-            "{% if event.skip %}"
-                "</s>"
-            "{% endif %}"
-            "{% if event.id in subscribed_event_ids %}"
-                " 🔔"
-            "{% endif %}"
-            "\n\n"
-        "{% endfor %}"
-    "{% endif %}"
-    "{% if dialog_data.search_query %}"
-    "\n\n"
-    "🔍 <i>Результаты поиска по запросу '{{ dialog_data.search_query }}'</i>\n\n"
-    "{% endif %}"
-)
-# fmt: on
+with open(TEMPLATES_DIR / "schedule.jinja2", "r", encoding="utf-8") as file:
+    EventsList = Jinja(file.read())
 
 
 async def main_schedule_getter(dialog_manager: DialogManager, db: Database, **kwargs):

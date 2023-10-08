@@ -18,6 +18,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
+from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
 from src.bot.dialogs.getters import schedule_list
 from src.bot.dialogs.schedule.common import (
@@ -34,41 +35,8 @@ EVENT_ID_INPUT = "subscribe_event_id_input"
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
 ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 
-# fmt: off
-SubscriptionsList = Jinja(
-    "{% if subscriptions|length == 0 %}"
-    "У вас нет подписок 🔕\n"
-    "{% else %}"
-    "{% for subscription in subscriptions %}"
-    "<b>{{ subscription.event.id }}.</b> {{ subscription.event.joined_title }}"
-    "{% if subscription.event.real_position - current_event_position > 0 %}"
-    "{% set counter = subscription.event.real_position - current_event_position %}"  # noqa: E501
-    " <b>[осталось "
-    "{% if (counter % 10 == 1) and (counter % 100 != 11) %}"
-    "{{ counter }} выступление"
-    "{% elif (2 <= counter % 10 <= 4) and (counter % 100 < 10 or counter % 100 >= 20) %}"  # noqa: E501
-    "{{ counter }} выступления"
-    "{% else %}"
-    "{{ counter }} выступлений"
-    "{% endif %}"
-    "{% if counter > subscription.counter %}"
-    ", начнём оповещать за "
-    "{% if (subscription.counter % 10 == 1) and (subscription.counter % 100 != 11) %}"  # noqa: E501
-    "{{ subscription.counter }} выступление]</b>"
-    "{% elif (2 <= subscription.counter % 10 <= 4) and (subscription.counter % 100 < 10 or subscription.counter % 100 >= 20) %}"  # noqa: E501
-    "{{ subscription.counter }} выступления]</b>"
-    "{% else %}"
-    "{{ subscription.counter }} выступлений]</b>"
-    "{% endif %}"
-    "{% else %}"
-    "]</b>"
-    "{% endif %}"
-    "{% endif %}"
-    "\n\n"
-    "{% endfor %}"
-    "{% endif %}"
-)
-# fmt: on
+with open(TEMPLATES_DIR / "subscriptions.jinja2", "r", encoding="utf-8") as file:
+    SubscriptionsList = Jinja(file.read())
 
 
 async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kwargs):

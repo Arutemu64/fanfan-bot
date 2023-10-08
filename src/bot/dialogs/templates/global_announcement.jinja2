@@ -1,0 +1,6 @@
+{% if current_event -%}
+    <b>Сейчас:</b> {{ current_event.joined_title }}
+{% endif %}
+{% if next_event -%}
+    <b>Затем:</b> {{ next_event.joined_title }}
+{% endif %}

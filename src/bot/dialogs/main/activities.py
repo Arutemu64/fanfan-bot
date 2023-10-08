@@ -14,7 +14,7 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
-from src.bot import BOT_ROOT_DIR
+from src.bot import BOT_ROOT_DIR, TEMPLATES_DIR
 from src.bot.dialogs import states
 from src.bot.ui import images, strings
 
@@ -45,21 +45,12 @@ async def activity_getter(dialog_manager: DialogManager, **kwargs):
     }
 
 
-# fmt: off
-activity_html = Jinja(
-    "<b>{{ activity_title|upper }}</b>"
-    "\n\n"
-    "{{ activity_text }}"
-    "\n\n"
-    "{% if activity_where %}"
-        "<b>Где:</b> {{ activity_where }}"
-    "{% endif %}"
-)
-# fmt: on
+with open(TEMPLATES_DIR / "activity.jinja2", "r", encoding="utf-8") as file:
+    Activity = Jinja(file.read())
 
 
 activity = Window(
-    activity_html,
+    Activity,
     StaticMedia(path=Format("{activity_image}")),
     StubScroll(id=ID_ACTIVITIES_SCROLL, pages="pages"),
     Row(

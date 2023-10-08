@@ -1,0 +1,7 @@
+<b>{{ activity_title|upper }}</b>
+
+{{ activity_text }}
+
+{% if activity_where -%}
+    <b>Где:</b> {{ activity_where }}
+{% endif %}

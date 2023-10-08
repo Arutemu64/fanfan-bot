@@ -1,0 +1,22 @@
+{% macro events_pluralize(count) %}
+{% if (count % 10 == 1) and (count % 100 != 11) -%}
+    выступление
+{%- elif (2 <= count % 10 <= 4) and (count % 100 < 10 or count % 100 >= 20) -%}
+    выступления
+{%- else -%}
+    выступлений
+{%- endif %}
+{% endmacro %}
+{% if subscriptions|length == 0 -%}
+    У вас нет подписок 🔕
+{% else %}
+    {% for subscription in subscriptions %}
+        {% set events_left = subscription.event.real_position - current_event_position %}
+        {% if (events_left > 0) and (events_left > subscription.counter) %}
+            {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}, начнём оповещать за {{subscription.counter}} {{events_pluralize(subscription.counter)}}]{% endset %}
+        {% elif (events_left > 0) and (events_left < subscription.counter) %}
+            {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}]{% endset %}
+        {% endif -%}
+        <b>{{ subscription.event.id }}.</b> {{ subscription.event.joined_title }} <b>{{ tag }}</b>
+    {% endfor %}
+{% endif %}

@@ -17,6 +17,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
+from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
@@ -27,27 +28,12 @@ from src.db import Database
 ID_TICKET_ROLE_PICKER = "ticket_role_picker"
 ID_VOTING_ENABLED_CHECKBOX = "voting_enabled_checkbox"
 
+with open(TEMPLATES_DIR / "stats.jinja2", "r", encoding="utf-8") as file:
+    StatsTemplate = Jinja(file.read())
+
 
 async def get_roles(**kwargs):
     return {"roles": list(map(lambda item: (item.value, item.label), UserRole))}
-
-
-# fmt: off
-StatsTemplate = Jinja(
-    "{% for info in bot_info %}"
-    "{% if info.name %}"
-    """<b>{{ info.name }}</b>: {{ info.value }}\n"""
-    "{% else %}"
-    "\n\n"
-    "{% endif %}"
-    "{% for sub in info.subs %}"
-    """ {{ "├─" if not loop.last else "└─" }}<b>{{ sub.name }}</b>: {{ sub.value }}\n"""  # noqa: E501
-    "{% endfor %}"
-    """{% endfor %}"""
-)
-
-
-# fmt: on
 
 
 async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):

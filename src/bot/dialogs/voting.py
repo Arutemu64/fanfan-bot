@@ -22,6 +22,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
+from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import FormatTitle, Title
 from src.bot.ui import strings
@@ -36,28 +37,8 @@ class UserVoteData(TypedDict):
     participant_id: int
 
 
-# fmt: off
-VotingList = Jinja(
-    "{% for participant in participants %}"
-    "{% if vote.participant_id == participant.id %}"
-    "<b>"
-    "{% endif %}"
-    "<b>{{participant.id}}.</b> {{participant.title}} "
-    "{% if (participant.votes_count % 10 == 1) and (participant.votes_count % 100 != 11) %}"  # noqa: E501
-    "[{{participant.votes_count}} голос]"
-    "{% elif (2 <= participant.votes_count % 10 <= 4) and (participant.votes_count % 100 < 10 or participant.votes_count % 100 >= 20) %}"  # noqa: E501
-    "[{{participant.votes_count}} голоса]"
-    "{% else %}"
-    "[{{participant.votes_count}} голосов]"
-    "{% endif %}"
-    "{% if vote.participant_id == participant.id %}"
-    "</b> ✅"
-    "{% endif %}"
-    "\n\n"
-    "{% endfor %}")
-
-
-# fmt: on
+with open(TEMPLATES_DIR / "voting.jinja2", "r", encoding="utf-8") as file:
+    VotingList = Jinja(file.read())
 
 
 async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwargs):

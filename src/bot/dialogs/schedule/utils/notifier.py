@@ -1,45 +1,21 @@
 import logging
 
-import jinja2
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
+from jinja2 import Environment, FileSystemLoader
 
+from src.bot import TEMPLATES_DIR
 from src.bot.dialogs.common import DELETE_BUTTON
 from src.db import Database
 from src.db.database import create_session_maker
 
 session_pool = create_session_maker()
-
-jinja = jinja2.Environment()
-
-# fmt: off
-subscription_template = jinja.from_string(
-    "{% if current_event.id == subscription.event_id %}"
-        "Выступление {{ subscription.event.joined_title }} "
-        "<b>НАЧАЛОСЬ!</b>"
-    "{% else %}"
-        "{% set counter = subscription.event.real_position - current_event.real_position %}"  # noqa: E501
-        "До выступления {{ subscription.event.joined_title }} "
-        "осталось "
-        "{% if (counter % 10 == 1) and (counter % 100 != 11) %}"
-            "<b>{{ counter }} выступление</b>"
-        "{% elif (2 <= counter % 10 <= 4) and (counter % 100 < 10 or counter % 100 >= 20) %}"  # noqa: E501
-            "<b>{{ counter }} выступления</b>"
-        "{% else %}"
-            "<b>{{ counter }} выступлений</b>"
-        "{% endif %}"
-    "{% endif %}"
+jinja = Environment(
+    loader=FileSystemLoader(TEMPLATES_DIR), lstrip_blocks=True, trim_blocks=True
 )
 
-global_announcement_template = jinja.from_string(
-    "{% if current_event %}"
-        "<b>Сейчас:</b> {{ current_event.joined_title }}\n"
-    "{% endif %}"
-    "{% if next_event %}"
-        "<b>Затем:</b> {{ next_event.joined_title }}\n"
-    "{% endif %}"
-)
-# fmt: on
+subscription_template = jinja.get_template("subscription_announcement.jinja2")
+global_announcement_template = jinja.get_template("global_announcement.jinja2")
 
 
 async def send_personal_notification(bot: Bot, user_id: int, text: str):

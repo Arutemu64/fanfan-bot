@@ -1,0 +1,8 @@
+{% for info in bot_info %}
+    {% if info.name -%}
+        <b>{{ info.name }}</b>: {{ info.value }}
+    {% endif %}
+    {% for sub in info.subs -%}
+        {{ " ├─" if not loop.last else " └─" }}<b>{{ sub.name }}</b>: {{ sub.value }}
+    {% endfor %}
+{% endfor %}

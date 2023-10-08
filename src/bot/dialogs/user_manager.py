@@ -21,29 +21,18 @@ from aiogram_dialog.widgets.kbd import (
     StubScroll,
     SwitchTo,
 )
-from aiogram_dialog.widgets.text import Const, Format, Jinja, List
+from aiogram_dialog.widgets.text import Const, Format, List
 
 from src.bot.dialogs import states
 from src.bot.dialogs.common import DELETE_BUTTON
 from src.bot.dialogs.getters import achievements_list
+from src.bot.dialogs.getters.achievements import AchievementsList
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
-
-# fmt: off
-AchievementsList = Jinja(
-    "{% for achievement in achievements %}"
-        """<b>{{ achievement.id }}. {{ achievement.title }}</b> {{ "✅" if achievement.id in received_achievements else "" }}\n"""  # noqa
-        "{% if achievement.description %}"
-            "{{ achievement.description }}\n"
-        "{% endif %}"
-        "\n\n"
-    "{% endfor %}"
-)
-# fmt: on
 
 
 async def get_roles(**kwargs):
@@ -87,6 +76,7 @@ async def achievements_getter(dialog_manager: DialogManager, db: Database, **kwa
         achievements_per_page=dialog_manager.dialog_data["achievements_per_page"],
         page=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
         user_id=dialog_manager.dialog_data["user_id"],
+        show_ids=True,
     )
 
 
