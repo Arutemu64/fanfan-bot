@@ -7,7 +7,7 @@ authors = ["Arutemu64 <arutemu64@outlook.com>"]
 [tool.poetry.dependencies]
 python = "3.11.*"
 alembic = "^1.12.0"
-alembic-postgresql-enum = "^0.1.9"
+alembic-postgresql-enum = "^0.2.0"
 alembic-utils = "^0.8.1"
 environs = "^9.5.0"
 flask-login = "^0.6.2"
