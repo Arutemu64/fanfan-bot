@@ -1,29 +1,39 @@
-from flask import Flask
+from pathlib import Path
+
+import uvicorn
+from fastapi import FastAPI
+from sqladmin import Admin
+from starlette.middleware.sessions import SessionMiddleware
 
 from src.config import conf
-from src.panel import admin, db, env, login_manager, views
-from src.panel.login import login_bp
+from src.panel import engine
 
 
-def create_app() -> Flask:
-    app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = conf.db.build_connection_str(
-        driver="psycopg"
+def create_app() -> FastAPI:
+    app = FastAPI()
+    app.add_middleware(SessionMiddleware, secret_key=conf.bot.secret_key)
+
+    from src.panel.auth import AdminAuth, auth_router
+
+    app.include_router(auth_router)
+
+    authentication_backend = AdminAuth(secret_key=conf.bot.secret_key)
+    admin = Admin(
+        app,
+        engine,
+        base_url="/",
+        title="FF-Bot",
+        authentication_backend=authentication_backend,
+        debug=True,
+        templates_dir=Path(__file__).parent.joinpath("templates").__str__(),
     )
-    app.config["SECRET_KEY"] = env("SECRET_KEY")
-    db.init_app(app)
-    login_manager.init_app(app)
-    app.register_blueprint(login_bp)
+    from src.panel.views import views
 
-    admin.init_app(app)
-    views.add_views(db, admin)
+    for view in views:
+        admin.add_view(view)
 
     return app
 
 
-def main():
-    create_app().run(debug=env.bool("DEBUG"))
-
-
-if __name__ == "__main__" and conf.bot.mode == "polling":
-    main()
+if __name__ == "__main__":
+    uvicorn.run("src.panel.app:create_app", reload=True, factory=True)

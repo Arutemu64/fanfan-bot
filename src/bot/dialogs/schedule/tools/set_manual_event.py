@@ -86,7 +86,7 @@ async def proceed_input(
 
     # Выводим подтверждение
     await message.reply(
-        f"✅ Выступление <b>{new_current_event.joined_title}</b> отмечено как текущее"
+        f"✅ Выступление <b>{new_current_event.title}</b> отмечено как текущее"
     )
 
     # Запускаем проверку подписок

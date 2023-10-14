@@ -1,186 +1,190 @@
-import flask_login
-import pytz
-from flask_admin.contrib.sqla import ModelView
+from sqladmin import ModelView
+
+from src.db.models import (
+    Achievement,
+    Event,
+    Nomination,
+    Participant,
+    ReceivedAchievement,
+    Ticket,
+    Transaction,
+    User,
+    Vote,
+)
 
 
-class CustomModelView(ModelView):
-    create_modal = True
-    edit_modal = True
-
+class TicketAdmin(ModelView, model=Ticket):
+    name_plural = "Билеты"
+    icon = "fa-solid fa-ticket"
+    column_list = [Ticket.id, Ticket.role, Ticket.time_created]
     column_labels = {
-        "id": "ID",
-        "username": "Никнейм",
-        "role": "Роль",
-        "time_created": "Время создания",
-        "time_updated": "Время обновления",
+        Ticket.id: "Номер билета",
+        Ticket.role: "Роль",
+        Ticket.time_created: "Время выпуска",
     }
-
-    column_formatters = dict(
-        time_created=lambda v, c, m, p: m.time_created.replace(
-            tzinfo=pytz.utc
-        ).astimezone(
-            tz=pytz.timezone("Europe/Moscow"),
-        ),
-        time_updated=lambda v, c, m, p: m.time_updated.replace(
-            tzinfo=pytz.utc
-        ).astimezone(
-            tz=pytz.timezone("Europe/Moscow"),
-        ),
-    )
-
-    def is_accessible(self):
-        return flask_login.current_user.is_authenticated
+    form_columns = [Ticket.id, Ticket.role]
+    form_include_pk = True
+    column_searchable_list = [Ticket.id, Ticket.role]
 
 
-class TicketView(CustomModelView):
-    form_columns = ["id", "role"]
+class UserAdmin(ModelView, model=User):
+    name_plural = "Пользователи"
+    icon = "fa-solid fa-users"
+    can_create = False
     column_list = [
-        "id",
-        "role",
-        "used_by",
-        "issued_by",
-        "time_created",
+        User.id,
+        User.username,
+        User.role,
+        User.achievements_count,
+        User.points,
+        User.time_created,
     ]
     column_labels = {
-        "id": "Номер билета",
-        "role": "Роль",
-        "used_by": "Использован",
-        "issued_by": "Выпущен",
-        "time_created": "Время выпуска",
-        "issued_by.id": "Выпущен (ID)",
+        User.id: "ID",
+        User.username: "Имя пользователя",
+        User.role: "Роль",
+        User.achievements_count: "Достижений получено",
+        User.points: "Очков",
+        User.time_created: "Время регистрации",
     }
-    column_filters = ["role"]
-    column_searchable_list = ["issued_by.id"]
+    form_columns = [User.username, User.role]
+    column_searchable_list = [User.username, User.role]
+    column_sortable_list = [User.achievements_count, User.points]
 
 
-class UserView(CustomModelView):
-    can_create = False
-    form_columns = ["role", "receive_all_announcements"]
+class AchievementAdmin(ModelView, model=Achievement):
+    name_plural = "Достижения"
+    icon = "fa-solid fa-trophy"
+    column_list = [Achievement.id, Achievement.title, Achievement.description]
+    column_labels = {
+        Achievement.id: "ID",
+        Achievement.title: "Название",
+        Achievement.description: "Описание",
+    }
+    form_excluded_columns = [Achievement.time_created, Achievement.time_updated]
+
+
+class ReceivedAchievementAdmin(ModelView, model=ReceivedAchievement):
+    name_plural = "Полученные достижения"
+    icon = "fa-solid fa-star"
     column_list = [
-        "id",
-        "username",
-        "role",
-        "receive_all_announcements",
-        "points",
-        "achievements_count",
-        "time_created",
+        ReceivedAchievement.user,
+        ReceivedAchievement.achievement,
+        ReceivedAchievement.time_created,
     ]
     column_labels = {
-        "id": "ID",
-        "username": "Никнейм",
-        "role": "Роль",
-        "receive_all_announcements": "Получает все уведомления",
-        "points": "Очков",
-        "achievements_count": "Достижений получено",
-        "time_created": "Время регистрации",
+        ReceivedAchievement.user: "Пользователь",
+        ReceivedAchievement.achievement: "Достижение",
+        ReceivedAchievement.time_created: "Время получения",
     }
-    column_searchable_list = ["id", "username"]
-    column_filters = ["role"]
-
-
-class AchievementView(CustomModelView):
-    form_columns = ["title", "description"]
-    column_list = ["id", "title", "description"]
-    column_labels = {
-        "id": "ID",
-        "title": "Название",
-        "description": "Описание",
-    }
-
-
-class ReceivedAchievementView(CustomModelView):
     can_create = False
-    column_list = ["user", "achievement", "time_created"]
-    column_searchable_list = ["user.username", "achievement.title"]
-    column_labels = {
-        "user": "Пользователь",
-        "achievement": "Достижение",
-        "user.username": "Пользователь",
-        "achievement.title": "Достижение",
-        "Время получения": "time_created",
-    }
+    can_edit = False
 
 
-class EventView(CustomModelView):
-    column_default_sort = "position"
-    form_excluded_columns = ["current", "real_position"]
+class EventAdmin(ModelView, model=Event):
+    name_plural = "Расписание"
+    icon = "fa-solid fa-calendar-days"
     column_list = [
-        "id",
-        "position",
-        "real_position",
-        "joined_title",
-        "participant.nomination.code",
-        "skip",
+        Event.id,
+        Event.real_position,
+        Event.title,
+        Event.skip,
     ]
     column_labels = {
-        "id": "ID",
-        "position": "Позиция",
-        "real_position": "Позиция (с учётом пропусков)",
-        "joined_title": "Заголовок",
-        "skip": "Пропущено",
-        "participant.nomination.code": "Номинация (код)",
+        Event.id: "ID",
+        Event.real_position: "Позиция (с учётом пропусков)",
+        Event.title: "Название",
+        Event.participant: "Участник",
+        Event.skip: "Пропущено",
     }
-    column_searchable_list = ["joined_title"]
-
-
-class ParticipantView(CustomModelView):
-    column_sortable_list = ["id", "nomination", "votes_count"]
-    column_list = ["id", "title", "nomination", "votes_count"]
-    column_searchable_list = ["title"]
-    column_filters = ["nomination"]
-    column_labels = {
-        "id": "ID",
-        "title": "Название",
-        "nomination": "Номинация",
-        "votes_count": "Голосов",
-    }
-
-
-class NominationView(CustomModelView):
-    column_list = ["id", "title", "votable", "participants_count"]
-    form_columns = ["id", "title", "votable"]
-    column_searchable_list = ["title"]
-    column_labels = {
-        "id": "ID",
-        "title": "Название",
-        "votable": "Голосование",
-        "participants_count": "Количество участников",
-    }
-
-
-class VoteView(CustomModelView):
     can_create = False
-    column_list = ["user", "participant", "participant.nomination", "time_created"]
-    column_searchable_list = ["user.username", "participant.title"]
-    column_filters = ["participant.nomination.title"]
+
+
+class ParticipantAdmin(ModelView, model=Participant):
+    name_plural = "Участники"
+    icon = "fa-solid fa-person-falling-burst"
+    column_list = [
+        Participant.id,
+        Participant.title,
+        Participant.nomination,
+        Participant.votes_count,
+    ]
     column_labels = {
-        "user": "Пользователь",
-        "participant": "Участник",
-        "participant.nomination": "Номинация",
-        "user.username": "Пользователь",
-        "participant.title": "Участник",
-        "time_created": "Время голосования",
+        Participant.id: "ID",
+        Participant.title: "Название",
+        Participant.nomination: "Номинация",
+        Participant.votes_count: "Количество голосов",
+    }
+    form_columns = [Participant.title, Participant.nomination]
+    column_searchable_list = [Participant.title]
+    column_sortable_list = [Participant.votes_count]
+
+
+class NominationAdmin(ModelView, model=Nomination):
+    name_plural = "Номинации"
+    icon = "fa-solid fa-graduation-cap"
+    column_list = [
+        Nomination.id,
+        Nomination.title,
+        Nomination.votable,
+        Nomination.participants_count,
+    ]
+    column_labels = {
+        Nomination.id: "ID",
+        Nomination.title: "Название",
+        Nomination.votable: "Голосование",
+        Nomination.participants_count: "Количество участников",
+    }
+    form_include_pk = True
+    form_columns = [Nomination.id, Nomination.title, Nomination.votable]
+
+
+class VoteAdmin(ModelView, model=Vote):
+    name_plural = "Голосование"
+    icon = "fa-solid fa-square-poll-vertical"
+    can_create = False
+    can_edit = False
+    column_list = [Vote.id, Vote.participant, Vote.user, Vote.time_created]
+    column_labels = {
+        Vote.id: "ID",
+        Vote.participant: "Участник",
+        Vote.user: "Пользователь",
+        Vote.time_created: "Время голосования",
     }
 
 
-class TransactionView(CustomModelView):
+class TransactionAdmin(ModelView, model=Transaction):
+    name_plural = "Транзакции"
+    icon = "fa-solid fa-money-bill-transfer"
     can_create = False
     can_edit = False
     can_delete = False
     column_list = [
-        "id",
-        "from_user",
-        "to_user",
-        "points_added",
-        "achievement_added",
-        "time_created",
+        Transaction.id,
+        Transaction.from_user,
+        Transaction.to_user,
+        Transaction.time_created,
+        Transaction.achievement_added,
+        Transaction.points_added,
     ]
-    column_filters = ["from_user.username", "to_user.username"]
     column_labels = {
-        "id": "ID",
-        "from_user": "От пользователя",
-        "to_user": "Пользователю",
-        "points_added": "Очков добавлено",
-        "achievement_added": "Достижение добавлено",
-        "time_created": "Время",
+        Transaction.id: "ID",
+        Transaction.from_user: "От пользователя",
+        Transaction.to_user: "Пользователю",
+        Transaction.time_created: "Время",
+        Transaction.achievement_added: "Достижение добавлено",
+        Transaction.points_added: "Очков добавлено",
     }
+
+
+model_views = [
+    TicketAdmin,
+    UserAdmin,
+    AchievementAdmin,
+    ReceivedAchievementAdmin,
+    EventAdmin,
+    ParticipantAdmin,
+    NominationAdmin,
+    VoteAdmin,
+    TransactionAdmin,
+]

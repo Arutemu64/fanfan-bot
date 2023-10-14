@@ -17,6 +17,6 @@
         {% elif (events_left > 0) and (events_left < subscription.counter) %}
             {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}]{% endset %}
         {% endif -%}
-        <b>{{ subscription.event.id }}.</b> {{ subscription.event.joined_title }} <b>{{ tag }}</b>
+        <b>{{ subscription.event.id }}.</b> {{ subscription.event.title }} <b>{{ tag }}</b>
     {% endfor %}
 {% endif %}

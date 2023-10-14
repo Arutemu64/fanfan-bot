@@ -1,18 +1,16 @@
 import datetime
 
-from flask_login import UserMixin
 from sqlalchemy import (
     BigInteger,
     DateTime,
     ForeignKey,
     MetaData,
     Sequence,
-    String,
     func,
     select,
 )
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import (
     Mapped,
     as_declarative,
@@ -36,7 +34,7 @@ metadata = MetaData(
 
 
 @as_declarative(metadata=metadata)
-class Base:
+class Base(AsyncAttrs):
     """Abstract model with declarative base functionality."""
 
     id: Mapped[int | str]
@@ -92,11 +90,12 @@ class ReceivedAchievement(Base):
 
     user: Mapped["User"] = relationship(lazy="selectin", foreign_keys=user_id)
     achievement: Mapped["Achievement"] = relationship(
-        lazy="selectin", foreign_keys=achievement_id
+        lazy="selectin",
+        foreign_keys=achievement_id,
     )
 
 
-class User(Base, UserMixin):
+class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
@@ -109,8 +108,10 @@ class User(Base, UserMixin):
     points: Mapped[int] = mapped_column(server_default="0")
 
     achievements_count = column_property(
-        select(func.count()).where(ReceivedAchievement.user_id == id).scalar_subquery(),
-        deferred=True,
+        select(func.count())
+        .where(ReceivedAchievement.user_id == id)
+        .correlate_except(ReceivedAchievement)
+        .scalar_subquery(),
     )
 
     def __str__(self):
@@ -137,23 +138,27 @@ class Event(Base):
     skip: Mapped[bool] = mapped_column(nullable=True, server_default="False")
     current: Mapped[bool] = mapped_column(nullable=True, unique=True)
 
-    participant: Mapped["Participant"] = relationship(lazy="selectin", viewonly=True)
+    participant: Mapped["Participant"] = relationship(lazy="selectin")
 
-    @hybrid_property
-    def joined_title(self) -> str:
-        return self.title or (self.participant.title if self.participant else None)
-
-    @joined_title.expression
-    def joined_title(cls):
-        stmt = (
-            select(Participant.title)
-            .where(Participant.id == cls.participant_id)
-            .as_scalar()
-        )
-        return func.coalesce(cls.title, stmt).cast(String)
+    # @property
+    # def joined_title(self) -> str:
+    #     return
+    #
+    # @hybrid_property
+    # def joined_title(self) -> str:
+    #     return self.title or (self.participant.title if self.participant else None)
+    #
+    # @joined_title.expression
+    # def joined_title(cls):
+    #     stmt = (
+    #         select(Participant.title)
+    #         .where(Participant.id == cls.participant_id)
+    #         .as_scalar()
+    #     )
+    #     return func.coalesce(cls.title, stmt).cast(String)
 
     def __str__(self):
-        return self.joined_title
+        return self.title
 
 
 class Achievement(Base):
@@ -189,12 +194,14 @@ class Participant(Base):
         ForeignKey("nominations.id", ondelete="SET NULL"), nullable=True
     )
 
-    event: Mapped["Event"] = relationship(lazy="selectin")
+    event: Mapped["Event"] = relationship(back_populates="participant")
     nomination: Mapped["Nomination"] = relationship(lazy="selectin")
 
     votes_count = column_property(
-        select(func.count()).where(Vote.participant_id == id).scalar_subquery(),
-        deferred=True,
+        select(func.count())
+        .where(Vote.participant_id == id)
+        .correlate_except(Vote)
+        .scalar_subquery(),
     )
 
     def __str__(self):
@@ -209,8 +216,10 @@ class Nomination(Base):
     votable: Mapped[bool] = mapped_column(server_default="False")
 
     participants_count = column_property(
-        select(func.count()).where(Participant.nomination_id == id).scalar_subquery(),
-        deferred=True,
+        select(func.count())
+        .where(Participant.nomination_id == id)
+        .correlate_except(Participant)
+        .scalar_subquery(),
     )
 
     def __str__(self):

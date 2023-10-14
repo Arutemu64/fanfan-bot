@@ -1,5 +1,5 @@
-{% extends 'admin/master.html' %}
-{% block body %}
+{% extends "layout.html" %}
+{% block content %}
 <h2>Парсинг расписания из Cosplay2</h2>
 <div class="alert alert-info" role="alert">
   Для импорта расписания из Cosplay2 перейдите в раздел <b>"Планирование расписания"</b>
@@ -11,8 +11,7 @@
 </div>
 <form method="post" class="form form-vertical" enctype="multipart/form-data">
     <div class="d-flex justify-content-center align-items-center">
-        {{ form.hidden_tag() }}
-        {{ form.file }}
+        <input type="file" name="file">
         <input class="btn btn-primary" type="submit" value="Парсить!">
     </div>
 </form>

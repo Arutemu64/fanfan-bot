@@ -46,7 +46,7 @@ async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs)
         algorithm="HS256",
     )
     return {
-        "web_panel_login_link": f"{conf.bot.web_panel_link}/login?token={jwt_token}",
+        "web_panel_login_link": f"{conf.bot.web_panel_link}/auth?token={jwt_token}",
         "bot_info": (
             {
                 "name": "🎫 Билетов",

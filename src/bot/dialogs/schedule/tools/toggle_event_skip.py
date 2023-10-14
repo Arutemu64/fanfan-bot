@@ -64,9 +64,9 @@ async def proceed_input(
 
     # Выводим подтверждение
     if event.skip:
-        await message.reply(f"🙈 Выступление <b>{event.joined_title}</b> пропущено")
+        await message.reply(f"🙈 Выступление <b>{event.title}</b> пропущено")
     if not event.skip:
-        await message.reply(f"🙉 Выступление <b>{event.joined_title}</b> возвращено")
+        await message.reply(f"🙉 Выступление <b>{event.title}</b> возвращено")
 
     # Получаем следующее выступление после скрытия
     next_event_after = await db.event.get_next(current_event)

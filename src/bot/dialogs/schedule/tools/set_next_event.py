@@ -48,7 +48,7 @@ async def set_next_event(
     await db.session.commit()
 
     # Выводим подтверждение
-    await callback.answer(f"✅ {next_event.joined_title}")
+    await callback.answer(f"✅ {next_event.title}")
 
     # Запускаем проверку подписок
     asyncio.create_task(

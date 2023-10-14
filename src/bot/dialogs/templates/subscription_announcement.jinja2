@@ -8,8 +8,8 @@
 {%- endif %}
 {% endmacro %}
 {% if current_event.id == subscription.event_id -%}
-    Выступление {{ subscription.event.joined_title }} <b>НАЧАЛОСЬ!</b>
+    Выступление {{ subscription.event.title }} <b>НАЧАЛОСЬ!</b>
 {% else %}
     {% set counter = subscription.event.real_position - current_event.real_position -%}
-    До выступления {{ subscription.event.joined_title }} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
+    До выступления {{ subscription.event.title }} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
 {% endif %}

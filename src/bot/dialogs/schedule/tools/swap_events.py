@@ -73,8 +73,7 @@ async def swap_events(
 
     # Выводим подтверждение
     await message.reply(
-        f"✅ Выступление <b>{event1.joined_title}</b> "
-        f"заменено на <b>{event2.joined_title}</b>"
+        f"✅ Выступление <b>{event1.title}</b> " f"заменено на <b>{event2.title}</b>"
     )
 
     # Получаем следующее выступление после переноса

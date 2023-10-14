@@ -90,7 +90,7 @@ async def proceed_input(
         await message.reply("⚠️ Вы уже подписаны на это выступление!")
         return
     else:
-        dialog_manager.dialog_data["selected_event_title"] = event.joined_title
+        dialog_manager.dialog_data["selected_event_title"] = event.title
         await dialog_manager.switch_to(states.SUBSCRIPTIONS.SET_SUBSCRIPTION_COUNTER)
 
 
@@ -117,7 +117,7 @@ async def setup_subscription(
     await db.session.refresh(subscription)
     await message.reply(
         f"✅ Подписка на выступление "
-        f"<b>{subscription.event.joined_title}</b>"
+        f"<b>{subscription.event.title}</b>"
         f" успешно оформлена!"
     )
 

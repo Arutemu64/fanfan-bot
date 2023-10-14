@@ -11,7 +11,7 @@ from .abstract import Repository
 
 def _generate_search_terms(search_query: str) -> ColumnElement:
     return or_(
-        Event.joined_title.ilike(f"%{search_query}%"),
+        Event.title.ilike(f"%{search_query}%"),
         Event.participant.has(
             Participant.nomination.has(Nomination.title.ilike(f"%{search_query}%"))
         ),
@@ -79,7 +79,7 @@ class EventRepo(Repository[Event]):
             event_position = await super()._get_count(
                 and_(
                     Event.position < event.position,
-                    Event.joined_title.ilike(f"%{search_query}%"),
+                    Event.title.ilike(f"%{search_query}%"),
                 )
             )
         else:
