@@ -44,7 +44,7 @@ openpyxl = "^3.1.2"
 pandas = "^2.0.3"
 psycopg = {version = "^3.1.12", extras = ["binary"]}
 pytz = "^2023.3.post1"
-werkzeug = "2.3.7"
+werkzeug = "3.0.0"
 xlrd = "^2.0.1"
 
 [tool.poetry.group.dev]
