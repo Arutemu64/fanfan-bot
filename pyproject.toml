@@ -7,15 +7,15 @@ authors = ["Arutemu64 <arutemu64@outlook.com>"]
 [tool.poetry.dependencies]
 python = "3.11.*"
 alembic = "^1.12.0"
-alembic-postgresql-enum = "^0.1.9"
+alembic-postgresql-enum = "^0.2.1"
 alembic-utils = "^0.8.1"
 environs = "^9.5.0"
 flask-login = "^0.6.2"
 jinja2 = "^3.1.2"
 pyjwt = "^2.8.0"
-qrcode = "^7.4.2"
-redis = "^5.0.0"
-sentry-sdk = "^1.31.0"
+qrcode = {version = "^7.4.2", extras = ["pil"]}
+redis = "^5.0.1"
+sentry-sdk = {version = "^1.32.0", extras = ["sqlalchemy", "redis", "aiohttp"]}
 
 [tool.poetry.group.bot]
 optional=true
@@ -28,7 +28,7 @@ asyncpg = "^0.28.0"
 #torchvision = {version = "^0.15.2+cpu", source = "torch-cpu"}
 #opencv-python-headless = "^4.8.0.74"
 #qreader = {version = "^3.9"}
-sqlalchemy = "^2.0.20"
+sqlalchemy = "^2.0.22"
 
 [tool.poetry.group.panel]
 optional=true
@@ -42,7 +42,7 @@ gunicorn = "^21.2.0"
 numpy = "^1.26.0"
 openpyxl = "^3.1.2"
 pandas = "^2.0.3"
-psycopg = {version = "^3.1.10", extras = ["binary"]}
+psycopg = "^3.1.12"
 pytz = "^2023.3.post1"
 werkzeug = "2.3.7"
 xlrd = "^2.0.1"
