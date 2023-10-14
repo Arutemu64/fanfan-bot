@@ -23,4 +23,4 @@ RUN poetry check && \
     poetry install --no-interaction --no-cache --with panel
 
 COPY .. .
-CMD ["poetry", "run", "gunicorn"  , "--bind", "panel:8081", "src.panel.app:app"]
+CMD ["poetry", "run", "gunicorn"  , "--bind", "panel:8081", "src.panel.app:create_app()"]

@@ -42,7 +42,7 @@ gunicorn = "^21.2.0"
 numpy = "^1.26.0"
 openpyxl = "^3.1.2"
 pandas = "^2.0.3"
-psycopg = "^3.1.12"
+psycopg = {version = "^3.1.12", extras = ["binary"]}
 pytz = "^2023.3.post1"
 werkzeug = "2.3.7"
 xlrd = "^2.0.1"
