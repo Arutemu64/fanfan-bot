@@ -24,6 +24,8 @@
 </head>
 <body>
     <script>
+        const urlParams = new URLSearchParams(window.location.search);
+
         Telegram.WebApp.ready();
 
         is_telegram_api_updated = Telegram.WebApp.isVersionAtLeast('6.4');
@@ -42,7 +44,7 @@
             var initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
             Telegram.WebApp.showScanQrPopup("Наведите смартфон на QR-код с логотипом фестиваля", function (qr_text) {
                 $.ajax({
-                    url: '/qr_scanner',
+                    url: urlParams.get("callback"),
                     method: 'post',
                     dataType: 'json',
                     data: {

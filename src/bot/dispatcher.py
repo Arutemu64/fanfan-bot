@@ -9,7 +9,6 @@ from aiogram.types import ErrorEvent
 from aiogram_dialog import BgManagerFactory, DialogManager, setup_dialogs
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from aiogram_dialog.context.media_storage import MediaIdStorage
-from sqlalchemy.orm import sessionmaker
 
 from src.bot import dialogs, handlers
 from src.bot.middlewares import (
@@ -17,7 +16,6 @@ from src.bot.middlewares import (
     SentryLoggingMiddleware,
 )
 from src.config import conf
-from src.db.database import create_session_maker
 
 
 async def on_unknown_intent_or_state(event: ErrorEvent, dialog_manager: DialogManager):
@@ -30,7 +28,6 @@ def get_dispatcher(
     storage: BaseStorage = MemoryStorage(),
     fsm_strategy: Optional[FSMStrategy] = FSMStrategy.CHAT,
     event_isolation: Optional[BaseEventIsolation] = None,
-    session_pool: sessionmaker = create_session_maker(),
 ) -> Tuple[Dispatcher, BgManagerFactory]:
     dp = Dispatcher(
         storage=storage, fsm_strategy=fsm_strategy, events_isolation=event_isolation
@@ -47,7 +44,7 @@ def get_dispatcher(
     if conf.bot.sentry_logging_enabled:
         dp.update.middleware(SentryLoggingMiddleware())
 
-    dp.update.middleware(DatabaseMiddleware(session_pool=session_pool))
+    dp.update.middleware(DatabaseMiddleware())
 
     dp.errors.register(
         on_unknown_intent_or_state,

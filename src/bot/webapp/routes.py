@@ -6,7 +6,7 @@ from aiogram_dialog import BgManagerFactory
 from aiohttp.web_fileresponse import FileResponse
 from aiohttp.web_request import Request
 from aiohttp.web_response import json_response
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.utils.qr import proceed_qr_code
 from src.db import Database
@@ -18,7 +18,6 @@ async def open_qr_scanner(request: Request):
 
 async def proceed_qr_post(request: Request):
     bot: Bot = request.app["bot"]
-    session_pool: sessionmaker = request.app["session_pool"]
     bgm_factory: BgManagerFactory = request.app["bgm_factory"]
 
     data = await request.post()
@@ -30,10 +29,13 @@ async def proceed_qr_post(request: Request):
         return json_response({"ok": False, "err": "Unauthorized"}, status=401)
 
     bg = bgm_factory.bg(
-        bot=bot, user_id=web_app_init_data.user.id, chat_id=web_app_init_data.user.id
+        bot=bot,
+        user_id=web_app_init_data.user.id,
+        chat_id=web_app_init_data.user.id,
+        load=True,
     )
 
-    async with session_pool() as session:
+    async with AsyncSession(bind=request.app["engine"]) as session:
         await proceed_qr_code(
             manager=bg,
             db=Database(session),

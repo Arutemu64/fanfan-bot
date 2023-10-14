@@ -58,7 +58,6 @@ class BotConfig:
         webhook_path: str = env("WEBHOOK_PATH")
         web_server_host: str = env("WEB_SERVER_HOST")
         web_server_port: int = env.int("WEB_SERVER_PORT")
-        use_webapp_qr_scanner: bool = env.bool("USE_WEBAPP_QR_SCANNER", True)
 
     web_panel_link: str = env("WEB_PANEL_LINK")
 

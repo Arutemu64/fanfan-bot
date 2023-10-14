@@ -82,7 +82,7 @@ main = Window(
         WebApp(
             Const(strings.titles.qr_scanner),
             url=Const(
-                f"""https://{conf.bot.webhook_domain}{conf.bot.webhook_path}/qr_scanner"""
+                f"""https://{conf.bot.webhook_domain}{conf.bot.webhook_path}/qr_scanner?callback={conf.bot.webhook_path}/qr_scanner"""
                 if conf.bot.mode == "webhook"
                 else ""
             ),

@@ -52,7 +52,9 @@ def add_views(db: SQLAlchemy, admin: Admin):
     admin.add_views(TransactionView(Transaction, db.session, "Транзакции"))
     admin.add_view(
         PlanParserView(
-            name="Парсинг расписания (Cosplay2)", endpoint="plan_parse_c2", category="Парсинг"
+            name="Парсинг расписания (Cosplay2)",
+            endpoint="plan_parse_c2",
+            category="Парсинг",
         )
     )
     admin.add_view(

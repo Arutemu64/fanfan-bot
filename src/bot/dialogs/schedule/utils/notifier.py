@@ -3,13 +3,16 @@ import logging
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from jinja2 import Environment, FileSystemLoader
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot import TEMPLATES_DIR
 from src.bot.dialogs.common import DELETE_BUTTON
+from src.config import conf
 from src.db import Database
-from src.db.database import create_session_maker
+from src.db.database import create_async_engine
 
-session_pool = create_session_maker()
+engine = create_async_engine(conf.db.build_connection_str())
+
 jinja = Environment(
     loader=FileSystemLoader(TEMPLATES_DIR), lstrip_blocks=True, trim_blocks=True
 )
@@ -33,7 +36,7 @@ async def proceed_subscriptions(
     bot: Bot,
     send_global_announcement: bool = False,
 ):
-    async with session_pool() as session:
+    async with AsyncSession(bind=engine) as session:
         db = Database(session)
 
         current_event = await db.event.get_current()
