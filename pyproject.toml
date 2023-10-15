@@ -48,7 +48,7 @@ optional=true
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 mypy = "^1.5.1"
-ruff = "^0.0.291"
+ruff = "^0.0.292"
 
 [tool.ruff]
 line-length = 88
