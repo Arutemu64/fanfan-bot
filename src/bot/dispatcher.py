@@ -36,12 +36,12 @@ def get_dispatcher(
     dp.message.filter(F.chat.type == "private")
 
     media_storage = MediaIdStorage()
-    bgm_factory = setup_dialogs(dp, media_id_storage=media_storage)
+    dialog_bg_factory = setup_dialogs(dp, media_id_storage=media_storage)
 
     dp.include_router(handlers.setup_router())
     dp.include_router(dialogs.setup_router())
 
-    if conf.bot.sentry_logging_enabled:
+    if conf.sentry_enabled:
         dp.update.middleware(SentryLoggingMiddleware())
 
     dp.update.middleware(DatabaseMiddleware())
@@ -49,10 +49,7 @@ def get_dispatcher(
     dp.errors.register(
         on_unknown_intent_or_state,
         ExceptionTypeFilter(UnknownIntent),
-    )
-    dp.errors.register(
-        on_unknown_intent_or_state,
         ExceptionTypeFilter(UnknownState),
     )
 
-    return dp, bgm_factory
+    return dp, dialog_bg_factory

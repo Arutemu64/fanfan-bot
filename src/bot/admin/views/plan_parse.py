@@ -5,11 +5,10 @@ from openpyxl import load_workbook
 from openpyxl.cell import Cell
 from sqladmin import BaseView, expose
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from src.db import Database
 from src.db.models import Event, Nomination, Participant
-from src.panel import engine
 
 
 async def drop_schedule(db: Database):
@@ -23,7 +22,7 @@ async def drop_schedule(db: Database):
     await db.session.commit()
 
 
-async def proceed_plan(path: Path):
+async def proceed_plan(path: Path, engine: AsyncEngine):
     db = Database(AsyncSession(bind=engine, expire_on_commit=False))
     await drop_schedule(db)
     wb = load_workbook(path)
@@ -37,7 +36,7 @@ async def proceed_plan(path: Path):
         if cc.font.b:  # Either Event or Nomination
             if nc.font.b or nc.value is None:  # Event
                 title = cc.value
-                event = await db.event._get_by_where(Event.title == title)
+                event = await db.event.get_by_title(title)
                 if not event:
                     new_event = Event(title=title)
                     db.session.add(new_event)
@@ -46,7 +45,7 @@ async def proceed_plan(path: Path):
                     new_events.append(new_event)
             else:  # Nomination
                 code = nc.value.split()[0]
-                nomination = await db.nomination._get_by_where(Nomination.id == code)
+                nomination = await db.nomination.get(code)
                 if not nomination:
                     new_nomination = Nomination(id=code, title=cc.value)
                     db.session.add(new_nomination)
@@ -54,11 +53,12 @@ async def proceed_plan(path: Path):
                     print(f"Added new nomination {new_nomination.id}")
                     new_nominations.append(new_nomination)
         else:  # Participant
-            code = cc.value.split()[0]
             title = cc.value.split(", ", 1)[1]
-            participant = await db.participant._get_by_where(Participant.title == title)
+            code = cc.value.split()[0]
+            participant = await db.participant.get_by_title(title)
+            nomination = await db.nomination.get(code)
             if not participant:
-                participant = Participant(title=title, nomination_id=code)
+                participant = Participant(title=title, nomination=nomination)
                 db.session.add(participant)
                 await db.session.flush([participant])
                 new_participants.append(participant)
@@ -84,7 +84,6 @@ class PlanParseView(BaseView):
     @expose("/plan_parse", methods=["GET", "POST"])
     async def plan_parse(self, request: Request):
         if request.method == "GET":
-            print("GET")
             return self.templates.TemplateResponse(
                 "plan_parse.html", context={"request": request}
             )
@@ -95,7 +94,7 @@ class PlanParseView(BaseView):
         path = Path(__file__).parent.joinpath(file.filename)
         with open(path, "wb") as f:
             f.write(content)
-        await proceed_plan(path)
+        await proceed_plan(path, request.app.state.engine)
         return self.templates.TemplateResponse(
             "plan_parse.html", context={"request": request}
         )

@@ -1,9 +1,10 @@
-from typing import Optional
+from typing import List, Optional
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...bot.structures import Page
-from ..models import Achievement
+from ..models import Achievement, ReceivedAchievement, User
 from .abstract import Repository
 
 
@@ -26,3 +27,13 @@ class AchievementRepo(Repository[Achievement]):
             page=page,
             items_per_page=achievements_per_page,
         )
+
+    async def check_user_achievements(
+        self, user: User, achievements: List[Achievement]
+    ) -> List[Achievement]:
+        stmt = (
+            select(Achievement)
+            .join(ReceivedAchievement)
+            .where(ReceivedAchievement.user == user)
+        )
+        return (await self.session.scalars(stmt)).all()

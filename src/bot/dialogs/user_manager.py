@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
+    Button,
     Cancel,
     Column,
     Counter,
@@ -24,15 +25,16 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, List
 
 from src.bot.dialogs import states
-from src.bot.dialogs.common import DELETE_BUTTON
 from src.bot.dialogs.getters import achievements_list
 from src.bot.dialogs.getters.achievements import AchievementsList
-from src.bot.dialogs.widgets import Title
+from src.bot.dialogs.widgets import DELETE_BUTTON, Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import User
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
+ID_ADD_POINTS_COUNTER = "add_points_counter"
 
 
 async def get_roles(**kwargs):
@@ -49,22 +51,19 @@ def points_pluralize(points: int) -> str:
 
 
 async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user = await db.user.get(
-        user_id=dialog_manager.dialog_data["user_id"],
-        load_achievements_count=True,
-    )
+    user = await db.user.get(dialog_manager.dialog_data["user_id"])
     total_achievements_count = await db.achievement.get_count()
     return {
         "is_org": dialog_manager.dialog_data["role"] == UserRole.ORG,
         "user_info": [
             ("Никнейм:", user.username),
             ("ID:", user.id),
-            ("Роль:", user.role.label),
+            ("Роль:", user.role),
             ("", ""),
             ("Очков:", user.points),
             (
                 "Достижений получено:",
-                f"{user.achievements_count} из {total_achievements_count}",
+                f"{await user.awaitable_attrs.achievements_count} из {total_achievements_count}",
             ),
         ],
     }
@@ -75,36 +74,30 @@ async def achievements_getter(dialog_manager: DialogManager, db: Database, **kwa
         db=db,
         achievements_per_page=dialog_manager.dialog_data["achievements_per_page"],
         page=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
-        user_id=dialog_manager.dialog_data["user_id"],
+        user=await db.user.get(dialog_manager.dialog_data["user_id"]),
         show_ids=True,
     )
 
 
-async def add_points(
-    event: CallbackQuery,
-    widget: ManagedCounter,
-    dialog_manager: DialogManager,
-):
-    db: Database = dialog_manager.middleware_data["db"]
-    bot: Bot = dialog_manager.middleware_data["bot"]
+async def add_points(callback: CallbackQuery, button: Button, manager: DialogManager):
+    db: Database = manager.middleware_data["db"]
+    bot: Bot = manager.middleware_data["bot"]
+    counter: ManagedCounter = manager.find(ID_ADD_POINTS_COUNTER)
 
-    points = int(widget.get_value())
-
-    await db.user.add_points(
-        user_id=dialog_manager.dialog_data["user_id"], points=points
-    )
+    user: User = await db.user.get(manager.dialog_data["user_id"])
+    user.points += int(counter.get_value())
     await db.transaction.new(
-        from_user_id=dialog_manager.event.from_user.id,
-        to_user_id=dialog_manager.dialog_data["user_id"],
-        points_added=points,
+        from_user=manager.middleware_data["current_user"],
+        to_user=user,
+        points_added=int(counter.get_value()),
     )
     await db.session.commit()
     await bot.send_message(
-        chat_id=dialog_manager.dialog_data["user_id"],
-        text=f"💰 Вы получили {widget.get_value()} {points_pluralize(points)}!",
+        chat_id=manager.dialog_data["user_id"],
+        text=f"💰 Вы получили {counter.get_value()} {points_pluralize(int(counter.get_value()))}!",
         reply_markup=DELETE_BUTTON.as_markup(),
     )
-    await dialog_manager.switch_to(states.USER_MANAGER.MAIN)
+    await manager.switch_to(states.USER_MANAGER.MAIN)
 
 
 async def add_achievement(
@@ -116,22 +109,21 @@ async def add_achievement(
     db: Database = dialog_manager.middleware_data["db"]
     bot: Bot = dialog_manager.middleware_data["bot"]
 
+    user: User = await db.user.get(dialog_manager.dialog_data["user_id"])
     achievement = await db.achievement.get(data)
+
     if not achievement:
         await message.answer("⚠️ Такого достижения не существует!")
         return
-    if await db.received_achievement.exists(
-        user_id=dialog_manager.dialog_data["user_id"], achievement_id=data
-    ):
+    if achievement in await db.achievement.check_user_achievements(user, [achievement]):
         await message.answer("⚠️ У пользователя уже есть это достижение!")
         return
-    await db.received_achievement.new(
-        user_id=dialog_manager.dialog_data["user_id"], achievement_id=data
-    )
+    (await user.awaitable_attrs.received_achievements).append(achievement)
+    # await db.received_achievement.new(user, achievement)
     await db.transaction.new(
-        from_user_id=dialog_manager.event.from_user.id,
-        to_user_id=dialog_manager.dialog_data["user_id"],
-        achievement_id_added=data,
+        from_user=dialog_manager.middleware_data["current_user"],
+        to_user=user,
+        achievement_added=achievement,
     )
     await db.session.commit()
     await bot.send_message(
@@ -149,10 +141,8 @@ async def change_user_role(
     item_id: int,
 ):
     db: Database = manager.middleware_data["db"]
-    await db.user.change_role(
-        user_id=manager.dialog_data["user_id"],
-        role=UserRole(item_id).name,
-    )
+    user: User = await db.user.get(manager.dialog_data["user_id"])
+    user.role = UserRole(item_id).name
     await db.session.commit()
     try:
         await callback.bot.send_message(
@@ -181,12 +171,11 @@ async def show_user_editor(
 ):
     db: Database = dialog_manager.middleware_data["db"]
     if data.isnumeric():
-        user_id = await db.user.exists(user_id=int(data))
+        user = await db.user.get(int(data))
     else:
-        username = data.replace("@", "").lower()
-        user_id = await db.user.exists(username=username)
-    if user_id:
-        dialog_manager.dialog_data["user_id"] = user_id
+        user = await db.user.get_by_username(data)
+    if user:
+        dialog_manager.dialog_data["user_id"] = user.id
         await dialog_manager.switch_to(states.USER_MANAGER.MAIN)
     else:
         await message.answer(strings.errors.user_not_found)
@@ -196,15 +185,18 @@ add_points_window = Window(
     Const("<b>🔢 Укажите, сколько очков добавить пользователю</b>"),
     Const("<i>(от 5 до 50)</i>"),
     Counter(
-        id="add_points_input",
+        id=ID_ADD_POINTS_COUNTER,
         plus=Const("➕"),
         minus=Const("➖"),
         min_value=5,
         max_value=50,
         increment=5,
         default=5,
-        text=Format("{value} | ✅"),
-        on_text_click=add_points,
+    ),
+    Button(
+        text=Const("✅ Добавить"),
+        id="add_points",
+        on_click=add_points,
     ),
     SwitchTo(
         text=Const(strings.buttons.back),

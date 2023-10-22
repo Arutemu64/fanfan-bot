@@ -20,7 +20,7 @@ async def proceed_qr_code(
     match qr_text.split()[0]:
         case "user":
             if qr_text.split()[1].isnumeric():
-                if await db.user.exists(user_id=int(qr_text.split()[1])):
+                if await db.user.get(int(qr_text.split()[1])):
                     await manager.start(
                         state=states.USER_MANAGER.MAIN,
                         data=int(qr_text.split()[1]),

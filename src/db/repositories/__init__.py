@@ -3,7 +3,6 @@ from .achievement import AchievementRepo
 from .event import EventRepo
 from .nomination import NominationRepo
 from .participant import ParticipantRepo
-from .received_achievement import ReceivedAchievementRepo
 from .settings import SettingsRepo
 from .subscription import SubscriptionRepo
 from .ticket import TicketRepo
@@ -17,7 +16,6 @@ __all__ = [
     "EventRepo",
     "NominationRepo",
     "ParticipantRepo",
-    "ReceivedAchievementRepo",
     "SettingsRepo",
     "SubscriptionRepo",
     "TicketRepo",

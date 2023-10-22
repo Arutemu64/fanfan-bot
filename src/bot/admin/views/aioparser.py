@@ -4,14 +4,13 @@ import numpy as np
 import pandas as pd
 from fastapi import Request, UploadFile
 from sqladmin import BaseView, expose
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from src.db import Database
 from src.db.models import Nomination, Participant, Ticket
-from src.panel import engine
 
 
-async def parse(path: Path):
+async def parse(path: Path, engine: AsyncEngine):
     db = Database(AsyncSession(bind=engine, expire_on_commit=False))
     # Парсинг номинаций
     new_nominations = []
@@ -80,7 +79,6 @@ class AioParserView(BaseView):
     @expose("/aioparser", methods=["GET", "POST"])
     async def plan_parse(self, request: Request):
         if request.method == "GET":
-            print("GET")
             return self.templates.TemplateResponse(
                 "aioparser.html", context={"request": request}
             )
@@ -91,7 +89,7 @@ class AioParserView(BaseView):
         path = Path(__file__).parent.joinpath(file.filename)
         with open(path, "wb") as f:
             f.write(content)
-        await parse(path)
+        await parse(path, request.app.state.engine)
         return self.templates.TemplateResponse(
             "aioparser.html", context={"request": request}
         )

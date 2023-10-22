@@ -19,7 +19,7 @@ async def check_ticket(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    ticket = await db.ticket.exists(data)
+    ticket = await db.ticket.get(data)
     if ticket:
         if ticket.used_by is None:
             user = await db.user.new(
@@ -27,9 +27,9 @@ async def check_ticket(
                 username=message.from_user.username,
                 role=ticket.role,
             )
-            await db.session.flush([user])
-            ticket.used_by = user.id
+            ticket.used_by = user
             await db.session.commit()
+            dialog_manager.middleware_data["current_user"] = user
             await message.answer(
                 "✅ Регистрация прошла успешно! Желаем хорошо провести время!"
             )
@@ -45,8 +45,8 @@ async def check_ticket(
 
 async def check_admin(start_data: Any, manager: DialogManager):
     if manager.event.from_user.username.lower() in conf.bot.admin_list:
-        await manager.event.answer("Администраторы проходят без очереди! 😎")
         db: Database = manager.middleware_data["db"]
+        await manager.event.answer("Администраторы проходят без очереди! 😎")
         await db.user.new(
             id=manager.event.from_user.id,
             username=manager.event.from_user.username,

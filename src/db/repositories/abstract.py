@@ -1,7 +1,7 @@
 import math
 from typing import Generic, List, Optional, Sequence, Type, TypeVar
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.interfaces import ORMOption
 from sqlalchemy.sql.base import ExecutableOption
@@ -22,10 +22,6 @@ class Repository(Generic[AbstractModel]):
         self.type_model = type_model
         self.session = session
 
-    async def _exists(self, query) -> Optional[int | str]:
-        stmt = select(self.type_model.id).where(query).limit(1)
-        return await self.session.scalar(stmt)
-
     async def _get(
         self,
         ident: int | str,
@@ -37,7 +33,10 @@ class Repository(Generic[AbstractModel]):
             options=options,
         )
 
-    async def _get_by_where(self, query) -> Optional[AbstractModel]:
+    async def _get_by_where(
+        self,
+        query,
+    ) -> Optional[AbstractModel]:
         statement = select(self.type_model).where(query).limit(1)
         return (await self.session.execute(statement)).scalar_one_or_none()
 
@@ -105,10 +104,6 @@ class Repository(Generic[AbstractModel]):
             total=total if total > 0 else 1,
         )
 
-    async def _delete(self, query):
-        stmt = delete(self.type_model).where(query)
-        await self.session.execute(stmt)
-
     # @abc.abstractmethod
     # async def new(self, *args, **kwargs) -> None:
     #     """
@@ -116,8 +111,4 @@ class Repository(Generic[AbstractModel]):
     #     it is responsible for adding a new model to the database
     #     :return: Nothing
     #     """
-    #     ...
-    #
-    # @abc.abstractmethod
-    # async def exists(self, *args, **kwargs) -> None:
     #     ...

@@ -30,6 +30,7 @@ from src.bot.dialogs.schedule.common import (
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import User
 
 EVENT_ID_INPUT = "subscribe_event_id_input"
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
@@ -39,11 +40,13 @@ with open(TEMPLATES_DIR / "subscriptions.jinja2", "r", encoding="utf-8") as file
     SubscriptionsList = Jinja(file.read())
 
 
-async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+async def subscriptions_getter(
+    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+):
     page = await db.subscription.paginate(
         page=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page(),
-        subscriptions_per_page=dialog_manager.dialog_data["events_per_page"],
-        user_id=dialog_manager.event.from_user.id,
+        subscriptions_per_page=current_user.items_per_page,
+        user=current_user,
     )
     current_event = await db.event.get_current()
     return {
@@ -53,13 +56,15 @@ async def subscriptions_getter(dialog_manager: DialogManager, db: Database, **kw
     }
 
 
-async def schedule_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+async def schedule_getter(
+    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+):
     page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
     data = await schedule_list(
         db=db,
-        events_per_page=dialog_manager.dialog_data["events_per_page"],
+        events_per_page=current_user.items_per_page,
         page=page,
-        user_id=dialog_manager.event.from_user.id,
+        user=current_user,
         search_query=dialog_manager.dialog_data.get("search_query"),
     )
     data.update({"page": page + 1})
@@ -78,6 +83,7 @@ async def proceed_input(
         dialog_manager.dialog_data["search_query"] = data
         return
 
+    user = dialog_manager.middleware_data["current_user"]
     event = await db.event.get(int(data))
 
     if not event:
@@ -86,7 +92,7 @@ async def proceed_input(
     if event.skip:
         await message.reply("⚠️ На это выступление нельзя подписаться!")
         return
-    if await db.subscription.get_subscription_for_user(event.id, message.from_user.id):
+    if await db.subscription.get_subscription_for_user(user, event):
         await message.reply("⚠️ Вы уже подписаны на это выступление!")
         return
     else:
@@ -101,18 +107,10 @@ async def setup_subscription(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
+    user: User = dialog_manager.middleware_data["current_user"]
+    event = await db.event.get(int(dialog_manager.find(EVENT_ID_INPUT).get_value()))
 
-    if not 0 < data < await db.event.get_count():
-        await message.reply("⚠️ Некорректное значение")
-        return
-
-    event_id = int(dialog_manager.find(EVENT_ID_INPUT).get_value())
-    counter = data
-
-    subscription = await db.subscription.new(
-        event_id=event_id, user_id=message.from_user.id, counter=counter
-    )
-    db.session.add(subscription)
+    subscription = await db.subscription.new(user, event, data)
     await db.session.commit()
     await db.session.refresh(subscription)
     await message.reply(
@@ -131,17 +129,12 @@ async def remove_subscription(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
+    user: User = dialog_manager.middleware_data["current_user"]
+    event = await db.event.get(data)
 
-    if data.bit_length() > 32:
-        await message.reply("⚠️ Некорректное значение!")
-        return
-
-    subscription = await db.subscription.get_subscription_for_user(
-        event_id=data,
-        user_id=dialog_manager.event.from_user.id,
-    )
+    subscription = await db.subscription.get_subscription_for_user(user, event)
     if subscription:
-        await db.subscription.delete(subscription.id)
+        await db.session.delete(subscription)
         await db.session.commit()
         await message.reply("🗑️ Подписка удалена!")
     else:
@@ -153,10 +146,8 @@ async def toggle_all_notifications(
     event: ChatEvent, checkbox: ManagedCheckbox, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    await db.user.set_receive_all_announcements(
-        user_id=manager.event.from_user.id,
-        value=checkbox.is_checked(),
-    )
+    user: User = manager.middleware_data["current_user"]
+    user.receive_all_announcements = checkbox.is_checked()
     await db.session.commit()
 
 
@@ -241,9 +232,7 @@ main_subscriptions_window = Window(
 
 
 async def on_start_subscriptions(start_data: dict, manager: DialogManager):
-    db: Database = manager.middleware_data["db"]
-    user = await db.user.get(manager.event.from_user.id)
-    manager.dialog_data["events_per_page"] = user.items_per_page
+    user: User = manager.middleware_data["current_user"]
     await manager.find(ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX).set_checked(
         user.receive_all_announcements
     )

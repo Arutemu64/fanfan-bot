@@ -8,7 +8,7 @@ async def schedule_list(
     db: Database,
     events_per_page: int,
     page: int,
-    user_id: User.id = None,
+    user: Optional[User] = None,
     search_query: Optional[str] = None,
 ) -> dict:
     page = await db.event.paginate(
@@ -16,13 +16,11 @@ async def schedule_list(
         events_per_page=events_per_page,
         search_query=search_query,
     )
-    subscription_ids = []
-    if user_id:
-        subscription_ids = await db.subscription.check_user_subscribed_event_ids(
-            user_id=user_id, event_ids=[event.id for event in page.items]
-        )
+    subscribed_events = (
+        await db.event.check_user_subscribed_events(user, page.items) if user else None
+    )
     return {
         "events": page.items,
         "pages": page.total,
-        "subscribed_event_ids": subscription_ids,
+        "subscribed_events": subscribed_events,
     }

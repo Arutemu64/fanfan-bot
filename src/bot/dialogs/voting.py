@@ -1,5 +1,5 @@
 import operator
-from typing import Any, TypedDict
+from typing import Any
 
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
@@ -27,75 +27,60 @@ from src.bot.dialogs import states
 from src.bot.dialogs.widgets import FormatTitle, Title
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import User
 
 ID_NOMINATIONS_SCROLL = "nominations_scroll"
 ID_VOTING_SCROLL = "voting_scroll"
-
-
-class UserVoteData(TypedDict):
-    id: int
-    participant_id: int
 
 
 with open(TEMPLATES_DIR / "voting.jinja2", "r", encoding="utf-8") as file:
     VotingList = Jinja(file.read())
 
 
-async def nominations_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+async def nominations_getter(
+    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+):
     page = await db.nomination.paginate(
         page=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page(),
-        nominations_per_page=dialog_manager.dialog_data["items_per_page"],
+        nominations_per_page=current_user.items_per_page,
         votable=True,
     )
-    voted_nominations = await db.vote.check_list_of_user_voted_nominations(
-        user_id=dialog_manager.event.from_user.id,
-        nomination_ids=[n.id for n in page.items],
-    )
+    voted_nominations = await db.nomination.get_user_voted_nominations(current_user)
     nominations_list = []
     for nomination in page.items:
-        if nomination.id in voted_nominations:
+        if nomination in voted_nominations:
             nomination.title = nomination.title + " ✅"
         nominations_list.append((nomination.id, nomination.title))
-    dialog_manager.dialog_data["vote"] = None
     return {
         "pages": page.total,
         "nominations_list": nominations_list,
     }
 
 
-async def participants_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    nomination_id = dialog_manager.dialog_data["nomination_id"]
-    nomination = await db.nomination.get(nomination_id)
+async def participants_getter(
+    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+):
+    nomination = await db.nomination.get(dialog_manager.dialog_data["nomination_id"])
     page = await db.participant.paginate(
         page=await dialog_manager.find(ID_VOTING_SCROLL).get_page(),
-        participants_per_page=dialog_manager.dialog_data["items_per_page"],
-        nomination_id=nomination_id,
-        event_skip=False,
-        load_votes_count=True,
+        participants_per_page=current_user.items_per_page,
+        nomination=nomination,
+        hide_event_skip=True,
     )
+    user_vote = await db.vote.get_user_vote_by_nomination(current_user, nomination)
+    dialog_manager.dialog_data["user_vote_id"] = user_vote.id if user_vote else None
     return {
-        "pages": page.total,
         "nomination_title": nomination.title,
+        "pages": page.total,
         "participants": page.items,
-        "vote": dialog_manager.dialog_data["vote"],
+        "user_vote": user_vote,
     }
 
 
 async def select_nomination(
     callback: CallbackQuery, widget: Any, dialog_manager: DialogManager, item_id: str
 ):
-    db: Database = dialog_manager.middleware_data["db"]
     dialog_manager.dialog_data["nomination_id"] = item_id
-    user_vote = await db.vote.get_user_vote(
-        user_id=dialog_manager.event.from_user.id, nomination_id=item_id
-    )
-    if user_vote:
-        dialog_manager.dialog_data["vote"]: UserVoteData = {
-            "id": user_vote.id,
-            "participant_id": user_vote.participant_id,
-        }
-    else:
-        dialog_manager.dialog_data["vote"] = None
     await dialog_manager.find(ID_VOTING_SCROLL).set_page(0)
     await dialog_manager.switch_to(states.VOTING.VOTING)
 
@@ -107,23 +92,21 @@ async def add_vote(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
+    user: User = dialog_manager.middleware_data["current_user"]
+    nomination = await db.nomination.get(dialog_manager.dialog_data["nomination_id"])
 
-    if dialog_manager.dialog_data.get("vote"):
+    if dialog_manager.dialog_data["user_vote_id"]:
         await message.reply("⚠️ Вы уже голосовали в этой категории!")
         return
     if not await db.settings.get_voting_enabled():
         await message.reply(strings.errors.voting_disabled)
         return
-    if await db.participant.exists(data):
-        user_vote = await db.vote.new(message.from_user.id, data)
+    participant = await db.participant.get_for_vote(data, nomination)
+    if participant:
+        await db.vote.new(user, participant)
         await db.session.commit()
-        dialog_manager.dialog_data["vote"]: UserVoteData = {
-            "id": user_vote.id,
-            "participant_id": user_vote.participant_id,
-        }
     else:
         await message.reply("⚠️ Неверно указан номер участника")
-        return
 
 
 async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogManager):
@@ -131,9 +114,9 @@ async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogMa
     if not await db.settings.get_voting_enabled():
         await callback.answer(strings.errors.voting_disabled)
         return
-    await db.vote.delete(manager.dialog_data["vote"]["id"])
+    user_vote = await db.vote.get(manager.dialog_data["user_vote_id"])
+    await db.session.delete(user_vote)
     await db.session.commit()
-    manager.dialog_data["vote"] = None
 
 
 nominations = Window(
@@ -188,7 +171,7 @@ voting = Window(
     Button(
         Const("Отменить голос"),
         id="cancel_vote",
-        when="vote",
+        when="user_vote",
         on_click=cancel_vote,
     ),
     SwitchTo(

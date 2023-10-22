@@ -1,11 +1,11 @@
 import math
-from typing import Optional
+from typing import List, Optional
 
-from sqlalchemy import ColumnElement, and_, or_
+from sqlalchemy import ColumnElement, and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...bot.structures import Page
-from ..models import Event, Nomination, Participant
+from ..models import Event, Nomination, Participant, Subscription, User
 from .abstract import Repository
 
 
@@ -23,18 +23,21 @@ class EventRepo(Repository[Event]):
         super().__init__(type_model=Event, session=session)
 
     async def new(
-        self, participant_id: Optional[int] = None, title: Optional[str] = None
+        self, participant: Optional[Participant] = None, title: Optional[str] = None
     ) -> Event:
         new_event = await self.session.merge(
-            Event(participant_id=participant_id, title=title)
+            Event(participant=participant, title=title)
         )
         return new_event
 
     async def get(self, event_id: int) -> Optional[Event]:
         return await super()._get(ident=event_id)
 
-    async def get_by_position(self, position: int) -> Optional[Event]:
-        return await super()._get_by_where(Event.real_position == position)
+    async def get_by_position(self, real_position: int) -> Optional[Event]:
+        return await super()._get_by_where(Event.real_position == real_position)
+
+    async def get_by_title(self, title: str) -> Optional[Event]:
+        return await super()._get_by_where(Event.title == title)
 
     async def get_current(self) -> Optional[Event]:
         return await super()._get_by_where(Event.current.is_(True))
@@ -57,18 +60,6 @@ class EventRepo(Repository[Event]):
             order_by=Event.position,
         )
 
-    async def get_count(
-        self,
-        search_query: Optional[str] = None,
-        skipped: Optional[bool] = None,
-    ) -> int:
-        terms = []
-        if search_query:
-            terms.append(_generate_search_terms(search_query))
-        if skipped is not None:
-            terms.append(Event.skip.is_(skipped))
-        return await super()._get_count(query=and_(*terms))
-
     async def get_page_number(
         self,
         event: Event,
@@ -78,10 +69,17 @@ class EventRepo(Repository[Event]):
         if search_query:
             event_position = await super()._get_count(
                 and_(
-                    Event.position < event.position,
-                    Event.title.ilike(f"%{search_query}%"),
+                    Event.position <= event.position,
+                    _generate_search_terms(search_query),
                 )
             )
         else:
             event_position = event.position
+        print(f"event position {event_position}")
         return math.floor((event_position - 1) / events_per_page)
+
+    async def check_user_subscribed_events(
+        self, user: User, events: List[Event]
+    ) -> List[Event]:
+        stmt = select(Event).join(Subscription).where(Subscription.user == user)
+        return (await self.session.scalars(stmt)).all()

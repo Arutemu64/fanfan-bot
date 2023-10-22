@@ -8,5 +8,5 @@
 {%- endif %}
 {% endmacro %}
 {% for participant in participants -%}
-    <b>{{participant.id}}.</b> {{participant.title}} <b>[{{participant.votes_count}} {{votes_pluralize(participant.votes_count)}}]</b>{{ " ✅" if vote.participant_id == participant.id else ""}}
+    <b>{{participant.id}}.</b> {{participant.title}} <b>[{{participant.votes_count}} {{votes_pluralize(participant.votes_count)}}]</b>{{ " ✅" if user_vote.participant == participant else ""}}
 {% endfor %}

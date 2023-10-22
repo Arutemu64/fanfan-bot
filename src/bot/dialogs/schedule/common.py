@@ -1,6 +1,7 @@
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager
+from aiogram_dialog.widgets.common import ManagedScroll
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
@@ -18,7 +19,7 @@ from src.bot import TEMPLATES_DIR
 from src.bot.dialogs.getters import schedule_list
 from src.bot.structures import UserRole
 from src.db import Database
-from src.db.models import Event
+from src.db.models import Event, User
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
@@ -26,26 +27,29 @@ with open(TEMPLATES_DIR / "schedule.jinja2", "r", encoding="utf-8") as file:
     EventsList = Jinja(file.read())
 
 
-async def main_schedule_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+async def main_schedule_getter(
+    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+):
     page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
     data = await schedule_list(
         db=db,
-        events_per_page=dialog_manager.dialog_data["events_per_page"],
+        events_per_page=current_user.items_per_page,
         page=page,
-        user_id=dialog_manager.event.from_user.id,
+        user=current_user,
         search_query=dialog_manager.dialog_data.get("search_query"),
     )
-    data.update({"is_helper": dialog_manager.dialog_data["role"] > UserRole.VISITOR})
-    data.update({"page": page + 1})
+    dialog_manager.dialog_data["pages"] = data["pages"]
+    data.update({"is_helper": current_user.role > UserRole.VISITOR, "page": page + 1})
     return data
 
 
 async def set_schedule_page(manager: DialogManager, event: Event):
     db: Database = manager.middleware_data["db"]
+    user: User = manager.middleware_data["current_user"]
     if event:
         page = await db.event.get_page_number(
             event=event,
-            events_per_page=manager.dialog_data["events_per_page"],
+            events_per_page=user.items_per_page,
             search_query=manager.dialog_data.get("search_query"),
         )
         await manager.find(ID_SCHEDULE_SCROLL).set_page(page)
@@ -76,8 +80,13 @@ async def set_search_query(
     dialog_manager: DialogManager,
     data: str,
 ):
+    scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
+    if data.isnumeric():
+        if int(data) - 1 < dialog_manager.dialog_data["pages"]:
+            await scroll.set_page(int(data) - 1)
+        return
     dialog_manager.dialog_data["search_query"] = data
-    await dialog_manager.find(ID_SCHEDULE_SCROLL).set_page(0)
+    await scroll.set_page(0)
 
 
 async def reset_search(callback: CallbackQuery, button: Button, manager: DialogManager):

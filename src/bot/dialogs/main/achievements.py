@@ -18,16 +18,19 @@ from src.bot.dialogs.getters.achievements import AchievementsList
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import User
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 
 
-async def achievements_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+async def achievements_getter(
+    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+):
     return await achievements_list(
         db=db,
-        achievements_per_page=dialog_manager.dialog_data["achievements_per_page"],
+        achievements_per_page=current_user.items_per_page,
         page=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
-        user_id=dialog_manager.event.from_user.id,
+        user=current_user,
         show_ids=False,
     )
 

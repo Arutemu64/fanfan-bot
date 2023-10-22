@@ -20,10 +20,11 @@
         {% if event.current %}<b>{% endif -%}
             <b>{{event.id}}.</b> {{event.title}}
         {%- if event.current %}</b> 👈{% endif %}
-        {%- if event.id in subscribed_event_ids %} 🔔{% endif %}
+        {%- if event in subscribed_events %} 🔔{% endif %}
         {% if event.skip %}</s>{% endif +%}
     {% endfor %}
 {% endif %}
-{% if dialog_data.search_query -%}
-    <i>🔍 Результаты поиска по запросу '{{ dialog_data.search_query }}'</i>
+{% if dialog_data.search_query %}
+
+<i>🔍 Результаты поиска по запросу '{{ dialog_data.search_query }}'</i>
 {% endif %}

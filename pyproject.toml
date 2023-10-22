@@ -6,39 +6,25 @@ authors = ["Arutemu64 <arutemu64@outlook.com>"]
 
 [tool.poetry.dependencies]
 python = "3.11.*"
-alembic = "^1.12.0"
-alembic-postgresql-enum = "^0.2.1"
-alembic-utils = "^0.8.1"
-asyncpg = "^0.28.0"
-environs = "^9.5.0"
-jinja2 = "^3.1.2"
-pyjwt = "^2.8.0"
-qrcode = {version = "^7.4.2", extras = ["pil"]}
-sqlalchemy = "^2.0.22"
-
-[tool.poetry.group.bot]
-optional=true
-
-[tool.poetry.group.bot.dependencies]
 aiogram = "^3.1.1"
 aiogram-dialog = "^2.0.0"
-redis = "^5.0.1"
-sentry-sdk = {version = "^1.32.0", extras = ["sqlalchemy", "redis", "aiohttp"]}
-#torch = {version = "^2.0.1+cpu", source="torch-cpu"}
-#torchvision = {version = "^0.15.2+cpu", source = "torch-cpu"}
-#opencv-python-headless = "^4.8.0.74"
-#qreader = {version = "^3.9"}
-
-[tool.poetry.group.panel]
-optional=true
-
-[tool.poetry.group.panel.dependencies]
+alembic = "^1.12.0"
+alembic-postgresql-enum = "^0.2.1"
+alembic-utils = "^0.8.2"
+asyncpg = "^0.28.0"
+environs = "^9.5.0"
 fastapi = "^0.103.2"
 itsdangerous = "^2.1.2"
+jinja2 = "^3.1.2"
 numpy = "^1.26.0"
 openpyxl = "^3.1.2"
 pandas = "^2.0.3"
+pyjwt = "^2.8.0"
+qrcode = {version = "^7.4.2", extras = ["pil"]}
+redis = "^5.0.1"
+sentry-sdk = {version = "^1.32.0", extras = ["sqlalchemy", "redis"]}
 sqladmin = "^0.15.2"
+sqlalchemy = "^2.0.22"
 uvicorn = "^0.23.2"
 xlrd = "^2.0.1"
 
@@ -47,8 +33,8 @@ optional=true
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
-mypy = "^1.5.1"
-ruff = "^0.0.292"
+mypy = "^1.6.1"
+ruff = "^0.1.1"
 
 [tool.ruff]
 line-length = 88
@@ -59,11 +45,6 @@ unfixable = ["F401", "E712"]
 [[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"
-
-[[tool.poetry.source]]
-name = "torch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]

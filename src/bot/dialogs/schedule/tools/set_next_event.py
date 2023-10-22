@@ -4,23 +4,25 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
+from src.bot.dialogs.schedule import notifier
 from src.bot.dialogs.schedule.common import set_schedule_page
 from src.bot.dialogs.schedule.tools.common import (
-    check_permission,
     throttle_announcement,
 )
-from src.bot.dialogs.schedule.utils import notifier
+from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import User
 
 
 async def set_next_event(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
+    user: User = manager.middleware_data["current_user"]
 
     # Проверяем права
-    if not await check_permission(db, manager.event.from_user.id):
+    if user.role < UserRole.HELPER:
         await callback.answer(strings.errors.access_denied, show_alert=True)
         return
 

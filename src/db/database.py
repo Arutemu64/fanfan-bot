@@ -1,7 +1,7 @@
 from typing import Union
 
 from sqlalchemy import URL
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine as _create_async_engine
 
 from src.config import conf
@@ -11,7 +11,6 @@ from .repositories import (
     EventRepo,
     NominationRepo,
     ParticipantRepo,
-    ReceivedAchievementRepo,
     SettingsRepo,
     SubscriptionRepo,
     TicketRepo,
@@ -22,11 +21,15 @@ from .repositories import (
 
 
 def create_async_engine(url: Union[URL, str]) -> AsyncEngine:
-    """
-    :param url:
-    :return:
-    """
     return _create_async_engine(url=url, echo=conf.db_echo, pool_pre_ping=True)
+
+
+def create_session_pool(engine: AsyncEngine = None) -> async_sessionmaker[AsyncSession]:
+    return async_sessionmaker(
+        bind=engine or create_async_engine(conf.db.build_connection_str()),
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
 
 
 class Database:
@@ -41,7 +44,6 @@ class Database:
     achievement: AchievementRepo
     nomination: NominationRepo
     participant: ParticipantRepo
-    received_achievement: ReceivedAchievementRepo
     settings: SettingsRepo
     subscription: SubscriptionRepo
     ticket: TicketRepo
@@ -56,7 +58,6 @@ class Database:
         event: EventRepo = None,
         nomination: NominationRepo = None,
         participant: ParticipantRepo = None,
-        received_achievement: ReceivedAchievementRepo = None,
         settings: SettingsRepo = None,
         subscription: SubscriptionRepo = None,
         ticket: TicketRepo = None,
@@ -69,9 +70,6 @@ class Database:
         self.event = event or EventRepo(session=session)
         self.nomination = nomination or NominationRepo(session=session)
         self.participant = participant or ParticipantRepo(session=session)
-        self.received_achievement = received_achievement or ReceivedAchievementRepo(
-            session=session
-        )
         self.settings = settings or SettingsRepo(session=session)
         self.subscription = subscription or SubscriptionRepo(session=session)
         self.ticket = ticket or TicketRepo(session=session)

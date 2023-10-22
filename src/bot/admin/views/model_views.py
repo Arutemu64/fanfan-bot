@@ -38,6 +38,7 @@ class UserAdmin(ModelView, model=User):
         User.achievements_count,
         User.points,
         User.time_created,
+        User.received_achievements,
     ]
     column_labels = {
         User.id: "ID",

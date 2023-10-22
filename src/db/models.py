@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 
 from sqlalchemy import (
     BigInteger,
@@ -73,7 +74,7 @@ class Ticket(Base):
     )
 
     used_by: Mapped["User"] = relationship(lazy="selectin", foreign_keys=used_by_id)
-    issued_by: Mapped["User"] = relationship(lazy="selectin", foreign_keys=issued_by_id)
+    issued_by: Mapped["User"] = relationship(foreign_keys=issued_by_id)
 
     def __str__(self):
         return self.id
@@ -88,11 +89,8 @@ class ReceivedAchievement(Base):
         ForeignKey("achievements.id", ondelete="CASCADE")
     )
 
-    user: Mapped["User"] = relationship(lazy="selectin", foreign_keys=user_id)
-    achievement: Mapped["Achievement"] = relationship(
-        lazy="selectin",
-        foreign_keys=achievement_id,
-    )
+    user: Mapped["User"] = relationship(viewonly=True)
+    achievement: Mapped["Achievement"] = relationship(viewonly=True)
 
 
 class User(Base):
@@ -106,6 +104,10 @@ class User(Base):
     items_per_page: Mapped[int] = mapped_column(server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
     points: Mapped[int] = mapped_column(server_default="0")
+
+    received_achievements: Mapped[List["Achievement"]] = relationship(
+        secondary="received_achievements"
+    )
 
     achievements_count = column_property(
         select(func.count())
@@ -127,35 +129,15 @@ class Event(Base):
     position: Mapped[int] = mapped_column(
         unique=True, nullable=False, server_default=position_sequence.next_value()
     )
-    real_position: Mapped[int] = mapped_column(
-        unique=True, nullable=True
-    )  # Обновляется триггером в БД, не забывать делать
-    # refresh после изменения position или skip
+    real_position: Mapped[int] = mapped_column(unique=True, nullable=True)
     participant_id: Mapped[int] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE"), nullable=True
     )
-    title: Mapped[str] = mapped_column(nullable=True)
+    title: Mapped[str] = mapped_column(nullable=True, index=True)
     skip: Mapped[bool] = mapped_column(nullable=True, server_default="False")
     current: Mapped[bool] = mapped_column(nullable=True, unique=True)
 
     participant: Mapped["Participant"] = relationship(lazy="selectin")
-
-    # @property
-    # def joined_title(self) -> str:
-    #     return
-    #
-    # @hybrid_property
-    # def joined_title(self) -> str:
-    #     return self.title or (self.participant.title if self.participant else None)
-    #
-    # @joined_title.expression
-    # def joined_title(cls):
-    #     stmt = (
-    #         select(Participant.title)
-    #         .where(Participant.id == cls.participant_id)
-    #         .as_scalar()
-    #     )
-    #     return func.coalesce(cls.title, stmt).cast(String)
 
     def __str__(self):
         return self.title
@@ -181,8 +163,8 @@ class Vote(Base):
         ForeignKey("participants.id", ondelete="CASCADE")
     )
 
-    user: Mapped["User"] = relationship(lazy="selectin")
-    participant: Mapped["Participant"] = relationship(lazy="selectin")
+    user: Mapped["User"] = relationship()
+    participant: Mapped["Participant"] = relationship()
 
 
 class Participant(Base):
@@ -242,6 +224,7 @@ class Subscription(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     counter: Mapped[int] = mapped_column(server_default="5")
 
+    user: Mapped["User"] = relationship()
     event: Mapped["Event"] = relationship(lazy="selectin")
 
 
@@ -251,15 +234,12 @@ class Transaction(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
-
-    from_user: Mapped["User"] = relationship(lazy="selectin", foreign_keys=from_user_id)
-    to_user: Mapped["User"] = relationship(lazy="selectin", foreign_keys=to_user_id)
-
     points_added: Mapped[int] = mapped_column(nullable=True)
     achievement_id_added: Mapped[int] = mapped_column(
         ForeignKey(Achievement.id, ondelete="CASCADE"), nullable=True
     )
 
-    achievement_added: Mapped["Achievement"] = relationship(
-        lazy="selectin", foreign_keys=achievement_id_added
-    )
+    from_user: Mapped["User"] = relationship(foreign_keys=from_user_id)
+    to_user: Mapped["User"] = relationship(foreign_keys=to_user_id)
+
+    achievement_added: Mapped["Achievement"] = relationship()

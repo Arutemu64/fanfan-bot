@@ -15,45 +15,42 @@ from src.bot.structures import UserRole
 from src.bot.ui import images, strings
 from src.config import conf
 from src.db import Database
+from src.db.models import User
 
 with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
     quotes = f.read().splitlines()
 
 
-async def main_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user = await db.user.get(
-        user_id=dialog_manager.event.from_user.id,
-        load_achievements_count=True,
-    )
-    if user.username != dialog_manager.event.from_user.username:
-        await db.user.update_username(user.id, dialog_manager.event.from_user.username)
+async def main_menu_getter(
+    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+):
+    if current_user.username != dialog_manager.event.from_user.username:
+        current_user.username = dialog_manager.event.from_user.username
         await db.session.commit()
     total_achievements = await db.achievement.get_count()
     if total_achievements > 0:
         achievements_progress = math.floor(
-            (user.achievements_count * 100) / total_achievements
+            (await current_user.awaitable_attrs.achievements_count * 100)
+            / total_achievements
         )
     else:
         achievements_progress = 100
-    dialog_manager.dialog_data["achievements_per_page"] = user.items_per_page
-    dialog_manager.dialog_data[
-        "voting_enabled"
-    ] = await db.settings.get_voting_enabled()
     return {
         "name": dialog_manager.event.from_user.first_name,
-        "user": user,
-        "is_helper": user.role > UserRole.VISITOR,
-        "is_org": user.role == UserRole.ORG,
+        "user": current_user,
+        "is_helper": current_user.role > UserRole.VISITOR,
+        "is_org": current_user.role == UserRole.ORG,
         "random_quote": random.choice(quotes),
-        "voting_enabled": dialog_manager.dialog_data["voting_enabled"],
+        "voting_enabled": await db.settings.get_voting_enabled(),
         "total_achievements": total_achievements,
         "achievements_progress": achievements_progress,
-        "use_webapp_qr_scanner": conf.bot.mode == "webhook",
+        "show_qr_webapp": conf.web.mode == "webhook",
     }
 
 
 async def open_voting(callback: CallbackQuery, button: Button, manager: DialogManager):
-    if manager.dialog_data["voting_enabled"]:
+    db: Database = manager.middleware_data["db"]
+    if await db.settings.get_voting_enabled():
         await manager.start(state=states.VOTING.NOMINATIONS)
     else:
         await callback.answer(strings.errors.voting_disabled, show_alert=True)
@@ -81,19 +78,9 @@ main = Window(
         ),
         WebApp(
             Const(strings.titles.qr_scanner),
-            url=Const(
-                f"""https://{conf.bot.webhook_domain}{conf.bot.webhook_path}/qr_scanner?callback={conf.bot.webhook_path}/qr_scanner"""
-                if conf.bot.mode == "webhook"
-                else ""
-            ),
+            url=Const(f"""https://{conf.web.domain}/qr_scanner"""),
         ),
-        # SwitchTo(  # Fallback to offline QR scanner
-        #     text=Const(strings.titles.qr_scanner),
-        #     id="open_scanner",
-        #     state=states.MAIN.QR_SCANNER,
-        #     when=~F["use_webapp_qr_scanner"],
-        # ),
-        when=F["use_webapp_qr_scanner"],
+        when=F["show_qr_webapp"],
     ),
     Row(
         SwitchTo(

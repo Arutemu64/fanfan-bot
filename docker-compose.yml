@@ -7,41 +7,28 @@ services:
       dockerfile: buildfiles/BotDockerfile
     env_file:
       - .docker-env
-    restart: always
+    restart: unless-stopped
     stop_signal: SIGINT
     volumes:
       - ./alembic:/app/alembic
       - ./alembic.ini:/app/alembic.ini
     ports:
-      - "127.0.0.1:8080:8080"
+      - ${WEB_PORT}:${WEB_PORT}
     depends_on:
       - db
       - redis
-  panel:
-    container_name: 'fanfan-panel'
-    build:
-      context: .
-      dockerfile: buildfiles/PanelDockerfile
-    env_file:
-      - .docker-env
-    restart: always
-    stop_signal: SIGINT
-    ports:
-      - "127.0.0.1:8081:8081"
-    depends_on:
-      - db
   db:
     container_name: 'fanfan-db'
     build:
       context: buildfiles
       dockerfile: DBDockerfile
-    restart: always
+    restart: unless-stopped
     env_file:
       - .docker-env
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
-      - "54320:5432"
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
   redis:
     container_name: 'fanfan-redis'
     build:
@@ -49,11 +36,11 @@ services:
       dockerfile: RedisDockerfile
     env_file:
       - .docker-env
-    restart: always
+    restart: unless-stopped
     volumes:
       - redis-data:/data
     ports:
-      - "6379:6379"
+      - ${REDIS_PORT}:${REDIS_PORT}
 
 volumes:
   db-data:

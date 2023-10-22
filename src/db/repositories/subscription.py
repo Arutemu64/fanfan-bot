@@ -1,10 +1,10 @@
 from typing import List, Optional
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...bot.structures import Page
-from ..models import Event, Subscription
+from ..models import Event, Subscription, User
 from .abstract import Repository
 
 
@@ -14,52 +14,39 @@ class SubscriptionRepo(Repository[Subscription]):
 
     async def new(
         self,
-        event_id: int,
-        user_id: int,
+        user: User,
+        event: Event,
         counter: Optional[int] = None,
     ) -> Subscription:
         new_subscription = await self.session.merge(
             Subscription(
-                event_id=event_id,
-                user_id=user_id,
+                event=event,
+                user=user,
                 counter=counter,
             )
         )
         return new_subscription
 
     async def paginate(
-        self, page: int, subscriptions_per_page: int, user_id: int
+        self, page: int, user: User, subscriptions_per_page: int
     ) -> Page[Subscription]:
         return await super()._paginate(
             page=page,
             items_per_page=subscriptions_per_page,
-            query=Subscription.user_id == user_id,
+            query=Subscription.user == user,
             order_by=Subscription.event_id,
         )
 
     async def get_subscription_for_user(
-        self, event_id: int, user_id: int
+        self,
+        user: User,
+        event: Event,
     ) -> Optional[Subscription]:
         query = and_(
-            Subscription.event_id == event_id,
-            Subscription.user_id == user_id,
+            Subscription.user == user,
+            Subscription.event == event,
         )
-        return await super()._get_by_where(
-            query=query,
-        )
-
-    async def check_user_subscribed_event_ids(
-        self, user_id: int, event_ids: List[int]
-    ) -> List[Event.id]:
-        stmt = (
-            select(Event.id).join(
-                Subscription,
-                and_(
-                    Subscription.event_id == Event.id, Subscription.user_id == user_id
-                ),
-            )
-        ).where(Event.id.in_(event_ids))
-        return [r[0] for r in (await self.session.execute(stmt)).all()]
+        return await super()._get_by_where(query=query)
 
     async def get_all_upcoming(self, event: Event) -> List[Subscription]:
         query = Subscription.event.has(
@@ -73,9 +60,3 @@ class SubscriptionRepo(Repository[Subscription]):
             query=query,
             order_by=Subscription.event_id,
         )
-
-    async def delete(self, subscription_id: int):
-        await super()._delete(Subscription.id == subscription_id)
-
-    async def batch_delete(self, subscription_ids: List[int]):
-        await super()._delete(Subscription.id.in_(subscription_ids))

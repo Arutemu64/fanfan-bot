@@ -1,9 +1,15 @@
 from typing import Dict
 
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.common import WhenCondition
 from aiogram_dialog.widgets.text import Text
 from aiogram_dialog.widgets.text.format import _FormatDataStub
+
+DELETE_BUTTON = InlineKeyboardBuilder().add(
+    InlineKeyboardButton(text="👀 Прочитано", callback_data="delete")
+)
 
 
 class Title(Text):

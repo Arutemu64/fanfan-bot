@@ -1,25 +1,25 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, Counter, ManagedCounter, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Cancel, Counter, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, List
+from sqlalchemy import delete
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import ReceivedAchievement
+from src.db.models import ReceivedAchievement, User
 
 ID_ITEMS_PER_PAGE_INPUT = "items_per_page_input"
 
 
-async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs):
-    user = await db.user.get(dialog_manager.event.from_user.id)
+async def user_info_getter(dialog_manager: DialogManager, current_user: User, **kwargs):
     return {
-        "user": user,
+        "user": current_user,
         "user_info_list": [
-            ("Никнейм:", user.username),
-            ("ID:", user.id),
-            ("Роль:", user.role.label),
+            ("Никнейм:", current_user.username),
+            ("ID:", current_user.id),
+            ("Роль:", current_user.role.label),
         ],
     }
 
@@ -27,36 +27,30 @@ async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs
 async def update_counter_value(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    db: Database = manager.middleware_data["db"]
-    await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(
-        await db.user.get_items_per_page(manager.event.from_user.id)
-    )
+    user: User = manager.middleware_data["current_user"]
+    await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(user.items_per_page)
 
 
 async def update_items_per_page(
-    event: CallbackQuery,
-    widget: ManagedCounter,
-    dialog_manager: DialogManager,
+    callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    db: Database = dialog_manager.middleware_data["db"]
-    await db.user.set_items_per_page(
-        dialog_manager.event.from_user.id, int(widget.get_value())
-    )
+    db: Database = manager.middleware_data["db"]
+    user: User = manager.middleware_data["current_user"]
+    user.items_per_page = int(manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value())
     await db.session.commit()
-    await event.answer("✅ Успешно!")
-    await dialog_manager.switch_to(state=states.SETTINGS.MAIN)
+    await callback.answer("✅ Успешно!")
+    await manager.switch_to(state=states.SETTINGS.MAIN)
 
 
 async def reset_achievements_and_points(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    await db.user.set_points(user_id=manager.event.from_user.id, points=0)
-    achievements = await db.received_achievement._get_many(
-        ReceivedAchievement.user_id == manager.event.from_user.id
+    user: User = manager.middleware_data["current_user"]
+    user.points = 0
+    await db.session.execute(
+        delete(ReceivedAchievement).where(ReceivedAchievement.user == user)
     )
-    for achievement in achievements:
-        await db.session.delete(achievement)
     await db.session.commit()
     await callback.answer("✅ Успешно!")
 
@@ -72,8 +66,11 @@ set_items_per_page_window = Window(
         minus=Const("➖"),
         min_value=3,
         max_value=10,
-        text=Format("{value} · 💾"),
-        on_text_click=update_items_per_page,
+    ),
+    Button(
+        text=Const("💾 Сохранить"),
+        id="save_items_per_page",
+        on_click=update_items_per_page,
     ),
     state=states.SETTINGS.SET_ITEMS_PER_PAGE,
 )
@@ -82,7 +79,7 @@ settings_window = Window(
     Title(strings.titles.settings),
     List(Format("<b>{item[0]}</b> {item[1]}"), items="user_info_list"),
     SwitchTo(
-        text=Format("🔢 Элементов на страницу: {user.items_per_page}"),
+        text=Format("🔢 Элементов на страницу: [{user.items_per_page}]"),
         id="set_items_per_page_button",
         on_click=update_counter_value,
         state=states.SETTINGS.SET_ITEMS_PER_PAGE,

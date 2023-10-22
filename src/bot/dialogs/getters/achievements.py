@@ -12,16 +12,15 @@ async def achievements_list(
     db: Database,
     achievements_per_page: int,
     page: int,
-    user_id: User.id,
+    user: User,
     show_ids: bool,
 ) -> dict:
     page = await db.achievement.paginate(
         page=page,
         achievements_per_page=achievements_per_page,
     )
-    received_achievements = await db.received_achievement.check(
-        user_id=user_id,
-        achievement_ids=[achievement.id for achievement in page.items],
+    received_achievements = await db.achievement.check_user_achievements(
+        user, page.items
     )
     return {
         "achievements": page.items,

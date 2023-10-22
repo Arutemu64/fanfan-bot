@@ -15,13 +15,12 @@ from src.bot import IMAGES_DIR
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
-from src.db import Database
 
 QR_CODES_TEMP_DIR = Path(tempfile.gettempdir()).joinpath("ff-bot-qrs")
 QR_CODES_TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 
-async def qr_pass_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+async def qr_pass_getter(dialog_manager: DialogManager, **kwargs):
     qr_file_path = QR_CODES_TEMP_DIR.joinpath(
         f"{dialog_manager.event.from_user.id}.png"
     )

@@ -3,10 +3,9 @@ from typing import Any, Awaitable, Callable, Dict, Union
 import sentry_sdk
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message
-from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram_dialog.api.entities import DialogUpdate
 
-from src.config import conf
-from src.db.database import Database, create_async_engine
+from src.db.database import Database
 
 
 class DatabaseMiddleware(BaseMiddleware):
@@ -15,14 +14,12 @@ class DatabaseMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-        event: Union[Message, CallbackQuery],
+        event: Union[Message, CallbackQuery, DialogUpdate],
         data: Dict[str, Any],
     ) -> Any:
-        async with AsyncSession(
-            bind=data.get("engine")
-            or create_async_engine(conf.db.build_connection_str()),
-            expire_on_commit=False,
-        ) as session:
-            with sentry_sdk.start_transaction(name="DatabaseMiddleware"):
-                data["db"] = Database(session)
+        async with data["session_pool"]() as session:
+            with sentry_sdk.start_transaction(name="DatabaseTransaction"):
+                db = Database(session)
+                data["db"] = db
+                data["current_user"] = await db.user.get(data["event_from_user"].id)
                 return await handler(event, data)
