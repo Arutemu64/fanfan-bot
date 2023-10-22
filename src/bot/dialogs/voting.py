@@ -93,7 +93,6 @@ async def add_vote(
 ):
     db: Database = dialog_manager.middleware_data["db"]
     user: User = dialog_manager.middleware_data["current_user"]
-    nomination = await db.nomination.get(dialog_manager.dialog_data["nomination_id"])
 
     if dialog_manager.dialog_data["user_vote_id"]:
         await message.reply("⚠️ Вы уже голосовали в этой категории!")
@@ -101,6 +100,7 @@ async def add_vote(
     if not await db.settings.get_voting_enabled():
         await message.reply(strings.errors.voting_disabled)
         return
+    nomination = await db.nomination.get(dialog_manager.dialog_data["nomination_id"])
     participant = await db.participant.get_for_vote(data, nomination)
     if participant:
         await db.vote.new(user, participant)
@@ -184,10 +184,4 @@ voting = Window(
 )
 
 
-async def on_voting_start(start_data: Any, manager: DialogManager):
-    db: Database = manager.middleware_data["db"]
-    user = await db.user.get(manager.event.from_user.id)
-    manager.dialog_data["items_per_page"] = user.items_per_page
-
-
-dialog = Dialog(nominations, voting, on_start=on_voting_start)
+dialog = Dialog(nominations, voting)
