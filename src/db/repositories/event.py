@@ -75,7 +75,6 @@ class EventRepo(Repository[Event]):
             )
         else:
             event_position = event.position
-        print(f"event position {event_position}")
         return math.floor((event_position - 1) / events_per_page)
 
     async def check_user_subscribed_events(
