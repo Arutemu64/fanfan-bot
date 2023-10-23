@@ -23,12 +23,13 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format, List
+from arq import ArqRedis
 
 from src.bot.dialogs import states
 from src.bot.dialogs.getters import achievements_list
 from src.bot.dialogs.getters.achievements import AchievementsList
-from src.bot.dialogs.widgets import DELETE_BUTTON, Title
-from src.bot.structures import UserRole
+from src.bot.dialogs.widgets import Title
+from src.bot.structures import Notification, UserRole
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import User
@@ -81,7 +82,7 @@ async def achievements_getter(dialog_manager: DialogManager, db: Database, **kwa
 
 async def add_points(callback: CallbackQuery, button: Button, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
-    bot: Bot = manager.middleware_data["bot"]
+    arq: ArqRedis = manager.middleware_data["arq"]
     counter: ManagedCounter = manager.find(ID_ADD_POINTS_COUNTER)
 
     user: User = await db.user.get(manager.dialog_data["user_id"])
@@ -92,10 +93,12 @@ async def add_points(callback: CallbackQuery, button: Button, manager: DialogMan
         points_added=int(counter.get_value()),
     )
     await db.session.commit()
-    await bot.send_message(
-        chat_id=manager.dialog_data["user_id"],
-        text=f"💰 Вы получили {counter.get_value()} {points_pluralize(int(counter.get_value()))}!",
-        reply_markup=DELETE_BUTTON.as_markup(),
+    await arq.enqueue_job(
+        "send_notification",
+        Notification(
+            user_id=manager.dialog_data["user_id"],
+            text=f"💰 Вы получили {counter.get_value()} {points_pluralize(int(counter.get_value()))}!",
+        ),
     )
     await manager.switch_to(states.USER_MANAGER.MAIN)
 
@@ -107,7 +110,7 @@ async def add_achievement(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    bot: Bot = dialog_manager.middleware_data["bot"]
+    arq: ArqRedis = dialog_manager.middleware_data["arq"]
 
     user: User = await db.user.get(dialog_manager.dialog_data["user_id"])
     achievement = await db.achievement.get(data)
@@ -119,17 +122,18 @@ async def add_achievement(
         await message.answer("⚠️ У пользователя уже есть это достижение!")
         return
     (await user.awaitable_attrs.received_achievements).append(achievement)
-    # await db.received_achievement.new(user, achievement)
     await db.transaction.new(
         from_user=dialog_manager.middleware_data["current_user"],
         to_user=user,
         achievement_added=achievement,
     )
     await db.session.commit()
-    await bot.send_message(
-        chat_id=dialog_manager.dialog_data["user_id"],
-        text=f"🏆 Вы получили достижение <b>{achievement.title}</b>!",
-        reply_markup=DELETE_BUTTON.as_markup(),
+    await arq.enqueue_job(
+        "send_notification",
+        Notification(
+            user_id=dialog_manager.dialog_data["user_id"],
+            text=f"🏆 Вы получили достижение <b>{achievement.title}</b>!",
+        ),
     )
     await dialog_manager.switch_to(states.USER_MANAGER.MAIN)
 
@@ -141,11 +145,12 @@ async def change_user_role(
     item_id: int,
 ):
     db: Database = manager.middleware_data["db"]
+    bot: Bot = manager.middleware_data["bot"]
     user: User = await db.user.get(manager.dialog_data["user_id"])
     user.role = UserRole(item_id).name
     await db.session.commit()
     try:
-        await callback.bot.send_message(
+        await bot.send_message(
             chat_id=manager.dialog_data["user_id"],
             text="🔄️ Ваша роль была изменена, перезапуск бота...",
         )

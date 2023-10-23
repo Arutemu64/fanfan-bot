@@ -4,8 +4,8 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
-from src.bot.dialogs.schedule import notifier
 from src.bot.dialogs.schedule.common import set_schedule_page
+from src.bot.dialogs.schedule.tools import notifier
 from src.bot.dialogs.schedule.tools.common import (
     throttle_announcement,
 )
@@ -54,7 +54,9 @@ async def set_next_event(
 
     # Запускаем проверку подписок
     asyncio.create_task(
-        notifier.proceed_subscriptions(bot=callback.bot, send_global_announcement=True)
+        notifier.proceed_subscriptions(
+            arq=manager.middleware_data["arq"], send_global_announcement=True
+        )
     )
 
     # Отправляем пользователя на страницу со текущим выступлением

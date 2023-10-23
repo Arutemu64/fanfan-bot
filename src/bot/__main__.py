@@ -8,6 +8,7 @@ import uvicorn
 from aiogram import Bot
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import SimpleEventIsolation
+from arq import create_pool
 from fastapi import FastAPI
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
@@ -17,7 +18,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from src.bot.admin.admin import setup_admin
 from src.bot.dispatcher import get_dispatcher
-from src.bot.utils import notifications
+from src.bot.services.scheduler import create_worker
 from src.bot.webapp import webapp_router
 from src.bot.webhook import webhook_router
 from src.config import conf
@@ -67,6 +68,7 @@ async def lifespan(app: FastAPI):
     )
 
     dp["session_pool"] = session_pool
+    dp["arq"] = await create_pool(conf.redis.pool_settings)
 
     app.state.dp = dp
     app.state.bot = bot
@@ -86,8 +88,12 @@ async def lifespan(app: FastAPI):
         await bot.delete_webhook(drop_pending_updates=True)
         asyncio.create_task(dp.start_polling(bot))
         logging.info("Running in polling mode")
-    asyncio.create_task(notifications.queue_worker(bot))
+    worker = create_worker(dp["arq"])
+    worker_task = asyncio.create_task(worker.async_run())
     yield
+    logging.info("Stopping schedule worker...")
+    await worker.close()
+    worker_task.cancel()
     logging.info("Closing bot session...")
     await bot.session.close()
     logging.info("Disposing db engine...")

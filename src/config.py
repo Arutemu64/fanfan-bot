@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 
+from arq.connections import RedisSettings
 from environs import Env
 from marshmallow.validate import Length, OneOf
 from sqlalchemy.engine import URL
@@ -40,13 +41,16 @@ class RedisConfig:
     """Redis connection variables"""
 
     with env.prefixed("REDIS_"):
-        db: str = env.int("DATABASE", 1)
+        db: int = env.int("DATABASE", 1)
         host: str = env("HOST", "redis", validate=Length(min=1))
         port: int = env.int("PORT", 6379)
         passwd: str = env("PASSWORD", validate=Length(min=1))
         username: str = env("USERNAME", None)
         state_ttl: int = env.int("TTL_STATE", None)
         data_ttl: int = env.int("TTL_DATA", None)
+    pool_settings = RedisSettings(
+        host=host, port=port, password=passwd, database=db, username=username
+    )
 
 
 @dataclass

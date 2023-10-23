@@ -10,7 +10,6 @@ from aiogram_dialog.widgets.text import Const
 from sqlalchemy import text
 
 from src.bot.dialogs import states
-from src.bot.dialogs.schedule import notifier
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
@@ -18,6 +17,7 @@ from src.bot.dialogs.schedule.common import (
     set_schedule_page,
     set_search_query,
 )
+from src.bot.dialogs.schedule.tools import notifier
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
@@ -83,7 +83,8 @@ async def proceed_input(
     # Запускаем проверку подписок
     asyncio.create_task(
         notifier.proceed_subscriptions(
-            bot=message.bot, send_global_announcement=send_global_announcement
+            arq=dialog_manager.middleware_data["arq"],
+            send_global_announcement=send_global_announcement,
         )
     )
 

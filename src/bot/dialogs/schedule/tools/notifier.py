@@ -1,9 +1,9 @@
-from aiogram import Bot
+from arq import ArqRedis
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot import TEMPLATES_DIR
-from src.bot.utils.notifications import Notification, queue
+from src.bot.structures import Notification
 from src.config import conf
 from src.db import Database
 from src.db.database import create_async_engine
@@ -16,7 +16,7 @@ global_announcement_template = jinja.get_template("global_announcement.jinja2")
 
 
 async def proceed_subscriptions(
-    bot: Bot,
+    arq: ArqRedis,
     send_global_announcement: bool = False,
 ):
     engine = create_async_engine(conf.db.build_connection_str())
@@ -33,7 +33,7 @@ async def proceed_subscriptions(
             {"current_event": current_event, "next_event": next_event}
         )
         for user in await db.user.get_receive_all_announcements_users():
-            await queue.put(Notification(user.id, text))
+            await arq.enqueue_job("send_notification", Notification(user.id, text))
 
     subscriptions = await db.subscription.get_all_upcoming(current_event)
     for sub in subscriptions:
@@ -43,7 +43,7 @@ async def proceed_subscriptions(
                 "subscription": sub,
             }
         )
-        await queue.put(Notification(sub.user.id, text))
+        await arq.enqueue_job("send_notification", Notification(sub.user.id, text))
         if sub.event is current_event:
             await session.delete(sub)
     await session.commit()

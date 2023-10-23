@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse
 
 from src.bot import STATIC_DIR
-from src.bot.utils.qr import proceed_qr_code
+from src.bot.services.qr import proceed_qr_code
 from src.db import Database
 
 webapp_router = APIRouter()
