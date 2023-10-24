@@ -26,7 +26,7 @@ from aiogram_dialog.widgets.text import Const, Format, List
 from arq import ArqRedis
 
 from src.bot.dialogs import states
-from src.bot.dialogs.getters import achievements_list
+from src.bot.dialogs.getters import achievements_list, get_roles
 from src.bot.dialogs.getters.achievements import AchievementsList
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import Notification, UserRole
@@ -36,10 +36,6 @@ from src.db.models import User
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 ID_ADD_POINTS_COUNTER = "add_points_counter"
-
-
-async def get_roles(**kwargs):
-    return {"roles": list(map(lambda item: (item.value, item.label), UserRole))}
 
 
 def points_pluralize(points: int) -> str:

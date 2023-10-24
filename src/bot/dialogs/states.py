@@ -44,6 +44,9 @@ class ORG(StatesGroup):
     MAIN = State()
     NEW_TICKET = State()
 
+    CREATE_NOTIFICATION = State()
+    CONFIRM_NOTIFICATION = State()
+
 
 class USER_MANAGER(StatesGroup):
     MAIN = State()

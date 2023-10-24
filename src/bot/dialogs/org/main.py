@@ -2,7 +2,7 @@ import operator
 
 import jwt
 from aiogram.types import Message
-from aiogram_dialog import Dialog, DialogManager, Window
+from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.dialog import ChatEvent
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
@@ -18,6 +18,7 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.dialogs import states
+from src.bot.dialogs.getters import get_roles
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
@@ -26,10 +27,6 @@ from src.db import Database
 
 ID_TICKET_ROLE_PICKER = "ticket_role_picker"
 ID_VOTING_ENABLED_CHECKBOX = "voting_enabled_checkbox"
-
-
-async def get_roles(**kwargs):
-    return {"roles": list(map(lambda item: (item.value, item.label), UserRole))}
 
 
 async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
@@ -71,7 +68,7 @@ async def add_new_ticket(
 
     new_ticket = await db.ticket.new(
         id=data,
-        role=UserRole(int(role)).name,
+        role=UserRole(int(role)),
         issued_by=dialog_manager.middleware_data["current_user"],
     )
     await db.session.commit()
@@ -105,6 +102,11 @@ org_menu = Window(
         text=Const("🌐 Перейти в организатора"),
         url=Format("{web_panel_login_link}"),
     ),
+    SwitchTo(
+        state=states.ORG.CREATE_NOTIFICATION,
+        id="new_notification",
+        text=Const("✉️ Сделать рассылку"),
+    ),
     Start(
         state=states.USER_MANAGER.MANUAL_USER_SEARCH,
         id="user_search",
@@ -125,5 +127,3 @@ org_menu = Window(
     state=states.ORG.MAIN,
     getter=org_menu_getter,
 )
-
-dialog = Dialog(org_menu, new_ticket_window)

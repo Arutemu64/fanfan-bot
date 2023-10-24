@@ -41,3 +41,6 @@ class UserRepo(Repository[User]):
             User.receive_all_announcements.is_(True),
             options=[defer(User.achievements_count)],
         )
+
+    async def get_by_role(self, role: UserRole) -> List[User]:
+        return await super()._get_many(User.role == role)

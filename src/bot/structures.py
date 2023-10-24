@@ -19,12 +19,13 @@ class Notification:
 
 
 class UserRole(enum.IntEnum):
-    def __new__(cls, value, label):
+    def __new__(cls, value, label, label_plural):
         obj = int.__new__(cls, value)
         obj._value_ = value
         obj.label = label
+        obj.label_plural = label_plural
         return obj
 
-    VISITOR = (0, "Зритель")
-    HELPER = (1, "Волонтёр")
-    ORG = (2, "Организатор")
+    VISITOR = (0, "Зритель", "Зрители")
+    HELPER = (1, "Волонтёр", "Волонтёры")
+    ORG = (2, "Организатор", "Организаторы")

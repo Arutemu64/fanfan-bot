@@ -24,9 +24,6 @@ with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
 async def main_menu_getter(
     dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
 ):
-    if current_user.username != dialog_manager.event.from_user.username:
-        current_user.username = dialog_manager.event.from_user.username
-        await db.session.commit()
     total_achievements = await db.achievement.get_count()
     if total_achievements > 0:
         achievements_progress = math.floor(

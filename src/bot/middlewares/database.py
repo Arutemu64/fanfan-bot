@@ -20,6 +20,10 @@ class DatabaseMiddleware(BaseMiddleware):
         async with data["session_pool"]() as session:
             with sentry_sdk.start_transaction(name="DatabaseTransaction"):
                 db = Database(session)
+                current_user = await db.user.get(data["event_from_user"].id)
+                if current_user.username != data["event_from_user"].username:
+                    current_user.username = data["event_from_user"].username
+                    await db.session.commit()
                 data["db"] = db
-                data["current_user"] = await db.user.get(data["event_from_user"].id)
+                data["current_user"] = current_user
                 return await handler(event, data)
