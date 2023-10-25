@@ -1,10 +1,9 @@
 from aiogram import F
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.dialog import ChatEvent, Dialog
+from aiogram_dialog.dialog import ChatEvent
 from aiogram_dialog.widgets.input.text import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
-    Cancel,
     Checkbox,
     CurrentPage,
     FirstPage,
@@ -20,20 +19,21 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
-from src.bot.dialogs.getters import schedule_list
 from src.bot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
     EventsList,
     SchedulePaginator,
     on_wrong_event_id,
+    schedule_getter,
+    set_search_query,
 )
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import User
 
-EVENT_ID_INPUT = "subscribe_event_id_input"
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
+ID_EVENT_INPUT = "event_input"
 ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 
 with open(TEMPLATES_DIR / "subscriptions.jinja2", "r", encoding="utf-8") as file:
@@ -49,26 +49,15 @@ async def subscriptions_getter(
         user=current_user,
     )
     current_event = await db.event.get_current()
+    checkbox: ManagedCheckbox = dialog_manager.find(
+        ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX
+    )
+    await checkbox.set_checked(current_user.receive_all_announcements)
     return {
         "pages": page.total,
         "subscriptions": page.items,
         "current_event_position": current_event.real_position if current_event else 0,
     }
-
-
-async def schedule_getter(
-    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
-):
-    page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
-    data = await schedule_list(
-        db=db,
-        events_per_page=current_user.items_per_page,
-        page=page,
-        user=current_user,
-        search_query=dialog_manager.dialog_data.get("search_query"),
-    )
-    data.update({"page": page + 1})
-    return data
 
 
 async def proceed_input(
@@ -80,7 +69,7 @@ async def proceed_input(
     db: Database = dialog_manager.middleware_data["db"]
 
     if not data.isnumeric():
-        dialog_manager.dialog_data["search_query"] = data
+        await set_search_query(message, widget, dialog_manager, data)
         return
 
     user = dialog_manager.middleware_data["current_user"]
@@ -97,7 +86,7 @@ async def proceed_input(
         return
     else:
         dialog_manager.dialog_data["selected_event_title"] = event.title
-        await dialog_manager.switch_to(states.SUBSCRIPTIONS.SET_SUBSCRIPTION_COUNTER)
+        await dialog_manager.switch_to(states.SCHEDULE.SUBSCRIPTIONS_SET_COUNTER)
 
 
 async def setup_subscription(
@@ -108,7 +97,7 @@ async def setup_subscription(
 ):
     db: Database = dialog_manager.middleware_data["db"]
     user: User = dialog_manager.middleware_data["current_user"]
-    event = await db.event.get(int(dialog_manager.find(EVENT_ID_INPUT).get_value()))
+    event = await db.event.get(int(dialog_manager.find(ID_EVENT_INPUT).get_value()))
 
     subscription = await db.subscription.new(user, event, data)
     await db.session.commit()
@@ -118,8 +107,7 @@ async def setup_subscription(
         f"<b>{subscription.event.title}</b>"
         f" успешно оформлена!"
     )
-
-    await dialog_manager.switch_to(states.SUBSCRIPTIONS.MAIN)
+    await dialog_manager.switch_to(states.SCHEDULE.SUBSCRIPTIONS_MAIN)
 
 
 async def remove_subscription(
@@ -151,7 +139,7 @@ async def toggle_all_notifications(
     await db.session.commit()
 
 
-set_subscription_counter_window = Window(
+set_counter_window = Window(
     Format(
         "🔢 За сколько выступлений до начала "
         "<b>{dialog_data[selected_event_title]}</b> начать оповещать Вас?"
@@ -159,10 +147,10 @@ set_subscription_counter_window = Window(
     TextInput(id="counter_input", type_factory=int, on_success=setup_subscription),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SUBSCRIPTIONS.EVENT_SELECTOR,
+        state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
         id="back",
     ),
-    state=states.SUBSCRIPTIONS.SET_SUBSCRIPTION_COUNTER,
+    state=states.SCHEDULE.SUBSCRIPTIONS_SET_COUNTER,
 )
 
 event_selector_window = Window(
@@ -174,20 +162,20 @@ event_selector_window = Window(
     ),
     SchedulePaginator,
     TextInput(
-        id=EVENT_ID_INPUT,
+        id=ID_EVENT_INPUT,
         type_factory=str,
         on_success=proceed_input,
     ),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SUBSCRIPTIONS.MAIN,
+        state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
         id="back",
     ),
     getter=schedule_getter,
-    state=states.SUBSCRIPTIONS.EVENT_SELECTOR,
+    state=states.SCHEDULE.SUBSCRIPTIONS_EVENT_SELECTOR,
 )
 
-main_subscriptions_window = Window(
+subscriptions_main_window = Window(
     Title(strings.titles.notifications),
     Const(""),
     SubscriptionsList,
@@ -203,7 +191,7 @@ main_subscriptions_window = Window(
     ),
     SwitchTo(
         text=Const("➕ Подписаться на выступление"),
-        state=states.SUBSCRIPTIONS.EVENT_SELECTOR,
+        state=states.SCHEDULE.SUBSCRIPTIONS_EVENT_SELECTOR,
         id="subscribe",
     ),
     Checkbox(
@@ -214,34 +202,20 @@ main_subscriptions_window = Window(
     ),
     StubScroll(ID_SUBSCRIPTIONS_SCROLL, pages="pages"),
     Row(
-        FirstPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("⏪")),
-        PrevPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("◀️")),
+        FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
+        PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
         CurrentPage(
-            scroll=ID_SUBSCRIPTIONS_SCROLL, text=Format(text="{current_page1}/{pages}")
+            scroll=ID_SCHEDULE_SCROLL, text=Format(text="{current_page1}/{pages}")
         ),
-        NextPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("▶️")),
-        LastPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("⏭️")),
+        NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
+        LastPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏭️")),
         when=F["pages"] != 1,
     ),
-    Cancel(
+    SwitchTo(
         text=Const(strings.buttons.back),
+        id="close_subscriptions",
+        state=states.SCHEDULE.MAIN,
     ),
     getter=subscriptions_getter,
-    state=states.SUBSCRIPTIONS.MAIN,
-)
-
-
-async def on_start_subscriptions(start_data: dict, manager: DialogManager):
-    user: User = manager.middleware_data["current_user"]
-    await manager.find(ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX).set_checked(
-        user.receive_all_announcements
-    )
-    pass
-
-
-dialog = Dialog(
-    main_subscriptions_window,
-    event_selector_window,
-    set_subscription_counter_window,
-    on_start=on_start_subscriptions,
+    state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
 )

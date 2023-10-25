@@ -1,16 +1,15 @@
 from typing import Optional, Tuple
 
 from aiogram import Dispatcher, F
-from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.base import BaseEventIsolation, BaseStorage
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.strategy import FSMStrategy
 from aiogram.types import ErrorEvent
 from aiogram_dialog import BgManagerFactory, DialogManager, setup_dialogs
-from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from aiogram_dialog.context.media_storage import MediaIdStorage
 
 from src.bot import dialogs, handlers
+from src.bot.handlers.errors import register_error_handlers
 from src.bot.middlewares import (
     DatabaseMiddleware,
     SentryLoggingMiddleware,
@@ -46,10 +45,6 @@ def get_dispatcher(
 
     dp.update.middleware(DatabaseMiddleware())
 
-    dp.errors.register(
-        on_unknown_intent_or_state,
-        ExceptionTypeFilter(UnknownIntent),
-        ExceptionTypeFilter(UnknownState),
-    )
+    register_error_handlers(dp)
 
     return dp, dialog_bg_factory

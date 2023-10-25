@@ -13,7 +13,7 @@ from src.bot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
     EventsList,
     SchedulePaginator,
-    main_schedule_getter,
+    schedule_getter,
     set_schedule_page,
     set_search_query,
 )
@@ -119,5 +119,5 @@ set_manual_event_window = Window(
     ),
     SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
     state=states.SCHEDULE.ASK_MANUAL_EVENT,
-    getter=main_schedule_getter,
+    getter=schedule_getter,
 )
