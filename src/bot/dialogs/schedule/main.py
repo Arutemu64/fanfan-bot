@@ -9,7 +9,6 @@ from aiogram_dialog.widgets.kbd import (
     Group,
     ManagedCheckbox,
     Row,
-    Start,
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const
@@ -18,7 +17,7 @@ from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    main_schedule_getter,
+    schedule_getter,
     set_search_query,
 )
 from src.bot.dialogs.schedule.tools.set_next_event import set_next_event
@@ -81,13 +80,13 @@ schedule_main_window = Window(
         ),
         when=F["is_helper"] & F["events"],
     ),
-    Start(
+    SwitchTo(
         text=Const(strings.titles.notifications),
         id="open_notifications_menu",
-        state=states.SUBSCRIPTIONS.MAIN,
+        state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
     ),
     SchedulePaginator,
     Cancel(text=Const(strings.buttons.back)),
     state=states.SCHEDULE.MAIN,
-    getter=main_schedule_getter,
+    getter=schedule_getter,
 )

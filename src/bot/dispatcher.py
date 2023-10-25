@@ -1,27 +1,19 @@
 from typing import Optional, Tuple
 
 from aiogram import Dispatcher, F
-from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.base import BaseEventIsolation, BaseStorage
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.strategy import FSMStrategy
-from aiogram.types import ErrorEvent
-from aiogram_dialog import BgManagerFactory, DialogManager, setup_dialogs
-from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from aiogram_dialog import BgManagerFactory, setup_dialogs
 from aiogram_dialog.context.media_storage import MediaIdStorage
 
 from src.bot import dialogs, handlers
+from src.bot.handlers.errors import register_error_handlers
 from src.bot.middlewares import (
     DatabaseMiddleware,
     SentryLoggingMiddleware,
 )
 from src.config import conf
-
-
-async def on_unknown_intent_or_state(event: ErrorEvent, dialog_manager: DialogManager):
-    await event.update.callback_query.message.answer(
-        "⌛⚠️ Ваша сессия истекла, перезапустите бота командой /start"
-    )
 
 
 def get_dispatcher(
@@ -46,10 +38,6 @@ def get_dispatcher(
 
     dp.update.middleware(DatabaseMiddleware())
 
-    dp.errors.register(
-        on_unknown_intent_or_state,
-        ExceptionTypeFilter(UnknownIntent),
-        ExceptionTypeFilter(UnknownState),
-    )
+    register_error_handlers(dp)
 
     return dp, dialog_bg_factory

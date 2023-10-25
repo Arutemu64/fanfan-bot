@@ -13,7 +13,7 @@ from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     EventsList,
     SchedulePaginator,
-    main_schedule_getter,
+    schedule_getter,
     set_schedule_page,
     set_search_query,
 )
@@ -115,5 +115,5 @@ swap_events_window = Window(
     ),
     SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
     state=states.SCHEDULE.SWAP_EVENTS,
-    getter=main_schedule_getter,
+    getter=schedule_getter,
 )

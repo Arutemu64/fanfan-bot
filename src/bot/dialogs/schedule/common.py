@@ -16,7 +16,6 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from src.bot import TEMPLATES_DIR
-from src.bot.dialogs.getters import schedule_list
 from src.bot.structures import UserRole
 from src.db import Database
 from src.db.models import Event, User
@@ -27,20 +26,25 @@ with open(TEMPLATES_DIR / "schedule.jinja2", "r", encoding="utf-8") as file:
     EventsList = Jinja(file.read())
 
 
-async def main_schedule_getter(
+async def schedule_getter(
     dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
 ):
-    page = await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
-    data = await schedule_list(
-        db=db,
+    page = await db.event.paginate(
+        page=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page(),
         events_per_page=current_user.items_per_page,
-        page=page,
-        user=current_user,
         search_query=dialog_manager.dialog_data.get("search_query"),
     )
-    dialog_manager.dialog_data["pages"] = data["pages"]
-    data.update({"is_helper": current_user.role > UserRole.VISITOR, "page": page + 1})
-    return data
+    subscribed_events = await db.event.check_user_subscribed_events(
+        current_user, page.items
+    )
+    dialog_manager.dialog_data["pages"] = page.total
+    return {
+        "events": page.items,
+        "subscribed_events": subscribed_events,
+        "page": page.number + 1,
+        "pages": page.total,
+        "is_helper": current_user.role > UserRole.VISITOR,
+    }
 
 
 async def set_schedule_page(manager: DialogManager, event: Event):

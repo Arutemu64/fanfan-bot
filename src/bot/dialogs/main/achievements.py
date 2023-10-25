@@ -10,11 +10,10 @@ from aiogram_dialog.widgets.kbd import (
     StubScroll,
     SwitchTo,
 )
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 
+from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
-from src.bot.dialogs.getters import achievements_list
-from src.bot.dialogs.getters.achievements import AchievementsList
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
@@ -22,17 +21,26 @@ from src.db.models import User
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 
+with open(TEMPLATES_DIR / "achievements.jinja2", "r", encoding="utf-8") as file:
+    AchievementsList = Jinja(file.read())
+
 
 async def achievements_getter(
     dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
 ):
-    return await achievements_list(
-        db=db,
-        achievements_per_page=current_user.items_per_page,
+    page = await db.achievement.paginate(
         page=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
-        user=current_user,
-        show_ids=False,
+        achievements_per_page=current_user.items_per_page,
     )
+    received_achievements = await db.achievement.check_user_achievements(
+        current_user, page.items
+    )
+    return {
+        "achievements": page.items,
+        "pages": page.total,
+        "received_achievements": received_achievements,
+        "show_ids": False,
+    }
 
 
 achievements_window = Window(

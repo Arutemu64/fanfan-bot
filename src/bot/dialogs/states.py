@@ -24,11 +24,9 @@ class SCHEDULE(StatesGroup):
     SWAP_EVENTS = State()
     TOGGLE_EVENT_SKIP = State()
 
-
-class SUBSCRIPTIONS(StatesGroup):
-    MAIN = State()
-    EVENT_SELECTOR = State()
-    SET_SUBSCRIPTION_COUNTER = State()
+    SUBSCRIPTIONS_MAIN = State()
+    SUBSCRIPTIONS_EVENT_SELECTOR = State()
+    SUBSCRIPTIONS_SET_COUNTER = State()
 
 
 class VOTING(StatesGroup):

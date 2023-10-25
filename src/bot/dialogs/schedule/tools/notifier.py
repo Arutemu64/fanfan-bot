@@ -43,7 +43,7 @@ async def proceed_subscriptions(
                 "subscription": sub,
             }
         )
-        await arq.enqueue_job("send_notification", Notification(sub.user.id, text))
+        await arq.enqueue_job("send_notification", Notification(sub.user_id, text))
         if sub.event is current_event:
             await session.delete(sub)
     await session.commit()
