@@ -22,8 +22,8 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
-from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
+from src.bot.dialogs.templates import voting_list
 from src.bot.dialogs.widgets import FormatTitle, Title
 from src.bot.ui import strings
 from src.db import Database
@@ -31,10 +31,6 @@ from src.db.models import User
 
 ID_NOMINATIONS_SCROLL = "nominations_scroll"
 ID_VOTING_SCROLL = "voting_scroll"
-
-
-with open(TEMPLATES_DIR / "voting.jinja2", "r", encoding="utf-8") as file:
-    VotingList = Jinja(file.read())
 
 
 async def nominations_getter(
@@ -150,7 +146,7 @@ nominations = Window(
 
 voting = Window(
     FormatTitle("🎖️ Номинация {nomination_title}"),
-    VotingList,
+    Jinja(voting_list),
     Const("⌨️ Чтобы проголосовать, отправь номер участника.", when=~F["user_vote"]),
     StubScroll(ID_VOTING_SCROLL, pages="pages"),
     Row(

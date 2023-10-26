@@ -1,0 +1,7 @@
+{% for achievement in achievements %}
+<b>{% if show_ids %}{{ achievement.id }}. {% endif %}{{ achievement.title }}</b> {{ "✅" if achievement in received_achievements else "" }}
+    {% if achievement.description %}
+{{ achievement.description }}
+    {% endif %}
+
+{% endfor %}

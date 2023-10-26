@@ -1,18 +1,16 @@
 from arq import ArqRedis
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot import TEMPLATES_DIR
+from src.bot.dialogs.templates import global_announcement, subscription_notification
 from src.bot.structures import Notification
 from src.config import conf
 from src.db import Database
 from src.db.database import create_async_engine
 
-jinja = Environment(
-    loader=FileSystemLoader(TEMPLATES_DIR), lstrip_blocks=True, trim_blocks=True
-)
-subscription_template = jinja.get_template("subscription_announcement.jinja2")
-global_announcement_template = jinja.get_template("global_announcement.jinja2")
+jinja = Environment(lstrip_blocks=True, trim_blocks=True)
+subscription_template = jinja.from_string(subscription_notification)
+global_announcement_template = jinja.from_string(global_announcement)
 
 
 async def proceed_subscriptions(

@@ -1,0 +1,29 @@
+{% if events|length == 0 %}
+⚠️ Выступления не найдены
+{% else %}
+    {% for event in events %}
+        {% if event.participant %}
+            {% if loop.previtem %}
+                {% if loop.previtem.participant %}
+                    {% if event.participant.nomination.id != loop.previtem.participant.nomination.id %}
+<b>➡️ {{event.participant.nomination.title}}</b>
+                    {% endif %}
+                {% else %}
+<b>➡️ {{event.participant.nomination.title}}</b>
+                {% endif %}
+            {% else %}
+<b>➡️ {{event.participant.nomination.title}}</b>
+            {% endif %}
+        {% endif %}
+        {% if event.skip %}<s>{% endif %}
+        {% if event.current %}<b>{% endif %}
+<b>{{event.id}}.</b> {{event.title}}
+        {%- if event.current %}</b> 👈{% endif %}
+        {%- if event in subscribed_events %} 🔔{% endif %}
+        {%- if event.skip %}</s>{% endif +%}
+    {% endfor %}
+{% endif %}
+{% if dialog_data.search_query %}
+
+<i>🔍 Результаты поиска по запросу '{{ dialog_data.search_query }}'</i>
+{% endif %}

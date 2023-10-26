@@ -17,16 +17,15 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
-from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
-    EventsList,
     SchedulePaginator,
     on_wrong_event_id,
     schedule_getter,
     set_search_query,
 )
+from src.bot.dialogs.templates import schedule_list, subscriptions_list
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
@@ -35,9 +34,6 @@ from src.db.models import User
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
 ID_EVENT_INPUT = "event_input"
 ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
-
-with open(TEMPLATES_DIR / "subscriptions.jinja2", "r", encoding="utf-8") as file:
-    SubscriptionsList = Jinja(file.read())
 
 
 async def subscriptions_getter(
@@ -155,7 +151,7 @@ set_counter_window = Window(
 
 event_selector_window = Window(
     Const("<b>➕ Пришлите номер выступления, на которое хотите подписаться:</b>\n"),
-    EventsList,
+    Jinja(schedule_list),
     Const(
         "🔍 <i>Для поиска отправьте запрос сообщением</i>",
         when=~F["dialog_data"]["search_query"],
@@ -178,7 +174,7 @@ event_selector_window = Window(
 subscriptions_main_window = Window(
     Title(strings.titles.notifications),
     Const(""),
-    SubscriptionsList,
+    Jinja(subscriptions_list),
     Const(
         "🗑️ <i>Чтобы отписаться, пришлите номер выступления</i>",
         when=F["subscriptions"],

@@ -14,8 +14,9 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
-from src.bot import BOT_ROOT_DIR, TEMPLATES_DIR
+from src.bot import BOT_ROOT_DIR
 from src.bot.dialogs import states
+from src.bot.dialogs.templates import activity as activity_template
 from src.bot.ui import images, strings
 
 ID_ACTIVITIES_SCROLL = "activities_scroll"
@@ -45,12 +46,8 @@ async def activity_getter(dialog_manager: DialogManager, **kwargs):
     }
 
 
-with open(TEMPLATES_DIR / "activity.jinja2", "r", encoding="utf-8") as file:
-    Activity = Jinja(file.read())
-
-
 activity = Window(
-    Activity,
+    Jinja(activity_template),
     StaticMedia(path=Format("{activity_image}")),
     StubScroll(id=ID_ACTIVITIES_SCROLL, pages="pages"),
     Row(

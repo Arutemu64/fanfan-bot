@@ -6,18 +6,18 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
-from aiogram_dialog.widgets.text import Const
+from aiogram_dialog.widgets.text import Const, Jinja
 from sqlalchemy import text
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
-    EventsList,
     SchedulePaginator,
     schedule_getter,
     set_schedule_page,
     set_search_query,
 )
 from src.bot.dialogs.schedule.tools import notifier
+from src.bot.dialogs.templates import schedule_list
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
@@ -94,7 +94,7 @@ async def proceed_input(
 
 toggle_event_skip_window = Window(
     Const("<b>🙈 Укажите номер выступления, которое Вы хотите скрыть/отобразить:</b>\n"),
-    EventsList,
+    Jinja(schedule_list),
     Const(
         "🔍 <i>Для поиска отправьте запрос сообщением</i>",
         when=~F["dialog_data"]["search_query"],

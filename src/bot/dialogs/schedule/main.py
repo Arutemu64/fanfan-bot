@@ -11,16 +11,16 @@ from aiogram_dialog.widgets.kbd import (
     Row,
     SwitchTo,
 )
-from aiogram_dialog.widgets.text import Const
+from aiogram_dialog.widgets.text import Const, Jinja
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
-    EventsList,
     SchedulePaginator,
     schedule_getter,
     set_search_query,
 )
 from src.bot.dialogs.schedule.tools.set_next_event import set_next_event
+from src.bot.dialogs.templates import schedule_list
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 
@@ -33,7 +33,7 @@ async def toggle_helper_tools(
 
 schedule_main_window = Window(
     Title(strings.titles.schedule),
-    EventsList,
+    Jinja(schedule_list),
     Const(
         "🔍⌨️ <i>Отправьте поисковой запрос или номер страницы для перехода</i>",
         when=~F["dialog_data"]["search_query"],

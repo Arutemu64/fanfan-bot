@@ -13,17 +13,13 @@ from aiogram_dialog.widgets.kbd import (
     Row,
     StubScroll,
 )
-from aiogram_dialog.widgets.text import Const, Format, Jinja
+from aiogram_dialog.widgets.text import Const, Format
 
-from src.bot import TEMPLATES_DIR
 from src.bot.structures import UserRole
 from src.db import Database
 from src.db.models import Event, User
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
-
-with open(TEMPLATES_DIR / "schedule.jinja2", "r", encoding="utf-8") as file:
-    EventsList = Jinja(file.read())
 
 
 async def schedule_getter(

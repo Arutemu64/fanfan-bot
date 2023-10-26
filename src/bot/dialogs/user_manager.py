@@ -25,9 +25,9 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja, List
 from arq import ArqRedis
 
-from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
 from src.bot.dialogs.getters import get_roles
+from src.bot.dialogs.templates import achievements_list
 from src.bot.dialogs.widgets import Title
 from src.bot.structures import Notification, UserRole
 from src.bot.ui import strings
@@ -36,9 +36,6 @@ from src.db.models import User
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 ID_ADD_POINTS_COUNTER = "add_points_counter"
-
-with open(TEMPLATES_DIR / "achievements.jinja2", "r", encoding="utf-8") as file:
-    AchievementsList = Jinja(file.read())
 
 
 def points_pluralize(points: int) -> str:
@@ -219,7 +216,7 @@ add_points_window = Window(
 
 add_achievement_window = Window(
     Const("⌨️ Укажите достижение, которое получит пользователь:\n"),
-    AchievementsList,
+    Jinja(achievements_list),
     TextInput(
         id="achievement_id_input",
         type_factory=int,

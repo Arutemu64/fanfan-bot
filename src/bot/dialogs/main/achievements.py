@@ -12,17 +12,14 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
-from src.bot import TEMPLATES_DIR
 from src.bot.dialogs import states
+from src.bot.dialogs.templates import achievements_list
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import User
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
-
-with open(TEMPLATES_DIR / "achievements.jinja2", "r", encoding="utf-8") as file:
-    AchievementsList = Jinja(file.read())
 
 
 async def achievements_getter(
@@ -45,7 +42,7 @@ async def achievements_getter(
 
 achievements_window = Window(
     Title(strings.titles.achievements),
-    AchievementsList,
+    Jinja(achievements_list),
     StubScroll(id=ID_ACHIEVEMENTS_SCROLL, pages="pages"),
     Row(
         FirstPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏪")),

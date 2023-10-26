@@ -1,0 +1,12 @@
+{% macro votes_pluralize(count) %}
+{% if (count % 10 == 1) and (count % 100 != 11) %}
+голос
+{%- elif (2 <= count % 10 <= 4) and (count % 100 < 10 or count % 100 >= 20) %}
+голоса
+{%- else %}
+голосов
+{%- endif %}
+{% endmacro %}
+{% for participant in participants %}
+<b>{{participant.id}}.</b> {{participant.title}} <b>[{{participant.votes_count}} {{votes_pluralize(participant.votes_count)}}]</b>{{ " ✅" if user_vote.participant == participant else ""}}
+{% endfor %}
