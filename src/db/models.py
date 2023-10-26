@@ -19,6 +19,7 @@ from sqlalchemy.orm import (
     declared_attr,
     mapped_column,
     relationship,
+    validates,
 )
 
 from src.bot.structures import UserRole
@@ -126,7 +127,7 @@ class Event(Base):
     position_sequence = Sequence("schedule_position_seq", start=1)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    position: Mapped[int] = mapped_column(
+    position: Mapped[float] = mapped_column(
         unique=True, nullable=False, server_default=position_sequence.next_value()
     )
     real_position: Mapped[int] = mapped_column(unique=True, nullable=True)
@@ -138,6 +139,14 @@ class Event(Base):
     current: Mapped[bool] = mapped_column(nullable=True, unique=True)
 
     participant: Mapped["Participant"] = relationship(lazy="selectin")
+
+    @validates("real_position")
+    def block_real_position_modification(self, key, value):
+        raise ValueError(
+            "Real position can't be modified since "
+            "it's automatically updated by PSQL trigger"
+            "(check Alembic files for more details)."
+        )
 
     def __str__(self):
         return self.title

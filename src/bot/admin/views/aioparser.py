@@ -4,14 +4,15 @@ import numpy as np
 import pandas as pd
 from fastapi import Request, UploadFile
 from sqladmin import BaseView, expose
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db import Database
+from src.db.database import create_session_pool
 from src.db.models import Nomination, Participant, Ticket
 
 
-async def parse(path: Path, engine: AsyncEngine):
-    db = Database(AsyncSession(bind=engine, expire_on_commit=False))
+async def parse(path: Path, session: AsyncSession):
+    db = Database(session)
     # Парсинг номинаций
     new_nominations = []
     df = pd.read_excel(path, sheet_name="nominations")
@@ -89,7 +90,9 @@ class AioParserView(BaseView):
         path = Path(__file__).parent.joinpath(file.filename)
         with open(path, "wb") as f:
             f.write(content)
-        await parse(path, request.app.state.engine)
+        session_pool = create_session_pool()
+        async with session_pool() as session:
+            await parse(path, session)
         return self.templates.TemplateResponse(
             "aioparser.html", context={"request": request}
         )

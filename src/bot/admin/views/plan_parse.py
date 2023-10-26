@@ -5,9 +5,10 @@ from openpyxl import load_workbook
 from openpyxl.cell import Cell
 from sqladmin import BaseView, expose
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db import Database
+from src.db.database import create_session_pool
 from src.db.models import Event, Nomination, Participant
 
 
@@ -22,8 +23,8 @@ async def drop_schedule(db: Database):
     await db.session.commit()
 
 
-async def proceed_plan(path: Path, engine: AsyncEngine):
-    db = Database(AsyncSession(bind=engine, expire_on_commit=False))
+async def proceed_plan(path: Path, session: AsyncSession):
+    db = Database(session)
     await drop_schedule(db)
     wb = load_workbook(path)
     ws = wb.active
@@ -94,7 +95,9 @@ class PlanParseView(BaseView):
         path = Path(__file__).parent.joinpath(file.filename)
         with open(path, "wb") as f:
             f.write(content)
-        await proceed_plan(path, request.app.state.engine)
+        session_pool = create_session_pool()
+        async with session_pool() as session:
+            await proceed_plan(path, session)
         return self.templates.TemplateResponse(
             "plan_parse.html", context={"request": request}
         )
