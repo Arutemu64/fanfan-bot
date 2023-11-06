@@ -25,7 +25,7 @@ qrcode = {version = "^7.4.2", extras = ["pil"]}
 redis = "^5.0.1"
 sentry-sdk = {version = "^1.32.0", extras = ["sqlalchemy", "redis"]}
 sqladmin = "^0.15.2"
-sqlalchemy = "^2.0.22"
+sqlalchemy = "^2.0.23"
 uvicorn = "^0.23.2"
 xlrd = "^2.0.1"
 
