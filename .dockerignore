@@ -201,7 +201,9 @@ celerybeat.pid
 
 # Environments
 .env
+.local-env
 .venv
+.env.dist
 env/
 venv/
 ENV/
@@ -239,9 +241,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-
-.env.dist
-.docker-env
 .gitignore
 .github
 LICENSE

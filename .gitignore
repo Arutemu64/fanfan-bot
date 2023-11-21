@@ -201,6 +201,7 @@ celerybeat.pid
 
 # Environments
 .env
+.local-env
 .venv
 env/
 venv/
@@ -239,5 +240,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-.docker-env
 /.ruff_cache/
+/.local-env
