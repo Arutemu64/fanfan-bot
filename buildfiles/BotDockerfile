@@ -1,6 +1,6 @@
 FROM python:3.11-slim as python-base
 
-ENV POETRY_VERSION=1.6.1 \
+ENV POETRY_VERSION=1.7.1 \
     POETRY_HOME=/opt/poetry \
     POETRY_VENV=/opt/poetry-venv \
     POETRY_CACHE_DIR=/opt/.cache

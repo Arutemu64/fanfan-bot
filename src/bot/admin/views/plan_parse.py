@@ -85,9 +85,7 @@ class PlanParseView(BaseView):
     @expose("/plan_parse", methods=["GET", "POST"])
     async def plan_parse(self, request: Request):
         if request.method == "GET":
-            return self.templates.TemplateResponse(
-                "plan_parse.html", context={"request": request}
-            )
+            return await self.templates.TemplateResponse(request, "plan_parse.html")
         form = await request.form()
         file: UploadFile = form["file"]
         await file.seek(0)

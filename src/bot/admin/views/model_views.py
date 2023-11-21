@@ -87,18 +87,25 @@ class EventAdmin(ModelView, model=Event):
     icon = "fa-solid fa-calendar-days"
     column_list = [
         Event.id,
+        Event.position,
         Event.real_position,
         Event.title,
         Event.skip,
     ]
     column_labels = {
         Event.id: "ID",
+        Event.position: "Позиция",
         Event.real_position: "Позиция (с учётом пропусков)",
         Event.title: "Название",
         Event.participant: "Участник",
         Event.skip: "Пропущено",
     }
-    can_create = False
+    form_columns = {
+        Event.participant,
+        Event.position,
+        Event.title,
+        Event.skip,
+    }
 
 
 class ParticipantAdmin(ModelView, model=Participant):

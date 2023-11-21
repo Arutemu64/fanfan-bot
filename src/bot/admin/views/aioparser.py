@@ -80,9 +80,7 @@ class AioParserView(BaseView):
     @expose("/aioparser", methods=["GET", "POST"])
     async def plan_parse(self, request: Request):
         if request.method == "GET":
-            return self.templates.TemplateResponse(
-                "aioparser.html", context={"request": request}
-            )
+            return await self.templates.TemplateResponse(request, "aioparser.html")
         form = await request.form()
         file: UploadFile = form["file"]
         await file.seek(0)
