@@ -33,7 +33,9 @@ from src.redis import build_redis_client, get_redis_storage
 async def setup_default_settings(session: AsyncSession) -> None:
     db = Database(session)
     if not await db.settings.get():
-        await db.settings.new(voting_enabled=False, announcement_timestamp=0)
+        await db.settings.new(
+            voting_enabled=False, announcement_timeout=10, announcement_timestamp=0
+        )
         await db.session.commit()
 
 

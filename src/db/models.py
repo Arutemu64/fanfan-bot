@@ -229,6 +229,7 @@ class Settings(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, server_default="1")
     voting_enabled: Mapped[bool] = mapped_column(server_default="False")
+    announcement_timeout: Mapped[int] = mapped_column(server_default="10")
     announcement_timestamp: Mapped[float] = mapped_column(server_default="0")
 
 

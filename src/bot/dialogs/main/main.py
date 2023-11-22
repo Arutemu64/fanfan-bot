@@ -24,6 +24,7 @@ with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
 async def main_menu_getter(
     dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
 ):
+    settings = await db.settings.get()
     total_achievements = await db.achievement.get_count()
     if total_achievements > 0:
         achievements_progress = math.floor(
@@ -39,7 +40,7 @@ async def main_menu_getter(
         "is_helper": current_user.role > UserRole.VISITOR,
         "is_org": current_user.role == UserRole.ORG,
         "random_quote": random.choice(quotes),
-        "voting_enabled": await db.settings.get_voting_enabled(),
+        "voting_enabled": settings.voting_enabled,
         "total_achievements": total_achievements,
         "achievements_progress": achievements_progress,
         "show_qr_webapp": conf.web.mode == "webhook",
@@ -48,11 +49,12 @@ async def main_menu_getter(
 
 async def open_voting(callback: CallbackQuery, button: Button, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
+    settings = await db.settings.get()
     current_user: User = manager.middleware_data["current_user"]
     if not current_user.ticket:
         await callback.answer(strings.errors.ticket_not_linked, show_alert=True)
         return
-    if not await db.settings.get_voting_enabled():
+    if not settings.voting_enabled:
         await callback.answer(strings.errors.voting_disabled, show_alert=True)
         return
     await manager.start(state=states.VOTING.NOMINATIONS)

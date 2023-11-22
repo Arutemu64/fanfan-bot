@@ -88,12 +88,13 @@ async def add_vote(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
+    settings = await db.settings.get()
     user: User = dialog_manager.middleware_data["current_user"]
 
     if dialog_manager.dialog_data["user_vote_id"]:
-        await message.reply("⚠️ Вы уже голосовали в этой категории!")
+        await message.reply("⚠️ Вы уже голосовали в этой номинации!")
         return
-    if not await db.settings.get_voting_enabled():
+    if not settings.voting_enabled:
         await message.reply(strings.errors.voting_disabled)
         return
     nomination = await db.nomination.get(dialog_manager.dialog_data["nomination_id"])
@@ -116,7 +117,8 @@ async def add_vote(
 
 async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
-    if not await db.settings.get_voting_enabled():
+    settings = await db.settings.get()
+    if not settings.voting_enabled:
         await callback.answer(strings.errors.voting_disabled)
         return
     user_vote = await db.vote.get(manager.dialog_data["user_vote_id"])

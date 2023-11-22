@@ -30,8 +30,9 @@ ID_VOTING_ENABLED_CHECKBOX = "voting_enabled_checkbox"
 
 
 async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+    settings = await db.settings.get()
     await dialog_manager.find(ID_VOTING_ENABLED_CHECKBOX).set_checked(
-        await db.settings.get_voting_enabled()
+        settings.voting_enabled
     )
     jwt_token = jwt.encode(
         payload={"user_id": dialog_manager.event.from_user.id},
@@ -47,9 +48,8 @@ async def switch_voting(
     event: ChatEvent, checkbox: ManagedCheckbox, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    await db.settings.set_voting_enabled(
-        manager.find(ID_VOTING_ENABLED_CHECKBOX).is_checked()
-    )
+    settings = await db.settings.get()
+    settings.voting_enabled = manager.find(ID_VOTING_ENABLED_CHECKBOX).is_checked()
     await db.session.commit()
 
 

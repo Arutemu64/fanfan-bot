@@ -1,16 +1,16 @@
 import time
 
-from src.config import conf
 from src.db import Database
+from src.db.models import Settings
 
-ANNOUNCEMENT_TIMEOUT = conf.bot.announcement_timeout
 
-
-async def throttle_announcement(db: Database) -> bool:
-    global_timestamp = await db.settings.get_announcement_timestamp()
+async def throttle_announcement(db: Database, settings: Settings) -> int:
     timestamp = time.time()
-    if (timestamp - global_timestamp) < ANNOUNCEMENT_TIMEOUT:
-        return False
+    if (timestamp - settings.announcement_timestamp) < settings.announcement_timeout:
+        return int(
+            settings.announcement_timestamp + settings.announcement_timeout - timestamp
+        )
     else:
-        await db.settings.set_announcement_timestamp(timestamp)
-        return True
+        settings.announcement_timestamp = timestamp
+        await db.session.commit()
+        return 0

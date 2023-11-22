@@ -47,10 +47,14 @@ async def proceed_input(
         return
 
     # Таймаут рассылки анонсов
-    if await throttle_announcement(db):
-        pass
-    else:
-        await message.answer(strings.errors.announce_too_fast)
+    settings = await db.settings.get()
+    time_left = await throttle_announcement(db, settings)
+    if not time_left == 0:
+        await message.answer(
+            strings.errors.announce_too_fast.format(
+                announcement_timeout=settings.announcement_timeout, time_left=time_left
+            )
+        )
         return
 
     # Сброс текущего выступления

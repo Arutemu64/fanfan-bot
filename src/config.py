@@ -60,8 +60,6 @@ class BotConfig:
     token: str = env("BOT_TOKEN", validate=Length(min=1))
     admin_list = [x.lower() for x in env.list("ADMIN_LIST", [])]
 
-    announcement_timeout = env.int("ANNOUNCE_TIMEOUT", 30)  # TODO Move setting to DB
-
 
 class WebConfig:
     """Web configuration"""
