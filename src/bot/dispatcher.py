@@ -11,9 +11,8 @@ from src.bot import dialogs, handlers
 from src.bot.handlers.errors import register_error_handlers
 from src.bot.middlewares import (
     DatabaseMiddleware,
-    SentryLoggingMiddleware,
+    UserDataMiddleware,
 )
-from src.config import conf
 
 
 def get_dispatcher(
@@ -32,12 +31,9 @@ def get_dispatcher(
 
     dp.include_router(handlers.setup_router())
     dp.include_router(dialogs.setup_router())
-
-    if conf.sentry_enabled:
-        dp.update.middleware(SentryLoggingMiddleware())
+    register_error_handlers(dp)
 
     dp.update.middleware(DatabaseMiddleware())
-
-    register_error_handlers(dp)
+    dp.update.middleware(UserDataMiddleware())
 
     return dp, dialog_bg_factory

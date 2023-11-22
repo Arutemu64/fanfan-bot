@@ -97,12 +97,21 @@ async def add_vote(
         await message.reply(strings.errors.voting_disabled)
         return
     nomination = await db.nomination.get(dialog_manager.dialog_data["nomination_id"])
-    participant = await db.participant.get_for_vote(data, nomination)
+    participant = await db.participant.get(data)
     if participant:
-        await db.vote.new(user, participant)
-        await db.session.commit()
+        if participant.nomination == nomination:
+            if participant.event:
+                if participant.event.skip:
+                    await message.reply("⚠️ Неверно указан номер участника")
+                    return
+            await db.vote.new(user, participant)
+            await db.session.commit()
+        else:
+            await message.reply("⚠️ Неверно указан номер участника")
+            return
     else:
         await message.reply("⚠️ Неверно указан номер участника")
+        return
 
 
 async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogManager):

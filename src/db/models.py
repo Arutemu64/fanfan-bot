@@ -74,7 +74,9 @@ class Ticket(Base):
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
-    used_by: Mapped["User"] = relationship(lazy="selectin", foreign_keys=used_by_id)
+    used_by: Mapped["User"] = relationship(
+        lazy="selectin", foreign_keys=used_by_id, back_populates="ticket"
+    )
     issued_by: Mapped["User"] = relationship(foreign_keys=issued_by_id)
 
     def __str__(self):
@@ -106,6 +108,10 @@ class User(Base):
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
     points: Mapped[int] = mapped_column(server_default="0")
 
+    ticket: Mapped["Ticket"] = relationship(
+        lazy="selectin", foreign_keys=Ticket.used_by_id
+    )
+
     received_achievements: Mapped[List["Achievement"]] = relationship(
         secondary="received_achievements"
     )
@@ -115,6 +121,7 @@ class User(Base):
         .where(ReceivedAchievement.user_id == id)
         .correlate_except(ReceivedAchievement)
         .scalar_subquery(),
+        deferred=True,
     )
 
     def __str__(self):
@@ -185,7 +192,7 @@ class Participant(Base):
         ForeignKey("nominations.id", ondelete="SET NULL"), nullable=True
     )
 
-    event: Mapped["Event"] = relationship(back_populates="participant")
+    event: Mapped["Event"] = relationship(back_populates="participant", lazy="selectin")
     nomination: Mapped["Nomination"] = relationship(lazy="selectin")
 
     votes_count = column_property(

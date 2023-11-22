@@ -16,7 +16,7 @@ class UserRepo(Repository[User]):
 
     async def new(
         self,
-        id: Optional[int] = None,
+        id: int,
         username: Optional[str] = None,
         role: UserRole = UserRole.VISITOR,
     ) -> User:

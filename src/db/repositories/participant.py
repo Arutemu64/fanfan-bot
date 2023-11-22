@@ -21,20 +21,6 @@ class ParticipantRepo(Repository[Participant]):
     async def get(self, participant_id: int) -> Optional[Participant]:
         return await super()._get(participant_id)
 
-    async def get_for_vote(
-        self, participant_id: int, nomination: Nomination
-    ) -> Optional[Participant]:
-        """
-        Returns Participant eligible for voting
-        (correct Nomination and Event wasn't skipped)
-        """
-        terms = [
-            Participant.id == participant_id,
-            Participant.nomination == nomination,
-            Participant.event.has(Event.skip.isnot(True)),
-        ]
-        return await super()._get_by_where(and_(*terms))
-
     async def get_by_title(self, title: str) -> Optional[Participant]:
         return await super()._get_by_where(Participant.title == title)
 

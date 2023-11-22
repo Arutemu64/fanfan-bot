@@ -1,7 +1,7 @@
 from .database import DatabaseMiddleware
-from .sentry_logging import SentryLoggingMiddleware
+from .userdata import UserDataMiddleware
 
 __all__ = [
     "DatabaseMiddleware",
-    "SentryLoggingMiddleware",
+    "UserDataMiddleware",
 ]

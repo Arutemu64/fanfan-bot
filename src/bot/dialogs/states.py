@@ -1,15 +1,15 @@
 from aiogram.fsm.state import State, StatesGroup
 
 
-class REGISTRATION(StatesGroup):
-    MAIN = State()
-
-
 class MAIN(StatesGroup):
     MAIN = State()
     ACTIVITIES = State()
     ACHIEVEMENTS = State()
     QR_PASS = State()
+
+
+class LINK_TICKET(StatesGroup):
+    ASK_TICKET_NUMBER = State()
 
 
 class SETTINGS(StatesGroup):
