@@ -180,7 +180,7 @@ class Vote(Base):
     )
 
     user: Mapped["User"] = relationship()
-    participant: Mapped["Participant"] = relationship()
+    participant: Mapped["Participant"] = relationship(lazy="selectin")
 
 
 class Participant(Base):
