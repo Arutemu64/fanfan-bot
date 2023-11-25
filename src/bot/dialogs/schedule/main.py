@@ -8,7 +8,6 @@ from aiogram_dialog.widgets.kbd import (
     Checkbox,
     Group,
     ManagedCheckbox,
-    Row,
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Jinja
@@ -35,7 +34,7 @@ schedule_main_window = Window(
     Title(strings.titles.schedule),
     Jinja(schedule_list),
     Const(
-        "🔍⌨️ <i>Отправьте поисковой запрос или номер страницы для перехода</i>",
+        "🔍⌨️ <i>Отправьте поисковой запрос или номер страницы</i>",
         when=~F["dialog_data"]["search_query"],
     ),
     TextInput(
@@ -45,31 +44,28 @@ schedule_main_window = Window(
     ),
     Group(
         Group(
-            Row(
-                Button(
-                    text=Const("⏭️ Следующее"),
-                    id="next_event",
-                    on_click=set_next_event,
-                    when=~F["dialog_data"]["search_query"],
-                ),
-                SwitchTo(
-                    text=Const("🔢 Указать вручную"),
-                    id="manual_event",
-                    state=states.SCHEDULE.ASK_MANUAL_EVENT,
-                ),
+            Button(
+                text=Const("⏭️ Следующее"),
+                id="next_event",
+                on_click=set_next_event,
+                when=~F["dialog_data"]["search_query"],
             ),
-            Row(
-                SwitchTo(
-                    text=Const("🔃 Поменять местами"),
-                    id="swap_events",
-                    state=states.SCHEDULE.SWAP_EVENTS,
-                ),
-                SwitchTo(
-                    text=Const("🙈 Пропустить/вернуть"),
-                    id="skip_events",
-                    state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
-                ),
+            SwitchTo(
+                text=Const("🔢 Указать вручную"),
+                id="manual_event",
+                state=states.SCHEDULE.ASK_MANUAL_EVENT,
             ),
+            SwitchTo(
+                text=Const("🔃 Поменять местами"),
+                id="swap_events",
+                state=states.SCHEDULE.SWAP_EVENTS,
+            ),
+            SwitchTo(
+                text=Const("🙈 Пропустить/вернуть"),
+                id="skip_events",
+                state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
+            ),
+            width=2,
             when=F["dialog_data"]["helper_tools_toggle"],
         ),
         Checkbox(

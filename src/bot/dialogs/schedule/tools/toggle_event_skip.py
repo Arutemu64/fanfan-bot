@@ -7,7 +7,6 @@ from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
-from sqlalchemy import text
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
@@ -59,10 +58,8 @@ async def proceed_input(
     next_event_before = await db.event.get_next(current_event)
 
     # Переключаем статус "скрыто" для выступления
-    await db.session.execute(text("SET CONSTRAINTS ALL DEFERRED"))
     event.skip = not event.skip
     await db.session.commit()
-    await db.session.refresh(event, ["real_position"])
 
     # Выводим подтверждение
     if event.skip:
@@ -71,6 +68,7 @@ async def proceed_input(
         await message.reply(f"🙉 Выступление <b>{event.title}</b> возвращено")
 
     # Получаем следующее выступление после скрытия
+    await db.session.refresh(current_event, ["real_position"])
     next_event_after = await db.event.get_next(current_event)
 
     # Если скрытие повлияло на следующее по расписанию

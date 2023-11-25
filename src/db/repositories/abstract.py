@@ -46,7 +46,7 @@ class Repository(Generic[AbstractModel]):
         limit: Optional[int] = None,
         order_by=None,
         options: Optional[List[ExecutableOption]] = None,
-    ) -> List[AbstractModel]:
+    ) -> Sequence[AbstractModel]:
         statement = select(self.type_model)
         if options:
             statement = statement.options(*options)
@@ -65,7 +65,7 @@ class Repository(Generic[AbstractModel]):
         query=None,
         order_by=None,
         options: Optional[List[ExecutableOption]] = None,
-    ) -> List[AbstractModel]:
+    ) -> Sequence[AbstractModel]:
         statement = select(self.type_model)
         if options:
             statement = statement.options(*options)

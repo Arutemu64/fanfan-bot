@@ -1,13 +1,13 @@
 import enum
 from dataclasses import dataclass
-from typing import Generic, List, TypeVar
+from typing import Generic, Sequence, TypeVar
 
 AbstractModel = TypeVar("AbstractModel")
 
 
 @dataclass
 class Page(Generic[AbstractModel]):
-    items: List[AbstractModel]
+    items: Sequence[AbstractModel]
     number: int
     total: int
 

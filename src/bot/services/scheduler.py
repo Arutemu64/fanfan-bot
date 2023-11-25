@@ -15,7 +15,8 @@ async def startup(ctx: dict):
 
 
 async def shutdown(ctx: dict):
-    await ctx["bot"].session.close()
+    bot: Bot = ctx["bot"]
+    await bot.session.close()
 
 
 async def send_notification(ctx: dict, notification: Notification):

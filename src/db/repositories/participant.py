@@ -2,6 +2,7 @@ from typing import Optional
 
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import undefer
 
 from ...bot.structures import Page
 from ..models import Event, Nomination, Participant
@@ -30,6 +31,7 @@ class ParticipantRepo(Repository[Participant]):
         participants_per_page: int,
         nomination: Nomination,
         hide_event_skip: bool = False,
+        load_votes_count: bool = False,
     ) -> Page[Participant]:
         terms = [Participant.nomination == nomination]
         if hide_event_skip:
@@ -39,4 +41,5 @@ class ParticipantRepo(Repository[Participant]):
             items_per_page=participants_per_page,
             query=and_(*terms),
             order_by=Participant.id,
+            options=[undefer(Participant.votes_count)] if load_votes_count else None,
         )

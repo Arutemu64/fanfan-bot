@@ -19,6 +19,10 @@ async def user_info_getter(dialog_manager: DialogManager, current_user: User, **
         "user_info_list": [
             ("Никнейм:", current_user.username),
             ("ID:", current_user.id),
+            (
+                "Билет:",
+                current_user.ticket.id if current_user.ticket else "не привязан",
+            ),
             ("Роль:", current_user.role.label),
         ],
     }

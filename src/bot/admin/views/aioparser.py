@@ -6,9 +6,9 @@ from fastapi import Request, UploadFile
 from sqladmin import BaseView, expose
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.structures import UserRole
 from src.db import Database
 from src.db.database import create_session_pool
-from src.db.models import Nomination, Participant, Ticket
 
 
 async def parse(path: Path, session: AsyncSession):
@@ -20,12 +20,11 @@ async def parse(path: Path, session: AsyncSession):
     for index, row in df.iterrows():
         nomination = await db.nomination.get(row["id"])
         if not nomination:
-            new_nomination = Nomination(
+            new_nomination = await db.nomination.new(
                 id=row["id"],
                 title=row["title"],
                 votable=row["votable"],
             )
-            db.session.add(new_nomination)
             print(f"Added new nomination {new_nomination.id}")
             new_nominations.append(new_nomination)
     await db.session.flush(new_nominations)
@@ -34,15 +33,13 @@ async def parse(path: Path, session: AsyncSession):
     df = pd.read_excel(path, sheet_name="participants")
     df.replace({np.nan: None}, inplace=True)
     for index, row in df.iterrows():
-        participant = await db.participant._get_by_where(
-            Participant.title == row["title"]
-        )
+        participant = await db.participant.get_by_title(row["title"])
         if not participant:
-            new_participant = Participant(
+            nomination = await db.nomination.get(row["nomination_id"])
+            new_participant = await db.participant.new(
                 title=row["title"],
-                nomination_id=row["nomination_id"],
+                nomination=nomination,
             )
-            db.session.add(new_participant)
             print(f"Added new participant {new_participant.title}")
             new_participants.append(new_participant)
     await db.session.flush(new_participants)
@@ -54,13 +51,12 @@ async def parse(path: Path, session: AsyncSession):
         # ticket = db.session.execute(
         #     select(Ticket).where(func.lower(Ticket.id) == row["id"])
         # ).scalar_one_or_none()
-        ticket = await db.ticket.exists(row["id"])
+        ticket = await db.ticket.get(row["id"])
         if not ticket:
-            new_ticket = Ticket(
+            new_ticket = await db.ticket.new(
                 id=row["id"],
-                role=row["role"],
+                role=UserRole(row["role"]),
             )
-            db.session.add(new_ticket)
             print(f"Added new ticket {new_ticket.id}")
             new_tickets.append(new_ticket)
     await db.session.flush(new_tickets)
@@ -92,5 +88,6 @@ class AioParserView(BaseView):
         async with session_pool() as session:
             await parse(path, session)
         return self.templates.TemplateResponse(
-            "aioparser.html", context={"request": request}
+            request,
+            "aioparser.html",
         )

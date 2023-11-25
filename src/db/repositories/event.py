@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import ColumnElement, and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -78,7 +78,12 @@ class EventRepo(Repository[Event]):
         return math.floor((event_position - 1) / events_per_page)
 
     async def check_user_subscribed_events(
-        self, user: User, events: List[Event]
-    ) -> List[Event]:
-        stmt = select(Event).join(Subscription).where(Subscription.user == user)
+        self, user: User, events: Sequence[Event]
+    ) -> Sequence[Event]:
+        stmt = (
+            select(Event)
+            .where(Event.id.in_([x.id for x in events]))
+            .join(Subscription)
+            .where(Subscription.user == user)
+        )
         return (await self.session.scalars(stmt)).all()

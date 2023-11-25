@@ -27,7 +27,7 @@ async def check_ticket(
             current_user.role = ticket.role
             await db.session.commit()
             await message.answer(
-                "✅ Билет успешно привязан! " "Теперь тебе доступны все функции бота!"
+                "✅ Билет успешно привязан! Теперь тебе доступны все функции бота!"
             )
             await dialog_manager.start(
                 state=states.MAIN.MAIN,

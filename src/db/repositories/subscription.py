@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,7 +48,7 @@ class SubscriptionRepo(Repository[Subscription]):
         )
         return await super()._get_by_where(query=query)
 
-    async def get_all_upcoming(self, event: Event) -> List[Subscription]:
+    async def get_all_upcoming(self, event: Event) -> Sequence[Subscription]:
         query = Subscription.event.has(
             and_(
                 Event.skip.isnot(True),

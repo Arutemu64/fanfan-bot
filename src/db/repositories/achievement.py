@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,10 +29,11 @@ class AchievementRepo(Repository[Achievement]):
         )
 
     async def check_user_achievements(
-        self, user: User, achievements: List[Achievement]
-    ) -> List[Achievement]:
+        self, user: User, achievements: Sequence[Achievement]
+    ) -> Sequence[Achievement]:
         stmt = (
             select(Achievement)
+            .where(Achievement.id.in_([x.id for x in achievements]))
             .join(ReceivedAchievement)
             .where(ReceivedAchievement.user == user)
         )

@@ -47,11 +47,13 @@ def points_pluralize(points: int) -> str:
         return "очков"
 
 
-async def user_info_getter(dialog_manager: DialogManager, db: Database, **kwargs):
+async def user_info_getter(
+    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+):
     user = await db.user.get(dialog_manager.dialog_data["user_id"])
     total_achievements_count = await db.achievement.get_count()
     return {
-        "is_org": dialog_manager.dialog_data["role"] == UserRole.ORG,
+        "is_org": current_user.role is UserRole.ORG,
         "user_info": [
             ("Никнейм:", user.username),
             ("ID:", user.id),
@@ -296,13 +298,7 @@ user_manager_window = Window(
 
 
 async def on_user_manager_start(start_data: int, manager: DialogManager):
-    db: Database = manager.middleware_data["db"]
     manager.dialog_data["user_id"] = start_data
-
-    user = await db.user.get(manager.event.from_user.id)
-    manager.dialog_data["role"] = user.role
-    manager.dialog_data["achievements_per_page"] = user.items_per_page
-    manager.dialog_data["username"] = user.username
 
 
 dialog = Dialog(

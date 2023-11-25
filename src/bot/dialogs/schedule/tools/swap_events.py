@@ -70,8 +70,6 @@ async def swap_events(
     await db.session.execute(text("SET CONSTRAINTS ALL DEFERRED"))
     event1.position, event2.position = event2.position, event1.position
     await db.session.commit()
-    await db.session.refresh(event1, ["real_position"])
-    await db.session.refresh(event2, ["real_position"])
 
     # Выводим подтверждение
     await message.reply(
@@ -79,6 +77,7 @@ async def swap_events(
     )
 
     # Получаем следующее выступление после переноса
+    await db.session.refresh(current_event, ["real_position"])
     next_event_after = await db.event.get_next(current_event)
 
     # Если перенос повлиял на следующее выступление - рассылаем глобальный анонс

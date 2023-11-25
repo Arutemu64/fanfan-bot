@@ -18,7 +18,7 @@ async def proceed_subscriptions(
     send_global_announcement: bool = False,
 ):
     engine = create_async_engine(conf.db.build_connection_str())
-    session = AsyncSession(bind=engine)
+    session = AsyncSession(bind=engine, expire_on_commit=False)
     db = Database(session)
 
     current_event = await db.event.get_current()
@@ -27,11 +27,12 @@ async def proceed_subscriptions(
 
     if send_global_announcement:
         next_event = await db.event.get_next(current_event)
-        text = global_announcement_template.render(
-            {"current_event": current_event, "next_event": next_event}
-        )
-        for user in await db.user.get_receive_all_announcements_users():
-            await arq.enqueue_job("send_notification", Notification(user.id, text))
+        if next_event:
+            text = global_announcement_template.render(
+                {"current_event": current_event, "next_event": next_event}
+            )
+            for user in await db.user.get_receive_all_announcements_users():
+                await arq.enqueue_job("send_notification", Notification(user.id, text))
 
     subscriptions = await db.subscription.get_all_upcoming(current_event)
     for sub in subscriptions:

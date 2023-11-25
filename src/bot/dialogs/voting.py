@@ -41,7 +41,9 @@ async def nominations_getter(
         nominations_per_page=current_user.items_per_page,
         votable=True,
     )
-    voted_nominations = await db.nomination.get_user_voted_nominations(current_user)
+    voted_nominations = await db.nomination.check_if_user_voted_in_nominations(
+        current_user, page.items
+    )
     nominations_list = []
     for nomination in page.items:
         if nomination in voted_nominations:
@@ -62,6 +64,7 @@ async def participants_getter(
         participants_per_page=current_user.items_per_page,
         nomination=nomination,
         hide_event_skip=True,
+        load_votes_count=True,
     )
     user_vote = await db.vote.get_user_vote_by_nomination(current_user, nomination)
     dialog_manager.dialog_data["user_vote_id"] = user_vote.id if user_vote else None
@@ -107,12 +110,8 @@ async def add_vote(
                     return
             await db.vote.new(user, participant)
             await db.session.commit()
-        else:
-            await message.reply("⚠️ Неверно указан номер участника")
             return
-    else:
-        await message.reply("⚠️ Неверно указан номер участника")
-        return
+    await message.reply("⚠️ Неверно указан номер участника")
 
 
 async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogManager):
@@ -176,7 +175,7 @@ voting = Window(
         on_success=add_vote,
     ),
     Button(
-        Const("Отменить голос"),
+        Const("🗑️ Отменить голос"),
         id="cancel_vote",
         when="user_vote",
         on_click=cancel_vote,

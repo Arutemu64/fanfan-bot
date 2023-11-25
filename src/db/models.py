@@ -200,6 +200,7 @@ class Participant(Base):
         .where(Vote.participant_id == id)
         .correlate_except(Vote)
         .scalar_subquery(),
+        deferred=True,
     )
 
     def __str__(self):
@@ -218,6 +219,7 @@ class Nomination(Base):
         .where(Participant.nomination_id == id)
         .correlate_except(Participant)
         .scalar_subquery(),
+        deferred=True,
     )
 
     def __str__(self):

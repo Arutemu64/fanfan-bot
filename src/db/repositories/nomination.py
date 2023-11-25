@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,6 +31,14 @@ class NominationRepo(Repository[Nomination]):
             order_by=Nomination.title,
         )
 
-    async def get_user_voted_nominations(self, user: User) -> List[Nomination]:
-        stmt = select(Nomination).join(Participant).join(Vote).where(Vote.user == user)
+    async def check_if_user_voted_in_nominations(
+        self, user: User, nominations: Sequence[Nomination]
+    ) -> Sequence[Nomination]:
+        stmt = (
+            select(Nomination)
+            .where(Nomination.id.in_([x.id for x in nominations]))
+            .join(Participant)
+            .join(Vote)
+            .where(Vote.user == user)
+        )
         return (await self.session.scalars(stmt)).all()

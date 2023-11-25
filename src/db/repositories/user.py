@@ -1,8 +1,7 @@
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import defer
 
 from src.bot.structures import UserRole
 
@@ -36,11 +35,10 @@ class UserRepo(Repository[User]):
         username = username.replace("@", "").lower()
         return await super()._get_by_where(func.lower(User.username) == username)
 
-    async def get_receive_all_announcements_users(self) -> List[User]:
+    async def get_receive_all_announcements_users(self) -> Sequence[User]:
         return await super()._get_many(
             User.receive_all_announcements.is_(True),
-            options=[defer(User.achievements_count)],
         )
 
-    async def get_by_role(self, role: UserRole) -> List[User]:
+    async def get_by_role(self, role: UserRole) -> Sequence[User]:
         return await super()._get_many(User.role == role)
