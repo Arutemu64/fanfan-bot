@@ -11,7 +11,7 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Multi, Progress
 from src.bot import UI_DIR
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
-from src.bot.structures import UserRole
+from src.bot.structures import BotMode, UserRole
 from src.bot.ui import images, strings
 from src.config import conf
 from src.db import Database
@@ -43,7 +43,7 @@ async def main_menu_getter(
         "voting_enabled": settings.voting_enabled,
         "total_achievements": total_achievements,
         "achievements_progress": achievements_progress,
-        "show_qr_webapp": conf.web.mode == "webhook",
+        "show_qr_webapp": conf.web.mode is BotMode.WEBHOOK,
     }
 
 

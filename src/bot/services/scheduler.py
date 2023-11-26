@@ -11,7 +11,7 @@ from src.config import conf
 
 
 async def startup(ctx: dict):
-    ctx["bot"] = Bot(token=conf.bot.token, parse_mode=ParseMode.HTML)
+    ctx["bot"] = Bot(token=conf.bot.token.get_secret_value(), parse_mode=ParseMode.HTML)
 
 
 async def shutdown(ctx: dict):

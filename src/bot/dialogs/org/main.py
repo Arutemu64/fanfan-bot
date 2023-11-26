@@ -36,7 +36,7 @@ async def org_menu_getter(dialog_manager: DialogManager, db: Database, **kwargs)
     )
     jwt_token = jwt.encode(
         payload={"user_id": dialog_manager.event.from_user.id},
-        key=conf.web.secret_key,
+        key=conf.web.secret_key.get_secret_value(),
         algorithm="HS256",
     )
     return {

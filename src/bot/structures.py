@@ -5,6 +5,11 @@ from typing import Generic, Sequence, TypeVar
 AbstractModel = TypeVar("AbstractModel")
 
 
+class BotMode(enum.StrEnum):
+    POLLING = "polling"
+    WEBHOOK = "webhook"
+
+
 @dataclass
 class Page(Generic[AbstractModel]):
     items: Sequence[AbstractModel]

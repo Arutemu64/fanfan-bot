@@ -5,15 +5,7 @@ from src.config import conf
 
 
 def build_redis_client() -> Redis:
-    """Build redis client"""
-    client = Redis(
-        host=conf.redis.host,
-        db=conf.redis.db,
-        port=conf.redis.port,
-        password=conf.redis.passwd,
-        username=conf.redis.username,
-    )
-    return client
+    return Redis.from_url(conf.redis.build_connection_str())
 
 
 def get_redis_storage(

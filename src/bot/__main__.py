@@ -19,6 +19,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from src.bot.admin.admin import setup_admin
 from src.bot.dispatcher import get_dispatcher
 from src.bot.services.scheduler import create_worker
+from src.bot.structures import BotMode
 from src.bot.webapp import webapp_router
 from src.bot.webhook import webhook_router
 from src.config import conf
@@ -41,7 +42,7 @@ async def setup_default_settings(session: AsyncSession) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if conf.sentry_enabled:
+    if conf.sentry.enabled:
         sentry_sdk.init(
             dsn=conf.sentry_dsn,
             traces_sample_rate=1.0,
@@ -53,7 +54,8 @@ async def lifespan(app: FastAPI):
                 RedisIntegration(),
             ],
         )
-    bot = Bot(token=conf.bot.token, parse_mode=ParseMode.HTML)
+
+    bot = Bot(token=conf.bot.token.get_secret_value(), parse_mode=ParseMode.HTML)
 
     engine = create_async_engine(conf.db.build_connection_str())
     session_pool = create_session_pool(engine)
@@ -70,7 +72,7 @@ async def lifespan(app: FastAPI):
     )
 
     dp["session_pool"] = session_pool
-    dp["arq"] = await create_pool(conf.redis.pool_settings)
+    dp["arq"] = await create_pool(conf.redis.get_pool_settings())
 
     app.state.dp = dp
     app.state.bot = bot
@@ -79,14 +81,14 @@ async def lifespan(app: FastAPI):
 
     setup_admin(app, session_pool)
 
-    if conf.web.mode == "webhook":
+    if conf.web.mode == BotMode.WEBHOOK:
         webhook_url = conf.web.build_webhook_url()
         app.include_router(webhook_router)
         app.include_router(webapp_router)
         if (await bot.get_webhook_info()).url != webhook_url:
             await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
         logging.info(f"Running in webhook mode at {(await bot.get_webhook_info()).url}")
-    elif conf.web.mode == "polling":
+    elif conf.web.mode == BotMode.POLLING:
         await bot.delete_webhook(drop_pending_updates=True)
         asyncio.create_task(dp.start_polling(bot))
         logging.info("Running in polling mode")
@@ -104,7 +106,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, debug=conf.debug)
-app.add_middleware(SessionMiddleware, secret_key=conf.web.secret_key)
+app.add_middleware(SessionMiddleware, secret_key=conf.web.secret_key.get_secret_value())
 
 
 if __name__ == "__main__":

@@ -12,7 +12,9 @@ def setup_admin(app: FastAPI, session_pool: async_sessionmaker) -> None:
     from src.bot.admin.auth import AdminAuth, auth_router
 
     app.include_router(auth_router)
-    authentication_backend = AdminAuth(secret_key=conf.web.secret_key)
+    authentication_backend = AdminAuth(
+        secret_key=conf.web.secret_key.get_secret_value()
+    )
 
     admin = Admin(
         app=app,

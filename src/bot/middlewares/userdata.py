@@ -20,7 +20,7 @@ class UserDataMiddleware(BaseMiddleware):
     ) -> Any:
         db: Database = data["db"]
         # Sentry logging
-        if conf.sentry_enabled:
+        if conf.sentry.enabled:
             sentry_sdk.set_user(
                 {
                     "id": data["event_from_user"].id,

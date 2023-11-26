@@ -30,7 +30,7 @@ class AdminAuth(AuthenticationBackend):
             async with session_pool() as session:
                 jwt_decoded = jwt.decode(
                     jwt=token,
-                    key=conf.web.secret_key,
+                    key=conf.web.secret_key.get_secret_value(),
                     algorithms=["HS256"],
                 )
                 db = Database(session)
@@ -51,7 +51,7 @@ async def auth(request: Request, token: str) -> Response:
     session_pool: async_sessionmaker = request.app.state.session_pool
     jwt_decoded = jwt.decode(
         jwt=token,
-        key=conf.web.secret_key,
+        key=conf.web.secret_key.get_secret_value(),
         algorithms=["HS256"],
     )
     async with session_pool() as session:
