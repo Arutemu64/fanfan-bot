@@ -3,11 +3,12 @@ name = "fanfan-bot"
 version = "0.1.0"
 description = ""
 authors = ["Arutemu64 <arutemu64@outlook.com>"]
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "3.11.*"
 aiogram = "^3.2.0"
-aiogram-dialog = "^2.0.0"
+aiogram-dialog = "^2.1.0b3"
 alembic = "^1.12.1"
 alembic-postgresql-enum = "^0.4.0"
 alembic-utils = "^0.8.2"
