@@ -1,62 +1,86 @@
 import logging
-from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Any, List, Optional, Tuple, Type
 
 from arq.connections import RedisSettings
-from environs import Env
-from marshmallow.validate import OneOf
-from pydantic import HttpUrl, RedisDsn, SecretStr
-from sqlalchemy.engine import URL
+from dotenv import find_dotenv, load_dotenv
+from pydantic import HttpUrl, PostgresDsn, RedisDsn, SecretStr, model_validator
+from pydantic.fields import Field, FieldInfo
+from pydantic_settings import (
+    BaseSettings,
+    EnvSettingsSource,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 from src.bot.structures import BotMode
 
-env = Env()
+load_dotenv(find_dotenv(".local-env"))
 
 
-@dataclass
-class BotConfig:
-    token: SecretStr = SecretStr(env("BOT_TOKEN"))
-    admin_list: List[str] = field(
-        default_factory=lambda: [x.lower() for x in env.list("ADMIN_LIST", [])]
-    )
+class CustomBotSettingsSource(EnvSettingsSource):
+    def prepare_field_value(
+        self, field_name: str, field: FieldInfo, value: Any, value_is_complex: bool
+    ) -> Any:
+        if field_name == "admin_list":
+            return [str(x).lower() for x in value.split(",")]
+        return value
 
 
-@dataclass
-class DatabaseConfig:
-    with env.prefixed("POSTGRES_"):
-        username: str = env("USERNAME")
-        password: str = env("PASSWORD")
-        host: str = env("HOST", "db")
-        port: int = env.int("PORT", 5432)
-        database: str = env("DATABASE")
+class BotConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="BOT_")
+
+    token: SecretStr
+    admin_list: List[str]
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: Type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> Tuple[PydanticBaseSettingsSource, ...]:
+        return (CustomBotSettingsSource(settings_cls),)
+
+
+class DatabaseConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="POSTGRES_")
+
+    username: str
+    password: str
+    host: str = "db"
+    port: int = 5432
+    database: str
 
     driver: str = "asyncpg"
     database_system: str = "postgresql"
 
     def build_connection_str(self) -> str:
-        return URL.create(
-            drivername=f"{self.database_system}+{self.driver}",
+        dsn: PostgresDsn = PostgresDsn.build(
+            scheme=f"{self.database_system}+{self.driver}",
             username=self.username,
-            database=self.database,
             password=self.password,
-            port=self.port,
             host=self.host,
-        ).render_as_string(hide_password=False)
+            port=self.port,
+            path=self.database,
+        )
+        return dsn.unicode_string()
 
 
-@dataclass
-class RedisConfig:
-    with env.prefixed("REDIS_"):
-        username: Optional[str] = env("USERNAME", None)
-        password: Optional[str] = env("PASSWORD", None)
-        host: str = env("HOST", "redis")
-        port: int = env.int("PORT", 6379)
-        database: str = env.str("DATABASE", "1")
-        state_ttl: Optional[int] = env.int("TTL_STATE", None)
-        data_ttl: Optional[int] = env.int("TTL_DATA", None)
+class RedisConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="REDIS_")
+
+    username: Optional[str] = None
+    password: Optional[str] = None
+    host: str = "redis"
+    port: int = 6379
+    database: str = "0"
+    state_ttl: Optional[int] = None
+    data_ttl: Optional[int] = None
 
     def build_connection_str(self) -> str:
-        dsn = RedisDsn.build(
+        dsn: RedisDsn = RedisDsn.build(
             scheme="redis",
             username=self.username,
             password=self.password,
@@ -64,60 +88,66 @@ class RedisConfig:
             port=self.port,
             path=self.database,
         )
-        return str(dsn)
+        return dsn.unicode_string()
 
     def get_pool_settings(self) -> RedisSettings:
         return RedisSettings.from_dsn(self.build_connection_str())
 
 
-@dataclass
-class WebConfig:
-    with env.prefixed("WEB_"):
-        mode: BotMode = BotMode(
-            env("MODE", BotMode.POLLING, validate=OneOf([x for x in BotMode]))
-        )
-        host: str = env("HOST", "127.0.0.1")
-        port: int = env.int("PORT", 8090)
-        domain: Optional[str] = env("DOMAIN", None)
-        secret_key: SecretStr = SecretStr(env("SECRET_KEY", "a_super_secret_key123"))
+class WebConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="WEB_")
+
+    mode: BotMode = BotMode.POLLING
+    host: str = "127.0.0.1"
+    port: int = 8090
+    domain: Optional[str] = None
+    secret_key: SecretStr = Field("a_super_secret_key123")
+
+    @model_validator(mode="before")
+    def check_if_domain_set(cls, data: dict) -> dict:
+        if data["mode"] == BotMode.WEBHOOK:
+            if data.get("domain"):
+                assert len(data["domain"]) > 0, "Domain not set"
+            else:
+                raise AssertionError("Domain not set")
+        return data
 
     def build_webhook_url(self) -> str:
-        url = HttpUrl.build(
+        url: HttpUrl = HttpUrl.build(
             scheme="https",
             host=self.domain,
             path="webhook",
         )
-        return str(url)
+        return url.unicode_string()
 
     def build_admin_auth_url(self) -> str:
-        url = HttpUrl.build(
+        url: HttpUrl = HttpUrl.build(
             scheme="https" if self.mode is BotMode.WEBHOOK else "http",
             host=self.domain if self.mode is BotMode.WEBHOOK else self.host,
             port=self.port if self.mode is BotMode.POLLING else None,
             path="auth",
         )
-        return str(url)
+        return url.unicode_string()
 
 
-@dataclass
-class SentryConfig:
-    with env.prefixed("SENTRY_"):
-        enabled: bool = env.bool("ENABLED", False)
-        dsn: Optional[HttpUrl] = env.str("DSN", None)
-        env: Optional[str] = env.str("ENV")
+class SentryConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="SENTRY_")
+
+    enabled: bool = False
+    dsn: Optional[HttpUrl] = None
+    env: Optional[str] = None
 
 
-@dataclass
-class Configuration:
-    debug: bool = env.bool("DEBUG", False)
-    logging_level: int = env.int("LOGGING_LEVEL", logging.INFO)
-    db_echo: bool = env.bool("DB_ECHO", False)
+class Configuration(BaseSettings):
+    debug: bool = True
+    logging_level: int = logging.DEBUG
+    db_echo: bool = True
 
-    db = DatabaseConfig()
-    redis = RedisConfig()
-    bot = BotConfig()
-    web = WebConfig()
-    sentry = SentryConfig()
+    db: DatabaseConfig = DatabaseConfig()
+    redis: RedisConfig = RedisConfig()
+    bot: BotConfig = BotConfig()
+    web: WebConfig = WebConfig()
+    sentry: SentryConfig = SentryConfig()
 
 
 conf = Configuration()
