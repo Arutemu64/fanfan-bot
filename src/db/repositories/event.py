@@ -5,7 +5,7 @@ from sqlalchemy import ColumnElement, and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...bot.structures import Page
-from ..models import Event, Nomination, Participant, Subscription, User
+from ..models import DBUser, Event, Nomination, Participant, Subscription
 from .abstract import Repository
 
 
@@ -78,7 +78,7 @@ class EventRepo(Repository[Event]):
         return math.floor((event_position - 1) / events_per_page)
 
     async def check_user_subscribed_events(
-        self, user: User, events: Sequence[Event]
+        self, user: DBUser, events: Sequence[Event]
     ) -> Sequence[Event]:
         stmt = (
             select(Event)

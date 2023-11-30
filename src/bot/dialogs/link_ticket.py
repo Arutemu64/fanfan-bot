@@ -9,7 +9,7 @@ from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 
 async def check_ticket(
@@ -19,7 +19,7 @@ async def check_ticket(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    current_user: User = dialog_manager.middleware_data["current_user"]
+    current_user: DBUser = dialog_manager.middleware_data["current_user"]
     ticket = await db.ticket.get(data)
     if ticket:
         if ticket.used_by is None:

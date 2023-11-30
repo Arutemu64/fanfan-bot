@@ -17,13 +17,13 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from src.bot.structures import UserRole
 from src.db import Database
-from src.db.models import Event, User
+from src.db.models import DBUser, Event
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 
 async def schedule_getter(
-    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+    dialog_manager: DialogManager, db: Database, current_user: DBUser, **kwargs
 ):
     page = await db.event.paginate(
         page=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page(),
@@ -45,7 +45,7 @@ async def schedule_getter(
 
 async def set_schedule_page(manager: DialogManager, event: Event):
     db: Database = manager.middleware_data["db"]
-    user: User = manager.middleware_data["current_user"]
+    user: DBUser = manager.middleware_data["current_user"]
     if event:
         page = await db.event.get_page_number(
             event=event,

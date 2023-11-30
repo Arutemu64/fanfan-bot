@@ -12,14 +12,14 @@ from src.bot.dialogs.schedule.tools.common import (
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 
 async def set_next_event(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    user: User = manager.middleware_data["current_user"]
+    user: DBUser = manager.middleware_data["current_user"]
 
     # Проверяем права
     if user.role < UserRole.HELPER:

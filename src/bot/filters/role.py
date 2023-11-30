@@ -4,7 +4,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import CallbackQuery, Message
 
 from src.bot.structures import UserRole
-from src.db.models import User
+from src.db.models import DBUser
 
 
 class RoleFilter(BaseFilter):
@@ -14,7 +14,7 @@ class RoleFilter(BaseFilter):
     async def __call__(
         self,
         event: Union[Message, CallbackQuery],
-        current_user: User,
+        current_user: DBUser,
     ) -> bool:
         if current_user:
             if current_user.role in self.roles:

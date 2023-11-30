@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...bot.structures import Page
-from ..models import Nomination, Participant, User, Vote
+from ..models import DBUser, Nomination, Participant, Vote
 from .abstract import Repository
 
 
@@ -32,7 +32,7 @@ class NominationRepo(Repository[Nomination]):
         )
 
     async def check_if_user_voted_in_nominations(
-        self, user: User, nominations: Sequence[Nomination]
+        self, user: DBUser, nominations: Sequence[Nomination]
     ) -> Sequence[Nomination]:
         stmt = (
             select(Nomination)

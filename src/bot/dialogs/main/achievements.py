@@ -17,13 +17,13 @@ from src.bot.dialogs.templates import achievements_list
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 
 
 async def achievements_getter(
-    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+    dialog_manager: DialogManager, db: Database, current_user: DBUser, **kwargs
 ):
     page = await db.achievement.paginate(
         page=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),

@@ -5,10 +5,10 @@ from src.bot.dialogs import states
 from src.bot.structures import QR, QRCommand
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 
-async def open_user_manager(user: User, manager: BaseDialogManager) -> None:
+async def open_user_manager(user: DBUser, manager: BaseDialogManager) -> None:
     await manager.start(state=states.USER_MANAGER.MAIN, data=user.id)
 
 

@@ -29,7 +29,7 @@ from src.bot.dialogs.templates import schedule_list, subscriptions_list
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
 ID_EVENT_INPUT = "event_input"
@@ -37,7 +37,7 @@ ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 
 
 async def subscriptions_getter(
-    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+    dialog_manager: DialogManager, db: Database, current_user: DBUser, **kwargs
 ):
     page = await db.subscription.paginate(
         page=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page(),
@@ -92,7 +92,7 @@ async def setup_subscription(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    user: User = dialog_manager.middleware_data["current_user"]
+    user: DBUser = dialog_manager.middleware_data["current_user"]
     event = await db.event.get(int(dialog_manager.find(ID_EVENT_INPUT).get_value()))
 
     subscription = await db.subscription.new(user, event, data)
@@ -112,7 +112,7 @@ async def remove_subscription(
     data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    user: User = dialog_manager.middleware_data["current_user"]
+    user: DBUser = dialog_manager.middleware_data["current_user"]
     event = await db.event.get(data)
 
     subscription = await db.subscription.get_subscription_for_user(user, event)
@@ -129,7 +129,7 @@ async def toggle_all_notifications(
     event: ChatEvent, checkbox: ManagedCheckbox, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    user: User = manager.middleware_data["current_user"]
+    user: DBUser = manager.middleware_data["current_user"]
     user.receive_all_announcements = checkbox.is_checked()
     await db.session.commit()
 

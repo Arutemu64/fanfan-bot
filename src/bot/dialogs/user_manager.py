@@ -32,7 +32,7 @@ from src.bot.dialogs.widgets import Title
 from src.bot.structures import Notification, UserRole
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 ID_ADD_POINTS_COUNTER = "add_points_counter"
@@ -48,7 +48,7 @@ def points_pluralize(points: int) -> str:
 
 
 async def user_info_getter(
-    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+    dialog_manager: DialogManager, db: Database, current_user: DBUser, **kwargs
 ):
     user = await db.user.get(dialog_manager.dialog_data["user_id"])
     total_achievements_count = await db.achievement.get_count()
@@ -94,7 +94,7 @@ async def add_points(callback: CallbackQuery, button: Button, manager: DialogMan
     arq: ArqRedis = manager.middleware_data["arq"]
     counter: ManagedCounter = manager.find(ID_ADD_POINTS_COUNTER)
 
-    user: User = await db.user.get(manager.dialog_data["user_id"])
+    user: DBUser = await db.user.get(manager.dialog_data["user_id"])
     user.points += int(counter.get_value())
     await db.transaction.new(
         from_user=manager.middleware_data["current_user"],
@@ -121,7 +121,7 @@ async def add_achievement(
     db: Database = dialog_manager.middleware_data["db"]
     arq: ArqRedis = dialog_manager.middleware_data["arq"]
 
-    user: User = await db.user.get(dialog_manager.dialog_data["user_id"])
+    user: DBUser = await db.user.get(dialog_manager.dialog_data["user_id"])
     achievement = await db.achievement.get(data)
 
     if not achievement:
@@ -155,7 +155,7 @@ async def change_user_role(
 ):
     db: Database = manager.middleware_data["db"]
     bot: Bot = manager.middleware_data["bot"]
-    user: User = await db.user.get(manager.dialog_data["user_id"])
+    user: DBUser = await db.user.get(manager.dialog_data["user_id"])
     user.role = UserRole(item_id).name
     await db.session.commit()
     try:

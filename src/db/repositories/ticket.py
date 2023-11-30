@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...bot.structures import UserRole
-from ..models import Ticket, User
+from ..models import DBUser, Ticket
 from .abstract import Repository
 
 
@@ -16,8 +16,8 @@ class TicketRepo(Repository[Ticket]):
         self,
         id: str,
         role: UserRole = UserRole.VISITOR,
-        used_by: Optional[User] = None,
-        issued_by: Optional[User] = None,
+        used_by: Optional[DBUser] = None,
+        issued_by: Optional[DBUser] = None,
     ) -> Ticket:
         new_ticket = await self.session.merge(
             Ticket(id=id, role=role, used_by=used_by, issued_by=issued_by)

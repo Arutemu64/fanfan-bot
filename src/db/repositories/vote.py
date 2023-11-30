@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Nomination, Participant, User, Vote
+from ..models import DBUser, Nomination, Participant, Vote
 from .abstract import Repository
 
 
@@ -13,7 +13,7 @@ class VoteRepo(Repository[Vote]):
 
     async def new(
         self,
-        user: User,
+        user: DBUser,
         participant: Participant,
     ) -> Vote:
         new_vote = await self.session.merge(
@@ -28,7 +28,7 @@ class VoteRepo(Repository[Vote]):
         return await super()._get(vote_id)
 
     async def get_user_vote_by_nomination(
-        self, user: User, nomination: Nomination
+        self, user: DBUser, nomination: Nomination
     ) -> Optional[Vote]:
         query = and_(
             Vote.user == user,

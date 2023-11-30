@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...bot.structures import Page
-from ..models import Achievement, ReceivedAchievement, User
+from ..models import Achievement, DBUser, ReceivedAchievement
 from .abstract import Repository
 
 
@@ -29,7 +29,7 @@ class AchievementRepo(Repository[Achievement]):
         )
 
     async def check_user_achievements(
-        self, user: User, achievements: Sequence[Achievement]
+        self, user: DBUser, achievements: Sequence[Achievement]
     ) -> Sequence[Achievement]:
         stmt = (
             select(Achievement)

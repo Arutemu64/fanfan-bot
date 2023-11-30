@@ -74,10 +74,10 @@ class Ticket(Base):
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
-    used_by: Mapped["User"] = relationship(
+    used_by: Mapped["DBUser"] = relationship(
         lazy="selectin", foreign_keys=used_by_id, back_populates="ticket"
     )
-    issued_by: Mapped["User"] = relationship(foreign_keys=issued_by_id)
+    issued_by: Mapped["DBUser"] = relationship(foreign_keys=issued_by_id)
 
     def __str__(self):
         return self.id
@@ -92,11 +92,11 @@ class ReceivedAchievement(Base):
         ForeignKey("achievements.id", ondelete="CASCADE")
     )
 
-    user: Mapped["User"] = relationship(viewonly=True)
+    user: Mapped["DBUser"] = relationship(viewonly=True)
     achievement: Mapped["Achievement"] = relationship(viewonly=True)
 
 
-class User(Base):
+class DBUser(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
@@ -179,7 +179,7 @@ class Vote(Base):
         ForeignKey("participants.id", ondelete="CASCADE")
     )
 
-    user: Mapped["User"] = relationship()
+    user: Mapped["DBUser"] = relationship()
     participant: Mapped["Participant"] = relationship(lazy="selectin")
 
 
@@ -243,7 +243,7 @@ class Subscription(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     counter: Mapped[int] = mapped_column(server_default="5")
 
-    user: Mapped["User"] = relationship()
+    user: Mapped["DBUser"] = relationship()
     event: Mapped["Event"] = relationship(lazy="selectin")
 
 
@@ -251,14 +251,14 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
-    to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
+    from_user_id: Mapped[int] = mapped_column(ForeignKey(DBUser.id, ondelete="CASCADE"))
+    to_user_id: Mapped[int] = mapped_column(ForeignKey(DBUser.id, ondelete="CASCADE"))
     points_added: Mapped[int] = mapped_column(nullable=True)
     achievement_id_added: Mapped[int] = mapped_column(
         ForeignKey(Achievement.id, ondelete="CASCADE"), nullable=True
     )
 
-    from_user: Mapped["User"] = relationship(foreign_keys=from_user_id)
-    to_user: Mapped["User"] = relationship(foreign_keys=to_user_id)
+    from_user: Mapped["DBUser"] = relationship(foreign_keys=from_user_id)
+    to_user: Mapped["DBUser"] = relationship(foreign_keys=to_user_id)
 
     achievement_added: Mapped["Achievement"] = relationship()

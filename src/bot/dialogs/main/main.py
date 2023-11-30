@@ -15,14 +15,14 @@ from src.bot.structures import BotMode, UserRole
 from src.bot.ui import images, strings
 from src.config import conf
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
     quotes = f.read().splitlines()
 
 
 async def main_menu_getter(
-    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+    dialog_manager: DialogManager, db: Database, current_user: DBUser, **kwargs
 ):
     settings = await db.settings.get()
     total_achievements = await db.achievement.get_count()
@@ -50,7 +50,7 @@ async def main_menu_getter(
 async def open_voting(callback: CallbackQuery, button: Button, manager: DialogManager):
     db: Database = manager.middleware_data["db"]
     settings = await db.settings.get()
-    current_user: User = manager.middleware_data["current_user"]
+    current_user: DBUser = manager.middleware_data["current_user"]
     if not current_user.ticket:
         await callback.answer(strings.errors.ticket_not_linked, show_alert=True)
         return
@@ -63,7 +63,7 @@ async def open_voting(callback: CallbackQuery, button: Button, manager: DialogMa
 async def open_achievements(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    current_user: User = manager.middleware_data["current_user"]
+    current_user: DBUser = manager.middleware_data["current_user"]
     if not current_user.ticket:
         await callback.answer(strings.errors.ticket_not_linked, show_alert=True)
         return

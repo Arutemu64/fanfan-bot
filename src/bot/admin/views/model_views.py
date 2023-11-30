@@ -2,13 +2,13 @@ from sqladmin import ModelView
 
 from src.db.models import (
     Achievement,
+    DBUser,
     Event,
     Nomination,
     Participant,
     ReceivedAchievement,
     Ticket,
     Transaction,
-    User,
     Vote,
 )
 
@@ -27,30 +27,30 @@ class TicketAdmin(ModelView, model=Ticket):
     column_searchable_list = [Ticket.id, Ticket.role]
 
 
-class UserAdmin(ModelView, model=User):
+class UserAdmin(ModelView, model=DBUser):
     name_plural = "Пользователи"
     icon = "fa-solid fa-users"
     can_create = False
     column_list = [
-        User.id,
-        User.username,
-        User.role,
-        User.achievements_count,
-        User.points,
-        User.time_created,
-        User.received_achievements,
+        DBUser.id,
+        DBUser.username,
+        DBUser.role,
+        DBUser.achievements_count,
+        DBUser.points,
+        DBUser.time_created,
+        DBUser.received_achievements,
     ]
     column_labels = {
-        User.id: "ID",
-        User.username: "Имя пользователя",
-        User.role: "Роль",
-        User.achievements_count: "Достижений получено",
-        User.points: "Очков",
-        User.time_created: "Время регистрации",
+        DBUser.id: "ID",
+        DBUser.username: "Имя пользователя",
+        DBUser.role: "Роль",
+        DBUser.achievements_count: "Достижений получено",
+        DBUser.points: "Очков",
+        DBUser.time_created: "Время регистрации",
     }
-    form_columns = [User.username, User.role]
-    column_searchable_list = [User.username, User.role]
-    column_sortable_list = [User.achievements_count, User.points]
+    form_columns = [DBUser.username, DBUser.role]
+    column_searchable_list = [DBUser.username, DBUser.role]
+    column_sortable_list = [DBUser.achievements_count, DBUser.points]
 
 
 class AchievementAdmin(ModelView, model=Achievement):

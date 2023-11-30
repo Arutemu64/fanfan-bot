@@ -20,7 +20,7 @@ from src.bot.dialogs.templates import schedule_list
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 
 async def proceed_input(
@@ -30,7 +30,7 @@ async def proceed_input(
     data: str,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-    user: User = dialog_manager.middleware_data["current_user"]
+    user: DBUser = dialog_manager.middleware_data["current_user"]
 
     # Проверяем права
     if user.role < UserRole.HELPER:

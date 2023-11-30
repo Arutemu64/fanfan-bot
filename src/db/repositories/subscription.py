@@ -4,7 +4,7 @@ from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...bot.structures import Page
-from ..models import Event, Subscription, User
+from ..models import DBUser, Event, Subscription
 from .abstract import Repository
 
 
@@ -14,7 +14,7 @@ class SubscriptionRepo(Repository[Subscription]):
 
     async def new(
         self,
-        user: User,
+        user: DBUser,
         event: Event,
         counter: Optional[int] = None,
     ) -> Subscription:
@@ -28,7 +28,7 @@ class SubscriptionRepo(Repository[Subscription]):
         return new_subscription
 
     async def paginate(
-        self, page: int, user: User, subscriptions_per_page: int
+        self, page: int, user: DBUser, subscriptions_per_page: int
     ) -> Page[Subscription]:
         return await super()._paginate(
             page=page,
@@ -39,7 +39,7 @@ class SubscriptionRepo(Repository[Subscription]):
 
     async def get_subscription_for_user(
         self,
-        user: User,
+        user: DBUser,
         event: Event,
     ) -> Optional[Subscription]:
         query = and_(

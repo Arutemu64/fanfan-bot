@@ -27,14 +27,14 @@ from src.bot.dialogs.templates import voting_list
 from src.bot.dialogs.widgets import FormatTitle, Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 ID_NOMINATIONS_SCROLL = "nominations_scroll"
 ID_VOTING_SCROLL = "voting_scroll"
 
 
 async def nominations_getter(
-    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+    dialog_manager: DialogManager, db: Database, current_user: DBUser, **kwargs
 ):
     page = await db.nomination.paginate(
         page=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page(),
@@ -56,7 +56,7 @@ async def nominations_getter(
 
 
 async def participants_getter(
-    dialog_manager: DialogManager, db: Database, current_user: User, **kwargs
+    dialog_manager: DialogManager, db: Database, current_user: DBUser, **kwargs
 ):
     nomination = await db.nomination.get(dialog_manager.dialog_data["nomination_id"])
     page = await db.participant.paginate(
@@ -92,7 +92,7 @@ async def add_vote(
 ):
     db: Database = dialog_manager.middleware_data["db"]
     settings = await db.settings.get()
-    user: User = dialog_manager.middleware_data["current_user"]
+    user: DBUser = dialog_manager.middleware_data["current_user"]
 
     if dialog_manager.dialog_data["user_vote_id"]:
         await message.reply("⚠️ Вы уже голосовали в этой номинации!")

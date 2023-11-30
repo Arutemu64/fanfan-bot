@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Achievement, Transaction, User
+from ..models import Achievement, DBUser, Transaction
 from .abstract import Repository
 
 
@@ -12,8 +12,8 @@ class TransactionRepo(Repository[Transaction]):
 
     async def new(
         self,
-        from_user: User,
-        to_user: User,
+        from_user: DBUser,
+        to_user: DBUser,
         points_added: Optional[int] = None,
         achievement_added: Optional[Achievement] = None,
     ) -> Transaction:

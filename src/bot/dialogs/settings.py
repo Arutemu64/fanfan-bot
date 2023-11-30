@@ -7,12 +7,14 @@ from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import User
+from src.db.models import DBUser
 
 ID_ITEMS_PER_PAGE_INPUT = "items_per_page_input"
 
 
-async def user_info_getter(dialog_manager: DialogManager, current_user: User, **kwargs):
+async def user_info_getter(
+    dialog_manager: DialogManager, current_user: DBUser, **kwargs
+):
     return {
         "user": current_user,
         "user_info_list": [
@@ -30,7 +32,7 @@ async def user_info_getter(dialog_manager: DialogManager, current_user: User, **
 async def update_counter_value(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    user: User = manager.middleware_data["current_user"]
+    user: DBUser = manager.middleware_data["current_user"]
     await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(user.items_per_page)
 
 
@@ -38,7 +40,7 @@ async def update_items_per_page(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    user: User = manager.middleware_data["current_user"]
+    user: DBUser = manager.middleware_data["current_user"]
     user.items_per_page = int(manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value())
     await db.session.commit()
     await callback.answer("✅ Успешно!")
@@ -49,7 +51,7 @@ async def reset_achievements_and_points(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     db: Database = manager.middleware_data["db"]
-    user: User = manager.middleware_data["current_user"]
+    user: DBUser = manager.middleware_data["current_user"]
     user.points = 0
     await user.awaitable_attrs.received_achievements
     user.received_achievements = []
