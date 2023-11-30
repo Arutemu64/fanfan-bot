@@ -2,13 +2,12 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Counter, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, List
-from sqlalchemy import delete
 
 from src.bot.dialogs import states
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
-from src.db.models import ReceivedAchievement, User
+from src.db.models import User
 
 ID_ITEMS_PER_PAGE_INPUT = "items_per_page_input"
 
@@ -52,9 +51,8 @@ async def reset_achievements_and_points(
     db: Database = manager.middleware_data["db"]
     user: User = manager.middleware_data["current_user"]
     user.points = 0
-    await db.session.execute(
-        delete(ReceivedAchievement).where(ReceivedAchievement.user == user)
-    )
+    await user.awaitable_attrs.received_achievements
+    user.received_achievements = []
     await db.session.commit()
     await callback.answer("✅ Успешно!")
 

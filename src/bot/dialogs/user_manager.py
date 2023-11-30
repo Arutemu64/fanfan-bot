@@ -57,6 +57,10 @@ async def user_info_getter(
         "user_info": [
             ("Никнейм:", user.username),
             ("ID:", user.id),
+            (
+                "Билет:",
+                current_user.ticket.id if current_user.ticket else "не привязан",
+            ),
             ("Роль:", user.role),
             ("", ""),
             ("Очков:", user.points),

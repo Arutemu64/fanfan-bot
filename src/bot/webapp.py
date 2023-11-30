@@ -7,6 +7,7 @@ from starlette.responses import FileResponse, HTMLResponse, JSONResponse
 
 from src.bot import STATIC_DIR
 from src.bot.services.qr import proceed_qr_code
+from src.bot.structures import QR
 from src.db import Database
 
 webapp_router = APIRouter()
@@ -14,7 +15,7 @@ webapp_router = APIRouter()
 
 @webapp_router.get("/qr_scanner", response_class=HTMLResponse)
 async def open_qr_scanner():
-    return FileResponse(STATIC_DIR / "qr_scanner.html")
+    return FileResponse(STATIC_DIR.joinpath("qr_scanner.html"))
 
 
 @webapp_router.post("/qr_scanner")
@@ -30,7 +31,7 @@ async def proceed_qr_post(request: Request):
         )
     except ValueError:
         return JSONResponse({"ok": False, "err": "Unauthorized"}, status_code=401)
-    bg = dialog_bg_factory.bg(
+    manager = dialog_bg_factory.bg(
         bot=bot,
         user_id=web_app_init_data.user.id,
         chat_id=web_app_init_data.user.id,
@@ -38,9 +39,9 @@ async def proceed_qr_post(request: Request):
     )
     async with session_pool() as session:
         await proceed_qr_code(
-            manager=bg,
-            db=Database(session),
-            qr_text=data["qr_text"],
+            qr=QR.parse(data["qr_text"]),
             bot=bot,
+            manager=manager,
+            db=Database(session),
             user_id=web_app_init_data.user.id,
         )

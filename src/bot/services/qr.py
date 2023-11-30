@@ -1,34 +1,30 @@
-from typing import Optional
-
 from aiogram import Bot
-from aiogram.types import Message
-from aiogram_dialog import BaseDialogManager, DialogManager
+from aiogram_dialog import BaseDialogManager
 
 from src.bot.dialogs import states
+from src.bot.structures import QR, QRCommand
 from src.bot.ui import strings
 from src.db import Database
+from src.db.models import User
+
+
+async def open_user_manager(user: User, manager: BaseDialogManager) -> None:
+    await manager.start(state=states.USER_MANAGER.MAIN, data=user.id)
 
 
 async def proceed_qr_code(
-    manager: DialogManager | BaseDialogManager,
+    qr: QR,
+    bot: Bot,
+    manager: BaseDialogManager,
     db: Database,
-    qr_text: str,
-    message: Message = None,
-    user_id: Optional[int] = None,
-    bot: Bot = None,
-):
-    match qr_text.split()[0]:
-        case "user":
-            if qr_text.split()[1].isnumeric():
-                if await db.user.get(int(qr_text.split()[1])):
-                    await manager.start(
-                        state=states.USER_MANAGER.MAIN,
-                        data=int(qr_text.split()[1]),
-                    )
-                else:
-                    if message:
-                        await message.answer(strings.errors.user_not_found)
-                    elif bot and user_id:
-                        await bot.send_message(
-                            chat_id=user_id, text=strings.errors.user_not_found
-                        )
+    user_id: int,
+) -> None:
+    match qr.command:
+        case QRCommand.USER:
+            user = await db.user.get(int(qr.parameter))
+            if user:
+                await open_user_manager(user, manager)
+            else:
+                await bot.send_message(
+                    chat_id=user_id, text=strings.errors.user_not_found
+                )

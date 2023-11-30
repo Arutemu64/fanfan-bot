@@ -10,17 +10,8 @@ class BotMode(enum.StrEnum):
     WEBHOOK = "webhook"
 
 
-@dataclass
-class Page(Generic[AbstractModel]):
-    items: Sequence[AbstractModel]
-    number: int
-    total: int
-
-
-@dataclass
-class Notification:
-    user_id: int
-    text: str
+class QRCommand(enum.StrEnum):
+    USER = "user"
 
 
 class UserRole(enum.IntEnum):
@@ -34,3 +25,29 @@ class UserRole(enum.IntEnum):
     VISITOR = (0, "Зритель", "Зрители")
     HELPER = (1, "Волонтёр", "Волонтёры")
     ORG = (2, "Организатор", "Организаторы")
+
+
+@dataclass
+class Page(Generic[AbstractModel]):
+    items: Sequence[AbstractModel]
+    number: int
+    total: int
+
+
+@dataclass
+class Notification:
+    user_id: int
+    text: str
+
+
+@dataclass
+class QR:
+    command: QRCommand
+    parameter: str
+
+    @classmethod
+    def parse(cls, qr_text: str):
+        return cls(command=QRCommand(qr_text.split()[0]), parameter=qr_text.split()[1])
+
+    def __repr__(self):
+        return f"{self.command} {self.parameter}"

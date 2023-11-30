@@ -70,7 +70,7 @@ async def open_achievements(
     await manager.switch_to(state=states.MAIN.ACHIEVEMENTS)
 
 
-main = Window(
+main_window = Window(
     Title(strings.titles.main_menu),
     Format(
         "👋 Привет, {name}! Сейчас ты находишься в главном меню. "
