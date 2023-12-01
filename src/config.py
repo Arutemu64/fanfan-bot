@@ -47,11 +47,11 @@ class BotConfig(BaseSettings):
 class DatabaseConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="POSTGRES_")
 
-    username: str
+    username: str = Field(alias="POSTGRES_USER")
     password: str
     host: str = "db"
     port: int = 5432
-    database: str
+    database: str = Field(alias="POSTGRES_DB")
 
     driver: str = "asyncpg"
     database_system: str = "postgresql"

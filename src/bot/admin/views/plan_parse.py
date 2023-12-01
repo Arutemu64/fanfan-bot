@@ -96,6 +96,4 @@ class PlanParseView(BaseView):
         session_pool = create_session_pool()
         async with session_pool() as session:
             await proceed_plan(path, session)
-        return self.templates.TemplateResponse(
-            "plan_parse.html", context={"request": request}
-        )
+        return await self.templates.TemplateResponse(request, "plan_parse.html")

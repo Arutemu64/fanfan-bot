@@ -1,5 +1,5 @@
 from aiogram_dialog import Dialog, Window
-from aiogram_dialog.widgets.kbd import Cancel, Start
+from aiogram_dialog.widgets.kbd import Cancel, Start, Url
 from aiogram_dialog.widgets.text import Const
 
 from src.bot.dialogs import states
@@ -24,6 +24,10 @@ helper_menu = Window(
         state=states.USER_MANAGER.MANUAL_USER_SEARCH,
         id="user_search",
         text=Const("🔍 Найти пользователя"),
+    ),
+    Url(
+        text=Const(strings.buttons.help),
+        url=Const("https://www.notion.so/arutemu64/17d4fbe591ee449caa0d631e87183a1f"),
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.HELPER.MAIN,

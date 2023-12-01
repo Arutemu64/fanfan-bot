@@ -13,6 +13,8 @@ RUN python3 -m venv $POETRY_VENV \
 
 FROM python-base as app
 
+RUN apt update && apt install -y make
+
 COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 

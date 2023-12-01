@@ -25,11 +25,11 @@ async def main_menu_getter(
     dialog_manager: DialogManager, db: Database, current_user: DBUser, **kwargs
 ):
     settings = await db.settings.get()
+    await current_user.awaitable_attrs.achievements_count
     total_achievements = await db.achievement.get_count()
     if total_achievements > 0:
         achievements_progress = math.floor(
-            (await current_user.awaitable_attrs.achievements_count * 100)
-            / total_achievements
+            (current_user.achievements_count * 100) / total_achievements
         )
     else:
         achievements_progress = 100

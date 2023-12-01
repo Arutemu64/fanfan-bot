@@ -44,10 +44,10 @@ async def setup_default_settings(session: AsyncSession) -> None:
 async def lifespan(app: FastAPI):
     if conf.sentry.enabled:
         sentry_sdk.init(
-            dsn=conf.sentry_dsn,
+            dsn=conf.sentry.dsn,
             traces_sample_rate=1.0,
             profiles_sample_rate=1.0,
-            environment=conf.sentry_env,
+            environment=conf.sentry.env,
             integrations=[
                 AsyncioIntegration(),
                 SqlalchemyIntegration(),

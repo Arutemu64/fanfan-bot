@@ -9,6 +9,7 @@ from aiogram_dialog.widgets.kbd import (
     Group,
     ManagedCheckbox,
     SwitchTo,
+    Url,
 )
 from aiogram_dialog.widgets.text import Const, Jinja
 
@@ -64,6 +65,12 @@ schedule_main_window = Window(
                 text=Const("🙈 Пропустить/вернуть"),
                 id="skip_events",
                 state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
+            ),
+            Url(
+                text=Const(strings.buttons.help),
+                url=Const(
+                    "https://www.notion.so/arutemu64/d4dcc186f40f4b11b05a814e61d64140"
+                ),
             ),
             width=2,
             when=F["dialog_data"]["helper_tools_toggle"],

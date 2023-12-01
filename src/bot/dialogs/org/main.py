@@ -99,8 +99,12 @@ new_ticket_window = Window(
 org_menu = Window(
     Title(strings.titles.org_menu),
     Url(
-        text=Const("🌐 Перейти в организатора"),
+        text=Const("🌐 Перейти в панель организатора"),
         url=Format("{web_panel_login_link}"),
+    ),
+    Url(
+        text=Const(strings.buttons.help),
+        url=Const("https://www.notion.so/arutemu64/17d4fbe591ee449caa0d631e87183a1f"),
     ),
     SwitchTo(
         state=states.ORG.CREATE_NOTIFICATION,
