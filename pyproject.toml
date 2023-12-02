@@ -6,7 +6,7 @@ authors = ["Arutemu64 <arutemu64@outlook.com>"]
 packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
-python = "3.11.*"
+python = "^3.12"
 aiogram = {version = "^3.2.0", extras = ["fast"]}
 aiogram-dialog = "^2.1.0b3"
 alembic = "^1.12.1"

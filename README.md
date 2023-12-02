@@ -1,5 +1,5 @@
 # FAN-FAN Bot
-![Python](https://img.shields.io/badge/Python-3.11-3670A0?logo=python&logoColor=ffdd54)
+![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=yellow)
 ![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?logo=telegram&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?logo=fastapi)
 ![Postgres](https://img.shields.io/badge/PostgreSQL-%23316192.svg?logo=postgresql&logoColor=white)
