@@ -80,7 +80,7 @@ set_items_per_page_window = Window(
 )
 
 settings_window = Window(
-    Title(strings.titles.settings),
+    Title(Const(strings.titles.settings)),
     List(Format("<b>{item[0]}</b> {item[1]}"), items="user_info_list"),
     SwitchTo(
         text=Format("🔢 Элементов на страницу: [{user.items_per_page}]"),

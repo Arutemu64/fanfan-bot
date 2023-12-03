@@ -1,18 +1,16 @@
 import asyncio
 
-from aiogram import F
 from aiogram.types import Message
-from aiogram_dialog import DialogManager, Window
+from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
-from aiogram_dialog.widgets.text import Const, Jinja
+from aiogram_dialog.widgets.text import Const
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
-    SchedulePaginator,
-    schedule_getter,
+    ScheduleWindow,
     set_schedule_page,
     set_search_query,
 )
@@ -20,18 +18,18 @@ from src.bot.dialogs.schedule.tools import notifier
 from src.bot.dialogs.schedule.tools.common import (
     throttle_announcement,
 )
-from src.bot.dialogs.templates import schedule_list
+from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import DBUser
 
 
-async def proceed_input(
+async def set_manual_event(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
-    data: str,
+    data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
     user: DBUser = dialog_manager.middleware_data["current_user"]
@@ -39,11 +37,6 @@ async def proceed_input(
     # Проверяем права
     if user.role < UserRole.HELPER:
         await message.reply(strings.errors.access_denied)
-        return
-
-    # Поиск
-    if not data.isnumeric():
-        await set_search_query(message, widget, dialog_manager, data)
         return
 
     # Таймаут рассылки анонсов
@@ -58,7 +51,7 @@ async def proceed_input(
         return
 
     # Сброс текущего выступления
-    if int(data) == 0:
+    if data == 0:
         current_event = await db.event.get_current()
         if current_event:
             current_event.current = None
@@ -69,7 +62,7 @@ async def proceed_input(
         return
 
     # Проверяем, что выступление существует и не скрыто
-    new_current_event = await db.event.get(int(data))
+    new_current_event = await db.event.get(data)
     if not new_current_event:
         await message.reply("⚠️ Выступление не найдено!")
         return
@@ -107,21 +100,20 @@ async def proceed_input(
     await dialog_manager.switch_to(states.SCHEDULE.MAIN)
 
 
-set_manual_event_window = Window(
-    Const("<b>🔢 Укажите номер выступления, которое хотите отметить текущим:</b>"),
-    Const("<i>(0 - сброс текущего выступления)</i>\n"),
-    Jinja(schedule_list),
-    Const(
-        "🔍 <i>Для поиска отправьте запрос сообщением</i>",
-        when=~F["dialog_data"]["search_query"],
-    ),
-    SchedulePaginator,
-    TextInput(
-        id="manual_event_input",
-        type_factory=str,
-        on_success=proceed_input,
-    ),
-    SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
+set_manual_event_window = ScheduleWindow(
     state=states.SCHEDULE.ASK_MANUAL_EVENT,
-    getter=schedule_getter,
+    header=Title(
+        Const("🔢 Укажите номер выступления, которое хотите отметить текущим:"),
+        upper=False,
+        subtitle=Const("(0 - сброс текущего выступления)"),
+    ),
+    after_paginator=SwitchTo(
+        state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"
+    ),
+    text_input=TextInput(
+        id="manual_event_input",
+        type_factory=int,
+        on_success=set_manual_event,
+        on_error=set_search_query,
+    ),
 )

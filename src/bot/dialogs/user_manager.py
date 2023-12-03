@@ -65,7 +65,8 @@ async def user_info_getter(
             ("Очков:", user.points),
             (
                 "Достижений получено:",
-                f"{await user.awaitable_attrs.achievements_count} из {total_achievements_count}",
+                f"{await user.awaitable_attrs.achievements_count} "
+                f"из {total_achievements_count}",
             ),
         ],
     }
@@ -275,7 +276,7 @@ manual_user_search_window = Window(
 )
 
 user_manager_window = Window(
-    Title(strings.titles.user_manager),
+    Title(Const(strings.titles.user_manager)),
     List(Format("<b>{item[0]}</b> {item[1]}"), items="user_info"),
     SwitchTo(
         text=Const("🪙 Добавить очков"),

@@ -1,23 +1,22 @@
 import asyncio
 
-from aiogram import F
 from aiogram.types import Message
-from aiogram_dialog import DialogManager, Window
+from aiogram_dialog import DialogManager
+from aiogram_dialog.widgets.common import ManagedScroll
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
-from aiogram_dialog.widgets.text import Const, Jinja
+from aiogram_dialog.widgets.text import Const
 from sqlalchemy import text
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
-    SchedulePaginator,
-    schedule_getter,
+    ID_SCHEDULE_SCROLL,
+    ScheduleWindow,
     set_schedule_page,
-    set_search_query,
 )
 from src.bot.dialogs.schedule.tools import notifier
-from src.bot.dialogs.templates import schedule_list
+from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
@@ -40,7 +39,9 @@ async def swap_events(
 
     # Поиск
     if len(data.split()) == 1:
-        await set_search_query(message, widget, dialog_manager, data)
+        dialog_manager.dialog_data["search_query"] = data
+        scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
+        await scroll.set_page(0)
         return
 
     # Проверяем, что номера выступлений введены верно
@@ -98,21 +99,19 @@ async def swap_events(
     await set_schedule_page(dialog_manager, event1)
 
 
-swap_events_window = Window(
-    Const("<b>🔃 Укажите номера двух выступлений, которые нужно поменять местами:</b>"),
-    Const("""<i>(через пробел, например: "5 2")</i>\n"""),
-    Jinja(schedule_list),
-    Const(
-        "🔍 <i>Для поиска отправьте запрос сообщением</i>",
-        when=~F["dialog_data"]["search_query"],
+swap_events_window = ScheduleWindow(
+    state=states.SCHEDULE.SWAP_EVENTS,
+    header=Title(
+        Const("🔃 Укажите номера двух выступлений, которые нужно поменять местами:"),
+        upper=False,
+        subtitle=Const("""(через пробел, например: "5 2")"""),
     ),
-    SchedulePaginator,
-    TextInput(
-        id="swap_events_input",
+    after_paginator=SwitchTo(
+        state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"
+    ),
+    text_input=TextInput(
+        id="swap_events_window_input",
         type_factory=str,
         on_success=swap_events,
     ),
-    SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
-    state=states.SCHEDULE.SWAP_EVENTS,
-    getter=schedule_getter,
 )

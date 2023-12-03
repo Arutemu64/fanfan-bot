@@ -5,7 +5,7 @@ from src.db import Database
 from .common import set_schedule_page
 from .main import schedule_main_window
 from .subscriptions import (
-    event_selector_window,
+    select_event_window,
     set_counter_window,
     subscriptions_main_window,
 )
@@ -28,7 +28,7 @@ dialog = Dialog(
     swap_events_window,
     toggle_event_skip_window,
     subscriptions_main_window,
-    event_selector_window,
+    select_event_window,
     set_counter_window,
     on_start=on_start_schedule,
 )

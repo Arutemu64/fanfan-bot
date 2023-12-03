@@ -97,7 +97,7 @@ new_ticket_window = Window(
 )
 
 org_menu = Window(
-    Title(strings.titles.org_menu),
+    Title(Const(strings.titles.org_menu)),
     Url(
         text=Const("🌐 Перейти в панель организатора"),
         url=Format("{web_panel_login_link}"),

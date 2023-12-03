@@ -24,7 +24,7 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from src.bot.dialogs import states
 from src.bot.dialogs.templates import voting_list
-from src.bot.dialogs.widgets import FormatTitle, Title
+from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import DBUser
@@ -126,7 +126,7 @@ async def cancel_vote(callback: CallbackQuery, button: Button, manager: DialogMa
 
 
 nominations = Window(
-    Title(strings.titles.voting),
+    Title(Const(strings.titles.voting)),
     Const("Для голосования доступны следующие номинации"),
     Column(
         Select(
@@ -155,7 +155,7 @@ nominations = Window(
 )
 
 voting = Window(
-    FormatTitle("🎖️ Номинация {nomination_title}"),
+    Title(Format("🎖️ Номинация {nomination_title}")),
     Jinja(voting_list),
     Const("⌨️ Чтобы проголосовать, отправь номер участника.", when=~F["user_vote"]),
     StubScroll(ID_VOTING_SCROLL, pages="pages"),

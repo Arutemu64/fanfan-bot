@@ -1,20 +1,25 @@
+from typing import Optional
+
 from aiogram import F
+from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import DialogManager
+from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.common import ManagedScroll
-from aiogram_dialog.widgets.input.text import ManagedTextInput
+from aiogram_dialog.widgets.input.text import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
     FirstPage,
-    Group,
+    Keyboard,
     LastPage,
     NextPage,
     PrevPage,
     Row,
     StubScroll,
 )
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Format, Jinja, Text
+from aiogram_dialog.widgets.utils import GetterVariant
 
+from src.bot.dialogs.templates import schedule_list
 from src.bot.structures import UserRole
 from src.db import Database
 from src.db.models import DBUser, Event
@@ -65,27 +70,14 @@ async def on_click_update_schedule(
     await set_schedule_page(manager, current_event)
 
 
-async def on_wrong_event_id(
+async def set_search_query(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
     error: ValueError,
 ):
-    await message.reply("⚠️ Неверно указан номер выступления")
-
-
-async def set_search_query(
-    message: Message,
-    widget: ManagedTextInput,
-    dialog_manager: DialogManager,
-    data: str,
-):
+    dialog_manager.dialog_data["search_query"] = message.text
     scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
-    if data.isnumeric():
-        if int(data) - 1 < dialog_manager.dialog_data["pages"]:
-            await scroll.set_page(int(data) - 1)
-        return
-    dialog_manager.dialog_data["search_query"] = data
     await scroll.set_page(0)
 
 
@@ -96,23 +88,45 @@ async def reset_search(callback: CallbackQuery, button: Button, manager: DialogM
     await set_schedule_page(manager, current_event)
 
 
-SchedulePaginator = Group(
-    StubScroll(ID_SCHEDULE_SCROLL, pages="pages"),
-    Button(
-        text=Const("🔍❌ Сбросить поиск"),
-        id="reset_search",
-        on_click=reset_search,
-        when=F["dialog_data"]["search_query"],
-    ),
-    Row(
-        FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪ · 1")),
-        PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
-        Button(
-            text=Format(text="{page} 🔄️"),
-            id="update_schedule",
-            on_click=on_click_update_schedule,
+class ScheduleWindow(Window):
+    def __init__(
+        self,
+        state: State,
+        header: Optional[Text] = "",
+        footer: Optional[Text] = Const(
+            "🔍 <i>Для поиска отправьте запрос сообщением</i>",
+            when=~F["dialog_data"]["search_query"],
         ),
-        NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
-        LastPage(scroll=ID_SCHEDULE_SCROLL, text=Format("{pages} · ⏭️")),
-    ),
-)
+        before_paginator: Optional[Keyboard] = "",
+        after_paginator: Optional[Keyboard] = "",
+        text_input: Optional[TextInput] = "",
+        getter: GetterVariant = schedule_getter,
+    ):
+        super().__init__(
+            header,
+            Jinja(schedule_list),
+            StubScroll(ID_SCHEDULE_SCROLL, pages="pages"),
+            footer,
+            before_paginator,
+            Button(
+                text=Const("🔍❌ Сбросить поиск"),
+                id="reset_search",
+                on_click=reset_search,
+                when=F["dialog_data"]["search_query"],
+            ),
+            Row(
+                FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪ · 1")),
+                PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
+                Button(
+                    text=Format(text="{page} 🔄️"),
+                    id="update_schedule",
+                    on_click=on_click_update_schedule,
+                ),
+                NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
+                LastPage(scroll=ID_SCHEDULE_SCROLL, text=Format("{pages} · ⏭️")),
+            ),
+            after_paginator,
+            text_input,
+            getter=getter,
+            state=state,
+        )

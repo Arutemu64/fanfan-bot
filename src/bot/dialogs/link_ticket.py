@@ -39,7 +39,7 @@ async def check_ticket(
 
 
 link_ticket_window = Window(
-    Title(strings.titles.ticket_linking),
+    Title(Const(strings.titles.ticket_linking)),
     Const(
         "🎫 Чтобы привязать билет и получить доступ ко всем функциям бота "
         "пришли его номер сообщением 👇\n\n"

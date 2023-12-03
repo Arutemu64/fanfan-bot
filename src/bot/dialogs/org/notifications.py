@@ -65,7 +65,7 @@ async def send_notification(
 
 
 confirm_notification_window = Window(
-    Title("✉️ Подтверждение рассылки"),
+    Title(Const("✉️ Подтверждение рассылки")),
     Format("{text}\n"),
     Format("<i>Отправляем для ролей {roles}</i>"),
     Button(
@@ -83,7 +83,7 @@ confirm_notification_window = Window(
 )
 
 create_notification_window = Window(
-    Title("✉️ Создание рассылки"),
+    Title(Const("✉️ Создание рассылки")),
     Const(
         "Отметьте необходимые роли и отправьте текст уведомления.\n"
         "Дальше вы сможете предпросмотреть уведомление."

@@ -7,7 +7,7 @@ from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 
 helper_menu = Window(
-    Title(strings.titles.helper_menu),
+    Title(Const(strings.titles.helper_menu)),
     Const("Для волонтёров доступны следующие функции:\n"),
     Const(
         "<b>🧰 Инструменты волонтёра</b> в <code>📅 Расписании</code> - "

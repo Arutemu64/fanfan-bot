@@ -19,7 +19,7 @@ from pydantic import BaseModel, TypeAdapter, field_validator
 
 from src.bot import IMAGES_DIR, UI_DIR
 from src.bot.dialogs import states
-from src.bot.dialogs.widgets import FormatTitle
+from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 
 ACTIVITIES_IMAGES_DIR = IMAGES_DIR.joinpath("activities")
@@ -58,7 +58,7 @@ async def activity_getter(dialog_manager: DialogManager, **kwargs):
 
 
 activity_window = Window(
-    FormatTitle("{title}"),
+    Title(Format("{title}")),
     Format("{description}"),
     Format("\n<b>Где:</b> {where}", when=F["where"]),
     StaticMedia(path=Format("{image_filepath}")),

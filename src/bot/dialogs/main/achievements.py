@@ -41,7 +41,7 @@ async def achievements_getter(
 
 
 achievements_window = Window(
-    Title(strings.titles.achievements),
+    Title(Const(strings.titles.achievements)),
     Jinja(achievements_list),
     StubScroll(id=ID_ACHIEVEMENTS_SCROLL, pages="pages"),
     Row(

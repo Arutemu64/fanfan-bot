@@ -39,7 +39,7 @@ async def qr_pass_getter(dialog_manager: DialogManager, **kwargs):
 
 
 qr_pass_window = Window(
-    Title(strings.titles.qr_pass),
+    Title(Const(strings.titles.qr_pass)),
     Const(
         "Покажи этот QR-код волонтёру или организатору, "
         "чтобы получить достижение или заработать очки.\n"

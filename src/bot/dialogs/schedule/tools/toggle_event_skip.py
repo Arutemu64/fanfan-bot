@@ -1,33 +1,30 @@
 import asyncio
 
-from aiogram import F
 from aiogram.types import Message
-from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.input.text import ManagedTextInput
+from aiogram_dialog import DialogManager
+from aiogram_dialog.widgets.input.text import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
-from aiogram_dialog.widgets.text import Const, Jinja
+from aiogram_dialog.widgets.text import Const
 
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
-    SchedulePaginator,
-    schedule_getter,
+    ScheduleWindow,
     set_schedule_page,
     set_search_query,
 )
 from src.bot.dialogs.schedule.tools import notifier
-from src.bot.dialogs.templates import schedule_list
+from src.bot.dialogs.widgets import Title
 from src.bot.structures import UserRole
 from src.bot.ui import strings
 from src.db import Database
 from src.db.models import DBUser
 
 
-async def proceed_input(
+async def toggle_event_skip(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
-    data: str,
+    data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
     user: DBUser = dialog_manager.middleware_data["current_user"]
@@ -37,13 +34,8 @@ async def proceed_input(
         await message.reply(strings.errors.access_denied)
         return
 
-    # Поиск
-    if not data.isnumeric():
-        await set_search_query(message, widget, dialog_manager, data)
-        return
-
     # Получаем выступление, проверяем его существование
-    event = await db.event.get(int(data))
+    event = await db.event.get(data)
     if not event:
         await message.reply("⚠️ Выступление не найдено!")
         return
@@ -90,20 +82,19 @@ async def proceed_input(
     await set_schedule_page(dialog_manager, event)
 
 
-toggle_event_skip_window = Window(
-    Const("<b>🙈 Укажите номер выступления, которое Вы хотите скрыть/отобразить:</b>\n"),
-    Jinja(schedule_list),
-    Const(
-        "🔍 <i>Для поиска отправьте запрос сообщением</i>",
-        when=~F["dialog_data"]["search_query"],
-    ),
-    SchedulePaginator,
-    TextInput(
-        id="toggle_event_skip",
-        type_factory=str,
-        on_success=proceed_input,
-    ),
-    SwitchTo(state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"),
+toggle_event_skip_window = ScheduleWindow(
     state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
-    getter=schedule_getter,
+    header=Title(
+        Const("🙈 Укажите номер выступления, которое Вы хотите скрыть/отобразить:"),
+        upper=False,
+    ),
+    after_paginator=SwitchTo(
+        state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"
+    ),
+    text_input=TextInput(
+        id="toggle_event_skip_window_input",
+        type_factory=int,
+        on_success=toggle_event_skip,
+        on_error=set_search_query,
+    ),
 )

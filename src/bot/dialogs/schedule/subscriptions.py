@@ -20,12 +20,10 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from src.bot.dialogs import states
 from src.bot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
-    SchedulePaginator,
-    on_wrong_event_id,
-    schedule_getter,
+    ScheduleWindow,
     set_search_query,
 )
-from src.bot.dialogs.templates import schedule_list, subscriptions_list
+from src.bot.dialogs.templates import subscriptions_list
 from src.bot.dialogs.widgets import Title
 from src.bot.ui import strings
 from src.db import Database
@@ -56,20 +54,15 @@ async def subscriptions_getter(
     }
 
 
-async def proceed_input(
+async def select_event(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
-    data: str,
+    data: int,
 ):
     db: Database = dialog_manager.middleware_data["db"]
-
-    if not data.isnumeric():
-        await set_search_query(message, widget, dialog_manager, data)
-        return
-
     user = dialog_manager.middleware_data["current_user"]
-    event = await db.event.get(int(data))
+    event = await db.event.get(data)
 
     if not event:
         await message.reply("⚠️ Выступление не найдено!")
@@ -142,37 +135,33 @@ set_counter_window = Window(
     TextInput(id="counter_input", type_factory=int, on_success=setup_subscription),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
+        state=states.SCHEDULE.SUBSCRIPTIONS_EVENT_SELECTOR,
         id="back",
     ),
     state=states.SCHEDULE.SUBSCRIPTIONS_SET_COUNTER,
 )
 
-event_selector_window = Window(
-    Const("<b>➕ Пришлите номер выступления, на которое хотите подписаться:</b>\n"),
-    Jinja(schedule_list),
-    Const(
-        "🔍 <i>Для поиска отправьте запрос сообщением</i>",
-        when=~F["dialog_data"]["search_query"],
+select_event_window = ScheduleWindow(
+    state=states.SCHEDULE.SUBSCRIPTIONS_EVENT_SELECTOR,
+    header=Title(
+        Const("➕ Пришлите номер выступления, на которое хотите подписаться:"),
+        upper=False,
     ),
-    SchedulePaginator,
-    TextInput(
-        id=ID_EVENT_INPUT,
-        type_factory=str,
-        on_success=proceed_input,
-    ),
-    SwitchTo(
+    after_paginator=SwitchTo(
         text=Const(strings.buttons.back),
         state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
         id="back",
     ),
-    getter=schedule_getter,
-    state=states.SCHEDULE.SUBSCRIPTIONS_EVENT_SELECTOR,
+    text_input=TextInput(
+        id="event_selector_window_input",
+        type_factory=int,
+        on_success=select_event,
+        on_error=set_search_query,
+    ),
 )
 
 subscriptions_main_window = Window(
-    Title(strings.titles.notifications),
-    Const(""),
+    Title(Const(strings.titles.notifications)),
     Jinja(subscriptions_list),
     Const(
         "🗑️ <i>Чтобы отписаться, пришлите номер выступления</i>",
@@ -182,7 +171,6 @@ subscriptions_main_window = Window(
         id="REMOVE_SUBSCRIPTION_INPUT",
         type_factory=int,
         on_success=remove_subscription,
-        on_error=on_wrong_event_id,
     ),
     SwitchTo(
         text=Const("➕ Подписаться на выступление"),
