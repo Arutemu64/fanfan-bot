@@ -1,10 +1,9 @@
 import operator
 from typing import Any
 
-from aiogram import Bot, F
-from aiogram.exceptions import TelegramBadRequest
+from aiogram import F
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import Dialog, DialogManager, StartMode, Window
+from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
@@ -61,7 +60,7 @@ async def user_info_getter(
                 "Билет:",
                 current_user.ticket.id if current_user.ticket else "не привязан",
             ),
-            ("Роль:", user.role),
+            ("Роль:", user.role.label),
             ("", ""),
             ("Очков:", user.points),
             (
@@ -93,22 +92,25 @@ async def add_points(callback: CallbackQuery, button: Button, manager: DialogMan
     db: Database = manager.middleware_data["db"]
     arq: ArqRedis = manager.middleware_data["arq"]
     counter: ManagedCounter = manager.find(ID_ADD_POINTS_COUNTER)
-
     user: DBUser = await db.user.get(manager.dialog_data["user_id"])
-    user.points += int(counter.get_value())
+
+    points = int(counter.get_value())
+    user.points += points
     await db.transaction.new(
         from_user=manager.middleware_data["current_user"],
         to_user=user,
-        points_added=int(counter.get_value()),
+        points_added=points,
     )
     await db.session.commit()
+
     await arq.enqueue_job(
         "send_notification",
         Notification(
             user_id=manager.dialog_data["user_id"],
-            text=f"💰 Вы получили {counter.get_value()} {points_pluralize(int(counter.get_value()))}!",
+            text=f"💰 Вы получили {points} {points_pluralize(points)}!",
         ),
     )
+    await callback.answer(strings.common.success)
     await manager.switch_to(states.USER_MANAGER.MAIN)
 
 
@@ -120,23 +122,24 @@ async def add_achievement(
 ):
     db: Database = dialog_manager.middleware_data["db"]
     arq: ArqRedis = dialog_manager.middleware_data["arq"]
-
     user: DBUser = await db.user.get(dialog_manager.dialog_data["user_id"])
-    achievement = await db.achievement.get(data)
 
+    achievement = await db.achievement.get(data)
     if not achievement:
-        await message.answer("⚠️ Такого достижения не существует!")
+        await message.reply("⚠️ Такого достижения не существует!")
         return
-    if achievement in await db.achievement.check_user_achievements(user, [achievement]):
-        await message.answer("⚠️ У пользователя уже есть это достижение!")
+    await user.awaitable_attrs.received_achievements
+    if achievement in user.received_achievements:
+        await message.reply("⚠️ У пользователя уже есть это достижение!")
         return
-    (await user.awaitable_attrs.received_achievements).append(achievement)
+    user.received_achievements.append(achievement)
     await db.transaction.new(
         from_user=dialog_manager.middleware_data["current_user"],
         to_user=user,
         achievement_added=achievement,
     )
     await db.session.commit()
+
     await arq.enqueue_job(
         "send_notification",
         Notification(
@@ -144,6 +147,7 @@ async def add_achievement(
             text=f"🏆 Вы получили достижение <b>{achievement.title}</b>!",
         ),
     )
+    await message.reply(strings.common.success)
     await dialog_manager.switch_to(states.USER_MANAGER.MAIN)
 
 
@@ -154,26 +158,20 @@ async def change_user_role(
     item_id: int,
 ):
     db: Database = manager.middleware_data["db"]
-    bot: Bot = manager.middleware_data["bot"]
+    arq: ArqRedis = manager.middleware_data["arq"]
     user: DBUser = await db.user.get(manager.dialog_data["user_id"])
-    user.role = UserRole(item_id).name
+
+    user.role = UserRole(item_id)
     await db.session.commit()
-    try:
-        await bot.send_message(
-            chat_id=manager.dialog_data["user_id"],
-            text="🔄️ Ваша роль была изменена, перезапуск бота...",
-        )
-        await manager.bg(chat_id=manager.dialog_data["user_id"]).start(
-            state=states.MAIN.MAIN, mode=StartMode.RESET_STACK
-        )
-    except TelegramBadRequest:
-        await callback.answer(
-            "⚠️ Произошла ошибка при смене роли пользователю!", show_alert=True
-        )
-        return
-    await callback.answer(
-        f"""✅ Роль пользователя @{manager.dialog_data["username"]} была изменена!"""
+
+    await arq.enqueue_job(
+        "send_notification",
+        Notification(
+            user_id=manager.dialog_data["user_id"],
+            text=f"✏️ Ваша роль была изменена на <b>{user.role.label}</b>!",
+        ),
     )
+    await callback.answer(strings.common.success)
     await manager.switch_to(states.USER_MANAGER.MAIN)
 
 
