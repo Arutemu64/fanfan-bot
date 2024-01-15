@@ -7,7 +7,7 @@ packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-aiogram = {version = "^3.2.0", extras = ["fast"]}
+aiogram = {version = "^3.3.0", extras = ["fast"]}
 aiogram-dialog = "^2.1.0b3"
 alembic = "^1.12.1"
 alembic-postgresql-enum = "^0.4.0"
