@@ -33,7 +33,7 @@ uvicorn = "^0.24.0.post1"
 optional=true
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
+black = "^23.12.1"
 mypy = "^1.6.1"
 ruff = "^0.1.1"
 
