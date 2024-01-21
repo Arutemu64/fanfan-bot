@@ -1,0 +1,77 @@
+from typing import List
+
+from arq import create_pool
+from jinja2 import Environment, FileSystemLoader
+
+from fanfan.application.dto.common import UserNotification
+from fanfan.application.services.access import check_permission
+from fanfan.application.services.base import BaseService
+from fanfan.common.enums import UserRole
+from fanfan.config import conf
+from fanfan.presentation.tgbot import JINJA_TEMPLATES_DIR
+
+templateLoader = FileSystemLoader(searchpath=JINJA_TEMPLATES_DIR)
+jinja = Environment(
+    lstrip_blocks=True, trim_blocks=True, loader=templateLoader, enable_async=True
+)
+subscription_template = jinja.get_template("subscription_notification.jinja2")
+global_announcement_template = jinja.get_template("global_announcement.jinja2")
+
+
+class NotificationService(BaseService):
+    @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
+    async def send_notifications(self, notifications: List[UserNotification]) -> None:
+        """
+        Send a list of notifications to users
+        @param notifications:
+        """
+        arq = await create_pool(conf.redis.get_pool_settings())
+        for n in notifications:
+            await arq.enqueue_job("send_notification", n)
+
+    @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
+    async def proceed_subscriptions(
+        self, send_global_announcement: bool = False
+    ) -> None:
+        """
+        Proceed upcoming subscriptions and send notifications
+        @param send_global_announcement: If True,
+        all users with receive_all_announcements enabled will receive a global Now/Next notification
+        @return:
+        """
+        current_event = await self.uow.events.get_current_event()
+        if not current_event:
+            return
+
+        notifications = []
+
+        if send_global_announcement:
+            next_event = await self.uow.events.get_next_event(event_id=current_event.id)
+            text = await global_announcement_template.render_async(
+                {"current_event": current_event, "next_event": next_event}
+            )
+            for user in await self.uow.users.get_receive_all_announcements_users():
+                notifications.append(UserNotification(user_id=user.id, text=text))
+
+        for subscription in await self.uow.subscriptions.get_upcoming_subscriptions():
+            text = await subscription_template.render_async(
+                {
+                    "current_event": current_event,
+                    "subscription": subscription,
+                }
+            )
+            notifications.append(
+                UserNotification(
+                    user_id=subscription.user_id,
+                    text=text,
+                    title="📢 ПЕРСОНАЛЬНОЕ УВЕДОМЛЕНИЕ",
+                )
+            )
+
+        await self.send_notifications(notifications)
+
+        async with self.uow:
+            await self.uow.subscriptions.bulk_delete_subscriptions_by_event(
+                current_event.id
+            )
+            await self.uow.commit()

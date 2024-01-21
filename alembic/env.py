@@ -1,18 +1,14 @@
 import asyncio
 from logging.config import fileConfig
 
-import alembic_postgresql_enum  # noqa: F401
-from alembic_utils.pg_function import PGFunction
-from alembic_utils.pg_trigger import PGTrigger
-from alembic_utils.replaceable_entity import register_entities
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from alembic.script import ScriptDirectory
-from src.config import conf
-from src.db.models import Base
+from fanfan.config import conf
+from fanfan.infrastructure.db.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -110,48 +106,6 @@ def process_revision_directives(context, revision, directives):
         new_rev_id = last_rev_id + 1
     # fill zeros up to 3 digits: 1 -> 001
     migration_script.rev_id = '{0:03}'.format(new_rev_id)
-
-
-real_position_function = PGFunction(
-    schema="public",
-    signature="update_real_position()",
-    definition="""
-         RETURNS trigger
-     LANGUAGE plpgsql
-    AS $function$
-        begin
-            with sq as (
-                select
-                    id,
-                    case when schedule.skip = false then
-                        row_number() over (partition by schedule.skip order by schedule.position)
-                    else
-                        null
-                    end as rn
-                from schedule
-            )
-            update schedule
-            set real_position = sq.rn
-            from sq
-            where schedule.id = sq.id;
-            return null;
-        END;
-    $function$
-    ;
-    """
-)
-
-real_position_trigger = PGTrigger(
-    schema="public",
-    signature="update_real_position_trigger",
-    on_entity="public.schedule",
-    definition="""
-        after insert or delete or update of skip, "position" 
-        on public.schedule for each statement execute function update_real_position()
-    """
-)
-
-register_entities([real_position_function, real_position_trigger])
 
 
 if context.is_offline_mode():

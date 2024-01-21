@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Парсинг</h2>
+{% if success %}
+<div class="alert alert-success" role="alert">
+  Успешно!
+</div>
+{% elif error %}
+<div class="alert alert-danger" role="alert">
+  {{ error }}
+</div>
+{% endif %}
+<form method="post" class="form form-vertical" enctype="multipart/form-data">
+    <div class="d-flex justify-content-center align-items-center">
+        <input type="file" name="file">
+        <input class="btn btn-primary" type="submit" value="Парсить!">
+    </div>
+</form>
+{% endblock %}
