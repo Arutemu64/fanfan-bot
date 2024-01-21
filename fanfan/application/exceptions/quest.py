@@ -16,4 +16,4 @@ class AchievementNotFound(QuestServiceError):
 
     def __init__(self, achievement_id: Optional[int] = None):
         if achievement_id:
-            self.user_message = f"⚠️ Достижение под номером {achievement_id} не найдено"
+            self.message = f"⚠️ Достижение под номером {achievement_id} не найдено"

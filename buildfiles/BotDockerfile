@@ -26,5 +26,4 @@ RUN poetry check && \
 
 COPY .. .
 
-CMD ["poetry", "run", "alembic", "upgrade", "head"]
-CMD ["poetry", "run", "python", "-m", "fanfan.presentation.tgbot.__main__"]
+CMD poetry run alembic upgrade head && poetry run python -m fanfan.presentation.tgbot.__main__

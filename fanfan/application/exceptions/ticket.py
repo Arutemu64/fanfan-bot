@@ -10,16 +10,16 @@ class TicketNotFound(TicketServiceError):
 
 
 class UserHasNoTicketLinked(TicketServiceError):
-    user_message = "⚠️ Билет не привязан"
+    message = "⚠️ У участника не привязан билет"
 
 
 class UserAlreadyHasTicketLinked(TicketServiceError):
-    user_message = "⚠️ Билет уже привязан"
+    message = "⚠️ Билет уже привязан"
 
 
 class TicketAlreadyUsed(TicketServiceError):
-    user_message = "⚠️ Этот билет уже использован"
+    message = "⚠️ Этот билет уже использован"
 
 
 class TicketAlreadyExist(TicketServiceError):
-    user_message = "⚠️ Билет с таким номером уже существует"
+    message = "⚠️ Билет с таким номером уже существует"
