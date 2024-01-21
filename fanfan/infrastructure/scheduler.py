@@ -2,10 +2,11 @@ import logging
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
-from arq import ArqRedis, Retry, Worker
+from arq import Retry
 
 from fanfan.application.dto.common import UserNotification
 from fanfan.common.factory import create_bot
+from fanfan.config import conf
 from fanfan.presentation.tgbot.dialogs.widgets import DELETE_BUTTON
 
 
@@ -35,10 +36,8 @@ async def send_notification(ctx: dict, notification: UserNotification):
         raise Retry(defer=e.retry_after)
 
 
-def create_worker(pool: ArqRedis) -> Worker:
-    return Worker(
-        redis_pool=pool,
-        on_startup=startup,
-        on_shutdown=shutdown,
-        functions=[send_notification],
-    )
+class WorkerSettings:
+    functions = [send_notification]
+    on_startup = startup
+    on_shutdown = shutdown
+    redis_settings = conf.redis.get_pool_settings()

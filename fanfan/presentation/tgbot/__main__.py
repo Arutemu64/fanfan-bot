@@ -6,7 +6,6 @@ from contextlib import asynccontextmanager
 import sentry_sdk
 import uvicorn
 from aiogram.fsm.storage.memory import SimpleEventIsolation
-from arq import create_pool
 from fastapi import FastAPI
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
@@ -22,7 +21,6 @@ from fanfan.config import conf
 from fanfan.infrastructure.db.main import create_async_engine, create_session_pool
 from fanfan.infrastructure.db.uow import UnitOfWork
 from fanfan.infrastructure.redis import create_redis_client, create_redis_storage
-from fanfan.infrastructure.scheduler import create_worker
 from fanfan.presentation.sqladmin.admin import setup_admin
 from fanfan.presentation.tgbot.dispatcher import create_dispatcher
 from fanfan.presentation.tgbot.utils.webapp import webapp_router
@@ -82,11 +80,7 @@ async def lifespan(app: FastAPI):
         await bot.delete_webhook(drop_pending_updates=True)
         asyncio.create_task(dp.start_polling(bot))
         logging.info("Running in polling mode")
-    worker = create_worker(await create_pool(conf.redis.get_pool_settings()))
-    asyncio.create_task(worker.async_run())
     yield
-    logging.info("Stopping schedule worker...")
-    await worker.close()
     logging.info("Closing bot session...")
     await bot.session.close()
     logging.info("Disposing db engine...")
