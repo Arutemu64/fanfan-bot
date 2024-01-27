@@ -28,11 +28,7 @@ class UsersRepository(Repository[User]):
         return await self.session.scalar(query)
 
     async def get_user_by_ticket(self, ticket_id: str) -> Optional[User]:
-        query = (
-            select(User)
-            .where(User.ticket.has(func.lower(Ticket.id) == ticket_id.lower()))
-            .limit(1)
-        )
+        query = select(User).where(User.ticket.has(Ticket.id == ticket_id)).limit(1)
         query = query.options(joinedload(User.ticket))
         return await self.session.scalar(query)
 

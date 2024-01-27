@@ -11,6 +11,6 @@ router = Router(name="start_router")
 @router.message(CommandStart())
 async def start_cmd(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(
-        state=states.MAIN.MAIN,
+        state=states.MAIN.HOME,
         mode=StartMode.RESET_STACK,
     )

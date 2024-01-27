@@ -10,8 +10,8 @@ from fanfan.application.exceptions.quest import (
     UserAlreadyHasThisAchievement,
 )
 from fanfan.application.exceptions.users import (
-    UserServiceHasNoTicket,
-    UserServiceNotFound,
+    UserHasNoTicket,
+    UserNotFound,
 )
 from fanfan.application.services import NotificationService
 from fanfan.application.services.access import check_permission
@@ -24,11 +24,11 @@ class QuestService(BaseService):
     async def get_user_stats(self, user_id: int) -> UserStats:
         user = await self.uow.users.get_user_by_id(user_id)
         if not user:
-            raise UserServiceNotFound
+            raise UserNotFound
         return UserStats(
             user_id=user_id,
             points=user.points,
-            achievements_count=await self.uow.achievements.count_received(user_id),
+            achievements_count=await user.awaitable_attrs.achievements_count,
             total_achievements=await self.uow.achievements.count_achievements(),
         )
 
@@ -62,9 +62,9 @@ class QuestService(BaseService):
         async with self.uow:
             user = await self.uow.users.get_user_by_id(user_id)
             if not user:
-                raise UserServiceHasNoTicket
+                raise UserHasNoTicket
             if not user.ticket:
-                raise UserServiceHasNoTicket
+                raise UserHasNoTicket
 
             user.points += amount
             transaction = Transaction(
@@ -89,9 +89,9 @@ class QuestService(BaseService):
     async def add_achievement(self, user_id: int, achievement_id: int):
         user = await self.uow.users.get_user_by_id(user_id)
         if not user:
-            raise UserServiceNotFound
+            raise UserNotFound
         if not user.ticket:
-            raise UserServiceHasNoTicket
+            raise UserHasNoTicket
         achievement = await self.uow.achievements.get_achievement(achievement_id)
         if not achievement:
             raise AchievementNotFound(achievement_id)

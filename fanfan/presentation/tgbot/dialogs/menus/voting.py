@@ -145,7 +145,7 @@ nominations_window = Window(
         when=F["pages"] > 1,
     ),
     Cancel(Const(strings.buttons.back)),
-    state=states.VOTING.NOMINATIONS,
+    state=states.VOTING.SELECT_NOMINATION,
     getter=nominations_getter,
 )
 
@@ -177,7 +177,7 @@ voting_window = Window(
     ),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.VOTING.NOMINATIONS,
+        state=states.VOTING.SELECT_NOMINATION,
         id="nominations",
     ),
     state=states.VOTING.VOTING,

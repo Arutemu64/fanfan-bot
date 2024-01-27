@@ -1,11 +1,10 @@
-from contextlib import suppress
-
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import DialogManager, Window
+from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input.text import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
+    Cancel,
     CurrentPage,
     FirstPage,
     LastPage,
@@ -17,11 +16,12 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
-from fanfan.application.dto.subscription import CreateSubscriptionDTO, SubscriptionDTO
+from fanfan.application.dto.subscription import CreateSubscriptionDTO
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.exceptions.event import NoCurrentEvent
+from fanfan.application.exceptions.event import EventNotFound, NoCurrentEvent
 from fanfan.application.exceptions.subscriptions import (
+    SubscriptionAlreadyExist,
     SubscriptionNotFound,
 )
 from fanfan.application.services import ServicesHolder
@@ -40,8 +40,8 @@ ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
 ID_EVENT_INPUT = "event_input"
 ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 
-DATA_CURRENT_SUBSCRIPTION_DTO = "current_subscription_dto"
 DATA_SELECTED_EVENT_TITLE = "selected_event_title"
+DATA_SELECTED_EVENT_ID = "data_selected_event_id"
 
 
 async def subscriptions_getter(
@@ -53,16 +53,14 @@ async def subscriptions_getter(
         subscriptions_per_page=user.items_per_page,
     )
     try:
-        current_event_position = (
-            await services.events.get_current_event()
-        ).real_position
+        current_event = await services.events.get_current_event()
     except NoCurrentEvent:
-        current_event_position = 0
+        current_event = None
     return {
         "receive_all_announcements": user.receive_all_announcements,
         "pages": page.total,
         "subscriptions": page.items,
-        "current_event_position": current_event_position,
+        "current_event": current_event,
     }
 
 
@@ -74,36 +72,36 @@ async def create_subscription_handler(
 ):
     services: ServicesHolder = dialog_manager.middleware_data["services"]
     try:
-        subscription = await services.subscriptions.create_subscription(
-            CreateSubscriptionDTO(
-                user_id=dialog_manager.event.from_user.id,
-                event_id=data,
-            )
+        await services.subscriptions.get_subscription_by_event(
+            user_id=dialog_manager.event.from_user.id, event_id=data
         )
-        dialog_manager.dialog_data[
-            DATA_CURRENT_SUBSCRIPTION_DTO
-        ] = subscription.model_dump()
-        dialog_manager.dialog_data[DATA_SELECTED_EVENT_TITLE] = subscription.event.title
-        await dialog_manager.switch_to(states.SCHEDULE.SUBSCRIPTIONS_SET_COUNTER)
-    except ServiceError as e:
-        await message.reply(e.message)
+    except SubscriptionNotFound:
+        try:
+            event = await services.events.get_event(data)
+        except EventNotFound as e:
+            await message.reply(e.message)
+            return
+        dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID] = data
+        dialog_manager.dialog_data[DATA_SELECTED_EVENT_TITLE] = event.title
+        await dialog_manager.switch_to(states.SUBSCRIPTIONS.SET_COUNTER)
         return
+    await message.reply(SubscriptionAlreadyExist.message)
 
 
-async def update_subscription_counter_handler(
+async def set_counter_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: int,
 ):
     services: ServicesHolder = dialog_manager.middleware_data["services"]
-    subscription = SubscriptionDTO.model_validate(
-        dialog_manager.dialog_data[DATA_CURRENT_SUBSCRIPTION_DTO]
-    )
     try:
-        await services.subscriptions.update_subscription_counter(
-            subscription_id=subscription.id,
-            counter=data,
+        subscription = await services.subscriptions.create_subscription(
+            CreateSubscriptionDTO(
+                user_id=dialog_manager.event.from_user.id,
+                event_id=dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID],
+                counter=data,
+            )
         )
     except ServiceError as e:
         await message.reply(e.message)
@@ -113,19 +111,7 @@ async def update_subscription_counter_handler(
         f"<b>{subscription.event.title}</b>"
         f" успешно оформлена!"
     )
-    await dialog_manager.switch_to(states.SCHEDULE.SUBSCRIPTIONS_MAIN)
-
-
-async def cancel_subscription_creation_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
-):
-    services: ServicesHolder = manager.middleware_data["services"]
-    subscription = SubscriptionDTO.model_validate(
-        manager.dialog_data[DATA_CURRENT_SUBSCRIPTION_DTO]
-    )
-    with suppress(SubscriptionNotFound):
-        await services.subscriptions.delete_subscription(subscription.id)
-    await manager.switch_to(states.SCHEDULE.SUBSCRIPTIONS_EVENT_SELECTOR)
+    await dialog_manager.switch_to(states.SUBSCRIPTIONS.MAIN)
 
 
 async def remove_subscription_handler(
@@ -154,7 +140,8 @@ async def toggle_all_notifications_handler(
     try:
         manager.middleware_data["user"] = await services.users.update_user(
             UpdateUserDTO(
-                id=user.id, receive_all_announcements=not user.receive_all_announcements
+                id=user.id,
+                receive_all_announcements=not user.receive_all_announcements
             )
         )
     except ServiceError as e:
@@ -169,25 +156,25 @@ set_counter_window = Window(
     TextInput(
         id="counter_input",
         type_factory=int,
-        on_success=update_subscription_counter_handler,
+        on_success=set_counter_handler,
     ),
-    Button(
+    SwitchTo(
         text=Const(strings.buttons.back),
         id="back",
-        on_click=cancel_subscription_creation_handler,
+        state=states.SUBSCRIPTIONS.SELECT_EVENT,
     ),
-    state=states.SCHEDULE.SUBSCRIPTIONS_SET_COUNTER,
+    state=states.SUBSCRIPTIONS.SET_COUNTER,
 )
 
 select_event_window = ScheduleWindow(
-    state=states.SCHEDULE.SUBSCRIPTIONS_EVENT_SELECTOR,
+    state=states.SUBSCRIPTIONS.SELECT_EVENT,
     header=Title(
         Const("➕ Пришлите номер выступления, на которое хотите подписаться:"),
         upper=False,
     ),
     after_paginator=SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
+        state=states.SUBSCRIPTIONS.MAIN,
         id="back",
     ),
     text_input=TextInput(
@@ -212,7 +199,7 @@ subscriptions_main_window = Window(
     ),
     SwitchTo(
         text=Const("➕ Подписаться на выступление"),
-        state=states.SCHEDULE.SUBSCRIPTIONS_EVENT_SELECTOR,
+        state=states.SUBSCRIPTIONS.SELECT_EVENT,
         id="subscribe",
     ),
     Button(
@@ -237,11 +224,9 @@ subscriptions_main_window = Window(
         LastPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("⏭️")),
         when=F["pages"] > 1,
     ),
-    SwitchTo(
-        text=Const(strings.buttons.back),
-        id="close_subscriptions",
-        state=states.SCHEDULE.MAIN,
-    ),
+    Cancel(Const(strings.buttons.back)),
     getter=subscriptions_getter,
-    state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
+    state=states.SUBSCRIPTIONS.MAIN,
 )
+
+dialog = Dialog(subscriptions_main_window, select_event_window, set_counter_window)

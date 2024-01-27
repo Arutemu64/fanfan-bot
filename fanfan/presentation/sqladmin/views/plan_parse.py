@@ -5,6 +5,7 @@ from openpyxl import load_workbook
 from openpyxl.cell import Cell
 from sqladmin import BaseView, expose
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from fanfan import TEMP_DIR
 from fanfan.infrastructure.db import UnitOfWork
@@ -30,18 +31,17 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
         nc = ws.cell(cc.row + 1, cc.column)
         if cc.font.b:  # Either Event or Nomination
             if nc.font.b or nc.value is None:  # Event
-                event_title = cc.value
-                event = await uow.events.get_event_by_title(event_title)
-                if not event:
-                    new_event = Event(title=event_title)
-                    uow.session.add(new_event)
+                new_event = Event(title=cc.value)
+                uow.session.add(new_event)
             else:  # Nomination
-                nomination_id = nc.value.split()[0]
-                nomination = await uow.nominations.get_nomination(nomination_id)
-                if not nomination:
-                    new_nomination = Nomination(id=nomination_id, title=cc.value)
-                    uow.session.add(new_nomination)
-                    await uow.session.flush([new_nomination])
+                try:
+                    async with uow.session.begin_nested():
+                        new_nomination = Nomination(
+                            id=nc.value.split()[0], title=cc.value
+                        )
+                        uow.session.add(new_nomination)
+                except IntegrityError:
+                    pass
         else:  # Participant
             participant_title = cc.value.split(", ", 1)[1]
             nomination_id = cc.value.split()[0]

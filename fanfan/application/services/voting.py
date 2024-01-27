@@ -5,8 +5,8 @@ from fanfan.application.dto.common import Page
 from fanfan.application.dto.vote import VoteDTO
 from fanfan.application.exceptions.participant import ParticipantNotFound
 from fanfan.application.exceptions.users import (
-    UserServiceHasNoTicket,
-    UserServiceNotFound,
+    UserHasNoTicket,
+    UserNotFound,
 )
 from fanfan.application.exceptions.voting import (
     AlreadyVotedInThisNomination,
@@ -26,7 +26,7 @@ class VotingService(BaseService):
         allowed_nomination_id: Optional[str] = None,
     ) -> None:
         if not user.ticket:
-            raise UserServiceHasNoTicket
+            raise UserHasNoTicket
         settings = await self.uow.settings.get_settings()
         if not settings.voting_enabled:
             raise VotingServiceDisabled
@@ -103,7 +103,7 @@ class VotingService(BaseService):
     ) -> VoteDTO:
         user = await self.uow.users.get_user_by_id(user_id)
         if not user:
-            raise UserServiceNotFound
+            raise UserNotFound
         participant = await self.uow.participants.get_participant(participant_id)
         if not participant:
             raise ParticipantNotFound

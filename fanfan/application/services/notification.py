@@ -1,7 +1,9 @@
-from typing import List
+import json
+from typing import List, Optional
 
 from arq import create_pool
 from jinja2 import Environment, FileSystemLoader
+from redis.asyncio import Redis
 
 from fanfan.application.dto.common import UserNotification
 from fanfan.application.services.access import check_permission
@@ -20,14 +22,32 @@ global_announcement_template = jinja.get_template("global_announcement.jinja2")
 
 class NotificationService(BaseService):
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
-    async def send_notifications(self, notifications: List[UserNotification]) -> None:
+    async def send_notifications(
+        self, notifications: List[UserNotification], delivery_id: Optional[str] = None
+    ) -> None:
         """
         Send a list of notifications to users
-        @param notifications:
+        @param notifications: List of UserNotification
+        @param delivery_id:
         """
         arq = await create_pool(conf.redis.get_pool_settings())
         for n in notifications:
-            await arq.enqueue_job("send_notification", n)
+            await arq.enqueue_job("send_notification", n, delivery_id)
+
+    @check_permission(allowed_roles=[UserRole.ORG])
+    async def delete_delivery(self, delivery_id: str) -> int:
+        """
+        Mass delete sent notifications by group ID
+        @param delivery_id: Delivery ID
+        """
+        arq = await create_pool(conf.redis.get_pool_settings())
+        redis = Redis().from_url(conf.redis.build_connection_str())
+        count = await redis.llen(delivery_id)
+        while await redis.llen(delivery_id) > 0:
+            data = json.loads(await redis.lpop(delivery_id))
+            await arq.enqueue_job("delete_message", data["chat_id"], data["message_id"])
+        await redis.aclose()
+        return count
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def proceed_subscriptions(
@@ -64,7 +84,6 @@ class NotificationService(BaseService):
                 UserNotification(
                     user_id=subscription.user_id,
                     text=text,
-                    title="📢 ПЕРСОНАЛЬНОЕ УВЕДОМЛЕНИЕ",
                 )
             )
 

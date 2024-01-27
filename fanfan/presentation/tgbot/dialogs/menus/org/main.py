@@ -95,7 +95,7 @@ new_ticket_window = Window(
         state=states.ORG.MAIN, id="org_main_window", text=Const(strings.buttons.back)
     ),
     getter=get_roles,
-    state=states.ORG.NEW_TICKET,
+    state=states.ORG.ADD_NEW_TICKET,
 )
 
 org_main_window = Window(
@@ -108,10 +108,10 @@ org_main_window = Window(
         text=Const(strings.buttons.help),
         url=Const(str(conf.bot.docs_link)),
     ),
-    SwitchTo(
-        state=states.ORG.CREATE_NOTIFICATION,
+    Start(
+        state=states.NOTIFICATIONS.MAIN,
         id="new_notification",
-        text=Const("✉️ Сделать рассылку"),
+        text=Const("✉️ Рассылки"),
     ),
     Start(
         state=states.USER_MANAGER.MANUAL_USER_SEARCH,
@@ -119,7 +119,7 @@ org_main_window = Window(
         text=Const("🔍 Найти пользователя"),
     ),
     SwitchTo(
-        state=states.ORG.NEW_TICKET,
+        state=states.ORG.ADD_NEW_TICKET,
         id="new_ticket",
         text=Const("🎫 Добавить новый билет"),
     ),

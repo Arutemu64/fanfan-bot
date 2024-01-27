@@ -18,7 +18,6 @@ class UserDTO(BaseModel):
     id: int
     username: Optional[str]
     role: UserRole
-
     items_per_page: int
     receive_all_announcements: bool
 
@@ -29,7 +28,7 @@ class FullUserDTO(UserDTO):
 
 class UpdateUserDTO(BaseModel):
     id: int
-    username: Optional[str] = None
+    username: Optional[str] = ""
     role: Optional[UserRole] = None
     items_per_page: Optional[int] = None
     receive_all_announcements: Optional[bool] = None

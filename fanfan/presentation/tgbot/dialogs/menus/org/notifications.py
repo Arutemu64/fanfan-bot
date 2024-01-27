@@ -1,16 +1,23 @@
 import operator
-from typing import List
+import uuid
+from typing import Any, List
 
+from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
+from aiogram_dialog import Dialog, DialogManager, Window
+from aiogram_dialog.api.entities import MediaAttachment, MediaId
+from aiogram_dialog.widgets.input import ManagedTextInput, MessageInput, TextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
-    Column,
+    Cancel,
+    Counter,
+    Group,
+    ManagedCounter,
     ManagedMultiselect,
     Multiselect,
     SwitchTo,
 )
+from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
 from fanfan.application.dto.common import UserNotification
@@ -18,103 +25,201 @@ from fanfan.application.exceptions import ServiceError
 from fanfan.application.services import ServicesHolder
 from fanfan.common.enums import UserRole
 from fanfan.presentation.tgbot.dialogs import states
-from fanfan.presentation.tgbot.dialogs.getters import get_roles
+from fanfan.presentation.tgbot.dialogs.getters import get_roles_list
 from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
 
-ID_NOTIFICATION_ROLES_PICKER = "notification_roles_picker"
-ID_NOTIFICATION_TEXT_INPUT = "notification_text_input"
+ID_ROLES_PICKER = "id_roles_picker"
+ID_TEXT_INPUT = "id_text_input"
+ID_DELETE_AFTER_COUNTER = "id_delete_after_counter"
+ID_QUEUE_ID_INPUT = "id_queue_id_input"
 
-DATA_NOTIFICATION_TEXT = "notification_text"
-DATA_ROLE_IDS = "role_ids"
-
-
-async def confirmation_getter(dialog_manager: DialogManager, **kwargs):
-    roles = [UserRole(r) for r in dialog_manager.dialog_data[DATA_ROLE_IDS]]
-    return {
-        "text": f"""{dialog_manager.dialog_data[DATA_NOTIFICATION_TEXT]}\n"""
-        f"""<i>Отправил @{dialog_manager.event.from_user.username}</i>""",
-        "roles": ", ".join([x.label_plural for x in roles]),
-    }
-
-
-async def show_confirmation_handler(
-    message: Message,
-    widget: ManagedTextInput,
-    dialog_manager: DialogManager,
-    data: str,
-):
-    multiselect: ManagedMultiselect = dialog_manager.find(ID_NOTIFICATION_ROLES_PICKER)
-    dialog_manager.dialog_data[DATA_NOTIFICATION_TEXT] = data
-    dialog_manager.dialog_data[DATA_ROLE_IDS] = multiselect.get_checked()
-    await dialog_manager.switch_to(state=states.ORG.CONFIRM_NOTIFICATION)
+DATA_TEXT = "data_text"
+DATA_IMAGE_ID = "data_image_id"
+DATA_ROLE_IDS = "data_role_ids"
 
 
 async def send_notification_handler(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     services: ServicesHolder = manager.middleware_data["services"]
-    roles: List[UserRole] = manager.dialog_data[DATA_ROLE_IDS]
+    multiselect: ManagedMultiselect = manager.find(ID_ROLES_PICKER)
+    delete_after_counter: ManagedCounter = manager.find(ID_DELETE_AFTER_COUNTER)
+
+    roles: List[UserRole] = multiselect.get_checked()
+    delivery_id = uuid.uuid4().hex
     notifications = []
     try:
         for u in await services.users.get_all_by_roles(roles):
             notifications.append(
                 UserNotification(
                     user_id=u.id,
-                    text=manager.dialog_data[DATA_NOTIFICATION_TEXT],
+                    text=manager.dialog_data[DATA_TEXT],
                     bottom_text=f"Отправил @{manager.event.from_user.username}",
+                    image_id=manager.dialog_data.get(DATA_IMAGE_ID),
+                    delete_after=int(delete_after_counter.get_value()),
                 )
             )
-        await services.notifications.send_notifications(notifications)
+        await services.notifications.send_notifications(notifications, delivery_id)
     except ServiceError as e:
         await callback.answer(e.message)
         return
-    await callback.answer("✅ Успешно!")
-    await manager.switch_to(states.ORG.MAIN)
+    await callback.message.answer(
+        "✅ Рассылка запущена!\n" f"Уникальный ID рассылки: <code>{delivery_id}</code>"
+    )
+    await manager.start(states.ORG.MAIN)
 
 
-confirm_notification_window = Window(
-    Title(Const("💌 Подтверждение рассылки")),
-    Format("{text}\n"),
-    Format("<i>Отправляем для ролей: {roles}</i>"),
-    Button(
-        Const("📤 Отправить"),
-        id="send",
-        on_click=send_notification_handler,
-    ),
-    SwitchTo(
-        state=states.ORG.CREATE_NOTIFICATION,
-        id="create_notification",
-        text=Const(strings.buttons.back),
-    ),
-    getter=confirmation_getter,
-    state=states.ORG.CONFIRM_NOTIFICATION,
-)
+async def create_notification_getter(dialog_manager: DialogManager, **kwargs):
+    multiselect: ManagedMultiselect = dialog_manager.find(ID_ROLES_PICKER)
+    notification_text = dialog_manager.dialog_data[DATA_TEXT] or "не задан"
+    if dialog_manager.dialog_data[DATA_IMAGE_ID]:
+        image = MediaAttachment(
+            type=ContentType.PHOTO,
+            file_id=MediaId(dialog_manager.dialog_data[DATA_IMAGE_ID]),
+        )
+    else:
+        image = None
+    return {
+        "notification_text": notification_text,
+        "image": image,
+        "roles": get_roles_list(),
+        "sending_allowed": dialog_manager.dialog_data[DATA_TEXT]
+        and len(multiselect.get_checked()) > 0,
+    }
+
+
+async def message_handler(
+    message: Message, message_input: MessageInput, manager: DialogManager
+):
+    if message.text or message.caption:
+        manager.dialog_data[DATA_TEXT] = message.text or message.caption
+    if message.photo:
+        manager.dialog_data[DATA_IMAGE_ID] = message.photo[-1].file_id
+
+
+async def delete_image_handler(
+    callback: CallbackQuery, button: Button, manager: DialogManager
+):
+    manager.dialog_data[DATA_IMAGE_ID] = None
+
+
+async def delete_notification_handler(
+    message: Message,
+    widget: ManagedTextInput,
+    dialog_manager: DialogManager,
+    data: str,
+):
+    services: ServicesHolder = dialog_manager.middleware_data["services"]
+
+    try:
+        count = await services.notifications.delete_delivery(data)
+        await message.answer(f"✅ Будет удалено {count} сообщений")
+    except ServiceError as e:
+        await message.answer(e.message)
+
+    await dialog_manager.switch_to(states.NOTIFICATIONS.MAIN)
+
 
 create_notification_window = Window(
     Title(Const("✉️ Создание рассылки")),
-    Const(
-        "Отметьте галочками необходимые роли и отправьте текст рассылки.\n"
-        "На следующем шаге Вы увидете предпросмотр."
+    Format("Текст рассылки: {notification_text}\n"),
+    Const("<i>⌨️ Отправьте текст/фото, чтобы добавить его в сообщение.</i>"),
+    DynamicMedia(
+        selector="image",
+        when="image",
     ),
-    Column(
+    Button(
+        id="delete_image",
+        text=Const("🗑️ Удалить изображение"),
+        when="image",
+        on_click=delete_image_handler,
+    ),
+    Button(
+        id="visual",
+        text=Const("Отметьте нужные роли:"),
+    ),
+    Group(
         Multiselect(
             Format("✓ {item[2]}"),
             Format("{item[2]}"),
-            id=ID_NOTIFICATION_ROLES_PICKER,
+            id=ID_ROLES_PICKER,
             item_id_getter=operator.itemgetter(0),
             items="roles",
             type_factory=UserRole,
         ),
+        width=2,
     ),
-    TextInput(
-        id=ID_NOTIFICATION_TEXT_INPUT,
-        type_factory=str,
-        on_success=show_confirmation_handler,
+    Button(
+        id="visual",
+        text=Const("Удалить через:"),
+    ),
+    Counter(
+        id=ID_DELETE_AFTER_COUNTER,
+        text=Format("{value} с."),
+        min_value=15,
+        max_value=60,
+        increment=5,
+        default=15,
+    ),
+    Button(
+        Const("📤 Отправить"),
+        id="send",
+        on_click=send_notification_handler,
+        when="sending_allowed",
+    ),
+    MessageInput(
+        func=message_handler,
     ),
     SwitchTo(
-        state=states.ORG.MAIN, id="org_main_window", text=Const(strings.buttons.back)
+        Const(strings.buttons.back),
+        id="back",
+        state=states.NOTIFICATIONS.MAIN,
     ),
-    getter=get_roles,
-    state=states.ORG.CREATE_NOTIFICATION,
+    getter=create_notification_getter,
+    state=states.NOTIFICATIONS.CREATE,
+)
+
+delete_notification_window = Window(
+    Const("🗑️ Отправьте уникальный ID рассылки, которую нужно удалить"),
+    TextInput(
+        id=ID_QUEUE_ID_INPUT,
+        type_factory=str,
+        on_success=delete_notification_handler,
+    ),
+    SwitchTo(
+        Const(strings.buttons.back),
+        id="back",
+        state=states.NOTIFICATIONS.MAIN,
+    ),
+    state=states.NOTIFICATIONS.DELETE,
+)
+
+main_notifications_window = Window(
+    Title(Const("✉️ Рассылки")),
+    SwitchTo(
+        Const("💌 Создать рассылку"),
+        id="create_notification",
+        state=states.NOTIFICATIONS.CREATE,
+    ),
+    SwitchTo(
+        Const("🗑️ Удалить рассылку"),
+        id="delete_notification",
+        state=states.NOTIFICATIONS.DELETE,
+    ),
+    Cancel(id="org_main_window", text=Const(strings.buttons.back)),
+    state=states.NOTIFICATIONS.MAIN,
+)
+
+
+async def _on_dialog_start(start_data: Any, manager: DialogManager):
+    manager.dialog_data[DATA_TEXT] = None
+    manager.dialog_data[DATA_IMAGE_ID] = None
+
+
+dialog = Dialog(
+    main_notifications_window,
+    create_notification_window,
+    delete_notification_window,
+    on_start=_on_dialog_start,
 )

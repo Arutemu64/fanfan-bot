@@ -8,6 +8,7 @@ from aiogram_dialog.widgets.kbd import (
     Cancel,
     Checkbox,
     Group,
+    Start,
     SwitchTo,
     Url,
 )
@@ -90,10 +91,10 @@ schedule_main_window = ScheduleWindow(
             ),
             when=F["is_helper"] & F["events"],
         ),
-        SwitchTo(
+        Start(
             text=Const(strings.titles.notifications),
             id="open_notifications_menu",
-            state=states.SCHEDULE.SUBSCRIPTIONS_MAIN,
+            state=states.SUBSCRIPTIONS.MAIN,
         ),
     ),
     after_paginator=Cancel(text=Const(strings.buttons.back)),

@@ -13,9 +13,9 @@ def check_permission(
     """
     A decorator used to check user permissions. Must be used in a service
     class with self.identity attribute (FullUserDTO type).
-    Throws AccessDenied if access is denied (wow!)
     @param ticket_required: If True, user without a linked ticket will be denied.
     @param allowed_roles: List of allowed UserRole's, other roles will be denied.
+    @raise AccessDenied:
     @return:
     """
 

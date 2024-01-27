@@ -11,12 +11,15 @@
 У вас нет подписок 🔕
 {% else %}
     {% for subscription in subscriptions %}
-        {% set events_left = subscription.event.real_position - current_event_position %}
-        {% if (events_left > 0) and (events_left > subscription.counter) %}
-            {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}, начнём оповещать за {{subscription.counter}} {{events_pluralize(subscription.counter)}}]{% endset %}
-        {% elif (events_left > 0) and (events_left < subscription.counter) %}
-            {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}]{% endset %}
-        {% endif -%}
+        {% set tag %}{% endset %}
+        {% if current_event %}
+            {% set events_left = subscription.event.real_position - current_event.real_position %}
+            {% if (events_left > 0) and (events_left > subscription.counter) %}
+                {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}, начнём оповещать за {{subscription.counter}} {{events_pluralize(subscription.counter)}}]{% endset %}
+            {% elif (events_left > 0) and (events_left < subscription.counter) %}
+                {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}]{% endset %}
+            {% endif -%}
+        {% endif %}
 <b>{{ subscription.event.id }}.</b> {{ subscription.event.title }} <b>{{ tag }}</b>
     {% endfor %}
 {% endif %}

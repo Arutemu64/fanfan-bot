@@ -46,7 +46,7 @@ qr_pass_window = Window(
     ),
     Format("""<i>ID: {event.from_user.id}</i>"""),
     StaticMedia(path=Format("{qr_file_path}")),
-    SwitchTo(text=Const(strings.buttons.back), state=states.MAIN.MAIN, id="back"),
+    SwitchTo(text=Const(strings.buttons.back), state=states.MAIN.HOME, id="back"),
     state=states.MAIN.QR_PASS,
     getter=qr_pass_getter,
 )

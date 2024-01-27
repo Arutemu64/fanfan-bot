@@ -47,7 +47,6 @@ async def parse(path: Path, uow: UnitOfWork):
             participant = await uow.participants.get_participant_by_title(row["title"])
             if not participant:
                 raise e
-    await uow.commit()
     # Парсинг билетов
     df = pd.read_excel(
         path,

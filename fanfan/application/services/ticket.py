@@ -8,7 +8,7 @@ from fanfan.application.exceptions.ticket import (
     UserAlreadyHasTicketLinked,
 )
 from fanfan.application.exceptions.users import (
-    UserServiceNotFound,
+    UserNotFound,
 )
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
@@ -43,7 +43,7 @@ class TicketService(BaseService):
             raise TicketAlreadyUsed
         user = await self.uow.users.get_user_by_id(user_id)
         if not user:
-            raise UserServiceNotFound
+            raise UserNotFound
         if user.ticket:
             raise UserAlreadyHasTicketLinked
         async with self.uow:

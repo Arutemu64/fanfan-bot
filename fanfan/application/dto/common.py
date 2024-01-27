@@ -19,6 +19,8 @@ class UserNotification:
     text: str
     title: str = "📢 УВЕДОМЛЕНИЕ"
     bottom_text: Optional[str] = None
+    image_id: Optional[int] = None
+    delete_after: Optional[int] = None
 
     def render_message_text(self) -> str:
         text = f"<b>{self.title.upper()}</b>\n\n{self.text}"

@@ -5,9 +5,9 @@ class UserServiceError(ServiceError):
     message = "⚠️ Произошла неизвестная ошибка в сервисе пользователей"
 
 
-class UserServiceNotFound(UserServiceError):
+class UserNotFound(UserServiceError):
     message = "⚠️ Пользователь не найден"
 
 
-class UserServiceHasNoTicket(UserServiceError):
+class UserHasNoTicket(UserServiceError):
     message = "⚠️ У пользователя не привязан билет"

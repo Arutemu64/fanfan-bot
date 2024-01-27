@@ -2,7 +2,7 @@ from typing import Optional, Sequence
 
 from sqlalchemy import Select, and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
 from fanfan.infrastructure.db.models import Event, Subscription
 from fanfan.infrastructure.db.repositories.repo import Repository
@@ -47,7 +47,7 @@ class SubscriptionsRepository(Repository[Subscription]):
                 start=(page * subscriptions_per_page),
                 stop=(page * subscriptions_per_page) + subscriptions_per_page,
             )
-            .options(selectinload(Subscription.event))
+            .options(joinedload(Subscription.event))
         )
         return (await self.session.scalars(query)).all()
 

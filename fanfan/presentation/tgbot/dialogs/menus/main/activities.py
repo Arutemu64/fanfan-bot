@@ -72,7 +72,7 @@ activity_window = Window(
         NextPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("⏭️")),
     ),
-    SwitchTo(Const(strings.buttons.back), "main_menu", states.MAIN.MAIN),
+    SwitchTo(Const(strings.buttons.back), "main_menu", states.MAIN.HOME),
     state=states.MAIN.ACTIVITIES,
     getter=activity_getter,
 )

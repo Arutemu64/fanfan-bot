@@ -2,7 +2,7 @@ from aiogram_dialog import BaseDialogManager
 
 from fanfan.application.dto.common import QR
 from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.exceptions.users import UserServiceNotFound
+from fanfan.application.exceptions.users import UserNotFound
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import QRCommand, UserRole
@@ -26,7 +26,7 @@ class QRService(BaseService):
     async def open_user_manager(self, ticket_id: str) -> None:
         user = await self.uow.users.get_user_by_ticket(ticket_id)
         if not user:
-            raise UserServiceNotFound
+            raise UserNotFound
         await self.manager.start(
             state=states.USER_MANAGER.MAIN,
             data=user.id,

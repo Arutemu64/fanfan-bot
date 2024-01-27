@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import platform
 from contextlib import asynccontextmanager
 
 import sentry_sdk
@@ -10,6 +9,7 @@ from fastapi import FastAPI
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from fanfan.application.services.settings import SettingsService
@@ -90,13 +90,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan, debug=conf.debug)
 app.add_middleware(SessionMiddleware, secret_key=conf.web.secret_key.get_secret_value())
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     logging.basicConfig(level=conf.logging_level)
-    if platform.system() == "Windows":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     uvicorn.run(
         host=conf.web.host,
         port=conf.web.port,
-        app="fanfan.presentation.tgbot.__main__:app",
+        app=app,
     )

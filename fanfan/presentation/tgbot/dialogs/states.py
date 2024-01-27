@@ -2,7 +2,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 
 class MAIN(StatesGroup):
-    MAIN = State()
+    HOME = State()
     ACTIVITIES = State()
     ACHIEVEMENTS = State()
     QR_PASS = State()
@@ -21,13 +21,15 @@ class SCHEDULE(StatesGroup):
     SWAP_EVENTS = State()
     TOGGLE_EVENT_SKIP = State()
 
-    SUBSCRIPTIONS_MAIN = State()
-    SUBSCRIPTIONS_EVENT_SELECTOR = State()
-    SUBSCRIPTIONS_SET_COUNTER = State()
+
+class SUBSCRIPTIONS(StatesGroup):
+    MAIN = State()
+    SELECT_EVENT = State()
+    SET_COUNTER = State()
 
 
 class VOTING(StatesGroup):
-    NOMINATIONS = State()
+    SELECT_NOMINATION = State()
     VOTING = State()
 
 
@@ -37,10 +39,13 @@ class HELPER(StatesGroup):
 
 class ORG(StatesGroup):
     MAIN = State()
-    NEW_TICKET = State()
+    ADD_NEW_TICKET = State()
 
-    CREATE_NOTIFICATION = State()
-    CONFIRM_NOTIFICATION = State()
+
+class NOTIFICATIONS(StatesGroup):
+    MAIN = State()
+    CREATE = State()
+    DELETE = State()
 
 
 class USER_MANAGER(StatesGroup):

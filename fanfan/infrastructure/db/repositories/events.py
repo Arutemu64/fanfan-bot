@@ -38,10 +38,6 @@ class EventsRepository(Repository[Event]):
     async def get_event(self, event_id: int) -> Optional[Event]:
         return await self.session.get(Event, event_id)
 
-    async def get_event_by_title(self, title: str) -> Optional[Event]:
-        query = select(Event).where(Event.title == title).limit(1)
-        return await self.session.scalar(query)
-
     async def get_event_by_real_position(self, real_position: int) -> Optional[Event]:
         query = select(Event).where(Event.real_position == real_position).limit(1)
         return await self.session.scalar(query)

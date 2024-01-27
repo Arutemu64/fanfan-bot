@@ -66,7 +66,7 @@ async def open_voting_handler(
     if not settings.voting_enabled:
         await callback.answer(VotingServiceDisabled.message, show_alert=True)
         return
-    await manager.start(state=states.VOTING.NOMINATIONS)
+    await manager.start(state=states.VOTING.SELECT_NOMINATION)
 
 
 async def open_achievements_handler(
@@ -171,6 +171,6 @@ main_window = Window(
         id="open_settings",
         state=states.SETTINGS.MAIN,
     ),
-    state=states.MAIN.MAIN,
+    state=states.MAIN.HOME,
     getter=main_menu_getter,
 )

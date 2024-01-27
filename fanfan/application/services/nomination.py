@@ -7,6 +7,11 @@ from fanfan.application.services.base import BaseService
 
 class NominationService(BaseService):
     async def get_nomination(self, nomination_id: str) -> NominationDTO:
+        """
+        @param nomination_id:
+        @raise NominationNotFound
+        @return:
+        """
         if nomination := await self.uow.nominations.get_nomination(nomination_id):
             return nomination.to_dto()
         raise NominationNotFound

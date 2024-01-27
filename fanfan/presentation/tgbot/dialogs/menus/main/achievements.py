@@ -51,7 +51,7 @@ achievements_window = Window(
         LastPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏭️")),
         when=F["pages"] > 1,
     ),
-    SwitchTo(text=Const(strings.buttons.back), state=states.MAIN.MAIN, id="back"),
+    SwitchTo(text=Const(strings.buttons.back), state=states.MAIN.HOME, id="back"),
     state=states.MAIN.ACHIEVEMENTS,
     getter=achievements_getter,
 )
