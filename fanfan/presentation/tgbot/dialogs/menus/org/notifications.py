@@ -10,9 +10,7 @@ from aiogram_dialog.widgets.input import ManagedTextInput, MessageInput, TextInp
 from aiogram_dialog.widgets.kbd import (
     Button,
     Cancel,
-    Counter,
     Group,
-    ManagedCounter,
     ManagedMultiselect,
     Multiselect,
     SwitchTo,
@@ -31,7 +29,6 @@ from fanfan.presentation.tgbot.ui import strings
 
 ID_ROLES_PICKER = "id_roles_picker"
 ID_TEXT_INPUT = "id_text_input"
-ID_DELETE_AFTER_COUNTER = "id_delete_after_counter"
 ID_QUEUE_ID_INPUT = "id_queue_id_input"
 
 DATA_TEXT = "data_text"
@@ -44,7 +41,6 @@ async def send_notification_handler(
 ):
     services: ServicesHolder = manager.middleware_data["services"]
     multiselect: ManagedMultiselect = manager.find(ID_ROLES_PICKER)
-    delete_after_counter: ManagedCounter = manager.find(ID_DELETE_AFTER_COUNTER)
 
     roles: List[UserRole] = multiselect.get_checked()
     delivery_id = uuid.uuid4().hex
@@ -57,7 +53,6 @@ async def send_notification_handler(
                     text=manager.dialog_data[DATA_TEXT],
                     bottom_text=f"Отправил @{manager.event.from_user.username}",
                     image_id=manager.dialog_data.get(DATA_IMAGE_ID),
-                    delete_after=int(delete_after_counter.get_value()),
                 )
             )
         await services.notifications.send_notifications(notifications, delivery_id)
@@ -149,18 +144,6 @@ create_notification_window = Window(
             type_factory=UserRole,
         ),
         width=2,
-    ),
-    Button(
-        id="visual",
-        text=Const("Удалить через:"),
-    ),
-    Counter(
-        id=ID_DELETE_AFTER_COUNTER,
-        text=Format("{value} с."),
-        min_value=15,
-        max_value=60,
-        increment=5,
-        default=15,
     ),
     Button(
         Const("📤 Отправить"),

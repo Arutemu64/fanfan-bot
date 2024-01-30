@@ -4,27 +4,27 @@ from typing import Optional
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramRetryAfter
-from arq import ArqRedis, Retry, create_pool
-from redis.asyncio import Redis
+from aiogram_dialog import BgManagerFactory, ShowMode
+from arq import ArqRedis, Retry, Worker, create_pool
+from redis.asyncio import ConnectionPool, Redis
 
 from fanfan.application.dto.common import UserNotification
 from fanfan.common.factory import create_bot
 from fanfan.config import conf
-from fanfan.infrastructure.redis import create_redis_client
 from fanfan.presentation.tgbot.dialogs.widgets import DELETE_BUTTON
 
 
 async def startup(ctx: dict):
     ctx["bot"] = create_bot()
     ctx["arq"] = await create_pool(conf.redis.get_pool_settings())
-    ctx["redis"] = create_redis_client()
+    ctx["redis_pool"] = ConnectionPool.from_url(conf.redis.build_connection_str())
 
 
 async def shutdown(ctx: dict):
     bot: Bot = ctx["bot"]
-    redis: Redis = ctx["redis"]
+    redis_pool: ConnectionPool = ctx["redis_pool"]
     await bot.session.close()
-    await redis.aclose()
+    await redis_pool.aclose()
 
 
 async def send_notification(
@@ -32,6 +32,7 @@ async def send_notification(
 ) -> None:
     bot: Bot = ctx["bot"]
     arq: ArqRedis = ctx["arq"]
+    dialog_bg_factory: BgManagerFactory = ctx["dialog_bg_factory"]
     try:
         if notification.image_id:
             message = await bot.send_photo(
@@ -49,8 +50,20 @@ async def send_notification(
     except TelegramRetryAfter as e:
         logging.warning(f"Flood control, retrying after {e.retry_after}s...")
         raise Retry(defer=e.retry_after)
+    try:
+        bg = dialog_bg_factory.bg(
+            bot=bot,
+            user_id=notification.user_id,
+            chat_id=notification.user_id,
+            load=True,
+        )
+        await bg.update(data={}, show_mode=ShowMode.DELETE_AND_SEND)
+    except TelegramRetryAfter as e:
+        await arq.enqueue_job(
+            "update_dialog", notification.user_id, _defer_by=e.retry_after
+        )
     if delivery_id:
-        redis: Redis = ctx["redis"]
+        redis = Redis(connection_pool=ctx["redis_pool"])
         await redis.lpush(
             delivery_id,
             json.dumps(
@@ -62,13 +75,21 @@ async def send_notification(
             ),
         )
         await redis.expire(delivery_id, time=600)
-    if notification.delete_after:
-        await arq.enqueue_job(
-            "delete_message",
-            message.chat.id,
-            message.message_id,
-            _defer_by=notification.delete_after,
-        )
+
+
+async def update_dialog(ctx: dict, user_id: int) -> None:
+    dialog_bg_factory: BgManagerFactory = ctx["dialog_bg_factory"]
+    bg = dialog_bg_factory.bg(
+        bot=ctx["bot"],
+        user_id=user_id,
+        chat_id=user_id,
+        load=True,
+    )
+    try:
+        await bg.update(data={}, show_mode=ShowMode.DELETE_AND_SEND)
+    except TelegramRetryAfter as e:
+        logging.warning(f"Flood control, retrying after {e.retry_after}s...")
+        raise Retry(defer=e.retry_after)
 
 
 async def delete_message(ctx: dict, chat_id: int, message_id: int):
@@ -88,3 +109,12 @@ class WorkerSettings:
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = conf.redis.get_pool_settings()
+
+
+def create_worker() -> Worker:
+    return Worker(
+        functions=[send_notification, update_dialog, delete_message],
+        on_startup=startup,
+        on_shutdown=shutdown,
+        redis_settings=conf.redis.get_pool_settings(),
+    )

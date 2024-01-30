@@ -11,6 +11,8 @@ from pydantic_settings import (
     PydanticBaseSettingsSource,
     SettingsConfigDict,
 )
+from pytz import timezone
+from pytz.exceptions import UnknownTimeZoneError
 
 from fanfan.common.enums import BotMode
 
@@ -32,6 +34,15 @@ class BotConfig(BaseSettings):
     token: SecretStr
     admin_list: List[str]
     docs_link: HttpUrl = "https://example.com"
+    timezone: str = "Europe/Moscow"
+
+    @model_validator(mode="before")
+    def check_timezone(cls, data: dict) -> dict:
+        try:
+            timezone(data["timezone"])
+        except UnknownTimeZoneError:
+            raise AssertionError("Incorrect timezone")
+        return data
 
     @classmethod
     def settings_customise_sources(

@@ -140,8 +140,7 @@ async def toggle_all_notifications_handler(
     try:
         manager.middleware_data["user"] = await services.users.update_user(
             UpdateUserDTO(
-                id=user.id,
-                receive_all_announcements=not user.receive_all_announcements
+                id=user.id, receive_all_announcements=not user.receive_all_announcements
             )
         )
     except ServiceError as e:

@@ -17,7 +17,6 @@ services:
     depends_on:
       - db
       - redis
-      - scheduler
   db:
     container_name: 'fanfan-db'
     build:
@@ -42,17 +41,6 @@ services:
       - redis-data:/data
     ports:
       - "6379:6379"
-  scheduler:
-    container_name: 'fanfan-scheduler'
-    build:
-      context: .
-      dockerfile: buildfiles/SchedulerDockerfile
-    env_file:
-      - .env
-    restart: unless-stopped
-    stop_signal: SIGINT
-    depends_on:
-      - redis
 
 volumes:
   db-data:

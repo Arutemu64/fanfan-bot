@@ -1,7 +1,11 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Generic, List, Optional, TypeVar
 
+from pytz import timezone
+
 from fanfan.common.enums import QRCommand
+from fanfan.config import conf
 
 AbstractModel = TypeVar("AbstractModel")
 
@@ -20,10 +24,13 @@ class UserNotification:
     title: str = "📢 УВЕДОМЛЕНИЕ"
     bottom_text: Optional[str] = None
     image_id: Optional[int] = None
-    delete_after: Optional[int] = None
 
     def render_message_text(self) -> str:
-        text = f"<b>{self.title.upper()}</b>\n\n{self.text}"
+        title = (
+            f"<b>{self.title.upper()} "
+            f"({datetime.now(tz=timezone(conf.bot.timezone)).strftime('%H:%M')})</b>"
+        )
+        text = f"{title}\n\n{self.text}"
         if self.bottom_text:
             text = f"{text}\n\n<i>{self.bottom_text}</i>"
         return text
