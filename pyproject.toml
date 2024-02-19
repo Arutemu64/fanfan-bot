@@ -23,7 +23,7 @@ pydantic-settings = "^2.1.0"
 pyjwt = "^2.8.0"
 qrcode = {version = "^7.4.2", extras = ["pil"]}
 redis = "^5.0.1"
-sentry-sdk = "^1.40.0"
+sentry-sdk = "^1.40.4"
 sqladmin = "^0.16.0"
 sqlalchemy = "^2.0.25"
 uvicorn = "^0.27.0"
