@@ -1,7 +1,6 @@
 import logging
 from typing import Any, List, Optional, Tuple, Type
 
-from arq.connections import RedisSettings
 from dotenv import find_dotenv, load_dotenv
 from pydantic import HttpUrl, PostgresDsn, RedisDsn, SecretStr, model_validator
 from pydantic.fields import Field, FieldInfo
@@ -101,9 +100,6 @@ class RedisConfig(BaseSettings):
             path=self.database,
         )
         return dsn.unicode_string()
-
-    def get_pool_settings(self) -> RedisSettings:
-        return RedisSettings.from_dsn(self.build_connection_str())
 
 
 class WebConfig(BaseSettings):

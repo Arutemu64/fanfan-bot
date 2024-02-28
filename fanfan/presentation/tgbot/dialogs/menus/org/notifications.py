@@ -1,5 +1,6 @@
 import operator
 import uuid
+from datetime import datetime
 from typing import Any, List
 
 from aiogram.enums import ContentType
@@ -17,11 +18,13 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
+from pytz import timezone
 
 from fanfan.application.dto.common import UserNotification
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.services import ServicesHolder
 from fanfan.common.enums import UserRole
+from fanfan.config import conf
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.getters import get_roles_list
 from fanfan.presentation.tgbot.dialogs.widgets import Title
@@ -45,6 +48,8 @@ async def send_notification_handler(
     roles: List[UserRole] = multiselect.get_checked()
     delivery_id = uuid.uuid4().hex
     notifications = []
+    timestamp = datetime.now(tz=timezone(conf.bot.timezone))
+
     try:
         for u in await services.users.get_all_by_roles(roles):
             notifications.append(
@@ -53,16 +58,18 @@ async def send_notification_handler(
                     text=manager.dialog_data[DATA_TEXT],
                     bottom_text=f"Отправил @{manager.event.from_user.username}",
                     image_id=manager.dialog_data.get(DATA_IMAGE_ID),
+                    timestamp=timestamp,
                 )
             )
         await services.notifications.send_notifications(notifications, delivery_id)
     except ServiceError as e:
         await callback.answer(e.message)
         return
+
     await callback.message.answer(
         "✅ Рассылка запущена!\n" f"Уникальный ID рассылки: <code>{delivery_id}</code>"
     )
-    await manager.start(states.ORG.MAIN)
+    await manager.switch_to(states.NOTIFICATIONS.MAIN)
 
 
 async def create_notification_getter(dialog_manager: DialogManager, **kwargs):

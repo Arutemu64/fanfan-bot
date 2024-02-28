@@ -4,13 +4,14 @@ from contextlib import asynccontextmanager
 
 import sentry_sdk
 import uvicorn
-from aiogram.fsm.storage.memory import SimpleEventIsolation
+from aiogram.fsm.storage.redis import RedisEventIsolation
 from fastapi import FastAPI
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from taskiq.api import run_receiver_task
 
 from fanfan.application.services.settings import SettingsService
 from fanfan.common.enums import BotMode
@@ -21,7 +22,7 @@ from fanfan.config import conf
 from fanfan.infrastructure.db.main import create_async_engine, create_session_pool
 from fanfan.infrastructure.db.uow import UnitOfWork
 from fanfan.infrastructure.redis import create_redis_client, create_redis_storage
-from fanfan.infrastructure.scheduler import create_worker
+from fanfan.infrastructure.scheduler import broker
 from fanfan.presentation.sqladmin.admin import setup_admin
 from fanfan.presentation.tgbot.dispatcher import create_dispatcher
 from fanfan.presentation.tgbot.utils.webapp import webapp_router
@@ -30,6 +31,7 @@ from fanfan.presentation.tgbot.utils.webhook import webhook_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Setup Sentry logging
     if conf.sentry.enabled:
         sentry_sdk.init(
             dsn=conf.sentry.dsn,
@@ -43,20 +45,15 @@ async def lifespan(app: FastAPI):
             ],
         )
 
+    # Setup dependencies
     bot = create_bot()
     engine = create_async_engine(conf.db.build_connection_str())
     session_pool = create_session_pool(engine)
-
-    async with session_pool() as session:
-        uow = UnitOfWork(session)
-        await SettingsService(uow).setup_initial_settings()
-
     redis = create_redis_client()
     await redis.ping()
-
     dp, dialog_bg_factory = create_dispatcher(
         storage=create_redis_storage(redis=redis),
-        event_isolation=SimpleEventIsolation(),
+        event_isolation=RedisEventIsolation(redis),
     )
 
     dp["session_pool"] = session_pool
@@ -65,11 +62,19 @@ async def lifespan(app: FastAPI):
     app.state.session_pool = session_pool
     app.state.dialog_bg_factory = dialog_bg_factory
 
+    # Run scheduler
+    broker.state.dialog_bg_factory = dialog_bg_factory
+    worker_task = asyncio.create_task(run_receiver_task(broker, run_startup=True))
+
+    # Setup default settings
+    async with session_pool() as session:
+        uow = UnitOfWork(session)
+        await SettingsService(uow).setup_initial_settings()
+
+    # Setup admin
     setup_admin(app, session_pool)
 
-    worker = create_worker()
-    worker.ctx["dialog_bg_factory"] = dialog_bg_factory
-
+    # Run bot
     bot_task = None
     if conf.web.mode == BotMode.WEBHOOK:
         webhook_url = conf.web.build_webhook_url()
@@ -82,11 +87,10 @@ async def lifespan(app: FastAPI):
         await bot.delete_webhook(drop_pending_updates=True)
         bot_task = asyncio.create_task(dp.start_polling(bot))
         logging.info("Running in polling mode")
-    worker_task = asyncio.create_task(worker.async_run())
     yield
     logging.info("Stopping scheduler worker...")
-    await worker.close()
     worker_task.cancel()
+    await broker.shutdown()
     logging.info("Closing bot session...")
     await bot.session.close()
     if bot_task:

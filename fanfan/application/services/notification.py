@@ -1,15 +1,22 @@
-import json
+from datetime import datetime
 from typing import List, Optional
 
-from arq import create_pool
 from jinja2 import Environment, FileSystemLoader
+from pytz import timezone
 from redis.asyncio import Redis
+from taskiq import TaskiqResult
+from taskiq_redis.exceptions import ResultIsMissingError
 
 from fanfan.application.dto.common import UserNotification
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.config import conf
+from fanfan.infrastructure.scheduler import (
+    delete_message,
+    redis_async_result,
+    send_notification,
+)
 from fanfan.presentation.tgbot import JINJA_TEMPLATES_DIR
 
 templateLoader = FileSystemLoader(searchpath=JINJA_TEMPLATES_DIR)
@@ -30,9 +37,8 @@ class NotificationService(BaseService):
         @param notifications: List of UserNotification
         @param delivery_id:
         """
-        arq = await create_pool(conf.redis.get_pool_settings())
         for n in notifications:
-            await arq.enqueue_job("send_notification", n, delivery_id)
+            await send_notification.kiq(notification=n, delivery_id=delivery_id)
 
     @check_permission(allowed_roles=[UserRole.ORG])
     async def delete_delivery(self, delivery_id: str) -> int:
@@ -40,12 +46,20 @@ class NotificationService(BaseService):
         Mass delete sent notifications by group ID
         @param delivery_id: Delivery ID
         """
-        arq = await create_pool(conf.redis.get_pool_settings())
         redis = Redis().from_url(conf.redis.build_connection_str())
         count = await redis.llen(delivery_id)
         while await redis.llen(delivery_id) > 0:
-            data = json.loads(await redis.lpop(delivery_id))
-            await arq.enqueue_job("delete_message", data["chat_id"], data["message_id"])
+            try:
+                result: TaskiqResult = await redis_async_result.get_result(
+                    await redis.lpop(delivery_id)
+                )
+                if not result.is_err:
+                    await delete_message.kiq(
+                        chat_id=result.return_value["chat_id"],
+                        message_id=result.return_value["message_id"],
+                    )
+            except ResultIsMissingError:
+                pass
         await redis.aclose()
         return count
 
@@ -64,6 +78,7 @@ class NotificationService(BaseService):
             return
 
         notifications = []
+        timestamp = datetime.now(tz=timezone(conf.bot.timezone))
 
         if send_global_announcement:
             next_event = await self.uow.events.get_next_event(event_id=current_event.id)
@@ -71,7 +86,9 @@ class NotificationService(BaseService):
                 {"current_event": current_event, "next_event": next_event}
             )
             for user in await self.uow.users.get_receive_all_announcements_users():
-                notifications.append(UserNotification(user_id=user.id, text=text))
+                notifications.append(
+                    UserNotification(user_id=user.id, text=text, timestamp=timestamp)
+                )
 
         for subscription in await self.uow.subscriptions.get_upcoming_subscriptions():
             text = await subscription_template.render_async(
@@ -82,8 +99,7 @@ class NotificationService(BaseService):
             )
             notifications.append(
                 UserNotification(
-                    user_id=subscription.user_id,
-                    text=text,
+                    user_id=subscription.user_id, text=text, timestamp=timestamp
                 )
             )
 
