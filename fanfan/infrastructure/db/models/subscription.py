@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 
 from sqlalchemy import ForeignKey, UniqueConstraint
@@ -20,7 +22,7 @@ class Subscription(Base):
 
     UniqueConstraint(event_id, user_id)
 
-    event: Mapped["Event"] = relationship()
+    event: Mapped[Event] = relationship()
 
     def to_dto(self) -> SubscriptionDTO:
         return SubscriptionDTO.model_validate(self)

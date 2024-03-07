@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 
 from sqlalchemy import ForeignKey, UniqueConstraint
@@ -21,5 +23,5 @@ class ReceivedAchievement(Base):
 
     UniqueConstraint(user_id, achievement_id)
 
-    user: Mapped["User"] = relationship(viewonly=True)  # noqa: F821
-    achievement: Mapped["Achievement"] = relationship(viewonly=True)  # noqa: F821
+    user: Mapped[User] = relationship(viewonly=True)
+    achievement: Mapped[Achievement] = relationship(viewonly=True)

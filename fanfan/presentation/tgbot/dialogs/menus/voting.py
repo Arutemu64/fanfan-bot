@@ -24,6 +24,7 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.exceptions import ServiceError
+from fanfan.application.exceptions.voting import VoteNotFound
 from fanfan.application.services import ServicesHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
@@ -71,10 +72,14 @@ async def participants_getter(
         participants_per_page=user.items_per_page,
         user_id=user.id,
     )
-    dialog_manager.dialog_data[DATA_USER_VOTE_ID] = None
-    for participant in page.items:
-        if participant.user_vote:
-            dialog_manager.dialog_data[DATA_USER_VOTE_ID] = participant.user_vote.id
+    try:
+        user_vote = await services.voting.get_vote_by_nomination(
+            user_id=user.id,
+            nomination_id=dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
+        )
+        dialog_manager.dialog_data[DATA_USER_VOTE_ID] = user_vote.id
+    except VoteNotFound:
+        dialog_manager.dialog_data[DATA_USER_VOTE_ID] = None
     return {
         "nomination_title": nomination.title,
         "pages": page.total,
@@ -115,6 +120,8 @@ async def cancel_vote_handler(
     services: ServicesHolder = manager.middleware_data["services"]
     try:
         await services.voting.cancel_vote(manager.dialog_data[DATA_USER_VOTE_ID])
+    except VoteNotFound:
+        return
     except ServiceError as e:
         await callback.answer(e.message, show_alert=True)
         return
@@ -152,7 +159,7 @@ nominations_window = Window(
 voting_window = Window(
     Title(Format("🎖️ Номинация {nomination_title}")),
     Jinja(voting_list),
-    Const("⌨️ Чтобы проголосовать, отправь номер участника.", when=~F["user_vote"]),
+    Const("⌨️ Чтобы проголосовать, отправь номер участника.", when=~F["voted"]),
     StubScroll(ID_VOTING_SCROLL, pages="pages"),
     Row(
         FirstPage(scroll=ID_VOTING_SCROLL, text=Const("⏪")),

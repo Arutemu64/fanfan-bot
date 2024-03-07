@@ -2,6 +2,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from fanfan.application.dto.event import EventDTO
+
 
 class CreateSubscriptionDTO(BaseModel):
     user_id: int
@@ -17,9 +19,4 @@ class SubscriptionDTO(BaseModel):
     event_id: int
     counter: int
 
-    event: "EventDTO"
-
-
-from fanfan.application.dto.event import EventDTO  # noqa: E402
-
-SubscriptionDTO.model_rebuild()
+    event: EventDTO

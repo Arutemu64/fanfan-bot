@@ -2,7 +2,7 @@ from typing import Optional, Sequence
 
 from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, joinedload, undefer
 
 from fanfan.infrastructure.db.models import Event, Nomination, Participant, Vote
 from fanfan.infrastructure.db.repositories.repo import Repository
@@ -68,6 +68,7 @@ class ParticipantsRepository(Repository[Participant]):
             start=page * participants_per_page,
             stop=(page * participants_per_page) + participants_per_page,
         )
+        query = query.options(undefer(Participant.votes_count))
         return (await self.session.scalars(query)).all()
 
     async def count_participants(

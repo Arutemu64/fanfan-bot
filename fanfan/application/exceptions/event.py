@@ -37,7 +37,8 @@ class AnnounceTooFast(EventServiceError):
         self.message = (
             f"⚠️ С последнего анонса не прошло {announcement_timeout} "
             f"{self._seconds_pluralize(announcement_timeout)}! "
-            f"Попробуйте ещё раз через {time_left} {self._seconds_pluralize(time_left)}."
+            f"Попробуйте ещё раз через "
+            f"{time_left} {self._seconds_pluralize(time_left)}."
         )
 
 

@@ -70,7 +70,8 @@ class NotificationService(BaseService):
         """
         Proceed upcoming subscriptions and send notifications
         @param send_global_announcement: If True,
-        all users with receive_all_announcements enabled will receive a global Now/Next notification
+        all users with receive_all_announcements enabled
+        will receive a global Now/Next notification
         @return:
         """
         current_event = await self.uow.events.get_current_event()

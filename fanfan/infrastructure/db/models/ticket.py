@@ -1,4 +1,6 @@
-import typing
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.dialects import postgresql
@@ -8,7 +10,7 @@ from fanfan.application.dto.ticket import TicketDTO
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models.base import Base
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from fanfan.infrastructure.db.models.user import User
 
 
@@ -22,19 +24,19 @@ class Ticket(Base):
     role: Mapped[int] = mapped_column(
         postgresql.ENUM(UserRole), server_default="VISITOR"
     )
-    used_by_id: Mapped[int] = mapped_column(
+    used_by_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True,
         unique=True,
     )
-    issued_by_id: Mapped[int] = mapped_column(
+    issued_by_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
-    used_by: Mapped["User"] = relationship(
+    used_by: Mapped[Optional[User]] = relationship(
         foreign_keys=used_by_id, back_populates="ticket"
     )
-    issued_by: Mapped["User"] = relationship(foreign_keys=issued_by_id)
+    issued_by: Mapped[Optional[User]] = relationship(foreign_keys=issued_by_id)
 
     def to_dto(self) -> TicketDTO:
         return TicketDTO.model_validate(self)

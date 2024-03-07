@@ -1,4 +1,6 @@
-import typing
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey, Sequence, UniqueConstraint, case, func, select
 from sqlalchemy.orm import (
@@ -8,10 +10,10 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from fanfan.application.dto.event import EventDTO, FullEventDTO
+from fanfan.application.dto.event import EventDTO, ScheduleEventDTO
 from fanfan.infrastructure.db.models.base import Base
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from fanfan.infrastructure.db.models.nomination import Nomination
     from fanfan.infrastructure.db.models.participant import Participant
     from fanfan.infrastructure.db.models.subscription import Subscription
@@ -26,34 +28,34 @@ class Event(Base):
     position_sequence = Sequence("schedule_position_seq", start=1)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(nullable=True, index=True)
+    title: Mapped[Optional[str]] = mapped_column(nullable=True, index=True)
     position: Mapped[float] = mapped_column(
         unique=True, nullable=False, server_default=position_sequence.next_value()
     )
     UniqueConstraint(position, deferrable=True, initially="DEFERRED")
-    real_position: Mapped[int] = 0  # Placeholder
-    participant_id: Mapped[int] = mapped_column(
+    real_position: Mapped[Optional[int]] = None  # Placeholder
+    participant_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE"), nullable=True
     )
 
-    current: Mapped[bool] = mapped_column(nullable=True, unique=True)
-    skip: Mapped[bool] = mapped_column(nullable=True, server_default="False")
+    current: Mapped[Optional[bool]] = mapped_column(nullable=True, unique=True)
+    skip: Mapped[Optional[bool]] = mapped_column(nullable=True, server_default="False")
 
-    participant: Mapped["Participant"] = relationship(back_populates="event")
-    nomination: Mapped["Nomination"] = relationship(
+    participant: Mapped[Optional[Participant]] = relationship(back_populates="event")
+    nomination: Mapped[Optional[Nomination]] = relationship(
         secondary="participants",
         viewonly=True,
     )
 
-    user_subscription: Mapped["Subscription"] = relationship(
-        lazy="noload", viewonly=True
+    user_subscription: Mapped[Optional[Subscription]] = relationship(
+        lazy="raise", viewonly=True
     )
 
     def to_dto(self) -> EventDTO:
         return EventDTO.model_validate(self)
 
-    def to_full_dto(self) -> FullEventDTO:
-        return FullEventDTO.model_validate(self)
+    def to_schedule_dto(self) -> ScheduleEventDTO:
+        return ScheduleEventDTO.model_validate(self)
 
 
 rp_subquery = select(
@@ -70,5 +72,5 @@ rp_subquery = select(
 Event.real_position = column_property(
     select(rp_subquery.c.real_position)
     .where(Event.id == rp_subquery.c.event_id)
-    .scalar_subquery()
+    .scalar_subquery(),
 )

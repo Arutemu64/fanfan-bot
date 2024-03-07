@@ -13,11 +13,11 @@ from fanfan.application.exceptions.users import (
     UserHasNoTicket,
     UserNotFound,
 )
-from fanfan.application.services import NotificationService
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models import Transaction
+from fanfan.infrastructure.scheduler import send_notification
 
 
 class QuestService(BaseService):
@@ -75,14 +75,12 @@ class QuestService(BaseService):
             self.uow.session.add(transaction)
             await self.uow.commit()
 
-            await NotificationService(self.uow, self.identity).send_notifications(
-                [
-                    UserNotification(
-                        user_id=user.id,
-                        text=f"💰 Вы получили "
-                        f"{amount} {self._points_pluralize(amount)}!",
-                    )
-                ]
+            await send_notification.kiq(
+                UserNotification(
+                    user_id=user.id,
+                    text=f"💰 Вы получили "
+                    f"{amount} {self._points_pluralize(amount)}!",
+                )
             )
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
@@ -110,11 +108,9 @@ class QuestService(BaseService):
                 await self.uow.rollback()
                 raise UserAlreadyHasThisAchievement
 
-        await NotificationService(self.uow, self.identity).send_notifications(
-            [
-                UserNotification(
-                    user_id=user.id,
-                    text=f"🏆 Вы получили достижение <b>{achievement.title}</b>!",
-                )
-            ]
+        await send_notification.kiq(
+            UserNotification(
+                user_id=user.id,
+                text=f"🏆 Вы получили достижение <b>{achievement.title}</b>!",
+            )
         )

@@ -5,13 +5,14 @@ from pydantic import BaseModel, ConfigDict
 from fanfan.application.dto.vote import VoteDTO
 
 
-class NominationDTO(BaseModel):
+class ParticipantDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: int
     title: str
-    votable: bool
+    nomination_id: Optional[str]
 
 
-class VotingNominationDTO(NominationDTO):
+class VotingParticipantDTO(ParticipantDTO):
+    votes_count: int
     user_vote: Optional[VoteDTO]

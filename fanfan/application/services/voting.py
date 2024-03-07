@@ -2,6 +2,8 @@ import math
 from typing import Optional
 
 from fanfan.application.dto.common import Page
+from fanfan.application.dto.nomination import VotingNominationDTO
+from fanfan.application.dto.participant import VotingParticipantDTO
 from fanfan.application.dto.vote import VoteDTO
 from fanfan.application.exceptions.participant import ParticipantNotFound
 from fanfan.application.exceptions.users import (
@@ -15,7 +17,7 @@ from fanfan.application.exceptions.voting import (
 )
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
-from fanfan.infrastructure.db.models import Nomination, Participant, User, Vote
+from fanfan.infrastructure.db.models import Participant, User, Vote
 
 
 class VotingService(BaseService):
@@ -39,7 +41,7 @@ class VotingService(BaseService):
 
     async def get_nominations_page(
         self, page: int, nominations_per_page: int, user_id: Optional[int] = None
-    ) -> Page[Nomination]:
+    ) -> Page[VotingNominationDTO]:
         """
         Get nominations page
         @param page: Page number
@@ -58,7 +60,7 @@ class VotingService(BaseService):
         )
         total = math.ceil(nominations_count / nominations_per_page)
         return Page(
-            items=nominations,
+            items=[n.to_voting_dto() for n in nominations],
             number=page,
             total=total if total > 0 else 1,
         )
@@ -69,7 +71,7 @@ class VotingService(BaseService):
         page: int,
         participants_per_page: int,
         user_id: Optional[int] = None,
-    ) -> Page[Participant]:
+    ) -> Page[VotingParticipantDTO]:
         """
         Get participants page
         @param nomination_id: Nomination ID
@@ -89,7 +91,7 @@ class VotingService(BaseService):
             only_votable=True, nomination_id=nomination_id
         )
         return Page(
-            items=participants,
+            items=[p.to_voting_dto() for p in participants],
             number=page,
             total=math.ceil(participants_count / participants_per_page),
         )
@@ -121,6 +123,14 @@ class VotingService(BaseService):
             self.uow.session.add(vote)
             await self.uow.commit()
             return vote.to_dto()
+
+    async def get_vote_by_nomination(self, user_id: int, nomination_id: str) -> VoteDTO:
+        user_vote = await self.uow.votes.get_vote_by_nomination(
+            user_id=user_id, nomination_id=nomination_id
+        )
+        if not user_vote:
+            raise VoteNotFound
+        return user_vote.to_dto()
 
     async def cancel_vote(self, vote_id: int) -> None:
         vote = await self.uow.votes.get_vote(vote_id)

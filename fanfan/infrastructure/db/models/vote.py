@@ -1,4 +1,6 @@
-import typing
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -6,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fanfan.application.dto.vote import VoteDTO
 from fanfan.infrastructure.db.models.base import Base
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from fanfan.infrastructure.db.models.nomination import Nomination
     from fanfan.infrastructure.db.models.participant import Participant
     from fanfan.infrastructure.db.models.user import User
@@ -23,9 +25,9 @@ class Vote(Base):
 
     UniqueConstraint(user_id, participant_id)
 
-    user: Mapped["User"] = relationship()  # noqa: F821
-    participant: Mapped["Participant"] = relationship()  # noqa: F821
-    nomination: Mapped["Nomination"] = relationship(
+    user: Mapped[User] = relationship()
+    participant: Mapped[Participant] = relationship()
+    nomination: Mapped[Nomination] = relationship(
         secondary="participants", viewonly=True
     )
 
