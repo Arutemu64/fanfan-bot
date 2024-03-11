@@ -1,9 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from dataclasses import dataclass
 
 
-class SettingsDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+@dataclass(frozen=True, slots=True)
+class SettingsDTO:
     voting_enabled: bool
     announcement_timeout: int
     announcement_timestamp: float

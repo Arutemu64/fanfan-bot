@@ -1,13 +1,14 @@
-from __future__ import annotations
-
+import typing
+from dataclasses import dataclass
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+if typing.TYPE_CHECKING:
+    from fanfan.application.dto.nomination import NominationDTO
+    from fanfan.application.dto.subscription import SubscriptionDTO
 
 
-class EventDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+@dataclass(frozen=True, slots=True)
+class EventDTO:
     id: int
     title: str
     position: int
@@ -17,12 +18,7 @@ class EventDTO(BaseModel):
     real_position: Optional[int]
 
 
+@dataclass(frozen=True, slots=True)
 class ScheduleEventDTO(EventDTO):
-    nomination: Optional[NominationDTO]
-    user_subscription: Optional[SubscriptionDTO]
-
-
-from fanfan.application.dto.nomination import NominationDTO  # noqa: E402
-from fanfan.application.dto.subscription import SubscriptionDTO  # noqa: E402
-
-ScheduleEventDTO.model_rebuild()
+    nomination: Optional["NominationDTO"]
+    user_subscription: Optional["SubscriptionDTO"]

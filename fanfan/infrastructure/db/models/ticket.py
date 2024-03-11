@@ -17,9 +17,6 @@ if TYPE_CHECKING:
 class Ticket(Base):
     __tablename__ = "tickets"
 
-    def __str__(self):
-        return self.id
-
     id: Mapped[str] = mapped_column(primary_key=True)
     role: Mapped[int] = mapped_column(
         postgresql.ENUM(UserRole), server_default="VISITOR"
@@ -39,4 +36,12 @@ class Ticket(Base):
     issued_by: Mapped[Optional[User]] = relationship(foreign_keys=issued_by_id)
 
     def to_dto(self) -> TicketDTO:
-        return TicketDTO.model_validate(self)
+        return TicketDTO(
+            id=self.id,
+            role=self.role,
+            used_by_id=self.used_by_id,
+            issued_by_id=self.issued_by_id,
+        )
+
+    def __str__(self):
+        return self.id

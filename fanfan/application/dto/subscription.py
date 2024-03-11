@@ -1,6 +1,7 @@
+from dataclasses import dataclass
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from fanfan.application.dto.event import EventDTO
 
@@ -11,9 +12,8 @@ class CreateSubscriptionDTO(BaseModel):
     counter: Optional[int] = None
 
 
-class SubscriptionDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+@dataclass(frozen=True, slots=True)
+class SubscriptionDTO:
     id: int
     user_id: int
     event_id: int

@@ -7,14 +7,14 @@ from fanfan.common.enums import QRCommand
 AbstractModel = TypeVar("AbstractModel")
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Page(Generic[AbstractModel]):
     items: List[AbstractModel]
     number: int
     total: int
 
 
-@dataclass(kw_only=True)
+@dataclass(frozen=True, slots=True)
 class UserNotification:
     user_id: int
     text: str
@@ -34,7 +34,7 @@ class UserNotification:
         return text
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class QR:
     command: QRCommand
     parameter: str

@@ -1,9 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from dataclasses import dataclass
 
 
-class VoteDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+@dataclass(frozen=True, slots=True)
+class VoteDTO:
     id: int
     user_id: int
     participant_id: int

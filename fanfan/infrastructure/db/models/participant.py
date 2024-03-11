@@ -17,9 +17,6 @@ if TYPE_CHECKING:
 class Participant(Base):
     __tablename__ = "participants"
 
-    def __str__(self):
-        return self.title
-
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(unique=True, index=True)
     nomination_id: Mapped[Optional[str]] = mapped_column(
@@ -28,8 +25,8 @@ class Participant(Base):
 
     event: Mapped[Optional[Event]] = relationship(
         back_populates="participant"
-    )  # noqa: F821
-    nomination: Mapped[Optional[Nomination]] = relationship()  # noqa: F821
+    )
+    nomination: Mapped[Optional[Nomination]] = relationship()
 
     user_vote: Mapped[Optional[Vote]] = relationship(lazy="raise", viewonly=True)
 
@@ -42,7 +39,20 @@ class Participant(Base):
     )
 
     def to_dto(self) -> ParticipantDTO:
-        return ParticipantDTO.model_validate(self)
+        return ParticipantDTO(
+            id=self.id,
+            title=self.title,
+            nomination_id=self.nomination_id,
+        )
 
     def to_voting_dto(self) -> VotingParticipantDTO:
-        return VotingParticipantDTO.model_validate(self)
+        return VotingParticipantDTO(
+            id=self.id,
+            title=self.title,
+            nomination_id=self.nomination_id,
+            votes_count=self.votes_count,
+            user_vote=self.user_vote.to_dto() if self.user_vote else None,
+        )
+
+    def __str__(self):
+        return self.title

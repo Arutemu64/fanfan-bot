@@ -21,25 +21,21 @@ if TYPE_CHECKING:
 
 class Event(Base):
     __tablename__ = "schedule"
-
-    def __str__(self):
-        return self.title
-
     position_sequence = Sequence("schedule_position_seq", start=1)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[Optional[str]] = mapped_column(nullable=True, index=True)
+    title: Mapped[str] = mapped_column(index=True)
     position: Mapped[float] = mapped_column(
         unique=True, nullable=False, server_default=position_sequence.next_value()
     )
     UniqueConstraint(position, deferrable=True, initially="DEFERRED")
-    real_position: Mapped[Optional[int]] = None  # Placeholder
+    real_position = None  # Placeholder
     participant_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE"), nullable=True
     )
 
     current: Mapped[Optional[bool]] = mapped_column(nullable=True, unique=True)
-    skip: Mapped[Optional[bool]] = mapped_column(nullable=True, server_default="False")
+    skip: Mapped[bool] = mapped_column(server_default="False")
 
     participant: Mapped[Optional[Participant]] = relationship(back_populates="event")
     nomination: Mapped[Optional[Nomination]] = relationship(
@@ -52,10 +48,31 @@ class Event(Base):
     )
 
     def to_dto(self) -> EventDTO:
-        return EventDTO.model_validate(self)
+        return EventDTO(
+            id=self.id,
+            title=self.title,
+            position=self.position,
+            current=self.current,
+            skip=self.skip,
+            real_position=self.real_position,
+        )
 
     def to_schedule_dto(self) -> ScheduleEventDTO:
-        return ScheduleEventDTO.model_validate(self)
+        return ScheduleEventDTO(
+            id=self.id,
+            title=self.title,
+            position=self.position,
+            current=self.current,
+            skip=self.skip,
+            real_position=self.real_position,
+            nomination=self.nomination.to_dto() if self.nomination else None,
+            user_subscription=self.user_subscription.to_dto()
+            if self.user_subscription
+            else None,
+        )
+
+    def __str__(self):
+        return self.title
 
 
 rp_subquery = select(

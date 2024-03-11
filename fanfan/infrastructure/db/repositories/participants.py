@@ -64,6 +64,7 @@ class ParticipantsRepository(Repository[Participant]):
             nomination_id=nomination_id,
             user_id=user_id,
         )
+        query = query.order_by(Participant.id)
         query = query.slice(
             start=page * participants_per_page,
             stop=(page * participants_per_page) + participants_per_page,

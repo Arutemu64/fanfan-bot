@@ -16,9 +16,6 @@ if TYPE_CHECKING:
 class Nomination(Base):
     __tablename__ = "nominations"
 
-    def __repr__(self):
-        return self.title
-
     id: Mapped[str] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(unique=True)
     votable: Mapped[bool] = mapped_column(server_default="False")
@@ -29,12 +26,6 @@ class Nomination(Base):
         viewonly=True,
     )
 
-    def to_dto(self) -> NominationDTO:
-        return NominationDTO.model_validate(self)
-
-    def to_voting_dto(self) -> VotingNominationDTO:
-        return VotingNominationDTO.model_validate(self)
-
     participants_count = column_property(
         select(func.count())
         .where(Participant.nomination_id == id)
@@ -42,3 +33,21 @@ class Nomination(Base):
         .scalar_subquery(),
         deferred=True,
     )
+
+    def to_dto(self) -> NominationDTO:
+        return NominationDTO(
+            id=self.id,
+            title=self.title,
+            votable=self.votable,
+        )
+
+    def to_voting_dto(self) -> VotingNominationDTO:
+        return VotingNominationDTO(
+            id=self.id,
+            title=self.title,
+            votable=self.votable,
+            user_vote=self.user_vote.to_dto() if self.user_vote else None,
+        )
+
+    def __str__(self):
+        return self.title

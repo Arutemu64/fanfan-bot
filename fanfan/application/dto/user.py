@@ -1,6 +1,7 @@
+from dataclasses import dataclass
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from fanfan.application.dto.ticket import TicketDTO
 from fanfan.common.enums import UserRole
@@ -12,9 +13,8 @@ class CreateUserDTO(BaseModel):
     role: Optional[UserRole] = None
 
 
-class UserDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+@dataclass(frozen=True, slots=True)
+class UserDTO:
     id: int
     username: Optional[str]
     role: UserRole
@@ -22,6 +22,7 @@ class UserDTO(BaseModel):
     receive_all_announcements: bool
 
 
+@dataclass(frozen=True, slots=True)
 class FullUserDTO(UserDTO):
     ticket: Optional[TicketDTO]
 
@@ -34,7 +35,8 @@ class UpdateUserDTO(BaseModel):
     receive_all_announcements: Optional[bool] = None
 
 
-class UserStats(BaseModel):
+@dataclass(frozen=True, slots=True)
+class UserStats:
     user_id: int
     points: int
     achievements_count: int

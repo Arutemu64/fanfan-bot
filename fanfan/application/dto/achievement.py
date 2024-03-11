@@ -1,22 +1,20 @@
+from dataclasses import dataclass
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
 
-
-class AchievementDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+@dataclass(frozen=True, slots=True)
+class AchievementDTO:
     id: int
     title: str
     description: Optional[str]
 
 
-class ReceivedAchievementDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+@dataclass(frozen=True, slots=True)
+class ReceivedAchievementDTO:
     user_id: int
     achievement_id: int
 
 
+@dataclass(frozen=True, slots=True)
 class FullAchievementDTO(AchievementDTO):
     user_received: Optional[ReceivedAchievementDTO]

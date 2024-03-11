@@ -25,9 +25,6 @@ if TYPE_CHECKING:
 class User(Base):
     __tablename__ = "users"
 
-    def __str__(self):
-        return f"{self.username} ({self.id})"
-
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
     username: Mapped[Optional[str]] = mapped_column(
         index=True, unique=False, nullable=True
@@ -39,9 +36,7 @@ class User(Base):
     items_per_page: Mapped[int] = mapped_column(server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="False")
 
-    ticket: Mapped[Optional[Ticket]] = relationship(
-        foreign_keys="Ticket.used_by_id", lazy="noload"
-    )
+    ticket: Mapped[Optional[Ticket]] = relationship(foreign_keys="Ticket.used_by_id")
 
     points: Mapped[int] = mapped_column(server_default="0")
     achievements_count = column_property(
@@ -57,7 +52,23 @@ class User(Base):
     )
 
     def to_dto(self) -> UserDTO:
-        return UserDTO.model_validate(self)
+        return UserDTO(
+            id=self.id,
+            username=self.username,
+            role=self.role,
+            items_per_page=self.items_per_page,
+            receive_all_announcements=self.receive_all_announcements,
+        )
 
     def to_full_dto(self) -> FullUserDTO:
-        return FullUserDTO.model_validate(self)
+        return FullUserDTO(
+            id=self.id,
+            username=self.username,
+            role=self.role,
+            items_per_page=self.items_per_page,
+            receive_all_announcements=self.receive_all_announcements,
+            ticket=self.ticket.to_dto() if self.ticket else None,
+        )
+
+    def __str__(self):
+        return f"{self.username} ({self.id})"

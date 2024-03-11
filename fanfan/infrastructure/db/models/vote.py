@@ -32,4 +32,8 @@ class Vote(Base):
     )
 
     def to_dto(self) -> VoteDTO:
-        return VoteDTO.model_validate(self)
+        return VoteDTO(
+            id=self.id,
+            user_id=self.user_id,
+            participant_id=self.participant_id,
+        )

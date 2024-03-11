@@ -1,13 +1,11 @@
+from dataclasses import dataclass
 from typing import Optional
-
-from pydantic import BaseModel, ConfigDict
 
 from fanfan.common.enums import UserRole
 
 
-class TicketDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+@dataclass(frozen=True, slots=True)
+class TicketDTO:
     id: str
     role: UserRole
     used_by_id: Optional[int]
