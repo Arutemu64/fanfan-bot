@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from dishka import make_async_container
 from fastapi import Request, UploadFile
 from openpyxl import load_workbook
 from openpyxl.cell import Cell
@@ -9,8 +10,9 @@ from sqlalchemy.exc import IntegrityError
 
 from fanfan import TEMP_DIR
 from fanfan.infrastructure.db import UnitOfWork
-from fanfan.infrastructure.db.main import create_session_pool
 from fanfan.infrastructure.db.models import Event, Nomination, Participant
+from fanfan.infrastructure.di.config import ConfigProvider
+from fanfan.infrastructure.di.db import DbProvider
 
 
 async def proceed_plan(path: Path, uow: UnitOfWork):
@@ -72,16 +74,19 @@ class PlanParseView(BaseView):
         path = TEMP_DIR.joinpath(file.filename)
         with open(path, "wb") as f:
             f.write(content)
-        session_pool = create_session_pool()
-        uow = UnitOfWork(session_pool())
-        async with uow:
-            try:
-                await proceed_plan(path, uow)
-                await uow.commit()
-            except Exception as e:
-                return await self.templates.TemplateResponse(
-                    request, "plan_parse.html", context={"error": repr(e)}
-                )
+        container = make_async_container(DbProvider(), ConfigProvider())
+        async with container() as request_container:
+            uow = await request_container.get(UnitOfWork)
+            async with uow:
+                try:
+                    await proceed_plan(path, uow)
+                    await uow.commit()
+                except Exception as e:
+                    await container.close()
+                    return await self.templates.TemplateResponse(
+                        request, "plan_parse.html", context={"error": repr(e)}
+                    )
+        await container.close()
         return await self.templates.TemplateResponse(
             request, "plan_parse.html", context={"success": True}
         )

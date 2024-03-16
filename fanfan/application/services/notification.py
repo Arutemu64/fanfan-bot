@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
+from aiogram.types import Message
 from jinja2 import Environment, FileSystemLoader
 from pytz import timezone
 from redis.asyncio import Redis
@@ -50,14 +51,13 @@ class NotificationService(BaseService):
         count = await redis.llen(delivery_id)
         while await redis.llen(delivery_id) > 0:
             try:
-                result: TaskiqResult = await redis_async_result.get_result(
-                    await redis.lpop(delivery_id)
-                )
+                task_id = await redis.lpop(delivery_id)
+                result: TaskiqResult = await redis_async_result.get_result(task_id)
                 if not result.is_err:
                     await delete_message.kiq(
-                        chat_id=result.return_value["chat_id"],
-                        message_id=result.return_value["message_id"],
+                        Message.model_validate(result.return_value)
                     )
+                    await redis.delete(task_id)
             except ResultIsMissingError:
                 pass
         await redis.aclose()

@@ -23,9 +23,7 @@ class Participant(Base):
         ForeignKey("nominations.id", ondelete="SET NULL"), nullable=True
     )
 
-    event: Mapped[Optional[Event]] = relationship(
-        back_populates="participant"
-    )
+    event: Mapped[Optional[Event]] = relationship(back_populates="participant")
     nomination: Mapped[Optional[Nomination]] = relationship()
 
     user_vote: Mapped[Optional[Vote]] = relationship(lazy="raise", viewonly=True)

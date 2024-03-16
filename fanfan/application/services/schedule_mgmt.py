@@ -32,9 +32,7 @@ class ScheduleManagementService(BaseService):
                 ),
             )
         else:
-            async with self.uow:
-                settings.announcement_timestamp = timestamp
-                await self.uow.commit()
+            settings.announcement_timestamp = timestamp
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def skip_event(self, event_id: int) -> EventDTO:
@@ -116,8 +114,6 @@ class ScheduleManagementService(BaseService):
         if event.skip:
             raise SkippedEventNotAllowed
 
-        await self._throttle_global_announcement()
-
         current_event = await self.uow.events.get_current_event()
         if current_event:
             if event is current_event:
@@ -126,6 +122,7 @@ class ScheduleManagementService(BaseService):
             await self.uow.session.flush([current_event])
 
         async with self.uow:
+            await self._throttle_global_announcement()
             event.current = True
             await self.uow.commit()
             await NotificationService(self.uow, self.identity).proceed_subscriptions(

@@ -1,21 +1,16 @@
-import sentry_sdk
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .repositories import (
     AchievementsRepository,
-    # AchievementsRepository,
-    # EventsRepository,
+    EventsRepository,
     NominationsRepository,
     ParticipantsRepository,
     SettingsRepository,
     SubscriptionsRepository,
-    # SubscriptionsRepository,
     TicketsRepository,
-    # TransactionsRepository,
     UsersRepository,
     VotesRepository,
 )
-from .repositories.events import EventsRepository
 
 
 class UnitOfWork:
@@ -32,16 +27,14 @@ class UnitOfWork:
         self.votes = VotesRepository(self.session)
 
     async def __aenter__(self):
-        self.nested = await self.session.begin_nested()
-        self.sentry_transaction = sentry_sdk.start_transaction(name="UOWTransaction")
+        pass
 
     async def __aexit__(self, *args):
-        if self.nested.is_active:
-            await self.nested.rollback()
-        self.sentry_transaction.finish()
+        await self.session.rollback()
+        await self.session.close()
 
     async def rollback(self):
-        await self.nested.rollback()
+        await self.session.rollback()
 
     async def commit(self):
         await self.session.commit()

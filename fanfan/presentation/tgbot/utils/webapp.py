@@ -1,8 +1,11 @@
+from typing import Annotated
+
 from aiogram import Bot
 from aiogram.utils.web_app import safe_parse_webapp_init_data
 from aiogram_dialog import BgManagerFactory
+from dishka import FromDishka
+from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Request
-from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse
 
 from fanfan.application.dto.common import QR
@@ -22,11 +25,13 @@ async def open_qr_scanner():
 
 
 @webapp_router.post("/qr_scanner")
-async def proceed_qr_post(request: Request):
-    bot: Bot = request.app.state.bot
-    dialog_bg_factory: BgManagerFactory = request.app.state.dialog_bg_factory
-    session_pool: async_sessionmaker = request.app.state.session_pool
-
+@inject
+async def proceed_qr_post(
+    request: Request,
+    bot: Annotated[Bot, FromDishka()],
+    dialog_bg_factory: Annotated[BgManagerFactory, FromDishka()],
+    uow: Annotated[UnitOfWork, FromDishka()],
+):
     data = await request.form()
     try:
         web_app_init_data = safe_parse_webapp_init_data(
@@ -34,24 +39,21 @@ async def proceed_qr_post(request: Request):
         )
     except ValueError:
         return JSONResponse({"ok": False, "err": "Unauthorized"}, status_code=401)
-    async with session_pool() as session:
-        uow = UnitOfWork(session)
-        async with uow:
-            user = await UserService(uow).get_user_by_id(web_app_init_data.user.id)
-            manager = dialog_bg_factory.bg(
-                bot=bot,
-                user_id=web_app_init_data.user.id,
-                chat_id=web_app_init_data.user.id,
-                load=True,
+    async with uow:
+        user = await UserService(uow).get_user_by_id(web_app_init_data.user.id)
+        manager = dialog_bg_factory.bg(
+            bot=bot,
+            user_id=web_app_init_data.user.id,
+            chat_id=web_app_init_data.user.id,
+            load=True,
+        )
+        try:
+            await QRService(uow, user, manager).proceed_qr_code(
+                QR.parse(data["qr_text"])
             )
-            try:
-                await QRService(uow, user, manager).proceed_qr_code(
-                    QR.parse(data["qr_text"])
-                )
-            except ServiceError as e:
-                await bot.send_message(
-                    chat_id=web_app_init_data.user.id,
-                    text=e.message,
-                    reply_markup=DELETE_BUTTON.as_markup(),
-                )
-                return
+        except ServiceError as e:
+            await bot.send_message(
+                chat_id=web_app_init_data.user.id,
+                text=e.message,
+                reply_markup=DELETE_BUTTON.as_markup(),
+            )

@@ -21,7 +21,7 @@ def setup_admin(app: FastAPI, session_pool: async_sessionmaker) -> None:
         session_maker=session_pool,
         title="FF-Bot",
         authentication_backend=authentication_backend,
-        debug=True,
+        debug=conf.debug.enabled,
         templates_dir=Path(__file__).parent.joinpath("templates").__str__(),
     )
 

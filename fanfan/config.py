@@ -38,7 +38,7 @@ class BotConfig(BaseSettings):
     @model_validator(mode="before")
     def check_timezone(cls, data: dict) -> dict:
         try:
-            timezone(data["timezone"])
+            timezone(data.get("timezone"))
         except UnknownTimeZoneError:
             raise AssertionError("Incorrect timezone")
         return data
@@ -66,6 +66,7 @@ class DatabaseConfig(BaseSettings):
 
     driver: str = "asyncpg"
     database_system: str = "postgresql"
+    echo: bool = True
 
     def build_connection_str(self) -> str:
         dsn: PostgresDsn = PostgresDsn.build(
@@ -113,11 +114,11 @@ class WebConfig(BaseSettings):
 
     @model_validator(mode="before")
     def check_if_domain_set(cls, data: dict) -> dict:
-        if data["mode"] == BotMode.WEBHOOK:
+        if data.get("mode") == BotMode.WEBHOOK:
             if data.get("domain"):
-                assert len(data["domain"]) > 0, "Domain not set"
+                assert len(data["domain"]) > 0, "Domain not set!"
             else:
-                raise AssertionError("Domain not set")
+                raise AssertionError("Domain not set!")
         return data
 
     def build_webhook_url(self) -> str:
@@ -138,24 +139,30 @@ class WebConfig(BaseSettings):
         return url.unicode_string()
 
 
-class SentryConfig(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="SENTRY_")
+class DebugConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="DEBUG_")
 
-    enabled: bool = False
-    dsn: Optional[HttpUrl] = None
-    env: Optional[str] = None
-
-
-class Configuration(BaseSettings):
-    debug: bool = True
+    enabled: bool = True
     logging_level: int = logging.DEBUG
-    db_echo: bool = True
 
+    sentry_enabled: bool = False
+    sentry_dsn: Optional[HttpUrl] = None
+    sentry_env: Optional[str] = "local"
+
+    @model_validator(mode="before")
+    def check_if_sentry_dsn_set(cls, data: dict) -> dict:
+        if data.get("sentry_enabled"):
+            if data.get("sentry_dsn") is None:
+                raise AssertionError("Sentry DSN is not set!")
+        return data
+
+
+class Configuration:
     db: DatabaseConfig = DatabaseConfig()
     redis: RedisConfig = RedisConfig()
     bot: BotConfig = BotConfig()
     web: WebConfig = WebConfig()
-    sentry: SentryConfig = SentryConfig()
+    debug: DebugConfig = DebugConfig()
 
 
 conf = Configuration()

@@ -1,15 +1,17 @@
 from pathlib import Path
 
 import pandas as pd
+from dishka import make_async_container
 from fastapi import Request, UploadFile
 from sqladmin import BaseView, expose
 from sqlalchemy.exc import IntegrityError
 
 from fanfan import TEMP_DIR
 from fanfan.common.enums import UserRole
-from fanfan.infrastructure.db.main import create_session_pool
 from fanfan.infrastructure.db.models import Nomination, Participant, Ticket
 from fanfan.infrastructure.db.uow import UnitOfWork
+from fanfan.infrastructure.di.config import ConfigProvider
+from fanfan.infrastructure.di.db import DbProvider
 
 
 async def parse(path: Path, uow: UnitOfWork):
@@ -82,16 +84,19 @@ class AioParserView(BaseView):
         path = TEMP_DIR.joinpath(file.filename)
         with open(path, "wb") as f:
             f.write(content)
-        session_pool = create_session_pool()
-        uow = UnitOfWork(session_pool())
-        async with uow:
-            try:
-                await parse(path, uow)
-                await uow.commit()
-            except Exception as e:
-                return await self.templates.TemplateResponse(
-                    request, "aioparser.html", context={"error": repr(e)}
-                )
+        container = make_async_container(DbProvider(), ConfigProvider())
+        async with container() as request_container:
+            uow = await request_container.get(UnitOfWork)
+            async with uow:
+                try:
+                    await parse(path, uow)
+                    await uow.commit()
+                except Exception as e:
+                    await container.close()
+                    return await self.templates.TemplateResponse(
+                        request, "aioparser.html", context={"error": repr(e)}
+                    )
+        await container.close()
         return await self.templates.TemplateResponse(
             request, "aioparser.html", context={"success": True}
         )

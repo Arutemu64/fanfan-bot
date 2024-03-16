@@ -2,19 +2,18 @@ from datetime import timedelta
 from typing import Annotated, Optional
 
 from aiogram import Bot
+from aiogram.types import Message
 from aiogram_dialog import BgManagerFactory, ShowMode
-from redis.asyncio import ConnectionPool, Redis
+from dishka import AsyncContainer
+from redis.asyncio import Redis
 from taskiq import (
     Context,
     TaskiqDepends,
-    TaskiqEvents,
-    TaskiqState,
 )
 from taskiq.serializers import ORJSONSerializer
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
 from fanfan.application.dto.common import UserNotification
-from fanfan.common.factory import create_bot
 from fanfan.config import conf
 from fanfan.presentation.tgbot.dialogs.widgets import DELETE_BUTTON
 
@@ -32,30 +31,21 @@ broker = (
 )
 
 
-def bot_dep(context: Annotated[Context, TaskiqDepends()]) -> Bot:
-    return context.state.bot
+async def bot_dep(context: Annotated[Context, TaskiqDepends()]) -> Bot:
+    container: AsyncContainer = context.state.container
+    return await container.get(Bot)
 
 
-def redis_dep(context: Annotated[Context, TaskiqDepends()]) -> Redis:
-    return Redis(connection_pool=context.state.redis_pool, decode_responses=True)
+async def redis_dep(context: Annotated[Context, TaskiqDepends()]) -> Redis:
+    container: AsyncContainer = context.state.container
+    return await container.get(Redis)
 
 
-def bgm_factory_dep(context: Annotated[Context, TaskiqDepends()]) -> BgManagerFactory:
-    return context.state.dialog_bg_factory
-
-
-@broker.on_event(TaskiqEvents.WORKER_STARTUP)
-async def startup(state: TaskiqState) -> None:
-    state.bot = create_bot()
-    state.redis_pool = ConnectionPool.from_url(conf.redis.build_connection_str())
-
-
-@broker.on_event(TaskiqEvents.WORKER_SHUTDOWN)
-async def shutdown(state: TaskiqState) -> None:
-    bot: Bot = state.bot
-    pool: ConnectionPool = state.redis_pool
-    await bot.session.close()
-    await pool.aclose()
+async def bgm_factory_dep(
+    context: Annotated[Context, TaskiqDepends()]
+) -> BgManagerFactory:
+    container: AsyncContainer = context.state.container
+    return await container.get(BgManagerFactory)
 
 
 @broker.task()
@@ -89,18 +79,12 @@ async def send_notification(
     if delivery_id:
         await redis.lpush(delivery_id, context.message.task_id)
         await redis.expire(delivery_id, time=timedelta(hours=1).seconds)
-    return {
-        "chat_id": message.chat.id,
-        "message_id": message.message_id,
-        "text": message.text or message.caption,
-        "image_id": notification.image_id,
-    }
+    return message.model_dump(mode="json", exclude_none=True)
 
 
 @broker.task()
 async def delete_message(
-    chat_id: int,
-    message_id: int,
+    message: Message,
     bot: Annotated[Bot, TaskiqDepends(bot_dep)],
 ) -> None:
-    await bot.delete_message(chat_id, message_id)
+    await bot.delete_message(message.chat.id, message.message_id)
