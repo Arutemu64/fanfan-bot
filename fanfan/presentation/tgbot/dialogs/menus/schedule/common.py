@@ -19,9 +19,9 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja, Text
 from aiogram_dialog.widgets.utils import GetterVariant
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.exceptions.event import NoCurrentEvent
-from fanfan.application.services import ServicesHolder
 from fanfan.common.enums import UserRole
 from fanfan.presentation.tgbot.static.templates import schedule_list
 
@@ -31,27 +31,26 @@ SEARCH_QUERY = "search_query"
 
 
 async def schedule_getter(
-    dialog_manager: DialogManager, services: ServicesHolder, user: FullUserDTO, **kwargs
+    dialog_manager: DialogManager, app: AppHolder, user: FullUserDTO, **kwargs
 ):
-    page = await services.schedule.get_schedule_page(
-        page=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page(),
+    page = await app.schedule.get_schedule_page(
+        page_number=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page(),
         events_per_page=user.items_per_page,
         search_query=dialog_manager.dialog_data.get(SEARCH_QUERY, None),
         user_id=dialog_manager.event.from_user.id,
     )
-    dialog_manager.dialog_data["pages"] = page.total
     return {
         "events": page.items,
-        "number": page.number + 1,
-        "pages": page.total,
+        "page_number": page.number + 1,
+        "pages": page.total_pages,
         "is_helper": user.role in [UserRole.HELPER, UserRole.ORG],
     }
 
 
 async def show_event_page(manager: DialogManager, event_id: int):
     user: FullUserDTO = manager.middleware_data["user"]
-    services: ServicesHolder = manager.middleware_data["services"]
-    page = await services.schedule.get_page_number_by_event(
+    app: AppHolder = manager.middleware_data["app"]
+    page = await app.schedule.get_page_number_by_event(
         event_id=event_id,
         events_per_page=user.items_per_page,
         search_query=manager.dialog_data.get(SEARCH_QUERY, None),
@@ -62,9 +61,9 @@ async def show_event_page(manager: DialogManager, event_id: int):
 async def update_schedule_handler(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    services: ServicesHolder = manager.middleware_data["services"]
+    app: AppHolder = manager.middleware_data["app"]
     try:
-        current_event = await services.events.get_current_event()
+        current_event = await app.schedule.get_current_event()
         await show_event_page(manager, current_event.id)
     except NoCurrentEvent:
         await manager.find(ID_SCHEDULE_SCROLL).set_page(0)
@@ -118,7 +117,7 @@ class ScheduleWindow(Window):
                 FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪ · 1")),
                 PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
                 Button(
-                    text=Format(text="{number} 🔄️"),
+                    text=Format(text="{page_number} 🔄️"),
                     id="update_schedule",
                     on_click=update_schedule_handler,
                 ),

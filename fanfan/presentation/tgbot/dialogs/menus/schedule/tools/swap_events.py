@@ -6,8 +6,8 @@ from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
 
+from fanfan.application import AppHolder
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.services import ServicesHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.menus.schedule.common import (
     ID_SCHEDULE_SCROLL,
@@ -25,7 +25,7 @@ async def swap_events_handler(
     dialog_manager: DialogManager,
     data: str,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
 
     # Поиск
     if len(data.split()) == 1:
@@ -44,9 +44,7 @@ async def swap_events_handler(
         return
 
     try:
-        event1, event2 = await services.schedule_mgmt.swap_events(
-            int(args[0]), int(args[1])
-        )
+        event1, event2 = await app.schedule_mgmt.swap_events(int(args[0]), int(args[1]))
     except ServiceError as e:
         await message.reply(e.message)
         return

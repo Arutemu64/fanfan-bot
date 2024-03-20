@@ -3,9 +3,9 @@ from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Counter, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, List
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.services import ServicesHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -38,9 +38,9 @@ async def update_counter_value(
 async def items_per_page_handler(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    services: ServicesHolder = manager.middleware_data["services"]
+    app: AppHolder = manager.middleware_data["app"]
     try:
-        manager.middleware_data["user"] = await services.users.update_user(
+        manager.middleware_data["user"] = await app.users.update_user(
             UpdateUserDTO(
                 id=manager.event.from_user.id,
                 items_per_page=manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value(),

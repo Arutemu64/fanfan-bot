@@ -1,10 +1,10 @@
-import math
 from typing import Optional
 
 from fanfan.application.dto.common import Page
-from fanfan.application.dto.nomination import VotingNominationDTO
+from fanfan.application.dto.nomination import VotingNominationDTO, NominationDTO
 from fanfan.application.dto.participant import VotingParticipantDTO
 from fanfan.application.dto.vote import VoteDTO
+from fanfan.application.exceptions.nomination import NominationNotFound
 from fanfan.application.exceptions.participant import ParticipantNotFound
 from fanfan.application.exceptions.users import (
     UserHasNoTicket,
@@ -39,61 +39,64 @@ class VotingService(BaseService):
             if participant.nomination_id != allowed_nomination_id:
                 raise ParticipantNotFound
 
+    async def get_nomination(self, nomination_id: str) -> NominationDTO:
+        """
+        @param nomination_id:
+        @raise NominationNotFound
+        @return:
+        """
+        if nomination := await self.uow.nominations.get_nomination(nomination_id):
+            return nomination.to_dto()
+        raise NominationNotFound
+
     async def get_nominations_page(
-        self, page: int, nominations_per_page: int, user_id: Optional[int] = None
+        self, page_number: int, nominations_per_page: int, user_id: Optional[int] = None
     ) -> Page[VotingNominationDTO]:
         """
         Get nominations page
-        @param page: Page number
+        @param page_number: Page page_number
         @param nominations_per_page: Nominations per page
         @param user_id: if provided, Nomination will also include user's vote
         @return:
         """
-        nominations = await self.uow.nominations.paginate_nominations(
-            page=page,
+        page = await self.uow.nominations.paginate_nominations(
+            page_number=page_number,
             nominations_per_page=nominations_per_page,
             only_votable=True,
             user_id=user_id,
         )
-        nominations_count = await self.uow.nominations.count_nominations(
-            only_votable=True
-        )
-        total = math.ceil(nominations_count / nominations_per_page)
         return Page(
-            items=[n.to_voting_dto() for n in nominations],
-            number=page,
-            total=total if total > 0 else 1,
+            items=[n.to_voting_dto() for n in page.items],
+            number=page.number,
+            total_pages=page.total_pages,
         )
 
     async def get_participants_page(
         self,
         nomination_id: str,
-        page: int,
+        page_number: int,
         participants_per_page: int,
         user_id: Optional[int] = None,
     ) -> Page[VotingParticipantDTO]:
         """
         Get participants page
         @param nomination_id: Nomination ID
-        @param page: Page number
+        @param page_number: Page page_number
         @param participants_per_page: Participants per page
         @param user_id: if provided, Participant will also include user's vote
         @return:
         """
-        participants = await self.uow.participants.paginate_participants(
-            page=page,
+        page = await self.uow.participants.paginate_participants(
+            page_number=page_number,
             participants_per_page=participants_per_page,
             only_votable=True,
             nomination_id=nomination_id,
             user_id=user_id,
         )
-        participants_count = await self.uow.participants.count_participants(
-            only_votable=True, nomination_id=nomination_id
-        )
         return Page(
-            items=[p.to_voting_dto() for p in participants],
-            number=page,
-            total=math.ceil(participants_count / participants_per_page),
+            items=[p.to_voting_dto() for p in page.items],
+            number=page.number,
+            total_pages=page.total_pages,
         )
 
     @check_permission(ticket_required=True)

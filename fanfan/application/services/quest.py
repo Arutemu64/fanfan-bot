@@ -1,5 +1,3 @@
-import math
-
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.application.dto.achievement import FullAchievementDTO
@@ -25,27 +23,20 @@ class QuestService(BaseService):
         user = await self.uow.users.get_user_by_id(user_id)
         if not user:
             raise UserNotFound
-        return UserStats(
-            user_id=user_id,
-            points=user.points,
-            achievements_count=await user.awaitable_attrs.achievements_count,
-            total_achievements=await self.uow.achievements.count_achievements(),
-        )
+        return await self.uow.users.get_user_stats(user_id)
 
     async def get_achievements_page(
-        self, page: int, achievements_per_page: int, user_id: int
+        self, page_number: int, achievements_per_page: int, user_id: int
     ) -> Page[FullAchievementDTO]:
-        achievements = await self.uow.achievements.paginate_achievements(
-            page=page,
+        page = await self.uow.achievements.paginate_achievements(
+            page_number=page_number,
             achievements_per_page=achievements_per_page,
             user_id=user_id,
         )
-        achievements_count = await self.uow.achievements.count_achievements()
-        total = math.ceil(achievements_count / achievements_per_page)
         return Page(
-            items=[a.to_full_dto() for a in achievements],
-            number=page,
-            total=total if total > 0 else 1,
+            items=[a.to_full_dto() for a in page.items],
+            number=page.number,
+            total_pages=page.total_pages if page.total_pages > 0 else 1,
         )
 
     @staticmethod

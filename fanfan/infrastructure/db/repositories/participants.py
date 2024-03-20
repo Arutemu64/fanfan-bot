@@ -1,37 +1,12 @@
-from typing import Optional, Sequence
+from typing import Optional
 
-from sqlalchemy import Select, and_, func, select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, undefer
 
+from fanfan.application.dto.common import Page
 from fanfan.infrastructure.db.models import Event, Nomination, Participant, Vote
 from fanfan.infrastructure.db.repositories.repo import Repository
-
-
-def _build_participants_query(
-    query: Select,
-    only_votable: Optional[bool] = None,
-    nomination_id: Optional[str] = None,
-    user_id: Optional[int] = None,
-) -> Select:
-    if only_votable:
-        query = query.where(
-            and_(
-                Participant.nomination.has(Nomination.votable.is_(True)),
-                Participant.event.has(Event.skip.isnot(True)),
-            )
-        )
-    if nomination_id:
-        query = query.where(Participant.nomination.has(Nomination.id == nomination_id))
-    if user_id:
-        query = query.options(contains_eager(Participant.user_vote)).outerjoin(
-            Vote,
-            and_(
-                Vote.participant_id == Participant.id,
-                Vote.user_id == user_id,
-            ),
-        )
-    return query
 
 
 class ParticipantsRepository(Repository[Participant]):
@@ -52,34 +27,34 @@ class ParticipantsRepository(Repository[Participant]):
 
     async def paginate_participants(
         self,
-        page: int,
+        page_number: int,
         participants_per_page: int,
         only_votable: Optional[bool] = None,
         nomination_id: Optional[str] = None,
         user_id: Optional[int] = None,
-    ) -> Sequence[Participant]:
-        query = _build_participants_query(
-            select(Participant),
-            only_votable=only_votable,
-            nomination_id=nomination_id,
-            user_id=user_id,
+    ) -> Page[Participant]:
+        query = (
+            select(Participant)
+            .order_by(Participant.id)
+            .options(undefer(Participant.votes_count))
         )
-        query = query.order_by(Participant.id)
-        query = query.slice(
-            start=page * participants_per_page,
-            stop=(page * participants_per_page) + participants_per_page,
-        )
-        query = query.options(undefer(Participant.votes_count))
-        return (await self.session.scalars(query)).all()
-
-    async def count_participants(
-        self,
-        only_votable: Optional[bool] = None,
-        nomination_id: Optional[str] = None,
-    ) -> int:
-        query = _build_participants_query(
-            select(func.count(Participant.id)),
-            only_votable=only_votable,
-            nomination_id=nomination_id,
-        )
-        return await self.session.scalar(query)
+        if only_votable:
+            query = query.where(
+                and_(
+                    Participant.nomination.has(Nomination.votable.is_(True)),
+                    Participant.event.has(Event.skip.isnot(True)),
+                )
+            )
+        if nomination_id:
+            query = query.where(
+                Participant.nomination.has(Nomination.id == nomination_id)
+            )
+        if user_id:
+            query = query.options(contains_eager(Participant.user_vote)).outerjoin(
+                Vote,
+                and_(
+                    Vote.participant_id == Participant.id,
+                    Vote.user_id == user_id,
+                ),
+            )
+        return await super()._paginate(query, page_number, participants_per_page)

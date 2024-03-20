@@ -2,9 +2,10 @@ import sentry_sdk
 from aiogram.types import TelegramObject, User
 from dishka import Provider, Scope, from_context, provide
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.user import CreateUserDTO, FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions.users import UserNotFound
-from fanfan.application.services import ServicesHolder, UserService
+from fanfan.application.services import UserService
 from fanfan.common.enums import UserRole
 from fanfan.config import BotConfig, DebugConfig
 from fanfan.infrastructure.db import UnitOfWork
@@ -47,7 +48,7 @@ class UserProvider(Provider):
                     username=tg_user.username,
                 )
             )
-        services = ServicesHolder(uow, user)
+        services = AppHolder(uow, user)
         # Updating user data
         if user.username != tg_user.username:
             user = await services.users.update_user(
@@ -72,5 +73,5 @@ class UserProvider(Provider):
     @provide
     async def get_services_holder(
         self, uow: UnitOfWork, identity: FullUserDTO
-    ) -> ServicesHolder:
-        return ServicesHolder(uow, identity)
+    ) -> AppHolder:
+        return AppHolder(uow, identity)

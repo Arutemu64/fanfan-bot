@@ -1,17 +1,12 @@
 from typing import Optional, Sequence
 
-from sqlalchemy import Select, and_, delete, func, select
+from sqlalchemy import and_, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from fanfan.application.dto.common import Page
 from fanfan.infrastructure.db.models import Event, Subscription
 from fanfan.infrastructure.db.repositories.repo import Repository
-
-
-def _build_subscriptions_query(query: Select, user_id: Optional[int] = None) -> Select:
-    if user_id:
-        query = query.where(Subscription.user_id == user_id)
-    return query
 
 
 class SubscriptionsRepository(Repository[Subscription]):
@@ -38,24 +33,15 @@ class SubscriptionsRepository(Repository[Subscription]):
         return await self.session.scalar(query)
 
     async def paginate_subscriptions(
-        self, page: int, subscriptions_per_page: int, user_id: int
-    ) -> Sequence[Subscription]:
-        query = _build_subscriptions_query(select(Subscription), user_id=user_id)
+        self, page_number: int, subscriptions_per_page: int, user_id: int
+    ) -> Page[Subscription]:
         query = (
-            query.order_by(Subscription.event_id)
-            .slice(
-                start=(page * subscriptions_per_page),
-                stop=(page * subscriptions_per_page) + subscriptions_per_page,
-            )
+            select(Subscription)
+            .where(Subscription.user_id == user_id)
+            .order_by(Subscription.event_id)
             .options(joinedload(Subscription.event))
         )
-        return (await self.session.scalars(query)).all()
-
-    async def count_subscriptions(self, user_id: int) -> int:
-        query = _build_subscriptions_query(
-            select(func.count(Subscription.id)), user_id=user_id
-        )
-        return await self.session.scalar(query)
+        return await super()._paginate(query, page_number, subscriptions_per_page)
 
     async def get_upcoming_subscriptions(self) -> Sequence[Subscription]:
         event_real_position = (

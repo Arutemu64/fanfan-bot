@@ -1,5 +1,5 @@
 {% for achievement in achievements %}
-<b>{% if show_ids %}{{ achievement.id }}. {% endif %}{{ achievement.title }}</b> {{ "✅" if achievement.user_received else "" }}
+<b>{% if show_ids %}{{ achievement.id }}. {% endif %}{{ achievement.title }} {{ "✅" if achievement.user_received else "" }}</b>
     {% if achievement.description %}
 {{ achievement.description }}
     {% endif %}

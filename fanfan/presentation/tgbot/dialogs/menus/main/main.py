@@ -8,10 +8,10 @@ from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Multi, Progress
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.exceptions.access import TicketNotLinked
 from fanfan.application.exceptions.voting import VotingServiceDisabled
-from fanfan.application.services import ServicesHolder
 from fanfan.common.enums import BotMode, UserRole
 from fanfan.config import conf
 from fanfan.presentation.tgbot import UI_DIR, UI_IMAGES_DIR
@@ -24,13 +24,13 @@ with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
 
 
 async def main_menu_getter(
-    dialog_manager: DialogManager, services: ServicesHolder, user: FullUserDTO, **kwargs
+    dialog_manager: DialogManager, app: AppHolder, user: FullUserDTO, **kwargs
 ):
-    settings = await services.settings.get_settings()
+    settings = await app.settings.get_settings()
     user_stats = None
     achievements_progress = 100
     if user.ticket:
-        user_stats = await services.quest.get_user_stats(user.id)
+        user_stats = await app.quest.get_user_stats(user.id)
         if user_stats.total_achievements > 0:
             achievements_progress = math.floor(
                 user_stats.achievements_count * 100 / user_stats.total_achievements
@@ -61,8 +61,8 @@ async def open_voting_handler(
     if not user.ticket:
         await callback.answer(TicketNotLinked.message, show_alert=True)
         return
-    services: ServicesHolder = manager.middleware_data["services"]
-    settings = await services.settings.get_settings()
+    app: AppHolder = manager.middleware_data["app"]
+    settings = await app.settings.get_settings()
     if not settings.voting_enabled:
         await callback.answer(VotingServiceDisabled.message, show_alert=True)
         return

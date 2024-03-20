@@ -23,9 +23,9 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja, List
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.services import ServicesHolder
 from fanfan.common.enums import UserRole
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.getters import get_roles
@@ -40,12 +40,12 @@ DATA_MANAGED_USER_ID = "managed_user_id"
 
 
 async def user_info_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, services: ServicesHolder, **kwargs
+    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
 ):
-    managed_user = await services.users.get_user_by_id(
+    managed_user = await app.users.get_user_by_id(
         dialog_manager.dialog_data[DATA_MANAGED_USER_ID]
     )
-    user_stats = await services.quest.get_user_stats(managed_user.id)
+    user_stats = await app.quest.get_user_stats(managed_user.id)
     return {
         "is_org": user.role is UserRole.ORG,
         "user_info": [
@@ -68,16 +68,16 @@ async def user_info_getter(
 
 
 async def achievements_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, services: ServicesHolder, **kwargs
+    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
 ):
-    page = await services.quest.get_achievements_page(
-        page=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
+    page = await app.quest.get_achievements_page(
+        page_number=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
         achievements_per_page=user.items_per_page,
         user_id=dialog_manager.dialog_data[DATA_MANAGED_USER_ID],
     )
     return {
         "achievements": page.items,
-        "pages": page.total,
+        "pages": page.total_pages,
         "show_ids": True,
     }
 
@@ -85,11 +85,11 @@ async def achievements_getter(
 async def add_points_handler(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    services: ServicesHolder = manager.middleware_data["services"]
+    app: AppHolder = manager.middleware_data["app"]
     counter: ManagedCounter = manager.find(ID_ADD_POINTS_COUNTER)
 
     try:
-        await services.quest.add_points(
+        await app.quest.add_points(
             user_id=manager.dialog_data[DATA_MANAGED_USER_ID],
             amount=int(counter.get_value()),
         )
@@ -107,9 +107,9 @@ async def add_achievement_handler(
     dialog_manager: DialogManager,
     data: int,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
     try:
-        await services.quest.add_achievement(
+        await app.quest.add_achievement(
             user_id=dialog_manager.dialog_data[DATA_MANAGED_USER_ID],
             achievement_id=data,
         )
@@ -127,10 +127,10 @@ async def change_user_role_handler(
     manager: DialogManager,
     data: UserRole,
 ):
-    services: ServicesHolder = manager.middleware_data["services"]
+    app: AppHolder = manager.middleware_data["app"]
 
     try:
-        await services.users.update_user(
+        await app.users.update_user(
             UpdateUserDTO(
                 id=manager.dialog_data[DATA_MANAGED_USER_ID],
                 role=data,
@@ -150,17 +150,17 @@ async def show_user_editor_handler(
     dialog_manager: DialogManager,
     data: str,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
 
     if data.isnumeric():
         try:
-            user = await services.users.get_user_by_id(int(data))
+            user = await app.users.get_user_by_id(int(data))
         except ServiceError as e:
             await message.answer(e.message)
             return
     else:
         try:
-            user = await services.users.get_user_by_username(data)
+            user = await app.users.get_user_by_username(data)
         except ServiceError as e:
             await message.answer(e.message)
             return

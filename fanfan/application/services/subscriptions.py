@@ -1,5 +1,3 @@
-import math
-
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.application.dto.common import Page
@@ -52,52 +50,25 @@ class SubscriptionsService(BaseService):
         raise SubscriptionNotFound
 
     async def get_subscriptions_page(
-        self, page: int, subscriptions_per_page: int, user_id: int
+        self, page_number: int, subscriptions_per_page: int, user_id: int
     ) -> Page[SubscriptionDTO]:
         """
         Get page of subscriptions
         """
-        subscriptions = await self.uow.subscriptions.paginate_subscriptions(
-            page=page,
+        page = await self.uow.subscriptions.paginate_subscriptions(
+            page_number=page_number,
             subscriptions_per_page=subscriptions_per_page,
             user_id=user_id,
         )
-        subscriptions_count = await self.uow.subscriptions.count_subscriptions(
-            user_id=user_id
-        )
-        total = math.ceil(subscriptions_count / subscriptions_per_page)
         return Page(
-            items=[s.to_dto() for s in subscriptions],
-            number=page,
-            total=total if total > 0 else 1,
+            items=[s.to_dto() for s in page.items],
+            number=page.number,
+            total_pages=page.total_pages,
         )
-
-    async def update_subscription_counter(
-        self, subscription_id: int, counter: int
-    ) -> SubscriptionDTO:
-        async with self.uow:
-            subscription = await self.uow.subscriptions.get_subscription(
-                subscription_id
-            )
-            if not subscription:
-                raise SubscriptionNotFound
-            subscription.counter = counter
-            await self.uow.commit()
-            return subscription.to_dto()
-
-    async def delete_subscription(self, subscription_id: int) -> None:
-        async with self.uow:
-            subscription = await self.uow.subscriptions.get_subscription(
-                subscription_id
-            )
-            if not subscription:
-                raise SubscriptionNotFound
-            await self.uow.session.delete(subscription)
-            await self.uow.commit()
 
     async def delete_subscription_by_event(self, user_id: int, event_id: int) -> None:
         """
-        Delete user_subscription
+        Delete user subscription by event id
         """
         subscription = await self.uow.subscriptions.get_subscription_by_event(
             user_id, event_id

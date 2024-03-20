@@ -22,10 +22,10 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.exceptions.voting import VoteNotFound
-from fanfan.application.services import ServicesHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.static.templates import voting_list
@@ -39,10 +39,10 @@ DATA_USER_VOTE_ID = "user_vote"
 
 
 async def nominations_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, services: ServicesHolder, **kwargs
+    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
 ):
-    page = await services.voting.get_nominations_page(
-        page=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page(),
+    page = await app.voting.get_nominations_page(
+        page_number=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page(),
         nominations_per_page=user.items_per_page,
         user_id=user.id,
     )
@@ -56,24 +56,24 @@ async def nominations_getter(
         )
     return {
         "nominations_list": nominations_list,
-        "pages": page.total,
+        "pages": page.total_pages,
     }
 
 
 async def participants_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, services: ServicesHolder, **kwargs
+    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
 ):
-    nomination = await services.nominations.get_nomination(
+    nomination = await app.voting.get_nomination(
         dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID]
     )
-    page = await services.voting.get_participants_page(
+    page = await app.voting.get_participants_page(
         nomination_id=dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
-        page=await dialog_manager.find(ID_VOTING_SCROLL).get_page(),
+        page_number=await dialog_manager.find(ID_VOTING_SCROLL).get_page(),
         participants_per_page=user.items_per_page,
         user_id=user.id,
     )
     try:
-        user_vote = await services.voting.get_vote_by_nomination(
+        user_vote = await app.voting.get_vote_by_nomination(
             user_id=user.id,
             nomination_id=dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
         )
@@ -82,7 +82,7 @@ async def participants_getter(
         dialog_manager.dialog_data[DATA_USER_VOTE_ID] = None
     return {
         "nomination_title": nomination.title,
-        "pages": page.total,
+        "pages": page.total_pages,
         "participants": page.items,
         "voted": True if dialog_manager.dialog_data[DATA_USER_VOTE_ID] else False,
     }
@@ -102,9 +102,9 @@ async def add_vote_handler(
     dialog_manager: DialogManager,
     data: int,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
     try:
-        await services.voting.add_vote(
+        await app.voting.add_vote(
             user_id=dialog_manager.event.from_user.id,
             participant_id=data,
             nomination_id=dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
@@ -117,9 +117,9 @@ async def add_vote_handler(
 async def cancel_vote_handler(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    services: ServicesHolder = manager.middleware_data["services"]
+    app: AppHolder = manager.middleware_data["app"]
     try:
-        await services.voting.cancel_vote(manager.dialog_data[DATA_USER_VOTE_ID])
+        await app.voting.cancel_vote(manager.dialog_data[DATA_USER_VOTE_ID])
     except VoteNotFound:
         return
     except ServiceError as e:

@@ -20,9 +20,9 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 from pytz import timezone
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.common import UserNotification
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.services import ServicesHolder
 from fanfan.common.enums import UserRole
 from fanfan.config import conf
 from fanfan.presentation.tgbot.dialogs import states
@@ -42,16 +42,16 @@ DATA_ROLE_IDS = "data_role_ids"
 async def send_notification_handler(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    services: ServicesHolder = manager.middleware_data["services"]
-    multiselect: ManagedMultiselect = manager.find(ID_ROLES_PICKER)
+    app: AppHolder = manager.middleware_data["app"]
+    roles_picker: ManagedMultiselect[UserRole] = manager.find(ID_ROLES_PICKER)
 
-    roles: List[UserRole] = multiselect.get_checked()
+    roles = roles_picker.get_checked()
     delivery_id = uuid.uuid4().hex
     notifications = []
     timestamp = datetime.now(tz=timezone(conf.bot.timezone))
 
     try:
-        for u in await services.users.get_all_by_roles(roles):
+        for u in await app.users.get_all_by_roles(roles):
             notifications.append(
                 UserNotification(
                     user_id=u.id,
@@ -61,7 +61,7 @@ async def send_notification_handler(
                     timestamp=timestamp,
                 )
             )
-        await services.notifications.send_notifications(notifications, delivery_id)
+        await app.notifications.send_notifications(notifications, delivery_id)
     except ServiceError as e:
         await callback.answer(e.message)
         return
@@ -73,7 +73,7 @@ async def send_notification_handler(
 
 
 async def create_notification_getter(dialog_manager: DialogManager, **kwargs):
-    multiselect: ManagedMultiselect = dialog_manager.find(ID_ROLES_PICKER)
+    roles_picker: ManagedMultiselect[UserRole] = dialog_manager.find(ID_ROLES_PICKER)
     notification_text = dialog_manager.dialog_data[DATA_TEXT] or "не задан"
     if dialog_manager.dialog_data[DATA_IMAGE_ID]:
         image = MediaAttachment(
@@ -87,7 +87,7 @@ async def create_notification_getter(dialog_manager: DialogManager, **kwargs):
         "image": image,
         "roles": get_roles_list(),
         "sending_allowed": dialog_manager.dialog_data[DATA_TEXT]
-        and len(multiselect.get_checked()) > 0,
+        and len(roles_picker.get_checked()) > 0,
     }
 
 
@@ -112,10 +112,10 @@ async def delete_notification_handler(
     dialog_manager: DialogManager,
     data: str,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
 
     try:
-        count = await services.notifications.delete_delivery(data)
+        count = await app.notifications.delete_delivery(data)
         await message.answer(f"✅ Будет удалено {count} сообщений")
     except ServiceError as e:
         await message.answer(e.message)

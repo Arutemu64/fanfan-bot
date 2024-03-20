@@ -16,6 +16,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.subscription import CreateSubscriptionDTO
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
@@ -24,7 +25,6 @@ from fanfan.application.exceptions.subscriptions import (
     SubscriptionAlreadyExist,
     SubscriptionNotFound,
 )
-from fanfan.application.services import ServicesHolder
 from fanfan.presentation.tgbot.dialogs import (
     states,
 )
@@ -45,20 +45,20 @@ DATA_SELECTED_EVENT_ID = "data_selected_event_id"
 
 
 async def subscriptions_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, services: ServicesHolder, **kwargs
+    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
 ):
-    page = await services.subscriptions.get_subscriptions_page(
-        user_id=user.id,
-        page=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page(),
+    page = await app.subscriptions.get_subscriptions_page(
+        page_number=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page(),
         subscriptions_per_page=user.items_per_page,
+        user_id=user.id,
     )
     try:
-        current_event = await services.events.get_current_event()
+        current_event = await app.schedule.get_current_event()
     except NoCurrentEvent:
         current_event = None
     return {
         "receive_all_announcements": user.receive_all_announcements,
-        "pages": page.total,
+        "pages": page.total_pages,
         "subscriptions": page.items,
         "current_event": current_event,
     }
@@ -70,14 +70,14 @@ async def create_subscription_handler(
     dialog_manager: DialogManager,
     data: int,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
     try:
-        await services.subscriptions.get_subscription_by_event(
+        await app.subscriptions.get_subscription_by_event(
             user_id=dialog_manager.event.from_user.id, event_id=data
         )
     except SubscriptionNotFound:
         try:
-            event = await services.events.get_event(data)
+            event = await app.schedule.get_event(data)
         except EventNotFound as e:
             await message.reply(e.message)
             return
@@ -94,9 +94,9 @@ async def set_counter_handler(
     dialog_manager: DialogManager,
     data: int,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
     try:
-        subscription = await services.subscriptions.create_subscription(
+        subscription = await app.subscriptions.create_subscription(
             CreateSubscriptionDTO(
                 user_id=dialog_manager.event.from_user.id,
                 event_id=dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID],
@@ -120,9 +120,9 @@ async def remove_subscription_handler(
     dialog_manager: DialogManager,
     data: int,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
     try:
-        await services.subscriptions.delete_subscription_by_event(
+        await app.subscriptions.delete_subscription_by_event(
             user_id=dialog_manager.event.from_user.id, event_id=data
         )
     except ServiceError as e:
@@ -136,9 +136,9 @@ async def toggle_all_notifications_handler(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
     user: FullUserDTO = manager.middleware_data["user"]
-    services: ServicesHolder = manager.middleware_data["services"]
+    app: AppHolder = manager.middleware_data["app"]
     try:
-        manager.middleware_data["user"] = await services.users.update_user(
+        manager.middleware_data["user"] = await app.users.update_user(
             UpdateUserDTO(
                 id=user.id, receive_all_announcements=not user.receive_all_announcements
             )

@@ -5,8 +5,8 @@ from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
 
+from fanfan.application import AppHolder
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.services import ServicesHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -18,13 +18,11 @@ async def link_ticket_handler(
     dialog_manager: DialogManager,
     data: str,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
     try:
         user_id = dialog_manager.event.from_user.id
-        await services.tickets.link_ticket(ticket_id=data, user_id=user_id)
-        dialog_manager.middleware_data["user"] = await services.users.get_user_by_id(
-            user_id
-        )
+        await app.tickets.link_ticket(ticket_id=data, user_id=user_id)
+        dialog_manager.middleware_data["user"] = await app.users.get_user_by_id(user_id)
     except ServiceError as e:
         await message.reply(e.message)
         return

@@ -1,7 +1,7 @@
 from aiogram_dialog import Dialog, DialogManager
 
+from fanfan.application import AppHolder
 from fanfan.application.exceptions.event import NoCurrentEvent
-from fanfan.application.services import ServicesHolder
 
 from .common import show_event_page
 from .main import schedule_main_window
@@ -13,9 +13,9 @@ from .tools import (
 
 
 async def on_start_schedule(start_data: dict, manager: DialogManager):
-    services: ServicesHolder = manager.middleware_data["services"]
+    app: AppHolder = manager.middleware_data["app"]
     try:
-        current_event = await services.events.get_current_event()
+        current_event = await app.schedule.get_current_event()
         await show_event_page(manager, current_event.id)
     except NoCurrentEvent:
         pass

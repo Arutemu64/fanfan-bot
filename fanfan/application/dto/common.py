@@ -11,7 +11,7 @@ AbstractModel = TypeVar("AbstractModel")
 class Page(Generic[AbstractModel]):
     items: List[AbstractModel]
     number: int
-    total: int
+    total_pages: int
 
 
 @dataclass(frozen=True, slots=True)

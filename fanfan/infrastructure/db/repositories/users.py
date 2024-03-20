@@ -4,10 +4,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from fanfan.application.dto.user import UserStats
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.repositories.repo import Repository
 
-from ..models import Ticket, User
+from ..models import Achievement, ReceivedAchievement, Ticket, User
 
 
 class UsersRepository(Repository[User]):
@@ -39,3 +40,22 @@ class UsersRepository(Repository[User]):
     async def get_receive_all_announcements_users(self) -> Sequence[User]:
         query = select(User).where(User.receive_all_announcements.is_(True))
         return (await self.session.scalars(query)).all()
+
+    async def get_user_stats(self, user_id: int) -> UserStats:
+        points_query = (
+            select(User.points).where(User.id == user_id).limit(1).label("points")
+        )
+        received_count_query = (
+            select(func.count(ReceivedAchievement.id))
+            .where(ReceivedAchievement.user_id == user_id)
+            .label("received")
+        )
+        achievements_count_query = select(func.count(Achievement.id)).label("total")
+        query = select(points_query, received_count_query, achievements_count_query)
+        result = ((await self.session.execute(query)).all())[0]
+        return UserStats(
+            user_id=user_id,
+            points=result.points,
+            achievements_count=result.received,
+            total_achievements=result.total,
+        )

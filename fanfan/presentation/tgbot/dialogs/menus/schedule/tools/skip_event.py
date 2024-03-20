@@ -4,8 +4,8 @@ from aiogram_dialog.widgets.input.text import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
 
+from fanfan.application import AppHolder
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.services import ServicesHolder
 from fanfan.presentation.tgbot.dialogs import (
     states,
 )
@@ -24,10 +24,10 @@ async def skip_event_handler(
     dialog_manager: DialogManager,
     data: int,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
+    app: AppHolder = dialog_manager.middleware_data["app"]
 
     try:
-        event = await services.schedule_mgmt.skip_event(data)
+        event = await app.schedule_mgmt.skip_event(data)
     except ServiceError as e:
         await message.reply(e.message)
         return

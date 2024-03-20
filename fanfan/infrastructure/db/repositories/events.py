@@ -1,32 +1,25 @@
 import math
-from typing import Optional, Sequence
+from typing import Optional
 
 from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
+from fanfan.application.dto.common import Page
 from fanfan.infrastructure.db.models import Event, Nomination, Subscription
 from fanfan.infrastructure.db.repositories.repo import Repository
 
 
-def _build_events_query(
-    query: Select, search_query: Optional[str] = None, user_id: Optional[int] = None
+def _filter_events(
+    query: Select,
+    search_query: str,
 ) -> Select:
-    if search_query:
-        query = query.where(
-            or_(
-                Event.title.ilike(f"%{search_query}%"),
-                Event.nomination.has(Nomination.title.ilike(f"%{search_query}%")),
-            )
+    query = query.where(
+        or_(
+            Event.title.ilike(f"%{search_query}%"),
+            Event.nomination.has(Nomination.title.ilike(f"%{search_query}%")),
         )
-    if user_id:
-        query = query.options(contains_eager(Event.user_subscription)).outerjoin(
-            Subscription,
-            and_(
-                Subscription.event_id == Event.id,
-                Subscription.user_id == user_id,
-            ),
-        )
+    )
     return query
 
 
@@ -63,38 +56,33 @@ class EventsRepository(Repository[Event]):
 
     async def paginate_events(
         self,
-        page: int,
+        page_number: int,
         events_per_page: int,
         search_query: Optional[str] = None,
         user_id: Optional[int] = None,
-    ) -> Sequence[Event]:
-        query = _build_events_query(
-            select(Event), search_query=search_query, user_id=user_id
-        )
+    ) -> Page[Event]:
         query = (
-            query.order_by(Event.position)
-            .slice(
-                start=(page * events_per_page),
-                stop=(page * events_per_page) + events_per_page,
+            select(Event).order_by(Event.position).options(joinedload(Event.nomination))
+        )
+        if search_query:
+            query = _filter_events(query, search_query)
+        if user_id:
+            query = query.options(contains_eager(Event.user_subscription)).outerjoin(
+                Subscription,
+                and_(
+                    Subscription.event_id == Event.id,
+                    Subscription.user_id == user_id,
+                ),
             )
-            .options(joinedload(Event.nomination))
-        )
-        return (await self.session.scalars(query)).all()
-
-    async def count_events(self, search_query: Optional[str] = None) -> int:
-        query = _build_events_query(
-            select(func.count(Event.id)), search_query=search_query
-        )
-        return await self.session.scalar(query)
+        return await super()._paginate(query, page_number, events_per_page)
 
     async def get_page_number_by_event(
         self, event_id: int, events_per_page: int, search_query: Optional[str] = None
     ) -> int:
         query = select(Event.position).where(Event.id == event_id).limit(1)
         if search_query:
-            subquery = query.scalar_subquery()
-            query = _build_events_query(query, search_query=search_query).where(
-                Event.position <= subquery
+            query = _filter_events(
+                select(func.count(Event.id)).where(Event.position <= query), search_query
             )
         event_position = await self.session.scalar(query)
-        return math.floor((event_position - 1) / events_per_page)
+        return math.floor((event_position-1) / events_per_page)

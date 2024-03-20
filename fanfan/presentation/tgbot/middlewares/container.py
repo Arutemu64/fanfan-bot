@@ -5,8 +5,8 @@ from aiogram.types import TelegramObject
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.services import ServicesHolder
 
 
 class ContainerMiddleware(BaseMiddleware):
@@ -19,5 +19,5 @@ class ContainerMiddleware(BaseMiddleware):
     ) -> Any:
         container: AsyncContainer = data[CONTAINER_NAME]
         data["user"] = await container.get(FullUserDTO)
-        data["services"] = await container.get(ServicesHolder)
+        data["app"] = await container.get(AppHolder)
         return await handler(event, data)

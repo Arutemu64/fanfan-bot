@@ -17,8 +17,8 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Case, Const, Format
 
+from fanfan.application import AppHolder
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.services import ServicesHolder
 from fanfan.common.enums import UserRole
 from fanfan.config import conf
 from fanfan.presentation.tgbot.dialogs import states
@@ -32,10 +32,8 @@ ID_TOGGLE_VOTING_BUTTON = "toggle_voting_button"
 DATA_VOTING_ENABLED = "voting_enabled"
 
 
-async def org_menu_getter(
-    dialog_manager: DialogManager, services: ServicesHolder, **kwargs
-):
-    settings = await services.settings.get_settings()
+async def org_menu_getter(dialog_manager: DialogManager, app: AppHolder, **kwargs):
+    settings = await app.settings.get_settings()
     dialog_manager.dialog_data[DATA_VOTING_ENABLED] = settings.voting_enabled
     jwt_token = jwt.encode(
         payload={"user_id": dialog_manager.event.from_user.id},
@@ -50,8 +48,8 @@ async def org_menu_getter(
 async def toggle_voting_handler(
     callback: CallbackQuery, button: Button, manager: DialogManager
 ):
-    services: ServicesHolder = manager.middleware_data["services"]
-    await services.settings.switch_voting(not manager.dialog_data[DATA_VOTING_ENABLED])
+    app: AppHolder = manager.middleware_data["app"]
+    await app.settings.switch_voting(not manager.dialog_data[DATA_VOTING_ENABLED])
 
 
 async def add_new_ticket_handler(
@@ -60,11 +58,11 @@ async def add_new_ticket_handler(
     dialog_manager: DialogManager,
     data: str,
 ):
-    services: ServicesHolder = dialog_manager.middleware_data["services"]
-    role_picker: ManagedRadio = dialog_manager.find(ID_TICKET_ROLE_PICKER)
+    app: AppHolder = dialog_manager.middleware_data["app"]
+    role_picker: ManagedRadio[UserRole] = dialog_manager.find(ID_TICKET_ROLE_PICKER)
 
     try:
-        ticket = await services.tickets.create_ticket(
+        ticket = await app.tickets.create_ticket(
             ticket_id=data,
             role=role_picker.get_checked(),
         )

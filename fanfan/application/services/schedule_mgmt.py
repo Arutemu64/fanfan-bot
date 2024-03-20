@@ -69,10 +69,10 @@ class ScheduleManagementService(BaseService):
         self, event1_id: int, event2_id: int
     ) -> Tuple[EventDTO, EventDTO]:
         """
-        Swap two events positions
+        Swap two schedule positions
         @param event1_id:
         @param event2_id:
-        @return: Tuple of both events
+        @return: Tuple of both schedule
         """
         if event1_id == event2_id:
             raise SameEventsAreNotAllowed

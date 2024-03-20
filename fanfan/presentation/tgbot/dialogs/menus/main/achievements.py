@@ -12,8 +12,8 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
+from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.services import ServicesHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.static.templates import achievements_list
@@ -23,16 +23,16 @@ ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 
 
 async def achievements_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, services: ServicesHolder, **kwargs
+    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
 ):
-    page = await services.quest.get_achievements_page(
-        page=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
+    page = await app.quest.get_achievements_page(
+        page_number=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
         achievements_per_page=user.items_per_page,
         user_id=user.id,
     )
     return {
         "achievements": page.items,
-        "pages": page.total,
+        "pages": page.total_pages,
         "show_ids": False,
     }
 

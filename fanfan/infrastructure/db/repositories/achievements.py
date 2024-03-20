@@ -1,9 +1,10 @@
-from typing import Optional, Sequence
+from typing import Optional
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
+from fanfan.application.dto.common import Page
 from fanfan.infrastructure.db.models import Achievement, ReceivedAchievement
 from fanfan.infrastructure.db.repositories.repo import Repository
 
@@ -17,16 +18,12 @@ class AchievementsRepository(Repository[Achievement]):
         return await self.session.get(Achievement, achievement_id)
 
     async def paginate_achievements(
-        self, page: int, achievements_per_page: int, user_id: Optional[int] = None
-    ) -> Sequence[Achievement]:
-        query = (
-            select(Achievement)
-            .order_by(Achievement.id)
-            .slice(
-                start=(page * achievements_per_page),
-                stop=(page * achievements_per_page) + achievements_per_page,
-            )
-        )
+        self,
+        page_number: int,
+        achievements_per_page: int,
+        user_id: Optional[int] = None,
+    ) -> Page[Achievement]:
+        query = select(Achievement).order_by(Achievement.id)
         if user_id:
             query = query.options(contains_eager(Achievement.user_received)).outerjoin(
                 ReceivedAchievement,
@@ -35,14 +32,4 @@ class AchievementsRepository(Repository[Achievement]):
                     ReceivedAchievement.user_id == user_id,
                 ),
             )
-        return (await self.session.scalars(query)).all()
-
-    async def count_achievements(self) -> int:
-        query = select(func.count(Achievement.id))
-        return await self.session.scalar(query)
-
-    async def count_received(self, user_id: int) -> int:
-        query = select(func.count(ReceivedAchievement.id)).where(
-            ReceivedAchievement.user_id == user_id
-        )
-        return await self.session.scalar(query)
+        return await super()._paginate(query, page_number, achievements_per_page)
