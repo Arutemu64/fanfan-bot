@@ -1,7 +1,7 @@
 from aiogram_dialog import Dialog, DialogManager
 
-from fanfan.application import AppHolder
 from fanfan.application.exceptions.event import NoCurrentEvent
+from fanfan.application.holder import AppHolder
 
 from .common import show_event_page
 from .main import schedule_main_window

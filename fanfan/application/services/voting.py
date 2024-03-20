@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fanfan.application.dto.common import Page
-from fanfan.application.dto.nomination import VotingNominationDTO, NominationDTO
+from fanfan.application.dto.nomination import NominationDTO, VotingNominationDTO
 from fanfan.application.dto.participant import VotingParticipantDTO
 from fanfan.application.dto.vote import VoteDTO
 from fanfan.application.exceptions.nomination import NominationNotFound

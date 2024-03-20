@@ -17,8 +17,8 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Case, Const, Format
 
-from fanfan.application import AppHolder
 from fanfan.application.exceptions import ServiceError
+from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
 from fanfan.config import conf
 from fanfan.presentation.tgbot.dialogs import states

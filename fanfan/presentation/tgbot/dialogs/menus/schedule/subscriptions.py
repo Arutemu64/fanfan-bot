@@ -16,7 +16,6 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
-from fanfan.application import AppHolder
 from fanfan.application.dto.subscription import CreateSubscriptionDTO
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
@@ -25,6 +24,7 @@ from fanfan.application.exceptions.subscriptions import (
     SubscriptionAlreadyExist,
     SubscriptionNotFound,
 )
+from fanfan.application.holder import AppHolder
 from fanfan.presentation.tgbot.dialogs import (
     states,
 )

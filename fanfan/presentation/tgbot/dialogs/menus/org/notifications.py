@@ -1,7 +1,7 @@
 import operator
 import uuid
 from datetime import datetime
-from typing import Any, List
+from typing import Any
 
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
@@ -20,9 +20,9 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 from pytz import timezone
 
-from fanfan.application import AppHolder
 from fanfan.application.dto.common import UserNotification
 from fanfan.application.exceptions import ServiceError
+from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
 from fanfan.config import conf
 from fanfan.presentation.tgbot.dialogs import states

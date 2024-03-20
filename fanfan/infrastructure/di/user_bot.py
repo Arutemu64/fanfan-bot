@@ -2,9 +2,9 @@ import sentry_sdk
 from aiogram.types import TelegramObject, User
 from dishka import Provider, Scope, from_context, provide
 
-from fanfan.application import AppHolder
 from fanfan.application.dto.user import CreateUserDTO, FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions.users import UserNotFound
+from fanfan.application.holder import AppHolder
 from fanfan.application.services import UserService
 from fanfan.common.enums import UserRole
 from fanfan.config import BotConfig, DebugConfig

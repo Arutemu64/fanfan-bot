@@ -8,10 +8,10 @@ from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Multi, Progress
 
-from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.exceptions.access import TicketNotLinked
 from fanfan.application.exceptions.voting import VotingServiceDisabled
+from fanfan.application.holder import AppHolder
 from fanfan.common.enums import BotMode, UserRole
 from fanfan.config import conf
 from fanfan.presentation.tgbot import UI_DIR, UI_IMAGES_DIR

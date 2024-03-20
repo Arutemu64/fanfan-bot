@@ -2,8 +2,8 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
-from fanfan.application import AppHolder
 from fanfan.application.exceptions import ServiceError
+from fanfan.application.holder import AppHolder
 from fanfan.presentation.tgbot.dialogs.menus.schedule import show_event_page
 
 

@@ -23,9 +23,9 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja, List
 
-from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
+from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.getters import get_roles

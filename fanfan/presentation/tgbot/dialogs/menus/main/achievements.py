@@ -12,8 +12,8 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
-from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
+from fanfan.application.holder import AppHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.static.templates import achievements_list

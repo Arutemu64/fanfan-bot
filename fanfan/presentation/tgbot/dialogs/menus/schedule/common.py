@@ -19,9 +19,9 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja, Text
 from aiogram_dialog.widgets.utils import GetterVariant
 
-from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.exceptions.event import NoCurrentEvent
+from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
 from fanfan.presentation.tgbot.static.templates import schedule_list
 

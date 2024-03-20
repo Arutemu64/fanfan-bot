@@ -82,7 +82,8 @@ class EventsRepository(Repository[Event]):
         query = select(Event.position).where(Event.id == event_id).limit(1)
         if search_query:
             query = _filter_events(
-                select(func.count(Event.id)).where(Event.position <= query), search_query
+                select(func.count(Event.id)).where(Event.position <= query),
+                search_query,
             )
         event_position = await self.session.scalar(query)
-        return math.floor((event_position-1) / events_per_page)
+        return math.floor((event_position - 1) / events_per_page)

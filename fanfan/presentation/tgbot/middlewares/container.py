@@ -5,8 +5,8 @@ from aiogram.types import TelegramObject
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
-from fanfan.application import AppHolder
 from fanfan.application.dto.user import FullUserDTO
+from fanfan.application.holder import AppHolder
 
 
 class ContainerMiddleware(BaseMiddleware):
