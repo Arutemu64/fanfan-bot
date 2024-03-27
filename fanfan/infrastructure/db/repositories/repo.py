@@ -34,7 +34,7 @@ class Repository(Generic[AbstractModel]):
         return Page(
             items=[x[0] for x in result],
             number=page_number,
-            total_pages=math.ceil(result[0].total / items_per_page)
-            if len(result) > 0
-            else 0,
+            total_pages=(
+                math.ceil(result[0].total / items_per_page) if len(result) > 0 else 0
+            ),
         )

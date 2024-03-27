@@ -66,9 +66,9 @@ class Event(Base):
             skip=self.skip,
             real_position=self.real_position,
             nomination=self.nomination.to_dto() if self.nomination else None,
-            user_subscription=self.user_subscription.to_dto()
-            if self.user_subscription
-            else None,
+            user_subscription=(
+                self.user_subscription.to_dto() if self.user_subscription else None
+            ),
         )
 
     def __str__(self):
