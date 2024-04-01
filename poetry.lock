@@ -465,13 +465,13 @@ files = [
 
 [[package]]
 name = "dishka"
-version = "0.8.0"
+version = "0.9.0"
 description = "Minimal DI framework"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "dishka-0.8.0-py3-none-any.whl", hash = "sha256:d439d801b79fa0d6d74eaffe9e651c4d66d8fe5dda4ba73deee38697d1858469"},
-    {file = "dishka-0.8.0.tar.gz", hash = "sha256:928df14cd88687d7ca83e241b2d5e51eda9b9e1c53bfb67f397fa12e3e4a914e"},
+    {file = "dishka-0.9.0-py3-none-any.whl", hash = "sha256:8967820fd59168d2916c59f84665c4240f70005bc97ac4ff8d0b86e3456a099d"},
+    {file = "dishka-0.9.0.tar.gz", hash = "sha256:8fb62acae50f54006a2ee343ab67f098015969e0f661c6a11425d7ba77522a38"},
 ]
 
 [[package]]
@@ -2174,4 +2174,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "3dc6a1b4936323cf22ab5cd6cd4f3f7e9eefaeb4fe0d6561e7fa577dd2f2ab82"
+content-hash = "d93978105db97cb4fed5ba00702831ea9cf0f5b61a32c7eeee51b93ce79e2d66"

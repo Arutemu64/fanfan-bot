@@ -11,7 +11,7 @@ aiogram = {version = "^3.4.1", extras = ["fast"]}
 aiogram-dialog = "^2.1.0"
 alembic = "^1.13.1"
 asyncpg = "^0.29.0"
-dishka = "^0.8.0"
+dishka = "^0.9.0"
 fastapi = "^0.110.0"
 itsdangerous = "^2.1.2"
 jinja2 = "^3.1.3"
