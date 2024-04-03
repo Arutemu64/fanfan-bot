@@ -79,7 +79,7 @@ class DatabaseConfig(BaseSettings):
         dsn: PostgresDsn = PostgresDsn.build(
             scheme=f"{self.database_system}+{self.driver}",
             username=self.username,
-            password=self.password.get_secret_value(),
+            password=self.password.get_secret_value() if self.password else None,
             host=self.host,
             port=self.port,
             path=self.database,
