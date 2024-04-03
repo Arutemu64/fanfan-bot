@@ -12,6 +12,7 @@ from fanfan.application.services import (
     UserService,
     VotingService,
 )
+from fanfan.application.services.common import CommonService
 from fanfan.infrastructure.db import UnitOfWork
 
 
@@ -30,3 +31,4 @@ class AppHolder:
         self.tickets = TicketService(uow, identity)
         self.users = UserService(uow, identity)
         self.voting = VotingService(uow, identity)
+        self.common = CommonService(uow, identity)

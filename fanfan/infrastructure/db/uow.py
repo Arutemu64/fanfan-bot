@@ -10,6 +10,8 @@ from .repositories import (
     TicketsRepository,
     UsersRepository,
     VotesRepository,
+    ActivitiesRepository,
+    QuotesRepository,
 )
 
 
@@ -25,6 +27,8 @@ class UnitOfWork:
         self.tickets = TicketsRepository(self.session)
         self.users = UsersRepository(self.session)
         self.votes = VotesRepository(self.session)
+        self.activities = ActivitiesRepository(self.session)
+        self.quotes = QuotesRepository(self.session)
 
     async def __aenter__(self):
         pass

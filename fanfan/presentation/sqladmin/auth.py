@@ -19,7 +19,7 @@ auth_router = APIRouter()
 
 class AdminAuth(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
-        return True
+        pass
 
     async def logout(self, request: Request) -> Union[bool, RedirectResponse]:
         request.session.clear()

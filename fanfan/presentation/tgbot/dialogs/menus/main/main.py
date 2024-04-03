@@ -1,5 +1,4 @@
 import math
-import random
 
 from aiogram import F
 from aiogram.types import CallbackQuery
@@ -14,13 +13,10 @@ from fanfan.application.exceptions.voting import VotingServiceDisabled
 from fanfan.application.holder import AppHolder
 from fanfan.common.enums import BotMode, UserRole
 from fanfan.config import conf
-from fanfan.presentation.tgbot import UI_DIR, UI_IMAGES_DIR
+from fanfan.presentation.tgbot import UI_IMAGES_DIR
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
-
-with open(UI_DIR / "strings" / "quotes.txt", encoding="utf-8") as f:
-    quotes = f.read().splitlines()
 
 
 async def main_menu_getter(
@@ -50,7 +46,7 @@ async def main_menu_getter(
         "voting_enabled": settings.voting_enabled,
         "show_qr_webapp": conf.web.mode is BotMode.WEBHOOK,
         # Most important thing ever
-        "random_quote": random.choice(quotes),
+        "random_quote": await app.common.get_random_quote(),
     }
 
 
@@ -99,7 +95,7 @@ main_window = Window(
         "всем функциям бота (голосование, участие в квесте).\n",
         when=~F["is_ticket_linked"],
     ),
-    Format("<i>{random_quote}</i>"),
+    Format("<i>{random_quote}</i>", when=F["random_quote"]),
     StaticMedia(path=Const(UI_IMAGES_DIR.joinpath("main_menu.png"))),
     Start(
         Const(strings.titles.ticket_linking),

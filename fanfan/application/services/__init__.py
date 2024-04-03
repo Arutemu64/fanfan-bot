@@ -1,3 +1,4 @@
+from fanfan.application.services.common import CommonService
 from fanfan.application.services.notification import NotificationService
 from fanfan.application.services.quest import QuestService
 from fanfan.application.services.schedule import ScheduleService
@@ -18,4 +19,5 @@ __all__ = [
     "TicketService",
     "UserService",
     "VotingService",
+    "CommonService",
 ]

@@ -1,7 +1,9 @@
 from .achievements import AchievementsRepository
+from .activities import ActivitiesRepository
 from .events import EventsRepository
 from .nominations import NominationsRepository
 from .participants import ParticipantsRepository
+from .quotes import QuotesRepository
 from .settings import SettingsRepository
 from .subscriptions import SubscriptionsRepository
 from .tickets import TicketsRepository
@@ -18,4 +20,6 @@ __all__ = [
     "VotesRepository",
     "AchievementsRepository",
     "EventsRepository",
+    "ActivitiesRepository",
+    "QuotesRepository",
 ]

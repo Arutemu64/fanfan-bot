@@ -1,3 +1,5 @@
+from typing import List
+
 from sqladmin import ModelView
 
 from fanfan.infrastructure.db.models import (
@@ -10,6 +12,8 @@ from fanfan.infrastructure.db.models import (
     Transaction,
     User,
     Vote,
+    Activity,
+    Quote,
 )
 
 
@@ -208,7 +212,48 @@ class TransactionAdmin(ModelView, model=Transaction):
     }
 
 
-model_views = [
+class ActivityAdmin(ModelView, model=Activity):
+    name_plural = "Активности"
+    icon = "fa-solid fa-person-snowboarding"
+    column_list = [
+        Activity.id,
+        Activity.title,
+    ]
+    column_labels = {
+        Activity.id: "ID",
+        Activity.title: "Название",
+        Activity.description: "Описание",
+        Activity.subtext: "Подтекст",
+        Activity.image: "Изображение",
+    }
+    form_columns = [
+        Activity.title,
+        Activity.description,
+        Activity.subtext,
+        Activity.image,
+    ]
+
+
+class QuoteAdmin(ModelView, model=Quote):
+    name = "Подписи"
+    icon = "fa-solid fa-pen"
+    column_list = [
+        Quote.id,
+        Quote.text,
+    ]
+    column_labels = {
+        Quote.id: "ID",
+        Quote.text: "Название",
+        Activity.description: "Описание",
+        Activity.subtext: "Подтекст",
+        Activity.image: "Изображение",
+    }
+    form_columns = [
+        Quote.text,
+    ]
+
+
+model_views: List[ModelView] = [
     TicketAdmin,
     UserAdmin,
     AchievementAdmin,
@@ -218,4 +263,6 @@ model_views = [
     NominationAdmin,
     VoteAdmin,
     TransactionAdmin,
+    ActivityAdmin,
+    QuoteAdmin,
 ]

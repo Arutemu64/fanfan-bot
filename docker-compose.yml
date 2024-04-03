@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     stop_signal: SIGINT
     volumes:
-      - ./alembic:/app/alembic
+      - bot-data:/media/bot-data
       - ./alembic.ini:/app/alembic.ini
     ports:
       - "8080:8080"
@@ -43,6 +43,9 @@ services:
       - "6379:6379"
 
 volumes:
+  bot-data:
+    name: "fanfan-bot-data"
+    driver: local
   db-data:
     name: "fanfan-db-data"
     driver: local

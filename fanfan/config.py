@@ -2,7 +2,14 @@ import logging
 from typing import Any, List, Optional, Tuple, Type
 
 from dotenv import find_dotenv, load_dotenv
-from pydantic import HttpUrl, PostgresDsn, RedisDsn, SecretStr, model_validator
+from pydantic import (
+    HttpUrl,
+    PostgresDsn,
+    RedisDsn,
+    SecretStr,
+    model_validator,
+    DirectoryPath,
+)
 from pydantic.fields import Field, FieldInfo
 from pydantic_settings import (
     BaseSettings,
@@ -34,6 +41,7 @@ class BotConfig(BaseSettings):
     admin_list: List[str]
     docs_link: HttpUrl = "https://example.com"
     timezone: str = "Europe/Moscow"
+    media_root: DirectoryPath
 
     @model_validator(mode="before")
     def check_timezone(cls, data: dict) -> dict:

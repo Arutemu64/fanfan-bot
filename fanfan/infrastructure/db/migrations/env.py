@@ -24,10 +24,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
-config.set_main_option(
-    'sqlalchemy.url',
-    conf.db.build_connection_str()
-)
+config.set_main_option("sqlalchemy.url", conf.db.build_connection_str())
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -61,7 +58,11 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata, process_revision_directives=process_revision_directives,)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        process_revision_directives=process_revision_directives,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
@@ -105,12 +106,12 @@ def process_revision_directives(context, revision, directives):
         last_rev_id = int(head_revision)
         new_rev_id = last_rev_id + 1
     # fill zeros up to 3 digits: 1 -> 001
-    migration_script.rev_id = '{0:03}'.format(new_rev_id)
+    migration_script.rev_id = "{0:03}".format(new_rev_id)
 
 
 if context.is_offline_mode():
-    #asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
+    # asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     run_migrations_offline()
 else:
-    #asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
+    # asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     run_migrations_online()

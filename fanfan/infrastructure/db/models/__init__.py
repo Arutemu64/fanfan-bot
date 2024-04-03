@@ -1,8 +1,10 @@
 from .achievement import Achievement
+from .activity import Activity
 from .base import Base
 from .event import Event
 from .nomination import Nomination
 from .participant import Participant
+from .quote import Quote
 from .received_achievement import ReceivedAchievement
 from .settings import Settings
 from .subscription import Subscription
@@ -24,4 +26,6 @@ __all__ = [
     "Transaction",
     "User",
     "Vote",
+    "Activity",
+    "Quote",
 ]
