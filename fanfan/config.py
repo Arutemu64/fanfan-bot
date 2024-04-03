@@ -39,7 +39,6 @@ class BotConfig(BaseSettings):
 
     token: SecretStr
     admin_list: List[str]
-    docs_link: HttpUrl = "https://example.com"
     timezone: str = "Europe/Moscow"
     media_root: DirectoryPath
 
@@ -67,7 +66,7 @@ class DatabaseConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="POSTGRES_")
 
     username: str = Field(alias="POSTGRES_USER")
-    password: str
+    password: SecretStr
     host: str = "db"
     port: int = 5432
     database: str = Field(alias="POSTGRES_DB")
@@ -80,7 +79,7 @@ class DatabaseConfig(BaseSettings):
         dsn: PostgresDsn = PostgresDsn.build(
             scheme=f"{self.database_system}+{self.driver}",
             username=self.username,
-            password=self.password,
+            password=self.password.get_secret_value(),
             host=self.host,
             port=self.port,
             path=self.database,
@@ -92,7 +91,7 @@ class RedisConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="REDIS_")
 
     username: Optional[str] = None
-    password: Optional[str] = None
+    password: Optional[SecretStr] = None
     host: str = "redis"
     port: int = 6379
     database: str = "0"
@@ -103,7 +102,7 @@ class RedisConfig(BaseSettings):
         dsn: RedisDsn = RedisDsn.build(
             scheme="redis",
             username=self.username,
-            password=self.password,
+            password=self.password.get_secret_value(),
             host=self.host,
             port=self.port,
             path=self.database,
@@ -173,4 +172,5 @@ class Configuration:
     debug: DebugConfig = DebugConfig()
 
 
-conf = Configuration()
+def get_config() -> Configuration:
+    return Configuration()

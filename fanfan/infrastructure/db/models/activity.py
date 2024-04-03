@@ -5,7 +5,7 @@ from fastapi_storages.integrations.sqlalchemy import ImageType
 from sqlalchemy.orm import Mapped, mapped_column
 
 from fanfan.application.dto.activity import ActivityDTO
-from fanfan.config import conf
+from fanfan.config import get_config
 from fanfan.infrastructure.db.models.base import Base
 
 
@@ -18,7 +18,9 @@ class Activity(Base):
     subtext: Mapped[Optional[str]] = mapped_column(nullable=True)
     image: Mapped[Optional[StorageImage]] = mapped_column(
         ImageType(
-            storage=FileSystemStorage(conf.bot.media_root.joinpath("activity_images"))
+            storage=FileSystemStorage(
+                get_config().bot.media_root.joinpath("activity_images")
+            )
         ),
         nullable=True,
     )

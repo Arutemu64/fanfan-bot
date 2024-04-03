@@ -2,7 +2,6 @@ from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.kbd import Cancel, Start, Url
 from aiogram_dialog.widgets.text import Const
 
-from fanfan.config import conf
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -28,7 +27,7 @@ helper_main_window = Window(
     ),
     Url(
         text=Const(strings.buttons.help),
-        url=Const(str(conf.bot.docs_link)),
+        url=Const("https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"),
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.HELPER.MAIN,

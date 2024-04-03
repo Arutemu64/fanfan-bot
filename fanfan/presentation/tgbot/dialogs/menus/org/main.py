@@ -20,7 +20,7 @@ from aiogram_dialog.widgets.text import Case, Const, Format
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
-from fanfan.config import conf
+from fanfan.config import get_config
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.getters import get_roles
 from fanfan.presentation.tgbot.dialogs.widgets import Title
@@ -37,11 +37,11 @@ async def org_menu_getter(dialog_manager: DialogManager, app: AppHolder, **kwarg
     dialog_manager.dialog_data[DATA_VOTING_ENABLED] = settings.voting_enabled
     jwt_token = jwt.encode(
         payload={"user_id": dialog_manager.event.from_user.id},
-        key=conf.web.secret_key.get_secret_value(),
+        key=get_config().web.secret_key.get_secret_value(),
     )
     return {
         "voting_enabled": settings.voting_enabled,
-        "web_panel_login_link": f"{conf.web.build_admin_auth_url()}?token={jwt_token}",
+        "web_panel_login_link": f"{get_config().web.build_admin_auth_url()}?token={jwt_token}",
     }
 
 
@@ -104,7 +104,7 @@ org_main_window = Window(
     ),
     Url(
         text=Const(strings.buttons.help),
-        url=Const(str(conf.bot.docs_link)),
+        url=Const("https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"),
     ),
     Start(
         state=states.NOTIFICATIONS.MAIN,

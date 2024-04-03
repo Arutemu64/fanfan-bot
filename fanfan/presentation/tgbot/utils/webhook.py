@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from dishka import FromDishka
@@ -13,8 +11,8 @@ webhook_router = APIRouter(prefix="/webhook")
 @inject
 async def handle_webhook_update(
     request: Request,
-    dp: Annotated[Dispatcher, FromDishka()],
-    bot: Annotated[Bot, FromDishka()],
+    dp: FromDishka[Dispatcher],
+    bot: FromDishka[Bot],
 ):
     telegram_update = Update.model_validate(await request.json(), context={"bot": bot})
     await dp.feed_update(bot, telegram_update)

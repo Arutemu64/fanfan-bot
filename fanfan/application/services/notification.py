@@ -12,7 +12,7 @@ from fanfan.application.dto.common import UserNotification
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
-from fanfan.config import conf
+from fanfan.config import get_config
 from fanfan.infrastructure.scheduler import (
     delete_message,
     redis_async_result,
@@ -47,7 +47,7 @@ class NotificationService(BaseService):
         Mass delete sent notifications by group ID
         @param delivery_id: Delivery ID
         """
-        redis = Redis().from_url(conf.redis.build_connection_str())
+        redis = Redis().from_url(get_config().redis.build_connection_str())
         count = await redis.llen(delivery_id)
         while await redis.llen(delivery_id) > 0:
             try:
@@ -79,7 +79,7 @@ class NotificationService(BaseService):
             return
 
         notifications = []
-        timestamp = datetime.now(tz=timezone(conf.bot.timezone))
+        timestamp = datetime.now(tz=timezone(get_config().bot.timezone))
 
         if send_global_announcement:
             next_event = await self.uow.events.get_next_event(event_id=current_event.id)

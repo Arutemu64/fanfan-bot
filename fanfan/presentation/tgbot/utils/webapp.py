@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from aiogram import Bot
 from aiogram.utils.web_app import safe_parse_webapp_init_data
 from aiogram_dialog import BgManagerFactory
@@ -28,9 +26,9 @@ async def open_qr_scanner():
 @inject
 async def proceed_qr_post(
     request: Request,
-    bot: Annotated[Bot, FromDishka()],
-    dialog_bg_factory: Annotated[BgManagerFactory, FromDishka()],
-    uow: Annotated[UnitOfWork, FromDishka()],
+    bot: FromDishka[Bot],
+    dialog_bg_factory: FromDishka[BgManagerFactory],
+    uow: FromDishka[UnitOfWork],
 ):
     data = await request.form()
     try:

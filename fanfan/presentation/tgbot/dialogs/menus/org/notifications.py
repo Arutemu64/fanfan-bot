@@ -24,7 +24,7 @@ from fanfan.application.dto.common import UserNotification
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
-from fanfan.config import conf
+from fanfan.config import get_config
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.getters import get_roles_list
 from fanfan.presentation.tgbot.dialogs.widgets import Title
@@ -48,7 +48,7 @@ async def send_notification_handler(
     roles = roles_picker.get_checked()
     delivery_id = uuid.uuid4().hex
     notifications = []
-    timestamp = datetime.now(tz=timezone(conf.bot.timezone))
+    timestamp = datetime.now(tz=timezone(get_config().bot.timezone))
 
     try:
         for u in await app.users.get_all_by_roles(roles):

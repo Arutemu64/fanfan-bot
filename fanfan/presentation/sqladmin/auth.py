@@ -1,4 +1,4 @@
-from typing import Annotated, Union
+from typing import Union
 
 import jwt
 from dishka import FromDishka, make_async_container
@@ -9,7 +9,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 from fanfan.common.enums import UserRole
-from fanfan.config import conf
+from fanfan.config import get_config
 from fanfan.infrastructure.db.uow import UnitOfWork
 from fanfan.infrastructure.di.config import ConfigProvider
 from fanfan.infrastructure.di.db import DbProvider
@@ -33,7 +33,7 @@ class AdminAuth(AuthenticationBackend):
                 uow = await request_container.get(UnitOfWork)
                 jwt_decoded = jwt.decode(
                     jwt=token,
-                    key=conf.web.secret_key.get_secret_value(),
+                    key=get_config().web.secret_key.get_secret_value(),
                     algorithms=["HS256"],
                 )
                 user = await uow.users.get_user_by_id(jwt_decoded["user_id"])
@@ -52,12 +52,10 @@ class AdminAuth(AuthenticationBackend):
 
 @auth_router.get("/auth")
 @inject
-async def auth(
-    request: Request, token: str, uow: Annotated[UnitOfWork, FromDishka()]
-) -> Response:
+async def auth(request: Request, token: str, uow: FromDishka[UnitOfWork]) -> Response:
     jwt_decoded = jwt.decode(
         jwt=token,
-        key=conf.web.secret_key.get_secret_value(),
+        key=get_config().web.secret_key.get_secret_value(),
         algorithms=["HS256"],
     )
     user = await uow.users.get_user_by_id(jwt_decoded["user_id"])

@@ -12,7 +12,7 @@ from fanfan.application.exceptions.access import TicketNotLinked
 from fanfan.application.exceptions.voting import VotingServiceDisabled
 from fanfan.application.holder import AppHolder
 from fanfan.common.enums import BotMode, UserRole
-from fanfan.config import conf
+from fanfan.config import get_config
 from fanfan.presentation.tgbot import UI_IMAGES_DIR
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
@@ -44,7 +44,7 @@ async def main_menu_getter(
         "total_achievements": user_stats.total_achievements if user_stats else None,
         # Settings
         "voting_enabled": settings.voting_enabled,
-        "show_qr_webapp": conf.web.mode is BotMode.WEBHOOK,
+        "show_qr_webapp": get_config().web.mode is BotMode.WEBHOOK,
         # Most important thing ever
         "random_quote": await app.common.get_random_quote(),
     }
@@ -112,7 +112,7 @@ main_window = Window(
             ),
             WebApp(
                 Const(strings.titles.qr_scanner),
-                url=Const(f"""https://{conf.web.domain}/qr_scanner"""),
+                url=Const(f"""https://{get_config().web.domain}/qr_scanner"""),
             ),
             when=F["show_qr_webapp"] & F["is_ticket_linked"],
         ),

@@ -6,7 +6,8 @@ import sentry_sdk
 import uvicorn
 from aiogram import Bot, Dispatcher
 from dishka import AsyncContainer, make_async_container
-from dishka.integrations.fastapi import setup_dishka
+from dishka.integrations.fastapi import setup_dishka as setup_dishka_fastapi
+from dishka.integrations.taskiq import setup_dishka as setup_dishka_taskiq
 from fastapi import FastAPI
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
@@ -18,7 +19,7 @@ from taskiq.api import run_receiver_task
 
 from fanfan.application.services.settings import SettingsService
 from fanfan.common.enums import BotMode
-from fanfan.config import conf
+from fanfan.config import get_config
 from fanfan.infrastructure.db.uow import UnitOfWork
 from fanfan.infrastructure.scheduler import broker
 from fanfan.presentation.sqladmin.admin import setup_admin
@@ -29,14 +30,15 @@ from fanfan.presentation.tgbot.utils.webhook import webhook_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app_container: AsyncContainer = app.state.dishka_container
+    config = get_config()
 
     # Setup Sentry logging
-    if conf.debug.sentry_enabled:
+    if config.debug.sentry_enabled:
         sentry_sdk.init(
-            dsn=conf.debug.sentry_dsn,
+            dsn=config.debug.sentry_dsn,
             traces_sample_rate=1.0,
             profiles_sample_rate=1.0,
-            environment=conf.debug.sentry_env,
+            environment=config.debug.sentry_env,
             integrations=[
                 AsyncioIntegration(),
                 SqlalchemyIntegration(),
@@ -45,7 +47,7 @@ async def lifespan(app: FastAPI):
         )
 
     # Run scheduler
-    broker.state.container = app_container
+    setup_dishka_taskiq(app_container, broker)
     worker_task = asyncio.create_task(run_receiver_task(broker, run_startup=True))
 
     async with app_container() as request_container:
@@ -58,18 +60,21 @@ async def lifespan(app: FastAPI):
     # Setup and run bot
     bot = await app_container.get(Bot)
     bot_task = None
-    if conf.web.mode == BotMode.WEBHOOK:
-        webhook_url = conf.web.build_webhook_url()
-        app.include_router(webhook_router)
-        app.include_router(webapp_router)
-        if (await bot.get_webhook_info()).url != webhook_url:
-            await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
-        logging.info(f"Running in webhook mode at {(await bot.get_webhook_info()).url}")
-    elif conf.web.mode == BotMode.POLLING:
-        dp = await app_container.get(Dispatcher)
-        await bot.delete_webhook(drop_pending_updates=True)
-        bot_task = asyncio.create_task(dp.start_polling(bot))
-        logging.info("Running in polling mode")
+    match config.web.mode:
+        case BotMode.WEBHOOK:
+            webhook_url = config.web.build_webhook_url()
+            app.include_router(webhook_router)
+            app.include_router(webapp_router)
+            if (await bot.get_webhook_info()).url != webhook_url:
+                await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
+            logging.info(
+                f"Running in webhook mode at {(await bot.get_webhook_info()).url}"
+            )
+        case BotMode.POLLING:
+            dp = await app_container.get(Dispatcher)
+            await bot.delete_webhook(drop_pending_updates=True)
+            bot_task = asyncio.create_task(dp.start_polling(bot))
+            logging.info("Running in polling mode")
     yield
     logging.info("Stopping scheduler worker...")
     worker_task.cancel()
@@ -83,18 +88,20 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    config = get_config()
+
     # Setup FastAPI app
-    app = FastAPI(lifespan=lifespan, debug=conf.debug.enabled)
+    app = FastAPI(lifespan=lifespan, debug=config.debug.enabled)
 
     # Setup DI
     from fanfan.infrastructure.di import get_app_providers
 
     app_container = make_async_container(*get_app_providers())
-    setup_dishka(app_container, app)
+    setup_dishka_fastapi(app_container, app)
 
     # Setup FastAPI middlewares
     app.add_middleware(
-        SessionMiddleware, secret_key=conf.web.secret_key.get_secret_value()
+        SessionMiddleware, secret_key=config.web.secret_key.get_secret_value()
     )
     app.add_middleware(
         CORSMiddleware,
@@ -107,9 +114,13 @@ def create_app() -> FastAPI:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=conf.debug.logging_level)
-    uvicorn.run(
-        host=conf.web.host,
-        port=conf.web.port,
-        app=create_app(),
-    )
+    config = get_config()
+    logging.basicConfig(level=config.debug.logging_level)
+    try:
+        uvicorn.run(
+            host=config.web.host,
+            port=config.web.port,
+            app=create_app(),
+        )
+    except KeyboardInterrupt:
+        pass
