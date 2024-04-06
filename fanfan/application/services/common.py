@@ -6,7 +6,6 @@ from fanfan.application.services.base import BaseService
 
 
 class CommonService(BaseService):
-
     async def get_activity_page(self, page_number: int) -> Page[ActivityDTO]:
         page = await self.uow.activities.get_activity_page(page_number)
         return Page(

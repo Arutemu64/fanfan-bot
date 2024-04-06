@@ -10,8 +10,7 @@ def check_permission(
     ticket_required: bool = False,
     allowed_roles: Optional[List[UserRole]] = None,
 ):
-    """
-    A decorator used to check user permissions. Must be used in a service
+    """A decorator used to check user permissions. Must be used in a service
     class with self.identity attribute (FullUserDTO type).
     @param ticket_required: If True, user without a linked ticket will be denied.
     @param allowed_roles: List of allowed UserRole's, other roles will be denied.

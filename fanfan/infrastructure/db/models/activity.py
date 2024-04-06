@@ -19,8 +19,8 @@ class Activity(Base):
     image: Mapped[Optional[StorageImage]] = mapped_column(
         ImageType(
             storage=FileSystemStorage(
-                get_config().bot.media_root.joinpath("activity_images")
-            )
+                get_config().bot.media_root.joinpath("activity_images"),
+            ),
         ),
         nullable=True,
     )

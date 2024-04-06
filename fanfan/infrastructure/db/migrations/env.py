@@ -1,12 +1,12 @@
 import asyncio
 from logging.config import fileConfig
 
-from alembic import context
-from alembic.script import ScriptDirectory
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
+from alembic.script import ScriptDirectory
 from fanfan.config import get_config
 from fanfan.infrastructure.db.models import Base
 
@@ -73,7 +73,6 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
 
     """
-
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -88,7 +87,6 @@ async def run_async_migrations() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-
     asyncio.run(run_async_migrations())
 
 
@@ -106,7 +104,7 @@ def process_revision_directives(context, revision, directives):
         last_rev_id = int(head_revision)
         new_rev_id = last_rev_id + 1
     # fill zeros up to 3 digits: 1 -> 001
-    migration_script.rev_id = "{0:03}".format(new_rev_id)
+    migration_script.rev_id = f"{new_rev_id:03}"
 
 
 if context.is_offline_mode():

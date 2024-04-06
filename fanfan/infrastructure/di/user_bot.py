@@ -36,7 +36,7 @@ class UserProvider(Provider):
                 {
                     "id": tg_user.id,
                     "username": tg_user.username,
-                }
+                },
             )
         # Getting user from DB
         try:
@@ -46,7 +46,7 @@ class UserProvider(Provider):
                 CreateUserDTO(
                     id=tg_user.id,
                     username=tg_user.username,
-                )
+                ),
             )
         services = AppHolder(uow, user)
         # Updating user data
@@ -55,7 +55,7 @@ class UserProvider(Provider):
                 UpdateUserDTO(
                     id=tg_user.id,
                     username=tg_user.username,
-                )
+                ),
             )
         if user.username:
             if (
@@ -66,12 +66,14 @@ class UserProvider(Provider):
                     UpdateUserDTO(
                         id=tg_user.id,
                         role=UserRole.ORG,
-                    )
+                    ),
                 )
         return user
 
     @provide
     async def get_services_holder(
-        self, uow: UnitOfWork, identity: FullUserDTO
+        self,
+        uow: UnitOfWork,
+        identity: FullUserDTO,
     ) -> AppHolder:
         return AppHolder(uow, identity)

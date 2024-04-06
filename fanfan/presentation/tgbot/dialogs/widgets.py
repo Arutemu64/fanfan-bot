@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.common import WhenCondition
 from aiogram_dialog.widgets.text import Text
 
 DELETE_BUTTON = InlineKeyboardBuilder().add(
-    InlineKeyboardButton(text="👀 Прочитано", callback_data="delete")
+    InlineKeyboardButton(text="👀 Прочитано", callback_data="delete"),
 )
 
 

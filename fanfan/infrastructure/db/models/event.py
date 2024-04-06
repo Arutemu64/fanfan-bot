@@ -26,12 +26,15 @@ class Event(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(index=True)
     position: Mapped[float] = mapped_column(
-        unique=True, nullable=False, server_default=position_sequence.next_value()
+        unique=True,
+        nullable=False,
+        server_default=position_sequence.next_value(),
     )
     UniqueConstraint(position, deferrable=True, initially="DEFERRED")
     real_position = None  # Placeholder
     participant_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("participants.id", ondelete="CASCADE"), nullable=True
+        ForeignKey("participants.id", ondelete="CASCADE"),
+        nullable=True,
     )
 
     current: Mapped[Optional[bool]] = mapped_column(nullable=True, unique=True)
@@ -44,7 +47,8 @@ class Event(Base):
     )
 
     user_subscription: Mapped[Optional[Subscription]] = relationship(
-        lazy="raise", viewonly=True
+        lazy="raise",
+        viewonly=True,
     )
 
     def to_dto(self) -> EventDTO:

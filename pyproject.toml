@@ -36,9 +36,11 @@ uvicorn = "^0.29.0"
 optional=true
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.2.0"
 mypy = "^1.8.0"
 ruff = "^0.3.4"
+
+[tool.ruff]
+lint.select = ['E', 'F', 'W', 'A', 'PLC', 'PLE', 'PLW', 'I']
 
 [[tool.poetry.source]]
 name = "PyPI"

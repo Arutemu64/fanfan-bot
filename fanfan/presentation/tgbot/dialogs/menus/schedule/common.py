@@ -31,7 +31,10 @@ SEARCH_QUERY = "search_query"
 
 
 async def schedule_getter(
-    dialog_manager: DialogManager, app: AppHolder, user: FullUserDTO, **kwargs
+    dialog_manager: DialogManager,
+    app: AppHolder,
+    user: FullUserDTO,
+    **kwargs,
 ):
     page = await app.schedule.get_schedule_page(
         page_number=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page(),
@@ -59,7 +62,9 @@ async def show_event_page(manager: DialogManager, event_id: int):
 
 
 async def update_schedule_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     app: AppHolder = manager.middleware_data["app"]
     try:
@@ -81,7 +86,9 @@ async def set_search_query_handler(
 
 
 async def reset_search_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     manager.dialog_data.pop(SEARCH_QUERY)
     await update_schedule_handler(callback, button, manager)

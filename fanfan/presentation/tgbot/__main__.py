@@ -68,7 +68,7 @@ async def lifespan(app: FastAPI):
             if (await bot.get_webhook_info()).url != webhook_url:
                 await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
             logging.info(
-                f"Running in webhook mode at {(await bot.get_webhook_info()).url}"
+                f"Running in webhook mode at {(await bot.get_webhook_info()).url}",
             )
         case BotMode.POLLING:
             dp = await app_container.get(Dispatcher)
@@ -101,7 +101,8 @@ def create_app() -> FastAPI:
 
     # Setup FastAPI middlewares
     app.add_middleware(
-        SessionMiddleware, secret_key=config.web.secret_key.get_secret_value()
+        SessionMiddleware,
+        secret_key=config.web.secret_key.get_secret_value(),
     )
     app.add_middleware(
         CORSMiddleware,

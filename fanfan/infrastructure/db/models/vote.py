@@ -20,7 +20,7 @@ class Vote(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     participant_id: Mapped[int] = mapped_column(
-        ForeignKey("participants.id", ondelete="CASCADE")
+        ForeignKey("participants.id", ondelete="CASCADE"),
     )
 
     UniqueConstraint(user_id, participant_id)
@@ -28,7 +28,8 @@ class Vote(Base):
     user: Mapped[User] = relationship()
     participant: Mapped[Participant] = relationship()
     nomination: Mapped[Nomination] = relationship(
-        secondary="participants", viewonly=True
+        secondary="participants",
+        viewonly=True,
     )
 
     def to_dto(self) -> VoteDTO:

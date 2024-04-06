@@ -1,14 +1,15 @@
 """init
 
 Revision ID: 001
-Revises: 
+Revises:
 Create Date: 2024-01-20 19:32:00.736781
 
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "001"
@@ -62,13 +63,22 @@ def upgrade() -> None:
         "settings",
         sa.Column("id", sa.Integer(), server_default="1", nullable=False),
         sa.Column(
-            "voting_enabled", sa.Boolean(), server_default="False", nullable=False
+            "voting_enabled",
+            sa.Boolean(),
+            server_default="False",
+            nullable=False,
         ),
         sa.Column(
-            "announcement_timeout", sa.Integer(), server_default="10", nullable=False
+            "announcement_timeout",
+            sa.Integer(),
+            server_default="10",
+            nullable=False,
         ),
         sa.Column(
-            "announcement_timestamp", sa.Float(), server_default="0", nullable=False
+            "announcement_timestamp",
+            sa.Float(),
+            server_default="0",
+            nullable=False,
         ),
         sa.Column(
             "created_on",
@@ -143,7 +153,10 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_participants")),
     )
     op.create_index(
-        op.f("ix_participants_title"), "participants", ["title"], unique=True
+        op.f("ix_participants_title"),
+        "participants",
+        ["title"],
+        unique=True,
     )
     op.create_table(
         "received_achievements",
@@ -176,7 +189,9 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_received_achievements")),
         sa.UniqueConstraint(
-            "user_id", "achievement_id", name=op.f("uq_received_achievements_user_id")
+            "user_id",
+            "achievement_id",
+            name=op.f("uq_received_achievements_user_id"),
         ),
     )
     op.create_table(
@@ -362,7 +377,9 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_subscriptions")),
         sa.UniqueConstraint(
-            "event_id", "user_id", name=op.f("uq_subscriptions_event_id")
+            "event_id",
+            "user_id",
+            name=op.f("uq_subscriptions_event_id"),
         ),
     )
     # ### end Alembic commands ###
@@ -385,7 +402,7 @@ def downgrade() -> None:
     op.drop_table("nominations")
     op.drop_table("achievements")
     postgresql.ENUM("VISITOR", "PARTICIPANT", "HELPER", "ORG", name="userrole").drop(
-        op.get_bind()
+        op.get_bind(),
     )
     op.execute("DROP SEQUENCE schedule_position_seq")
     # ### end Alembic commands ###

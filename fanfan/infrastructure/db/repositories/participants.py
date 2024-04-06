@@ -43,11 +43,11 @@ class ParticipantsRepository(Repository[Participant]):
                 and_(
                     Participant.nomination.has(Nomination.votable.is_(True)),
                     Participant.event.has(Event.skip.isnot(True)),
-                )
+                ),
             )
         if nomination_id:
             query = query.where(
-                Participant.nomination.has(Nomination.id == nomination_id)
+                Participant.nomination.has(Nomination.id == nomination_id),
             )
         if user_id:
             query = query.options(contains_eager(Participant.user_vote)).outerjoin(

@@ -27,7 +27,8 @@ async def on_unknown_error(event: ErrorEvent, dialog_manager: DialogManager):
         user_id = event.update.callback_query.from_user.id
         await event.update.callback_query.message.answer(
             UnhandledError(
-                exception_name=type(event.exception).__name__, user_id=user_id
+                exception_name=type(event.exception).__name__,
+                user_id=user_id,
             ).message,
             parse_mode=ParseMode.HTML,
             reply_markup=DELETE_BUTTON.as_markup(),
@@ -36,7 +37,8 @@ async def on_unknown_error(event: ErrorEvent, dialog_manager: DialogManager):
         user_id = event.update.message.from_user.id
         await event.update.message.answer(
             UnhandledError(
-                exception_name=type(event.exception).__name__, user_id=user_id
+                exception_name=type(event.exception).__name__,
+                user_id=user_id,
             ).message,
             parse_mode=ParseMode.HTML,
             reply_markup=DELETE_BUTTON.as_markup(),

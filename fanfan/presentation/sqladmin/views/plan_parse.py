@@ -19,11 +19,11 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
     # Drop schedule first
     await uow.session.execute(text("TRUNCATE TABLE schedule CASCADE"))
     await uow.session.execute(
-        text("ALTER SEQUENCE subscriptions_id_seq RESTART WITH 1")
+        text("ALTER SEQUENCE subscriptions_id_seq RESTART WITH 1"),
     )
     await uow.session.execute(text("ALTER SEQUENCE schedule_id_seq RESTART WITH 1"))
     await uow.session.execute(
-        text("ALTER SEQUENCE schedule_position_seq RESTART WITH 1")
+        text("ALTER SEQUENCE schedule_position_seq RESTART WITH 1"),
     )
     #
     wb = load_workbook(path)
@@ -39,7 +39,8 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
                 try:
                     async with uow.session.begin_nested():
                         new_nomination = Nomination(
-                            id=nc.value.split()[0], title=cc.value
+                            id=nc.value.split()[0],
+                            title=cc.value,
                         )
                         uow.session.add(new_nomination)
                 except IntegrityError:
@@ -48,7 +49,7 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
             participant_title = cc.value.split(", ", 1)[1]
             nomination_id = cc.value.split()[0]
             participant = await uow.participants.get_participant_by_title(
-                participant_title
+                participant_title,
             )
             if not participant:
                 participant = Participant(
@@ -84,9 +85,13 @@ class PlanParseView(BaseView):
                 except Exception as e:
                     await container.close()
                     return await self.templates.TemplateResponse(
-                        request, "plan_parse.html", context={"error": repr(e)}
+                        request,
+                        "plan_parse.html",
+                        context={"error": repr(e)},
                     )
         await container.close()
         return await self.templates.TemplateResponse(
-            request, "plan_parse.html", context={"success": True}
+            request,
+            "plan_parse.html",
+            context={"success": True},
         )

@@ -19,9 +19,7 @@ from fanfan.infrastructure.db.models import Ticket
 class TicketService(BaseService):
     @check_permission(allowed_roles=[UserRole.ORG])
     async def create_ticket(self, ticket_id: str, role: UserRole) -> TicketDTO:
-        """
-        Create a new ticket
-        """
+        """Create a new ticket"""
         async with self.uow:
             try:
                 ticket = Ticket(id=ticket_id, role=role)
@@ -32,8 +30,7 @@ class TicketService(BaseService):
                 raise TicketAlreadyExist
 
     async def link_ticket(self, ticket_id: str, user_id: int) -> None:
-        """
-        Link a ticket to a user
+        """Link a ticket to a user
         @return: UserDTO with a linked ticket
         """
         ticket = await self.uow.tickets.get_ticket(ticket_id)

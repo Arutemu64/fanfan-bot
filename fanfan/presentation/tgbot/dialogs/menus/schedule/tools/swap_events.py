@@ -50,7 +50,7 @@ async def swap_events_handler(
         return
 
     await message.reply(
-        f"✅ Выступление <b>{event1.title}</b> " f"заменено на <b>{event2.title}</b>"
+        f"✅ Выступление <b>{event1.title}</b> заменено на <b>{event2.title}</b>",
     )
     await show_event_page(dialog_manager, event1.id)
 
@@ -63,7 +63,9 @@ swap_events_window = ScheduleWindow(
         subtitle=Const("""(через пробел, например: "5 2")"""),
     ),
     after_paginator=SwitchTo(
-        state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"
+        state=states.SCHEDULE.MAIN,
+        text=Const(strings.buttons.back),
+        id="back",
     ),
     text_input=TextInput(
         id="swap_events_window_input",

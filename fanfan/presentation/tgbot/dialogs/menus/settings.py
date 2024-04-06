@@ -29,14 +29,18 @@ async def user_info_getter(dialog_manager: DialogManager, user: FullUserDTO, **k
 
 
 async def update_counter_value(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     user: FullUserDTO = manager.middleware_data["user"]
     await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(user.items_per_page)
 
 
 async def items_per_page_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     app: AppHolder = manager.middleware_data["app"]
     try:
@@ -44,7 +48,7 @@ async def items_per_page_handler(
             UpdateUserDTO(
                 id=manager.event.from_user.id,
                 items_per_page=manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value(),
-            )
+            ),
         )
     except ServiceError as e:
         await callback.answer(e.message)
@@ -56,7 +60,7 @@ async def items_per_page_handler(
 items_per_page_window = Window(
     Const(
         "🔢 <b>Укажите, сколько выступлений/участников выводить "
-        "на одной странице</b> <i>(от 3 до 10)</i>"
+        "на одной странице</b> <i>(от 3 до 10)</i>",
     ),
     Counter(
         id=ID_ITEMS_PER_PAGE_INPUT,

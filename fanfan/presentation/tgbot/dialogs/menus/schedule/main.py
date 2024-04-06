@@ -75,9 +75,9 @@ schedule_main_window = ScheduleWindow(
                     state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
                 ),
                 Url(
-                    text=Const(strings.buttons.help),
+                    text=Const(strings.buttons.help_page),
                     url=Const(
-                        "https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"
+                        "https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe",
                     ),
                 ),
                 width=2,

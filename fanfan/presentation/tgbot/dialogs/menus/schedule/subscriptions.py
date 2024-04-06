@@ -19,7 +19,11 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from fanfan.application.dto.subscription import CreateSubscriptionDTO
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.exceptions.event import EventNotFound, NoCurrentEvent
+from fanfan.application.exceptions.event import (
+    EventNotFound,
+    NoCurrentEvent,
+    SkippedEventNotAllowed,
+)
 from fanfan.application.exceptions.subscriptions import (
     SubscriptionAlreadyExist,
     SubscriptionNotFound,
@@ -45,7 +49,10 @@ DATA_SELECTED_EVENT_ID = "data_selected_event_id"
 
 
 async def subscriptions_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
+    dialog_manager: DialogManager,
+    user: FullUserDTO,
+    app: AppHolder,
+    **kwargs,
 ):
     page = await app.subscriptions.get_subscriptions_page(
         page_number=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page(),
@@ -73,13 +80,17 @@ async def create_subscription_handler(
     app: AppHolder = dialog_manager.middleware_data["app"]
     try:
         await app.subscriptions.get_subscription_by_event(
-            user_id=dialog_manager.event.from_user.id, event_id=data
+            user_id=dialog_manager.event.from_user.id,
+            event_id=data,
         )
     except SubscriptionNotFound:
         try:
             event = await app.schedule.get_event(data)
         except EventNotFound as e:
             await message.reply(e.message)
+            return
+        if event.skip:
+            await message.reply(SkippedEventNotAllowed.message)
             return
         dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID] = data
         dialog_manager.dialog_data[DATA_SELECTED_EVENT_TITLE] = event.title
@@ -101,7 +112,7 @@ async def set_counter_handler(
                 user_id=dialog_manager.event.from_user.id,
                 event_id=dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID],
                 counter=data,
-            )
+            ),
         )
     except ServiceError as e:
         await message.reply(e.message)
@@ -109,7 +120,7 @@ async def set_counter_handler(
     await message.reply(
         f"✅ Подписка на выступление "
         f"<b>{subscription.event.title}</b>"
-        f" успешно оформлена!"
+        f" успешно оформлена!",
     )
     await dialog_manager.switch_to(states.SUBSCRIPTIONS.MAIN)
 
@@ -123,7 +134,8 @@ async def remove_subscription_handler(
     app: AppHolder = dialog_manager.middleware_data["app"]
     try:
         await app.subscriptions.delete_subscription_by_event(
-            user_id=dialog_manager.event.from_user.id, event_id=data
+            user_id=dialog_manager.event.from_user.id,
+            event_id=data,
         )
     except ServiceError as e:
         await message.reply(e.message)
@@ -133,15 +145,18 @@ async def remove_subscription_handler(
 
 
 async def toggle_all_notifications_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     user: FullUserDTO = manager.middleware_data["user"]
     app: AppHolder = manager.middleware_data["app"]
     try:
         manager.middleware_data["user"] = await app.users.update_user(
             UpdateUserDTO(
-                id=user.id, receive_all_announcements=not user.receive_all_announcements
-            )
+                id=user.id,
+                receive_all_announcements=not user.receive_all_announcements,
+            ),
         )
     except ServiceError as e:
         await callback.answer(e.message)
@@ -150,7 +165,7 @@ async def toggle_all_notifications_handler(
 set_counter_window = Window(
     Format(
         """🔢 За сколько выступлений до начала """
-        """<b>{dialog_data[selected_event_title]}</b> начать оповещать Вас?"""
+        """<b>{dialog_data[selected_event_title]}</b> начать оповещать Вас?""",
     ),
     TextInput(
         id="counter_input",
@@ -217,7 +232,8 @@ subscriptions_main_window = Window(
         FirstPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("◀️")),
         CurrentPage(
-            scroll=ID_SUBSCRIPTIONS_SCROLL, text=Format(text="{current_page1}/{pages}")
+            scroll=ID_SUBSCRIPTIONS_SCROLL,
+            text=Format(text="{current_page1}/{pages}"),
         ),
         NextPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("⏭️")),

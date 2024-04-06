@@ -40,10 +40,13 @@ DATA_MANAGED_USER_ID = "managed_user_id"
 
 
 async def user_info_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
+    dialog_manager: DialogManager,
+    user: FullUserDTO,
+    app: AppHolder,
+    **kwargs,
 ):
     managed_user = await app.users.get_user_by_id(
-        dialog_manager.dialog_data[DATA_MANAGED_USER_ID]
+        dialog_manager.dialog_data[DATA_MANAGED_USER_ID],
     )
     user_stats = await app.quest.get_user_stats(managed_user.id)
     return {
@@ -68,7 +71,10 @@ async def user_info_getter(
 
 
 async def achievements_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
+    dialog_manager: DialogManager,
+    user: FullUserDTO,
+    app: AppHolder,
+    **kwargs,
 ):
     page = await app.quest.get_achievements_page(
         page_number=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
@@ -83,7 +89,9 @@ async def achievements_getter(
 
 
 async def add_points_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     app: AppHolder = manager.middleware_data["app"]
     counter: ManagedCounter = manager.find(ID_ADD_POINTS_COUNTER)
@@ -134,7 +142,7 @@ async def change_user_role_handler(
             UpdateUserDTO(
                 id=manager.dialog_data[DATA_MANAGED_USER_ID],
                 role=data,
-            )
+            ),
         )
     except ServiceError as e:
         await callback.answer(e.message, show_alert=True)
@@ -205,14 +213,17 @@ add_achievement_window = Window(
         FirstPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("◀️")),
         CurrentPage(
-            scroll=ID_ACHIEVEMENTS_SCROLL, text=Format(text="{current_page1}/{pages}")
+            scroll=ID_ACHIEVEMENTS_SCROLL,
+            text=Format(text="{current_page1}/{pages}"),
         ),
         NextPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏭️")),
         when=F["pages"] != 1,
     ),
     SwitchTo(
-        id="back", text=Const(strings.buttons.back), state=states.USER_MANAGER.MAIN
+        id="back",
+        text=Const(strings.buttons.back),
+        state=states.USER_MANAGER.MAIN,
     ),
     state=states.USER_MANAGER.ADD_ACHIEVEMENT,
     getter=achievements_getter,
@@ -231,7 +242,9 @@ role_change_window = Window(
         ),
     ),
     SwitchTo(
-        id="back", text=Const(strings.buttons.back), state=states.USER_MANAGER.MAIN
+        id="back",
+        text=Const(strings.buttons.back),
+        state=states.USER_MANAGER.MAIN,
     ),
     getter=get_roles,
     state=states.USER_MANAGER.CHANGE_ROLE,

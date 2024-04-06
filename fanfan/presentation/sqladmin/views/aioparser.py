@@ -29,7 +29,9 @@ async def parse(path: Path, uow: UnitOfWork):
         try:
             async with uow.session.begin_nested():
                 nomination = Nomination(
-                    id=row["id"], title=row["title"], votable=row["votable"]
+                    id=row["id"],
+                    title=row["title"],
+                    votable=row["votable"],
                 )
                 uow.session.add(nomination)
         except IntegrityError as e:
@@ -42,7 +44,8 @@ async def parse(path: Path, uow: UnitOfWork):
         try:
             async with uow.session.begin_nested():
                 participant = Participant(
-                    title=row["title"], nomination_id=row["nomination_id"]
+                    title=row["title"],
+                    nomination_id=row["nomination_id"],
                 )
                 uow.session.add(participant)
         except IntegrityError as e:
@@ -94,9 +97,13 @@ class AioParserView(BaseView):
                 except Exception as e:
                     await container.close()
                     return await self.templates.TemplateResponse(
-                        request, "aioparser.html", context={"error": repr(e)}
+                        request,
+                        "aioparser.html",
+                        context={"error": repr(e)},
                     )
         await container.close()
         return await self.templates.TemplateResponse(
-            request, "aioparser.html", context={"success": True}
+            request,
+            "aioparser.html",
+            context={"success": True},
         )

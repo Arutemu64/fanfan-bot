@@ -19,12 +19,15 @@ class Achievement(Base):
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
 
     user_received: Mapped[Optional[ReceivedAchievement]] = relationship(
-        lazy="raise", viewonly=True
+        lazy="raise",
+        viewonly=True,
     )
 
     def to_dto(self) -> AchievementDTO:
         return AchievementDTO(
-            id=self.id, title=self.title, description=self.description
+            id=self.id,
+            title=self.title,
+            description=self.description,
         )
 
     def to_full_dto(self) -> FullAchievementDTO:

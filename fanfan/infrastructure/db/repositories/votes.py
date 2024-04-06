@@ -16,12 +16,14 @@ class VotesRepository(Repository[Vote]):
         return await self.session.get(Vote, vote_id)
 
     async def get_vote_by_nomination(
-        self, user_id: int, nomination_id: str
+        self,
+        user_id: int,
+        nomination_id: str,
     ) -> Optional[Vote]:
         query = select(Vote).where(
             and_(
                 Vote.user_id == user_id,
                 Vote.nomination.has(Nomination.id == nomination_id),
-            )
+            ),
         )
         return await self.session.scalar(query)

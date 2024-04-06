@@ -23,7 +23,10 @@ ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 
 
 async def achievements_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
+    dialog_manager: DialogManager,
+    user: FullUserDTO,
+    app: AppHolder,
+    **kwargs,
 ):
     page = await app.quest.get_achievements_page(
         page_number=await dialog_manager.find(ID_ACHIEVEMENTS_SCROLL).get_page(),
@@ -45,7 +48,8 @@ achievements_window = Window(
         FirstPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("◀️")),
         CurrentPage(
-            scroll=ID_ACHIEVEMENTS_SCROLL, text=Format(text="{current_page1}/{pages}")
+            scroll=ID_ACHIEVEMENTS_SCROLL,
+            text=Format(text="{current_page1}/{pages}"),
         ),
         NextPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏭️")),

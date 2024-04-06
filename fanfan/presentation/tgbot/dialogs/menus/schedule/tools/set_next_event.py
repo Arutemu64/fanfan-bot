@@ -8,7 +8,9 @@ from fanfan.presentation.tgbot.dialogs.menus.schedule import show_event_page
 
 
 async def set_next_event_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     app: AppHolder = manager.middleware_data["app"]
 

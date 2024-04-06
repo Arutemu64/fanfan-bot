@@ -27,10 +27,14 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
     username: Mapped[Optional[str]] = mapped_column(
-        index=True, unique=False, nullable=True
+        index=True,
+        unique=False,
+        nullable=True,
     )
     role: Mapped[UserRole] = mapped_column(
-        postgresql.ENUM(UserRole), default=UserRole.VISITOR, server_default="VISITOR"
+        postgresql.ENUM(UserRole),
+        default=UserRole.VISITOR,
+        server_default="VISITOR",
     )
 
     items_per_page: Mapped[int] = mapped_column(server_default="5")

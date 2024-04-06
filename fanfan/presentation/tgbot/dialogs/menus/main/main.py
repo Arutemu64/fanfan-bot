@@ -20,7 +20,10 @@ from fanfan.presentation.tgbot.ui import strings
 
 
 async def main_menu_getter(
-    dialog_manager: DialogManager, app: AppHolder, user: FullUserDTO, **kwargs
+    dialog_manager: DialogManager,
+    app: AppHolder,
+    user: FullUserDTO,
+    **kwargs,
 ):
     settings = await app.settings.get_settings()
     user_stats = None
@@ -29,7 +32,7 @@ async def main_menu_getter(
         user_stats = await app.quest.get_user_stats(user.id)
         if user_stats.total_achievements > 0:
             achievements_progress = math.floor(
-                user_stats.achievements_count * 100 / user_stats.total_achievements
+                user_stats.achievements_count * 100 / user_stats.total_achievements,
             )
     return {
         # User info
@@ -51,7 +54,9 @@ async def main_menu_getter(
 
 
 async def open_voting_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     user: FullUserDTO = manager.middleware_data["user"]
     if not user.ticket:
@@ -66,7 +71,9 @@ async def open_voting_handler(
 
 
 async def open_achievements_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     user: FullUserDTO = manager.middleware_data["user"]
     if not user.ticket:
@@ -79,7 +86,7 @@ main_window = Window(
     Title(Const(strings.titles.main_menu)),
     Format(
         "👋 Привет, {name}! Сейчас ты находишься в главном меню. "
-        "Сюда всегда можно попасть по команде <b>/start</b>."
+        "Сюда всегда можно попасть по команде <b>/start</b>.",
     ),
     Const(" "),
     Multi(

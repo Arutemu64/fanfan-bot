@@ -46,7 +46,9 @@ toggle_event_skip_window = ScheduleWindow(
         upper=False,
     ),
     after_paginator=SwitchTo(
-        state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"
+        state=states.SCHEDULE.MAIN,
+        text=Const(strings.buttons.back),
+        id="back",
     ),
     text_input=TextInput(
         id="toggle_event_skip_window_input",

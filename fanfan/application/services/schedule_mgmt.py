@@ -28,7 +28,7 @@ class ScheduleManagementService(BaseService):
                 int(
                     settings.announcement_timestamp
                     + settings.announcement_timeout
-                    - timestamp
+                    - timestamp,
                 ),
             )
         else:
@@ -36,8 +36,7 @@ class ScheduleManagementService(BaseService):
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def skip_event(self, event_id: int) -> EventDTO:
-        """
-        Mark event as skipped
+        """Mark event as skipped
         @param event_id:
         @return: Skipped event
         """
@@ -60,16 +59,17 @@ class ScheduleManagementService(BaseService):
             await self.uow.commit()
             await self.uow.session.refresh(event)
             await NotificationService(self.uow, self.identity).proceed_subscriptions(
-                send_global_announcement=send_global_announcement
+                send_global_announcement=send_global_announcement,
             )
             return event.to_dto()
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def swap_events(
-        self, event1_id: int, event2_id: int
+        self,
+        event1_id: int,
+        event2_id: int,
     ) -> Tuple[EventDTO, EventDTO]:
-        """
-        Swap two schedule positions
+        """Swap two schedule positions
         @param event1_id:
         @param event2_id:
         @return: Tuple of both schedule
@@ -97,14 +97,13 @@ class ScheduleManagementService(BaseService):
             await self.uow.session.refresh(event1)
             await self.uow.session.refresh(event2)
             await NotificationService(self.uow, self.identity).proceed_subscriptions(
-                send_global_announcement=send_global_announcement
+                send_global_announcement=send_global_announcement,
             )
             return event1.to_dto(), event2.to_dto()
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def set_current_event(self, event_id: int) -> EventDTO:
-        """
-        Set event as current
+        """Set event as current
         @param event_id:
         @return: Current event
         """
@@ -126,14 +125,13 @@ class ScheduleManagementService(BaseService):
             event.current = True
             await self.uow.commit()
             await NotificationService(self.uow, self.identity).proceed_subscriptions(
-                send_global_announcement=True
+                send_global_announcement=True,
             )
             return event.to_dto()
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def set_next_event(self) -> EventDTO:
-        """
-        Sets next event as current
+        """Sets next event as current
         @return: Current event
         """
         current_event = await self.uow.events.get_current_event()

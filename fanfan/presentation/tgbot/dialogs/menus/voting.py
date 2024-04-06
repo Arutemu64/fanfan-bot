@@ -39,7 +39,10 @@ DATA_USER_VOTE_ID = "user_vote"
 
 
 async def nominations_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
+    dialog_manager: DialogManager,
+    user: FullUserDTO,
+    app: AppHolder,
+    **kwargs,
 ):
     page = await app.voting.get_nominations_page(
         page_number=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page(),
@@ -52,7 +55,7 @@ async def nominations_getter(
             (
                 nomination.id,
                 f"{nomination.title} ✅" if nomination.user_vote else nomination.title,
-            )
+            ),
         )
     return {
         "nominations_list": nominations_list,
@@ -61,10 +64,13 @@ async def nominations_getter(
 
 
 async def participants_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, app: AppHolder, **kwargs
+    dialog_manager: DialogManager,
+    user: FullUserDTO,
+    app: AppHolder,
+    **kwargs,
 ):
     nomination = await app.voting.get_nomination(
-        dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID]
+        dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
     )
     page = await app.voting.get_participants_page(
         nomination_id=dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
@@ -89,7 +95,10 @@ async def participants_getter(
 
 
 async def select_nomination_handler(
-    callback: CallbackQuery, widget: Any, dialog_manager: DialogManager, item_id: str
+    callback: CallbackQuery,
+    widget: Any,
+    dialog_manager: DialogManager,
+    item_id: str,
 ):
     dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID] = item_id
     await dialog_manager.find(ID_VOTING_SCROLL).set_page(0)
@@ -115,7 +124,9 @@ async def add_vote_handler(
 
 
 async def cancel_vote_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     app: AppHolder = manager.middleware_data["app"]
     try:
@@ -145,7 +156,8 @@ nominations_window = Window(
         FirstPage(scroll=ID_NOMINATIONS_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_NOMINATIONS_SCROLL, text=Const("◀️")),
         CurrentPage(
-            scroll=ID_NOMINATIONS_SCROLL, text=Format(text="{current_page1}/{pages}")
+            scroll=ID_NOMINATIONS_SCROLL,
+            text=Format(text="{current_page1}/{pages}"),
         ),
         NextPage(scroll=ID_NOMINATIONS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_NOMINATIONS_SCROLL, text=Const("⏭️")),
@@ -165,7 +177,8 @@ voting_window = Window(
         FirstPage(scroll=ID_VOTING_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_VOTING_SCROLL, text=Const("◀️")),
         CurrentPage(
-            scroll=ID_VOTING_SCROLL, text=Format(text="{current_page1}/{pages}")
+            scroll=ID_VOTING_SCROLL,
+            text=Format(text="{current_page1}/{pages}"),
         ),
         NextPage(scroll=ID_VOTING_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_VOTING_SCROLL, text=Const("⏭️")),

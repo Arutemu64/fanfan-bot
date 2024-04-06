@@ -19,7 +19,7 @@ class ReceivedAchievement(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     achievement_id: Mapped[int] = mapped_column(
-        ForeignKey("achievements.id", ondelete="CASCADE")
+        ForeignKey("achievements.id", ondelete="CASCADE"),
     )
 
     UniqueConstraint(user_id, achievement_id)

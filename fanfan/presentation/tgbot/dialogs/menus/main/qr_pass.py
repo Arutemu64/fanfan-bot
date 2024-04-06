@@ -42,7 +42,7 @@ qr_pass_window = Window(
     Title(Const(strings.titles.qr_pass)),
     Const(
         "Покажи этот QR-код волонтёру или организатору, "
-        "чтобы получить достижение или заработать очки.\n"
+        "чтобы получить достижение или заработать очки.\n",
     ),
     Format("""<i>ID: {event.from_user.id}</i>"""),
     StaticMedia(path=Format("{qr_file_path}")),

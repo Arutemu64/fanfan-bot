@@ -2,16 +2,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .repositories import (
     AchievementsRepository,
+    ActivitiesRepository,
     EventsRepository,
     NominationsRepository,
     ParticipantsRepository,
+    QuotesRepository,
     SettingsRepository,
     SubscriptionsRepository,
     TicketsRepository,
     UsersRepository,
     VotesRepository,
-    ActivitiesRepository,
-    QuotesRepository,
 )
 
 

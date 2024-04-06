@@ -4,16 +4,16 @@ from sqladmin import ModelView
 
 from fanfan.infrastructure.db.models import (
     Achievement,
+    Activity,
     Event,
     Nomination,
     Participant,
+    Quote,
     ReceivedAchievement,
     Ticket,
     Transaction,
     User,
     Vote,
-    Activity,
-    Quote,
 )
 
 

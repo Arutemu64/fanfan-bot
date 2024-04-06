@@ -46,7 +46,9 @@ async def org_menu_getter(dialog_manager: DialogManager, app: AppHolder, **kwarg
 
 
 async def toggle_voting_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     app: AppHolder = manager.middleware_data["app"]
     await app.settings.switch_voting(not manager.dialog_data[DATA_VOTING_ENABLED])
@@ -71,7 +73,7 @@ async def add_new_ticket_handler(
         return
 
     await message.answer(
-        f"""✅ Билет "{ticket.id}" с ролью {ticket.role} успешно добавлен!"""
+        f"""✅ Билет "{ticket.id}" с ролью {ticket.role} успешно добавлен!""",
     )
     await dialog_manager.switch_to(states.ORG.MAIN)
 
@@ -90,7 +92,9 @@ new_ticket_window = Window(
     ),
     TextInput(id="ticket_id", type_factory=str, on_success=add_new_ticket_handler),
     SwitchTo(
-        state=states.ORG.MAIN, id="org_main_window", text=Const(strings.buttons.back)
+        state=states.ORG.MAIN,
+        id="org_main_window",
+        text=Const(strings.buttons.back),
     ),
     getter=get_roles,
     state=states.ORG.ADD_NEW_TICKET,
@@ -103,7 +107,7 @@ org_main_window = Window(
         url=Format("{web_panel_login_link}"),
     ),
     Url(
-        text=Const(strings.buttons.help),
+        text=Const(strings.buttons.help_page),
         url=Const("https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"),
     ),
     Start(

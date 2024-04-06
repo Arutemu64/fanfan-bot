@@ -10,20 +10,20 @@ help:
 	@echo "  lint		Reformat code"
 	@echo "  requirements  Export poetry.lock to requirements.txt"
 
-.PHONY:	black
-black:
-	poetry run black fanfan/
-
 .PHONY:	mypy
 mypy:
 	poetry run mypy --strict --pretty --explicit-package-bases --install-types fanfan/
 
-.PHONY: ruff
-ruff:
-	poetry run ruff check fanfan/ --fix --respect-gitignore
+.PHONY: ruff-check
+ruff-check:
+	poetry run ruff check fanfan/ --respect-gitignore --fix
+
+.PHONY: ruff-format
+ruff-format:
+	poetry run ruff format fanfan/ --respect-gitignore
 
 .PHONY: lint
-lint: black ruff
+lint: ruff-format ruff-check
 
 .PHONY: run
 run:

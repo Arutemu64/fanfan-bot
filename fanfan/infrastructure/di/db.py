@@ -20,7 +20,9 @@ class DbProvider(Provider):
     @provide
     async def get_engine(self, config: DatabaseConfig) -> AsyncIterable[AsyncEngine]:
         engine = create_async_engine(
-            url=config.build_connection_str(), echo=config.echo, pool_pre_ping=True
+            url=config.build_connection_str(),
+            echo=config.echo,
+            pool_pre_ping=True,
         )
         yield engine
         await engine.dispose(close=True)
@@ -35,7 +37,8 @@ class DbProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     async def get_session(
-        self, pool: async_sessionmaker
+        self,
+        pool: async_sessionmaker,
     ) -> AsyncIterable[AsyncSession]:
         sentry_transaction = sentry_sdk.start_transaction(name="DBTransaction")
         async with pool() as session:

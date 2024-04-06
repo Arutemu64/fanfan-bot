@@ -40,8 +40,7 @@ class VotingService(BaseService):
                 raise ParticipantNotFound
 
     async def get_nomination(self, nomination_id: str) -> NominationDTO:
-        """
-        @param nomination_id:
+        """@param nomination_id:
         @raise NominationNotFound
         @return:
         """
@@ -50,10 +49,12 @@ class VotingService(BaseService):
         raise NominationNotFound
 
     async def get_nominations_page(
-        self, page_number: int, nominations_per_page: int, user_id: Optional[int] = None
+        self,
+        page_number: int,
+        nominations_per_page: int,
+        user_id: Optional[int] = None,
     ) -> Page[VotingNominationDTO]:
-        """
-        Get nominations page
+        """Get nominations page
         @param page_number: Page page_number
         @param nominations_per_page: Nominations per page
         @param user_id: if provided, Nomination will also include user's vote
@@ -78,8 +79,7 @@ class VotingService(BaseService):
         participants_per_page: int,
         user_id: Optional[int] = None,
     ) -> Page[VotingParticipantDTO]:
-        """
-        Get participants page
+        """Get participants page
         @param nomination_id: Nomination ID
         @param page_number: Page page_number
         @param participants_per_page: Participants per page
@@ -129,7 +129,8 @@ class VotingService(BaseService):
 
     async def get_vote_by_nomination(self, user_id: int, nomination_id: str) -> VoteDTO:
         user_vote = await self.uow.votes.get_vote_by_nomination(
-            user_id=user_id, nomination_id=nomination_id
+            user_id=user_id,
+            nomination_id=nomination_id,
         )
         if not user_vote:
             raise VoteNotFound

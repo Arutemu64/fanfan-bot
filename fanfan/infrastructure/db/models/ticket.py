@@ -19,7 +19,8 @@ class Ticket(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     role: Mapped[int] = mapped_column(
-        postgresql.ENUM(UserRole), server_default="VISITOR"
+        postgresql.ENUM(UserRole),
+        server_default="VISITOR",
     )
     used_by_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -27,11 +28,13 @@ class Ticket(Base):
         unique=True,
     )
     issued_by_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
     )
 
     used_by: Mapped[Optional[User]] = relationship(
-        foreign_keys=used_by_id, back_populates="ticket"
+        foreign_keys=used_by_id,
+        back_populates="ticket",
     )
     issued_by: Mapped[Optional[User]] = relationship(foreign_keys=issued_by_id)
 

@@ -45,7 +45,9 @@ set_manual_event_window = ScheduleWindow(
         upper=False,
     ),
     after_paginator=SwitchTo(
-        state=states.SCHEDULE.MAIN, text=Const(strings.buttons.back), id="back"
+        state=states.SCHEDULE.MAIN,
+        text=Const(strings.buttons.back),
+        id="back",
     ),
     text_input=TextInput(
         id="manual_event_input",

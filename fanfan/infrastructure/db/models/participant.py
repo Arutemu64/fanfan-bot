@@ -20,7 +20,8 @@ class Participant(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(unique=True, index=True)
     nomination_id: Mapped[Optional[str]] = mapped_column(
-        ForeignKey("nominations.id", ondelete="SET NULL"), nullable=True
+        ForeignKey("nominations.id", ondelete="SET NULL"),
+        nullable=True,
     )
 
     event: Mapped[Optional[Event]] = relationship(back_populates="participant")

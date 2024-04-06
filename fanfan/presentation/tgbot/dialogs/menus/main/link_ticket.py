@@ -27,7 +27,7 @@ async def link_ticket_handler(
         await message.reply(e.message)
         return
     await message.answer(
-        "✅ Билет успешно привязан! Теперь тебе доступны все функции бота!"
+        "✅ Билет успешно привязан! Теперь тебе доступны все функции бота!",
     )
     await dialog_manager.start(states.MAIN.HOME, mode=StartMode.RESET_STACK)
 
@@ -37,7 +37,7 @@ link_ticket_window = Window(
     Const(
         "🎫 Чтобы привязать билет и получить доступ ко всем функциям бота "
         "пришли его номер сообщением 👇\n\n"
-        "Пример номера билета: 66117533:43231829"
+        "Пример номера билета: 66117533:43231829",
     ),
     SwitchTo(Const(strings.buttons.back), id="back", state=states.MAIN.HOME),
     TextInput(id="ticket_id_input", type_factory=str, on_success=link_ticket_handler),

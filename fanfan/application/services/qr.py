@@ -12,7 +12,10 @@ from fanfan.presentation.tgbot.dialogs import states
 
 class QRService(BaseService):
     def __init__(
-        self, uow: UnitOfWork, identity: FullUserDTO, manager: BaseDialogManager
+        self,
+        uow: UnitOfWork,
+        identity: FullUserDTO,
+        manager: BaseDialogManager,
     ):
         super().__init__(uow, identity)
         self.manager = manager

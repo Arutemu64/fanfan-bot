@@ -3,12 +3,12 @@ from typing import Any, List, Optional, Tuple, Type
 
 from dotenv import find_dotenv, load_dotenv
 from pydantic import (
+    DirectoryPath,
     HttpUrl,
     PostgresDsn,
     RedisDsn,
     SecretStr,
     model_validator,
-    DirectoryPath,
 )
 from pydantic.fields import Field, FieldInfo
 from pydantic_settings import (
@@ -27,7 +27,11 @@ load_dotenv(find_dotenv(".local-env"))
 
 class CustomBotSettingsSource(EnvSettingsSource):
     def prepare_field_value(
-        self, field_name: str, field: FieldInfo, value: Any, value_is_complex: bool
+        self,
+        field_name: str,
+        field: FieldInfo,
+        value: Any,
+        value_is_complex: bool,
     ) -> Any:
         if field_name == "admin_list":
             return [str(x).lower() for x in value.split(",")]

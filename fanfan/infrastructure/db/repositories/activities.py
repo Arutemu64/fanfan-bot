@@ -7,7 +7,6 @@ from fanfan.infrastructure.db.repositories.repo import Repository
 
 
 class ActivitiesRepository(Repository[Activity]):
-
     def __init__(self, session: AsyncSession):
         self.session = session
         super().__init__(type_model=Activity, session=session)

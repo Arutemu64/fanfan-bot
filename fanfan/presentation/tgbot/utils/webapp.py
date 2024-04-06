@@ -33,7 +33,8 @@ async def proceed_qr_post(
     data = await request.form()
     try:
         web_app_init_data = safe_parse_webapp_init_data(
-            token=bot.token, init_data=data["_auth"]
+            token=bot.token,
+            init_data=data["_auth"],
         )
     except ValueError:
         return JSONResponse({"ok": False, "err": "Unauthorized"}, status_code=401)
@@ -47,7 +48,7 @@ async def proceed_qr_post(
         )
         try:
             await QRService(uow, user, manager).proceed_qr_code(
-                QR.parse(data["qr_text"])
+                QR.parse(data["qr_text"]),
             )
         except ServiceError as e:
             await bot.send_message(

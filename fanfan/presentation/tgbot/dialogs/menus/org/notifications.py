@@ -40,7 +40,9 @@ DATA_ROLE_IDS = "data_role_ids"
 
 
 async def send_notification_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     app: AppHolder = manager.middleware_data["app"]
     roles_picker: ManagedMultiselect[UserRole] = manager.find(ID_ROLES_PICKER)
@@ -59,7 +61,7 @@ async def send_notification_handler(
                     bottom_text=f"Отправил @{manager.event.from_user.username}",
                     image_id=manager.dialog_data.get(DATA_IMAGE_ID),
                     timestamp=timestamp,
-                )
+                ),
             )
         await app.notifications.send_notifications(notifications, delivery_id)
     except ServiceError as e:
@@ -67,7 +69,7 @@ async def send_notification_handler(
         return
 
     await callback.message.answer(
-        "✅ Рассылка запущена!\n" f"Уникальный ID рассылки: <code>{delivery_id}</code>"
+        "✅ Рассылка запущена!\n" f"Уникальный ID рассылки: <code>{delivery_id}</code>",
     )
     await manager.switch_to(states.NOTIFICATIONS.MAIN)
 
@@ -92,7 +94,9 @@ async def create_notification_getter(dialog_manager: DialogManager, **kwargs):
 
 
 async def message_handler(
-    message: Message, message_input: MessageInput, manager: DialogManager
+    message: Message,
+    message_input: MessageInput,
+    manager: DialogManager,
 ):
     if message.text or message.caption:
         manager.dialog_data[DATA_TEXT] = message.text or message.caption
@@ -101,7 +105,9 @@ async def message_handler(
 
 
 async def delete_image_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
 ):
     manager.dialog_data[DATA_IMAGE_ID] = None
 

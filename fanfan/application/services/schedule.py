@@ -11,8 +11,7 @@ from fanfan.application.services.base import BaseService
 
 class ScheduleService(BaseService):
     async def get_event(self, event_id: int) -> EventDTO:
-        """
-        @param event_id:
+        """@param event_id:
         @raise EventNotFound
         @return:
         """
@@ -21,8 +20,7 @@ class ScheduleService(BaseService):
         raise EventNotFound
 
     async def get_current_event(self) -> EventDTO:
-        """
-        Get current event
+        """Get current event
         @raise NoCurrentEvent
         @return:
         """
@@ -37,8 +35,7 @@ class ScheduleService(BaseService):
         search_query: Optional[str] = None,
         user_id: Optional[int] = None,
     ) -> Page[ScheduleEventDTO]:
-        """
-        Get a page of schedule
+        """Get a page of schedule
         @param page_number: Page page_number
         @param events_per_page: Events per page
         @param search_query: User's string search query
@@ -60,7 +57,10 @@ class ScheduleService(BaseService):
         )
 
     async def get_page_number_by_event(
-        self, event_id: int, events_per_page: int, search_query: Optional[str] = None
+        self,
+        event_id: int,
+        events_per_page: int,
+        search_query: Optional[str] = None,
     ) -> int:
         event = await self.uow.events.get_event(event_id)
         if not event:

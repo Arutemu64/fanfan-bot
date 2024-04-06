@@ -23,7 +23,7 @@ ID_ACTIVITIES_SCROLL = "activities_scroll"
 
 async def activity_getter(dialog_manager: DialogManager, app: AppHolder, **kwargs):
     page = await app.common.get_activity_page(
-        await dialog_manager.find(ID_ACTIVITIES_SCROLL).get_page()
+        await dialog_manager.find(ID_ACTIVITIES_SCROLL).get_page(),
     )
     activity = page.items[0]
     return {
@@ -45,7 +45,8 @@ activity_window = Window(
         FirstPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("◀️")),
         CurrentPage(
-            scroll=ID_ACTIVITIES_SCROLL, text=Format(text="{current_page1}/{pages}")
+            scroll=ID_ACTIVITIES_SCROLL,
+            text=Format(text="{current_page1}/{pages}"),
         ),
         NextPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("⏭️")),

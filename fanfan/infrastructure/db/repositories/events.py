@@ -18,7 +18,7 @@ def _filter_events(
         or_(
             Event.title.ilike(f"%{search_query}%"),
             Event.nomination.has(Nomination.title.ilike(f"%{search_query}%")),
-        )
+        ),
     )
     return query
 
@@ -77,7 +77,10 @@ class EventsRepository(Repository[Event]):
         return await super()._paginate(query, page_number, events_per_page)
 
     async def get_page_number_by_event(
-        self, event_id: int, events_per_page: int, search_query: Optional[str] = None
+        self,
+        event_id: int,
+        events_per_page: int,
+        search_query: Optional[str] = None,
     ) -> int:
         query = select(Event.position).where(Event.id == event_id).limit(1)
         if search_query:

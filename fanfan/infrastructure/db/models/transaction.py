@@ -17,15 +17,16 @@ class Transaction(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     from_user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
+        ForeignKey("users.id", ondelete="CASCADE"),
     )
     to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     points_added: Mapped[Optional[int]] = mapped_column(nullable=True)
     achievement_id_added: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("achievements.id", ondelete="CASCADE"), nullable=True
+        ForeignKey("achievements.id", ondelete="CASCADE"),
+        nullable=True,
     )
 
-    from_user: Mapped[User] = relationship(foreign_keys=from_user_id)  # noqa: F821
-    to_user: Mapped[User] = relationship(foreign_keys=to_user_id)  # noqa: F821
+    from_user: Mapped[User] = relationship(foreign_keys=from_user_id)
+    to_user: Mapped[User] = relationship(foreign_keys=to_user_id)
 
-    achievement_added: Mapped[Optional[Achievement]] = relationship()  # noqa: F821
+    achievement_added: Mapped[Optional[Achievement]] = relationship()

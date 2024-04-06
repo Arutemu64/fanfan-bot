@@ -26,7 +26,10 @@ class QuestService(BaseService):
         return await self.uow.users.get_user_stats(user_id)
 
     async def get_achievements_page(
-        self, page_number: int, achievements_per_page: int, user_id: int
+        self,
+        page_number: int,
+        achievements_per_page: int,
+        user_id: int,
     ) -> Page[FullAchievementDTO]:
         page = await self.uow.achievements.paginate_achievements(
             page_number=page_number,
@@ -71,7 +74,7 @@ class QuestService(BaseService):
                     user_id=user.id,
                     text=f"💰 Вы получили "
                     f"{amount} {self._points_pluralize(amount)}!",
-                )
+                ),
             )
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
@@ -103,5 +106,5 @@ class QuestService(BaseService):
             UserNotification(
                 user_id=user.id,
                 text=f"🏆 Вы получили достижение <b>{achievement.title}</b>!",
-            )
+            ),
         )

@@ -16,16 +16,22 @@ class SubscriptionsRepository(Repository[Subscription]):
 
     async def get_subscription(self, subscription_id: int) -> Optional[Subscription]:
         return await self.session.get(
-            Subscription, subscription_id, options=[joinedload(Subscription.event)]
+            Subscription,
+            subscription_id,
+            options=[joinedload(Subscription.event)],
         )
 
     async def get_subscription_by_event(
-        self, user_id: int, event_id: int
+        self,
+        user_id: int,
+        event_id: int,
     ) -> Optional[Subscription]:
         query = (
             select(Subscription)
             .where(
-                and_(Subscription.user_id == user_id, Subscription.event_id == event_id)
+                and_(
+                    Subscription.user_id == user_id, Subscription.event_id == event_id
+                ),
             )
             .limit(1)
             .options(joinedload(Subscription.event))
@@ -33,11 +39,17 @@ class SubscriptionsRepository(Repository[Subscription]):
         return await self.session.scalar(query)
 
     async def paginate_subscriptions(
-        self, page_number: int, subscriptions_per_page: int, user_id: int
+        self,
+        page_number: int,
+        subscriptions_per_page: int,
+        user_id: int,
     ) -> Page[Subscription]:
         query = (
             select(Subscription)
-            .where(Subscription.user_id == user_id)
+            .where(
+                and_(Subscription.user_id == user_id),
+                (Subscription.event.has(Event.skip.isnot(True))),
+            )
             .order_by(Subscription.event_id)
             .options(joinedload(Subscription.event))
         )
@@ -60,7 +72,7 @@ class SubscriptionsRepository(Repository[Subscription]):
                         >= (Event.real_position - event_real_position),
                         (Event.real_position - event_real_position) >= 0,
                     ),
-                )
+                ),
             )
             .options(joinedload(Subscription.event))
         )

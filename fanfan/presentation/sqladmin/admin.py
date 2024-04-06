@@ -12,7 +12,7 @@ def setup_admin(app: FastAPI, session_pool: async_sessionmaker) -> None:
 
     app.include_router(auth_router)
     authentication_backend = AdminAuth(
-        secret_key=get_config().web.secret_key.get_secret_value()
+        secret_key=get_config().web.secret_key.get_secret_value(),
     )
 
     admin = Admin(
