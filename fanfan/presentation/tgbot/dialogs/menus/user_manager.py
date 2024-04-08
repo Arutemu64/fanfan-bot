@@ -1,3 +1,4 @@
+import math
 import operator
 from typing import Any
 
@@ -6,14 +7,11 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
-    Button,
     Cancel,
     Column,
-    Counter,
     CurrentPage,
     FirstPage,
     LastPage,
-    ManagedCounter,
     NextPage,
     PrevPage,
     Row,
@@ -21,7 +19,7 @@ from aiogram_dialog.widgets.kbd import (
     StubScroll,
     SwitchTo,
 )
-from aiogram_dialog.widgets.text import Const, Format, Jinja, List
+from aiogram_dialog.widgets.text import Const, Format, Jinja, Progress
 
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
@@ -49,24 +47,23 @@ async def user_info_getter(
         dialog_manager.dialog_data[DATA_MANAGED_USER_ID],
     )
     user_stats = await app.quest.get_user_stats(managed_user.id)
+    achievements_progress = 0
+    if user_stats.total_achievements > 0:
+        achievements_progress = math.floor(
+            user_stats.achievements_count * 100 / user_stats.total_achievements,
+        )
     return {
         "is_org": user.role is UserRole.ORG,
-        "user_info": [
-            ("Никнейм:", managed_user.username),
-            ("ID:", managed_user.id),
-            (
-                "Билет:",
-                managed_user.ticket.id if managed_user.ticket else "не привязан",
-            ),
-            ("Роль:", managed_user.role.label),
-            ("", ""),
-            ("Очков:", user_stats.points),
-            (
-                "Достижений получено:",
-                f"{user_stats.achievements_count} "
-                f"из {user_stats.total_achievements}",
-            ),
-        ],
+        # Managed user info
+        "managed_user_username": managed_user.username,
+        "managed_user_id": managed_user.id,
+        "managed_user_ticket_id": managed_user.ticket.id
+        if managed_user.ticket
+        else "билет не привязан",
+        "managed_user_role": managed_user.role.label,
+        "managed_user_achievements_count": user_stats.achievements_count,
+        "managed_user_achievements_progress": achievements_progress,
+        "total_achievements_count": user_stats.total_achievements,
     }
 
 
@@ -84,49 +81,7 @@ async def achievements_getter(
     return {
         "achievements": page.items,
         "pages": page.total_pages,
-        "show_ids": True,
     }
-
-
-async def add_points_handler(
-    callback: CallbackQuery,
-    button: Button,
-    manager: DialogManager,
-):
-    app: AppHolder = manager.middleware_data["app"]
-    counter: ManagedCounter = manager.find(ID_ADD_POINTS_COUNTER)
-
-    try:
-        await app.quest.add_points(
-            user_id=manager.dialog_data[DATA_MANAGED_USER_ID],
-            amount=int(counter.get_value()),
-        )
-    except ServiceError as e:
-        await callback.answer(e.message, show_alert=True)
-        return
-
-    await callback.answer(strings.common.success)
-    await manager.switch_to(states.USER_MANAGER.MAIN)
-
-
-async def add_achievement_handler(
-    message: Message,
-    widget: ManagedTextInput,
-    dialog_manager: DialogManager,
-    data: int,
-):
-    app: AppHolder = dialog_manager.middleware_data["app"]
-    try:
-        await app.quest.add_achievement(
-            user_id=dialog_manager.dialog_data[DATA_MANAGED_USER_ID],
-            achievement_id=data,
-        )
-    except ServiceError as e:
-        await message.reply(e.message)
-        return
-
-    await message.reply(strings.common.success)
-    await dialog_manager.switch_to(states.USER_MANAGER.MAIN)
 
 
 async def change_user_role_handler(
@@ -175,39 +130,9 @@ async def show_user_editor_handler(
     await dialog_manager.start(states.USER_MANAGER.MAIN, data=user.id)
 
 
-add_points_window = Window(
-    Const("<b>🔢 Укажите, сколько очков добавить пользователю</b>"),
-    Const("<i>(от 5 до 50)</i>"),
-    Counter(
-        id=ID_ADD_POINTS_COUNTER,
-        plus=Const("➕"),
-        minus=Const("➖"),
-        min_value=5,
-        max_value=50,
-        increment=5,
-        default=5,
-    ),
-    Button(
-        text=Const("✅ Добавить"),
-        id="add_points",
-        on_click=add_points_handler,
-    ),
-    SwitchTo(
-        text=Const(strings.buttons.back),
-        id="back",
-        state=states.USER_MANAGER.MAIN,
-    ),
-    state=states.USER_MANAGER.ADD_POINTS,
-)
-
-add_achievement_window = Window(
-    Const("⌨️ Укажите достижение, которое получит пользователь:\n"),
+achievements_list_window = Window(
+    Title(Const("🏆 Достижения участника")),
     Jinja(achievements_list),
-    TextInput(
-        id="achievement_id_input",
-        type_factory=int,
-        on_success=add_achievement_handler,
-    ),
     StubScroll(id=ID_ACHIEVEMENTS_SCROLL, pages="pages"),
     Row(
         FirstPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏪")),
@@ -225,7 +150,7 @@ add_achievement_window = Window(
         text=Const(strings.buttons.back),
         state=states.USER_MANAGER.MAIN,
     ),
-    state=states.USER_MANAGER.ADD_ACHIEVEMENT,
+    state=states.USER_MANAGER.ACHIEVEMENTS_LIST,
     getter=achievements_getter,
 )
 
@@ -263,19 +188,23 @@ manual_user_search_window = Window(
 
 user_manager_window = Window(
     Title(Const(strings.titles.user_manager)),
-    List(Format("<b>{item[0]}</b> {item[1]}"), items="user_info"),
-    SwitchTo(
-        text=Const("🪙 Добавить очков"),
-        id="add_points",
-        state=states.USER_MANAGER.ADD_POINTS,
+    Format("<b>Никнейм:</b> {managed_user_username}"),
+    Format("<b>ID:</b> {managed_user_id}"),
+    Format("<b>Билет:</b> {managed_user_ticket_id}"),
+    Format("<b>Роль:</b> {managed_user_role}"),
+    Const(" "),
+    Format(
+        "<b>🏆 Достижений</b>: {managed_user_achievements_count} "
+        "из {total_achievements_count}"
     ),
+    Progress("managed_user_achievements_progress", filled="🟩", empty="⬜"),
     SwitchTo(
-        text=Const("🏆 Засчитать достижение"),
+        text=Const("🏆 Достижения"),
         id="add_achievement",
-        state=states.USER_MANAGER.ADD_ACHIEVEMENT,
+        state=states.USER_MANAGER.ACHIEVEMENTS_LIST,
     ),
     SwitchTo(
-        text=Const("✏️ Изменить роль пользователя"),
+        text=Const("✏️ Изменить роль"),
         id="change_user_role",
         state=states.USER_MANAGER.CHANGE_ROLE,
         when="is_org",
@@ -293,8 +222,7 @@ async def on_user_manager_start(start_data: int, manager: DialogManager):
 dialog = Dialog(
     user_manager_window,
     manual_user_search_window,
-    add_points_window,
-    add_achievement_window,
+    achievements_list_window,
     role_change_window,
     on_start=on_user_manager_start,
 )

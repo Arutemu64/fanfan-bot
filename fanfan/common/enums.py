@@ -6,8 +6,9 @@ class BotMode(enum.StrEnum):
     WEBHOOK = "webhook"
 
 
-class QRCommand(enum.StrEnum):
+class QRType(enum.StrEnum):
     USER = "user"
+    ACHIEVEMENT = "achievement"
 
 
 class UserRole(enum.StrEnum):

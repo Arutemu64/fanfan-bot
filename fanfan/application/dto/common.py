@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Generic, List, Optional, TypeVar
 
-from fanfan.common.enums import QRCommand
-
 AbstractModel = TypeVar("AbstractModel")
 
 
@@ -32,16 +30,3 @@ class UserNotification:
         if self.bottom_text:
             text = f"{text}\n\n<i>{self.bottom_text}</i>"
         return text
-
-
-@dataclass(frozen=True, slots=True)
-class QR:
-    command: QRCommand
-    parameter: str
-
-    @classmethod
-    def parse(cls, qr_text: str):
-        return cls(command=QRCommand(qr_text.split()[0]), parameter=qr_text.split()[1])
-
-    def __repr__(self):
-        return f"{self.command} {self.parameter}"

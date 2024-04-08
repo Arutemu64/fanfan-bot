@@ -106,7 +106,7 @@ class RedisConfig(BaseSettings):
         dsn: RedisDsn = RedisDsn.build(
             scheme="redis",
             username=self.username,
-            password=self.password.get_secret_value(),
+            password=self.password.get_secret_value() if self.password else None,
             host=self.host,
             port=self.port,
             path=self.database,

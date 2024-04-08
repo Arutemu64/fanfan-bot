@@ -17,6 +17,13 @@ class AchievementsRepository(Repository[Achievement]):
     async def get_achievement(self, achievement_id: int) -> Optional[Achievement]:
         return await self.session.get(Achievement, achievement_id)
 
+    async def get_achievement_by_secret_id(
+        self, secret_id: str
+    ) -> Optional[Achievement]:
+        return await self.session.scalar(
+            select(Achievement).where(Achievement.secret_id == secret_id).limit(1)
+        )
+
     async def paginate_achievements(
         self,
         page_number: int,

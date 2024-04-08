@@ -1,7 +1,11 @@
 from typing import List
 
-from sqladmin import ModelView
+from sqladmin import ModelView, action
+from starlette.requests import Request
+from starlette.responses import FileResponse
 
+from fanfan.application.dto.qr import QR
+from fanfan.common.enums import QRType
 from fanfan.infrastructure.db.models import (
     Achievement,
     Activity,
@@ -11,10 +15,10 @@ from fanfan.infrastructure.db.models import (
     Quote,
     ReceivedAchievement,
     Ticket,
-    Transaction,
     User,
     Vote,
 )
+from fanfan.presentation.tgbot.dialogs.menus.main.qr_pass import QR_CODES_TEMP_DIR
 
 
 class TicketAdmin(ModelView, model=Ticket):
@@ -44,7 +48,6 @@ class UserAdmin(ModelView, model=User):
         User.username: "Имя пользователя",
         User.role: "Роль",
         User.achievements_count: "Достижений получено",
-        User.points: "Очков",
         User.ticket: "Билет пользователя",
         User.items_per_page: "Элементов на странице",
         User.receive_all_announcements: "Получает глобальные уведомления",
@@ -56,11 +59,10 @@ class UserAdmin(ModelView, model=User):
         User.username,
         User.role,
         User.achievements_count,
-        User.points,
     ]
     column_details_exclude_list = [User.received_achievements]
     column_searchable_list = [User.username, User.role]
-    column_sortable_list = [User.achievements_count, User.points]
+    column_sortable_list = [User.achievements_count]
 
 
 class AchievementAdmin(ModelView, model=Achievement):
@@ -73,10 +75,23 @@ class AchievementAdmin(ModelView, model=Achievement):
         Achievement.created_on: "Время создания",
         Achievement.updated_on: "Время изменения",
     }
-    column_list = [Achievement.id, Achievement.title, Achievement.description]
+    column_list = [Achievement.title, Achievement.description]
     column_details_exclude_list = [Achievement.user_received]
-    form_columns = [Achievement.id, Achievement.title, Achievement.description]
-    form_include_pk = True
+    form_columns = [Achievement.title, Achievement.description]
+
+    @action(
+        name="show_qr_code",
+        label="Вывести QR-код",
+        add_in_list=False,
+    )
+    async def show_qr_code(self, request: Request):
+        pk = request.query_params.get("pks", "").split(",")[0]
+        achievement = await self.get_object_for_details(pk)
+        qr = QR(type=QRType.ACHIEVEMENT, data=str(achievement.secret_id))
+        qr_file_path = QR_CODES_TEMP_DIR.joinpath(f"{hash(qr)}.png")
+        if not qr_file_path.is_file():
+            qr.generate_img().save(qr_file_path)
+        return FileResponse(qr_file_path)
 
 
 class ReceivedAchievementAdmin(ModelView, model=ReceivedAchievement):
@@ -188,30 +203,6 @@ class VoteAdmin(ModelView, model=Vote):
     column_details_exclude_list = [Vote.participant_id, Vote.user_id]
 
 
-class TransactionAdmin(ModelView, model=Transaction):
-    name_plural = "Транзакции"
-    icon = "fa-solid fa-money-bill-transfer"
-    can_create = False
-    can_edit = False
-    can_delete = False
-    column_list = [
-        Transaction.id,
-        Transaction.from_user,
-        Transaction.to_user,
-        Transaction.created_on,
-        Transaction.achievement_added,
-        Transaction.points_added,
-    ]
-    column_labels = {
-        Transaction.id: "ID",
-        Transaction.from_user: "От пользователя",
-        Transaction.to_user: "Пользователю",
-        Transaction.created_on: "Время",
-        Transaction.achievement_added: "Достижение добавлено",
-        Transaction.points_added: "Очков добавлено",
-    }
-
-
 class ActivityAdmin(ModelView, model=Activity):
     name_plural = "Активности"
     icon = "fa-solid fa-person-snowboarding"
@@ -262,7 +253,6 @@ model_views: List[ModelView] = [
     ParticipantAdmin,
     NominationAdmin,
     VoteAdmin,
-    TransactionAdmin,
     ActivityAdmin,
     QuoteAdmin,
 ]

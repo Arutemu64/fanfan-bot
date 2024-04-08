@@ -8,7 +8,7 @@ from fanfan.application.dto.user import UserStats
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.repositories.repo import Repository
 
-from ..models import Achievement, ReceivedAchievement, Ticket, User
+from ..models import Achievement, ReceivedAchievement, User
 
 
 class UsersRepository(Repository[User]):
@@ -28,11 +28,6 @@ class UsersRepository(Repository[User]):
         query = query.options(joinedload(User.ticket))
         return await self.session.scalar(query)
 
-    async def get_user_by_ticket(self, ticket_id: str) -> Optional[User]:
-        query = select(User).where(User.ticket.has(Ticket.id == ticket_id)).limit(1)
-        query = query.options(joinedload(User.ticket))
-        return await self.session.scalar(query)
-
     async def get_all_by_roles(self, roles: List[UserRole]) -> Sequence[User]:
         query = select(User).where(User.role.in_(roles))
         return (await self.session.scalars(query)).all()
@@ -42,20 +37,16 @@ class UsersRepository(Repository[User]):
         return (await self.session.scalars(query)).all()
 
     async def get_user_stats(self, user_id: int) -> UserStats:
-        points_query = (
-            select(User.points).where(User.id == user_id).limit(1).label("points")
-        )
         received_count_query = (
             select(func.count(ReceivedAchievement.id))
             .where(ReceivedAchievement.user_id == user_id)
             .label("received")
         )
         achievements_count_query = select(func.count(Achievement.id)).label("total")
-        query = select(points_query, received_count_query, achievements_count_query)
+        query = select(received_count_query, achievements_count_query)
         result = ((await self.session.execute(query)).all())[0]
         return UserStats(
             user_id=user_id,
-            points=result.points,
             achievements_count=result.received,
             total_achievements=result.total,
         )

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import uuid
 from typing import TYPE_CHECKING, Optional
 
+from sqlalchemy import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.application.dto.achievement import AchievementDTO, FullAchievementDTO
@@ -15,6 +17,12 @@ class Achievement(Base):
     __tablename__ = "achievements"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    secret_id: Mapped[UUID] = mapped_column(
+        UUID,
+        default=uuid.uuid4(),
+        nullable=True,
+        unique=True,
+    )
     title: Mapped[str] = mapped_column()
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
 

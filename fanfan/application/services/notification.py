@@ -91,7 +91,13 @@ class NotificationService(BaseService):
             )
             for user in await self.uow.users.get_receive_all_announcements_users():
                 notifications.append(
-                    UserNotification(user_id=user.id, text=text, timestamp=timestamp),
+                    UserNotification(
+                        user_id=user.id,
+                        text=text,
+                        bottom_text="(отключить уведомления можно "
+                        "в меню <b>🔔 Уведомления</b> в расписании)",
+                        timestamp=timestamp,
+                    ),
                 )
 
         for subscription in await self.uow.subscriptions.get_upcoming_subscriptions():

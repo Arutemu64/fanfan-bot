@@ -52,7 +52,5 @@ class USER_MANAGER(StatesGroup):
     MAIN = State()
     MANUAL_USER_SEARCH = State()
 
-    ADD_POINTS = State()
-    ADD_ACHIEVEMENT = State()
-
+    ACHIEVEMENTS_LIST = State()
     CHANGE_ROLE = State()

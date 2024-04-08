@@ -1,5 +1,6 @@
 from fanfan.application.services.common import CommonService
 from fanfan.application.services.notification import NotificationService
+from fanfan.application.services.qr import QRService
 from fanfan.application.services.quest import QuestService
 from fanfan.application.services.schedule import ScheduleService
 from fanfan.application.services.schedule_mgmt import ScheduleManagementService
@@ -12,6 +13,7 @@ from fanfan.application.services.voting import VotingService
 __all__ = [
     "ScheduleService",
     "NotificationService",
+    "QRService",
     "QuestService",
     "ScheduleManagementService",
     "SettingsService",

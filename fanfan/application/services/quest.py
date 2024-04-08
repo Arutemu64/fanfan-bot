@@ -11,10 +11,7 @@ from fanfan.application.exceptions.users import (
     UserHasNoTicket,
     UserNotFound,
 )
-from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
-from fanfan.common.enums import UserRole
-from fanfan.infrastructure.db.models import Transaction
 from fanfan.infrastructure.scheduler import send_notification
 
 
@@ -42,42 +39,6 @@ class QuestService(BaseService):
             total_pages=page.total_pages if page.total_pages > 0 else 1,
         )
 
-    @staticmethod
-    def _points_pluralize(points: int) -> str:
-        if (points % 10 == 1) and (points % 100 != 11):
-            return "очков"
-        elif (2 <= points % 10 <= 4) and (points % 100 < 10 or points % 100 >= 20):
-            return "очка"
-        else:
-            return "очков"
-
-    @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
-    async def add_points(self, user_id: int, amount: int) -> None:
-        async with self.uow:
-            user = await self.uow.users.get_user_by_id(user_id)
-            if not user:
-                raise UserHasNoTicket
-            if not user.ticket:
-                raise UserHasNoTicket
-
-            user.points += amount
-            transaction = Transaction(
-                from_user_id=self.identity.id,
-                to_user=user,
-                points_added=amount,
-            )
-            self.uow.session.add(transaction)
-            await self.uow.commit()
-
-            await send_notification.kiq(
-                UserNotification(
-                    user_id=user.id,
-                    text=f"💰 Вы получили "
-                    f"{amount} {self._points_pluralize(amount)}!",
-                ),
-            )
-
-    @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def add_achievement(self, user_id: int, achievement_id: int):
         user = await self.uow.users.get_user_by_id(user_id)
         if not user:
@@ -91,12 +52,6 @@ class QuestService(BaseService):
         async with self.uow:
             try:
                 user.received_achievements.add(achievement)
-                transaction = Transaction(
-                    from_user_id=self.identity.id,
-                    to_user=user,
-                    achievement_added=achievement,
-                )
-                self.uow.session.add(transaction)
                 await self.uow.commit()
             except IntegrityError:
                 await self.uow.rollback()

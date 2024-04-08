@@ -2,7 +2,9 @@ from typing import Optional
 
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.services import (
+    CommonService,
     NotificationService,
+    QRService,
     QuestService,
     ScheduleManagementService,
     ScheduleService,
@@ -12,7 +14,6 @@ from fanfan.application.services import (
     UserService,
     VotingService,
 )
-from fanfan.application.services.common import CommonService
 from fanfan.infrastructure.db import UnitOfWork
 
 
@@ -32,3 +33,4 @@ class AppHolder:
         self.users = UserService(uow, identity)
         self.voting = VotingService(uow, identity)
         self.common = CommonService(uow, identity)
+        self.qr = QRService(uow, identity)

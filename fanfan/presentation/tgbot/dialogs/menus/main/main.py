@@ -27,7 +27,7 @@ async def main_menu_getter(
 ):
     settings = await app.settings.get_settings()
     user_stats = None
-    achievements_progress = 100
+    achievements_progress = 0
     if user.ticket:
         user_stats = await app.quest.get_user_stats(user.id)
         if user_stats.total_achievements > 0:
@@ -41,7 +41,6 @@ async def main_menu_getter(
         "is_helper": user.role in [UserRole.HELPER, UserRole.ORG],
         "is_org": user.role is UserRole.ORG,
         # Stats
-        "points": user_stats.points if user_stats else None,
         "achievements_count": user_stats.achievements_count if user_stats else None,
         "achievements_progress": achievements_progress if user_stats else None,
         "total_achievements": user_stats.total_achievements if user_stats else None,
@@ -86,14 +85,12 @@ main_window = Window(
     Title(Const(strings.titles.main_menu)),
     Format(
         "👋 Привет, {name}! Сейчас ты находишься в главном меню. "
-        "Сюда всегда можно попасть по команде <b>/start</b>.",
+        "Сюда всегда можно вернуться по команде <b>/start</b>.",
     ),
     Const(" "),
     Multi(
-        Format("💰 Очков: {points}"),
-        Const(" "),
-        Format("🏆 Достижений: {achievements_count} из {total_achievements}"),
-        Progress(field="achievements_progress", width=9, filled="🟩", empty="⬜"),
+        Format("<b>🏆 Достижений:</b> {achievements_count} из {total_achievements}"),
+        Progress(field="achievements_progress", filled="🟩", empty="⬜"),
         Const(" "),
         when="is_ticket_linked",
     ),
@@ -120,8 +117,9 @@ main_window = Window(
             WebApp(
                 Const(strings.titles.qr_scanner),
                 url=Const(f"""https://{get_config().web.domain}/qr_scanner"""),
+                when=F["show_qr_webapp"],
             ),
-            when=F["show_qr_webapp"] & F["is_ticket_linked"],
+            when=F["is_ticket_linked"],
         ),
         SwitchTo(
             Const(strings.titles.activities),

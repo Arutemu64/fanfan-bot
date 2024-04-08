@@ -41,7 +41,8 @@ async def org_menu_getter(dialog_manager: DialogManager, app: AppHolder, **kwarg
     )
     return {
         "voting_enabled": settings.voting_enabled,
-        "web_panel_login_link": f"{get_config().web.build_admin_auth_url()}?token={jwt_token}",
+        "web_panel_login_link": f"{get_config().web.build_admin_auth_url()}"
+        f"?token={jwt_token}",
     }
 
 

@@ -36,7 +36,6 @@ async def achievements_getter(
     return {
         "achievements": page.items,
         "pages": page.total_pages,
-        "show_ids": False,
     }
 
 

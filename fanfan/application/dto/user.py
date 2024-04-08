@@ -38,6 +38,5 @@ class UpdateUserDTO(BaseModel):
 @dataclass(frozen=True, slots=True)
 class UserStats:
     user_id: int
-    points: int
     achievements_count: int
     total_achievements: int

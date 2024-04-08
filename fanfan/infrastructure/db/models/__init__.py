@@ -9,7 +9,6 @@ from .received_achievement import ReceivedAchievement
 from .settings import Settings
 from .subscription import Subscription
 from .ticket import Ticket
-from .transaction import Transaction
 from .user import User
 from .vote import Vote
 
@@ -23,7 +22,6 @@ __all__ = [
     "Settings",
     "Subscription",
     "Ticket",
-    "Transaction",
     "User",
     "Vote",
     "Activity",

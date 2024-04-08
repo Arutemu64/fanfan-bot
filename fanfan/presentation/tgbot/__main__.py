@@ -23,8 +23,8 @@ from fanfan.config import get_config
 from fanfan.infrastructure.db.uow import UnitOfWork
 from fanfan.infrastructure.scheduler import broker
 from fanfan.presentation.sqladmin.admin import setup_admin
-from fanfan.presentation.tgbot.utils.webapp import webapp_router
-from fanfan.presentation.tgbot.utils.webhook import webhook_router
+from fanfan.presentation.tgbot.web.webapp import webapp_router
+from fanfan.presentation.tgbot.web.webhook import webhook_router
 
 
 @asynccontextmanager
