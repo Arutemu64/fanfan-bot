@@ -19,7 +19,7 @@ class Achievement(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     secret_id: Mapped[UUID] = mapped_column(
         UUID,
-        default=uuid.uuid4(),
+        default=uuid.uuid4,
         nullable=True,
         unique=True,
     )

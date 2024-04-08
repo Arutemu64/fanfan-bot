@@ -2,24 +2,17 @@ import math
 import operator
 from typing import Any
 
-from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
+    Button,
     Cancel,
     Column,
-    CurrentPage,
-    FirstPage,
-    LastPage,
-    NextPage,
-    PrevPage,
-    Row,
     Select,
-    StubScroll,
     SwitchTo,
 )
-from aiogram_dialog.widgets.text import Const, Format, Jinja, Progress
+from aiogram_dialog.widgets.text import Const, Format, Progress
 
 from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
 from fanfan.application.exceptions import ServiceError
@@ -28,7 +21,6 @@ from fanfan.common.enums import UserRole
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.getters import get_roles
 from fanfan.presentation.tgbot.dialogs.widgets import Title
-from fanfan.presentation.tgbot.static.templates import achievements_list
 from fanfan.presentation.tgbot.ui import strings
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
@@ -130,29 +122,16 @@ async def show_user_editor_handler(
     await dialog_manager.start(states.USER_MANAGER.MAIN, data=user.id)
 
 
-achievements_list_window = Window(
-    Title(Const("🏆 Достижения участника")),
-    Jinja(achievements_list),
-    StubScroll(id=ID_ACHIEVEMENTS_SCROLL, pages="pages"),
-    Row(
-        FirstPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏪")),
-        PrevPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("◀️")),
-        CurrentPage(
-            scroll=ID_ACHIEVEMENTS_SCROLL,
-            text=Format(text="{current_page1}/{pages}"),
-        ),
-        NextPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("▶️")),
-        LastPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏭️")),
-        when=F["pages"] != 1,
-    ),
-    SwitchTo(
-        id="back",
-        text=Const(strings.buttons.back),
-        state=states.USER_MANAGER.MAIN,
-    ),
-    state=states.USER_MANAGER.ACHIEVEMENTS_LIST,
-    getter=achievements_getter,
-)
+async def open_user_achievements(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+):
+    await manager.start(
+        state=states.ACHIEVEMENTS.MAIN,
+        data=manager.dialog_data[DATA_MANAGED_USER_ID],
+    )
+
 
 role_change_window = Window(
     Const("✔️ Выберите роль для пользователя:"),
@@ -198,10 +177,10 @@ user_manager_window = Window(
         "из {total_achievements_count}"
     ),
     Progress("managed_user_achievements_progress", filled="🟩", empty="⬜"),
-    SwitchTo(
+    Button(
         text=Const("🏆 Достижения"),
-        id="add_achievement",
-        state=states.USER_MANAGER.ACHIEVEMENTS_LIST,
+        id="show_achievements",
+        on_click=open_user_achievements,
     ),
     SwitchTo(
         text=Const("✏️ Изменить роль"),
@@ -222,7 +201,6 @@ async def on_user_manager_start(start_data: int, manager: DialogManager):
 dialog = Dialog(
     user_manager_window,
     manual_user_search_window,
-    achievements_list_window,
     role_change_window,
     on_start=on_user_manager_start,
 )

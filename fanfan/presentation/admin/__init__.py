@@ -8,7 +8,7 @@ from fanfan.config import get_config
 
 
 def setup_admin(app: FastAPI, session_pool: async_sessionmaker) -> None:
-    from fanfan.presentation.sqladmin.auth import AdminAuth, auth_router
+    from fanfan.presentation.admin.auth import AdminAuth, auth_router
 
     app.include_router(auth_router)
     authentication_backend = AdminAuth(
@@ -24,7 +24,7 @@ def setup_admin(app: FastAPI, session_pool: async_sessionmaker) -> None:
         templates_dir=Path(__file__).parent.joinpath("templates").__str__(),
     )
 
-    from fanfan.presentation.sqladmin.views import views
+    from fanfan.presentation.admin.views import views
 
     for v in views:
         admin.add_view(v)

@@ -4,9 +4,12 @@ from aiogram.fsm.state import State, StatesGroup
 class MAIN(StatesGroup):
     HOME = State()
     ACTIVITIES = State()
-    ACHIEVEMENTS = State()
     QR_PASS = State()
     LINK_TICKET = State()
+
+
+class ACHIEVEMENTS(StatesGroup):
+    MAIN = State()
 
 
 class SETTINGS(StatesGroup):
@@ -51,6 +54,4 @@ class NOTIFICATIONS(StatesGroup):
 class USER_MANAGER(StatesGroup):
     MAIN = State()
     MANUAL_USER_SEARCH = State()
-
-    ACHIEVEMENTS_LIST = State()
     CHANGE_ROLE = State()

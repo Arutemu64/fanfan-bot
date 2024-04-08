@@ -6,7 +6,7 @@ from fastapi import Request, UploadFile
 from sqladmin import BaseView, expose
 from sqlalchemy.exc import IntegrityError
 
-from fanfan import TEMP_DIR
+from fanfan.common import TEMP_DIR
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models import Nomination, Participant, Ticket
 from fanfan.infrastructure.db.uow import UnitOfWork

@@ -3,7 +3,7 @@ from typing import Any
 
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import Dialog, DialogManager, Window
+from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import (
@@ -24,7 +24,8 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.exceptions import ServiceError
-from fanfan.application.exceptions.voting import VoteNotFound
+from fanfan.application.exceptions.access import TicketNotLinked
+from fanfan.application.exceptions.voting import VoteNotFound, VotingServiceDisabled
 from fanfan.application.holder import AppHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
@@ -205,4 +206,28 @@ voting_window = Window(
 )
 
 
-dialog = Dialog(nominations_window, voting_window)
+async def on_start_voting(start_data: dict, manager: DialogManager):
+    app: AppHolder = manager.middleware_data["app"]
+    settings = await app.settings.get_settings()
+    if not settings.voting_enabled:
+        await manager.event.bot.send_message(
+            chat_id=manager.event.from_user.id,
+            text=VotingServiceDisabled.message,
+        )
+        await manager.done(
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
+        return
+    user: FullUserDTO = manager.middleware_data["user"]
+    if not user.ticket:
+        await manager.event.bot.send_message(
+            chat_id=manager.event.from_user.id,
+            text=TicketNotLinked.message,
+        )
+        await manager.done(
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
+        return
+
+
+dialog = Dialog(nominations_window, voting_window, on_start=on_start_voting)

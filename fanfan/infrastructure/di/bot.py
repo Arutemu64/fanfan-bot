@@ -16,7 +16,7 @@ from redis.asyncio import Redis
 from fanfan.config import BotConfig, RedisConfig
 from fanfan.presentation.tgbot import dialogs, handlers
 from fanfan.presentation.tgbot.handlers.errors import register_error_handlers
-from fanfan.presentation.tgbot.middlewares import ContainerMiddleware, RetryMiddleware
+from fanfan.presentation.tgbot.middlewares import LoadUserMiddleware, RetryMiddleware
 
 
 class BotProvider(Provider):
@@ -52,7 +52,7 @@ class DpProvider(Provider):
 
         bot_container = make_async_container(*get_bot_providers())
         setup_dishka(bot_container, dp)
-        dp.update.middleware(ContainerMiddleware())
+        dp.update.middleware(LoadUserMiddleware())
 
         dp.include_router(handlers.setup_router())
         dp.include_router(dialogs.setup_router())

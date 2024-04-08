@@ -3,9 +3,9 @@ from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
 
-from fanfan import TEMP_DIR
 from fanfan.application.dto.qr import QR
 from fanfan.application.dto.user import FullUserDTO
+from fanfan.common import TEMP_DIR
 from fanfan.common.enums import QRType
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
@@ -27,8 +27,9 @@ qr_pass_window = Window(
     Title(Const(strings.titles.qr_pass)),
     Const(
         "Это твой FAN-Pass, покажи его волонтёру, "
-        "чтобы он смог проверить полученные тобой достижения.\n",
+        "чтобы он смог проверить полученные тобой достижения.",
     ),
+    Const(" "),
     Format("""<i>ID: {event.from_user.id}</i>"""),
     StaticMedia(path=Format("{qr_file_path}")),
     SwitchTo(text=Const(strings.buttons.back), state=states.MAIN.HOME, id="back"),

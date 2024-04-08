@@ -8,7 +8,7 @@ from sqladmin import BaseView, expose
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-from fanfan import TEMP_DIR
+from fanfan.common import TEMP_DIR
 from fanfan.infrastructure.db import UnitOfWork
 from fanfan.infrastructure.db.models import Event, Nomination, Participant
 from fanfan.infrastructure.di.config import ConfigProvider

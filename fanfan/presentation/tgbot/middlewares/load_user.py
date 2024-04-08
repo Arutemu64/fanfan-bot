@@ -9,8 +9,7 @@ from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.holder import AppHolder
 
 
-class ContainerMiddleware(BaseMiddleware):
-    # TODO Get rid of this middleware once aiogram_dialog get full dishka support
+class LoadUserMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],

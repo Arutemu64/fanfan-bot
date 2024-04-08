@@ -1,15 +1,12 @@
 import math
 
 from aiogram import F
-from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo, WebApp
+from aiogram_dialog.widgets.kbd import Group, Start, SwitchTo, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Multi, Progress
 
 from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.exceptions.access import TicketNotLinked
-from fanfan.application.exceptions.voting import VotingServiceDisabled
 from fanfan.application.holder import AppHolder
 from fanfan.common.enums import BotMode, UserRole
 from fanfan.config import get_config
@@ -50,35 +47,6 @@ async def main_menu_getter(
         # Most important thing ever
         "random_quote": await app.common.get_random_quote(),
     }
-
-
-async def open_voting_handler(
-    callback: CallbackQuery,
-    button: Button,
-    manager: DialogManager,
-):
-    user: FullUserDTO = manager.middleware_data["user"]
-    if not user.ticket:
-        await callback.answer(TicketNotLinked.message, show_alert=True)
-        return
-    app: AppHolder = manager.middleware_data["app"]
-    settings = await app.settings.get_settings()
-    if not settings.voting_enabled:
-        await callback.answer(VotingServiceDisabled.message, show_alert=True)
-        return
-    await manager.start(state=states.VOTING.SELECT_NOMINATION)
-
-
-async def open_achievements_handler(
-    callback: CallbackQuery,
-    button: Button,
-    manager: DialogManager,
-):
-    user: FullUserDTO = manager.middleware_data["user"]
-    if not user.ticket:
-        await callback.answer(TicketNotLinked.message, show_alert=True)
-        return
-    await manager.switch_to(state=states.MAIN.ACHIEVEMENTS)
 
 
 main_window = Window(
@@ -131,7 +99,7 @@ main_window = Window(
             id="open_schedule",
             state=states.SCHEDULE.MAIN,
         ),
-        Button(
+        Start(
             text=Case(
                 {
                     True: Const(strings.titles.achievements),
@@ -140,9 +108,9 @@ main_window = Window(
                 selector="is_ticket_linked",
             ),
             id="open_achievements",
-            on_click=open_achievements_handler,
+            state=states.ACHIEVEMENTS.MAIN,
         ),
-        Button(
+        Start(
             text=Case(
                 texts={
                     True: Const(strings.titles.voting),
@@ -151,7 +119,7 @@ main_window = Window(
                 selector=F["voting_enabled"] & F["is_ticket_linked"],
             ),
             id="open_voting",
-            on_click=open_voting_handler,
+            state=states.VOTING.SELECT_NOMINATION,
         ),
         Start(
             text=Const(strings.titles.helper_menu),

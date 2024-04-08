@@ -3,6 +3,7 @@ from aiogram import Router
 
 def setup_router() -> Router:
     from fanfan.presentation.tgbot.dialogs.menus import (
+        achievements,
         helper,
         main,
         org,
@@ -18,6 +19,7 @@ def setup_router() -> Router:
     visitor_router.include_router(main.dialog)
     visitor_router.include_router(schedule.dialog)
     visitor_router.include_router(subscriptions.dialog)
+    visitor_router.include_router(achievements.dialog)
     visitor_router.include_router(voting.dialog)
     visitor_router.include_router(settings.dialog)
 

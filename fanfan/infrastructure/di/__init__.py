@@ -9,7 +9,10 @@ from fanfan.infrastructure.di.user_bot import UserProvider
 
 
 def get_common_providers() -> List[Provider]:
-    return [ConfigProvider()]
+    return [
+        ConfigProvider(),
+        DbProvider(),
+    ]
 
 
 def get_app_providers() -> List[Provider]:
@@ -18,13 +21,8 @@ def get_app_providers() -> List[Provider]:
         DpProvider(),
         BotProvider(),
         RedisProvider(),
-        DbProvider(),
     ]
 
 
 def get_bot_providers() -> List[Provider]:
-    return [*get_common_providers(), DbProvider(), UserProvider()]
-
-
-def get_scheduler_providers() -> List[Provider]:
-    return [*get_common_providers(), BotProvider(), RedisProvider()]
+    return [*get_common_providers(), UserProvider()]
