@@ -1,9 +1,7 @@
-import time
 from typing import Tuple
 
 from fanfan.application.dto.event import EventDTO
 from fanfan.application.exceptions.event import (
-    AnnounceTooFast,
     CurrentEventNotAllowed,
     EventNotFound,
     NoNextEvent,
@@ -17,23 +15,6 @@ from fanfan.common.enums import UserRole
 
 
 class ScheduleManagementService(BaseService):
-    async def _throttle_global_announcement(self) -> None:
-        settings = await self.uow.settings.get_settings()
-        timestamp = time.time()
-        if (
-            timestamp - settings.announcement_timestamp
-        ) < settings.announcement_timeout:
-            raise AnnounceTooFast(
-                settings.announcement_timeout,
-                int(
-                    settings.announcement_timestamp
-                    + settings.announcement_timeout
-                    - timestamp,
-                ),
-            )
-        else:
-            settings.announcement_timestamp = timestamp
-
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def skip_event(self, event_id: int) -> EventDTO:
         """Mark event as skipped
@@ -44,23 +25,21 @@ class ScheduleManagementService(BaseService):
         if not event:
             raise EventNotFound(event_id)
 
-        send_global_announcement = False
         current_event = await self.uow.events.get_current_event()
-        if current_event:
-            if event is current_event:
-                raise CurrentEventNotAllowed
-            next_event = await self.uow.events.get_next_event(current_event.id)
-            if (event is next_event) or (event.position == current_event.position + 1):
-                await self._throttle_global_announcement()
-                send_global_announcement = True
+        if event is current_event:
+            raise CurrentEventNotAllowed
+        next_event = await self.uow.events.get_next_event()
 
         async with self.uow:
             event.skip = not event.skip
-            await self.uow.commit()
-            await self.uow.session.refresh(event)
+            await self.uow.session.flush([event])
+            await self.uow.session.refresh(event, ["real_position"])
             await NotificationService(self.uow, self.identity).proceed_subscriptions(
-                send_global_announcement=send_global_announcement,
+                current_event_before=current_event,
+                next_event_before=next_event,
+                changed_events=[event],
             )
+            await self.uow.commit()
             return event.to_dto()
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
@@ -83,22 +62,20 @@ class ScheduleManagementService(BaseService):
         if not event2:
             raise EventNotFound(event2_id)
 
-        send_global_announcement = False
         current_event = await self.uow.events.get_current_event()
-        if current_event:
-            next_event = await self.uow.events.get_next_event(current_event.id)
-            if {event1, event2}.intersection({current_event, next_event}):
-                await self._throttle_global_announcement()
-                send_global_announcement = True
+        next_event = await self.uow.events.get_next_event()
 
         async with self.uow:
             event1.position, event2.position = event2.position, event1.position
-            await self.uow.commit()
-            await self.uow.session.refresh(event1)
-            await self.uow.session.refresh(event2)
+            await self.uow.session.flush([event1, event2])
+            await self.uow.session.refresh(event1, ["real_position"])
+            await self.uow.session.refresh(event2, ["real_position"])
             await NotificationService(self.uow, self.identity).proceed_subscriptions(
-                send_global_announcement=send_global_announcement,
+                current_event_before=current_event,
+                next_event_before=next_event,
+                changed_events=[event1, event2],
             )
+            await self.uow.commit()
             return event1.to_dto(), event2.to_dto()
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
@@ -119,14 +96,17 @@ class ScheduleManagementService(BaseService):
                 raise CurrentEventNotAllowed
             current_event.current = None
             await self.uow.session.flush([current_event])
+        next_event = await self.uow.events.get_next_event()
 
         async with self.uow:
-            await self._throttle_global_announcement()
             event.current = True
-            await self.uow.commit()
+            await self.uow.session.flush([event])
             await NotificationService(self.uow, self.identity).proceed_subscriptions(
-                send_global_announcement=True,
+                current_event_before=current_event,
+                next_event_before=next_event,
+                changed_events=[event],
             )
+            await self.uow.commit()
             return event.to_dto()
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
@@ -136,7 +116,7 @@ class ScheduleManagementService(BaseService):
         """
         current_event = await self.uow.events.get_current_event()
         if current_event:
-            next_event = await self.uow.events.get_next_event(current_event.id)
+            next_event = await self.uow.events.get_next_event()
             if not next_event:
                 raise NoNextEvent
         else:

@@ -12,16 +12,14 @@ def get_common_providers() -> List[Provider]:
     return [
         ConfigProvider(),
         DbProvider(),
-    ]
-
-
-def get_app_providers() -> List[Provider]:
-    return [
-        *get_common_providers(),
         DpProvider(),
         BotProvider(),
         RedisProvider(),
     ]
+
+
+def get_app_providers() -> List[Provider]:
+    return get_common_providers()
 
 
 def get_bot_providers() -> List[Provider]:

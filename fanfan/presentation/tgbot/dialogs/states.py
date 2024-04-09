@@ -45,7 +45,7 @@ class ORG(StatesGroup):
     ADD_NEW_TICKET = State()
 
 
-class NOTIFICATIONS(StatesGroup):
+class DELIVERIES(StatesGroup):
     MAIN = State()
     CREATE = State()
     DELETE = State()

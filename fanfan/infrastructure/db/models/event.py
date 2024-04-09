@@ -94,4 +94,5 @@ Event.real_position = column_property(
     select(rp_subquery.c.real_position)
     .where(Event.id == rp_subquery.c.event_id)
     .scalar_subquery(),
+    expire_on_flush=True,
 )

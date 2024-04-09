@@ -206,7 +206,7 @@ voting_window = Window(
 )
 
 
-async def on_start_voting(start_data: dict, manager: DialogManager):
+async def on_start_voting(start_data: None, manager: DialogManager):
     app: AppHolder = manager.middleware_data["app"]
     settings = await app.settings.get_settings()
     if not settings.voting_enabled:
@@ -217,6 +217,7 @@ async def on_start_voting(start_data: dict, manager: DialogManager):
         await manager.done(
             show_mode=ShowMode.DELETE_AND_SEND,
         )
+        manager.show_mode = ShowMode.NO_UPDATE
         return
     user: FullUserDTO = manager.middleware_data["user"]
     if not user.ticket:
@@ -227,6 +228,7 @@ async def on_start_voting(start_data: dict, manager: DialogManager):
         await manager.done(
             show_mode=ShowMode.DELETE_AND_SEND,
         )
+        manager.show_mode = ShowMode.NO_UPDATE
         return
 
 

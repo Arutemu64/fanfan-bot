@@ -70,7 +70,7 @@ main_window = Window(
     Format("<i>{random_quote}</i>", when=F["random_quote"]),
     StaticMedia(path=Const(UI_IMAGES_DIR.joinpath("main_menu.png"))),
     Start(
-        Const(strings.titles.ticket_linking),
+        Const(strings.titles.link_ticket),
         id="link_ticket",
         state=states.MAIN.LINK_TICKET,
         when=~F["is_ticket_linked"],

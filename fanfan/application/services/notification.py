@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from typing import List, Optional
 
@@ -9,10 +10,12 @@ from taskiq import TaskiqResult
 from taskiq_redis.exceptions import ResultIsMissingError
 
 from fanfan.application.dto.common import UserNotification
+from fanfan.application.exceptions.event import AnnounceTooFast
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.config import get_config
+from fanfan.infrastructure.db.models import Event
 from fanfan.infrastructure.scheduler import (
     delete_message,
     redis_async_result,
@@ -32,6 +35,23 @@ global_announcement_template = jinja.get_template("global_announcement.jinja2")
 
 
 class NotificationService(BaseService):
+    async def _throttle_global_announcement(self) -> None:
+        settings = await self.uow.settings.get_settings()
+        timestamp = time.time()
+        if (
+            timestamp - settings.announcement_timestamp
+        ) < settings.announcement_timeout:
+            raise AnnounceTooFast(
+                settings.announcement_timeout,
+                int(
+                    settings.announcement_timestamp
+                    + settings.announcement_timeout
+                    - timestamp,
+                ),
+            )
+        else:
+            settings.announcement_timestamp = timestamp
+
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def send_notifications(
         self,
@@ -69,23 +89,24 @@ class NotificationService(BaseService):
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def proceed_subscriptions(
         self,
-        send_global_announcement: bool = False,
+        current_event_before: Optional[Event],
+        next_event_before: Optional[Event],
+        changed_events: List[Event],
     ) -> None:
-        """Proceed upcoming subscriptions and send notifications
-        @param send_global_announcement: If True,
-        all users with receive_all_announcements enabled
-        will receive a global Now/Next notification
-        @return:
-        """
-        current_event = await self.uow.events.get_current_event()
-        if not current_event:
-            return
-
+        """Proceed upcoming subscriptions and send notifications"""
+        # Prepare notifications list and timestamp
         notifications = []
         timestamp = datetime.now(tz=timezone(get_config().bot.timezone))
 
-        if send_global_announcement:
-            next_event = await self.uow.events.get_next_event(event_id=current_event.id)
+        # Get current and next event
+        current_event = await self.uow.events.get_current_event()
+        if not current_event:
+            return
+        next_event = await self.uow.events.get_next_event()
+
+        # Preparing global notifications
+        if (current_event != current_event_before) or (next_event != next_event_before):
+            await self._throttle_global_announcement()
             text = await global_announcement_template.render_async(
                 {"current_event": current_event, "next_event": next_event},
             )
@@ -94,31 +115,35 @@ class NotificationService(BaseService):
                     UserNotification(
                         user_id=user.id,
                         text=text,
-                        bottom_text="(отключить уведомления можно "
-                        "в меню <b>🔔 Уведомления</b> в расписании)",
+                        bottom_text="(управление уведомлениями - /notifications)",
                         timestamp=timestamp,
                     ),
                 )
 
+        # Checking subscriptions
         for subscription in await self.uow.subscriptions.get_upcoming_subscriptions():
-            text = await subscription_template.render_async(
-                {
-                    "current_event": current_event,
-                    "subscription": subscription,
-                },
-            )
-            notifications.append(
-                UserNotification(
-                    user_id=subscription.user_id,
-                    text=text,
-                    timestamp=timestamp,
-                ),
-            )
-
-        await self.send_notifications(notifications)
+            notify = False
+            for e in changed_events:
+                if current_event.position <= e.position <= subscription.event.position:
+                    notify = True
+            if notify:
+                await self.uow.session.refresh(subscription.event, ["real_position"])
+                text = await subscription_template.render_async(
+                    {
+                        "current_event": current_event,
+                        "subscription": subscription,
+                    },
+                )
+                notifications.append(
+                    UserNotification(
+                        user_id=subscription.user_id,
+                        text=text,
+                        timestamp=timestamp,
+                    ),
+                )
+            if subscription.event is current_event:
+                await self.uow.session.delete(subscription)
 
         async with self.uow:
-            await self.uow.subscriptions.bulk_delete_subscriptions_by_event(
-                current_event.id,
-            )
             await self.uow.commit()
+            await self.send_notifications(notifications)

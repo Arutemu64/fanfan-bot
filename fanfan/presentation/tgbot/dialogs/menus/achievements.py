@@ -55,6 +55,7 @@ async def on_start_achievements(start_data: Optional[int], manager: DialogManage
                 text=TicketNotLinked.message,
             )
             await manager.done(show_mode=ShowMode.DELETE_AND_SEND)
+            manager.show_mode = ShowMode.NO_UPDATE
             return
         manager.dialog_data[DATA_USER_ID] = user.id
 

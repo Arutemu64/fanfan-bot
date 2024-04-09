@@ -39,7 +39,7 @@ DATA_IMAGE_ID = "data_image_id"
 DATA_ROLE_IDS = "data_role_ids"
 
 
-async def send_notification_handler(
+async def send_delivery_handler(
     callback: CallbackQuery,
     button: Button,
     manager: DialogManager,
@@ -71,10 +71,10 @@ async def send_notification_handler(
     await callback.message.answer(
         "✅ Рассылка запущена!\n" f"Уникальный ID рассылки: <code>{delivery_id}</code>",
     )
-    await manager.switch_to(states.NOTIFICATIONS.MAIN)
+    await manager.switch_to(states.DELIVERIES.MAIN)
 
 
-async def create_notification_getter(dialog_manager: DialogManager, **kwargs):
+async def create_delivery_getter(dialog_manager: DialogManager, **kwargs):
     roles_picker: ManagedMultiselect[UserRole] = dialog_manager.find(ID_ROLES_PICKER)
     notification_text = dialog_manager.dialog_data[DATA_TEXT] or "не задан"
     if dialog_manager.dialog_data[DATA_IMAGE_ID]:
@@ -112,7 +112,7 @@ async def delete_image_handler(
     manager.dialog_data[DATA_IMAGE_ID] = None
 
 
-async def delete_notification_handler(
+async def delete_delivery_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
@@ -126,10 +126,10 @@ async def delete_notification_handler(
     except ServiceError as e:
         await message.answer(e.message)
 
-    await dialog_manager.switch_to(states.NOTIFICATIONS.MAIN)
+    await dialog_manager.switch_to(states.DELIVERIES.MAIN)
 
 
-create_notification_window = Window(
+create_delivery_window = Window(
     Title(Const("✉️ Создание рассылки")),
     Format("Текст рассылки: {notification_text}\n"),
     Const("<i>⌨️ Отправьте текст/фото, чтобы добавить его в сообщение.</i>"),
@@ -161,7 +161,7 @@ create_notification_window = Window(
     Button(
         Const("📤 Отправить"),
         id="send",
-        on_click=send_notification_handler,
+        on_click=send_delivery_handler,
         when="sending_allowed",
     ),
     MessageInput(
@@ -170,41 +170,41 @@ create_notification_window = Window(
     SwitchTo(
         Const(strings.buttons.back),
         id="back",
-        state=states.NOTIFICATIONS.MAIN,
+        state=states.DELIVERIES.MAIN,
     ),
-    getter=create_notification_getter,
-    state=states.NOTIFICATIONS.CREATE,
+    getter=create_delivery_getter,
+    state=states.DELIVERIES.CREATE,
 )
 
-delete_notification_window = Window(
+delete_delivery_window = Window(
     Const("🗑️ Отправьте уникальный ID рассылки, которую нужно удалить"),
     TextInput(
         id=ID_QUEUE_ID_INPUT,
         type_factory=str,
-        on_success=delete_notification_handler,
+        on_success=delete_delivery_handler,
     ),
     SwitchTo(
         Const(strings.buttons.back),
         id="back",
-        state=states.NOTIFICATIONS.MAIN,
+        state=states.DELIVERIES.MAIN,
     ),
-    state=states.NOTIFICATIONS.DELETE,
+    state=states.DELIVERIES.DELETE,
 )
 
-main_notifications_window = Window(
+main_delivery_window = Window(
     Title(Const("✉️ Рассылки")),
     SwitchTo(
         Const("💌 Создать рассылку"),
         id="create_notification",
-        state=states.NOTIFICATIONS.CREATE,
+        state=states.DELIVERIES.CREATE,
     ),
     SwitchTo(
         Const("🗑️ Удалить рассылку"),
         id="delete_notification",
-        state=states.NOTIFICATIONS.DELETE,
+        state=states.DELIVERIES.DELETE,
     ),
     Cancel(id="org_main_window", text=Const(strings.buttons.back)),
-    state=states.NOTIFICATIONS.MAIN,
+    state=states.DELIVERIES.MAIN,
 )
 
 
@@ -214,8 +214,8 @@ async def _on_dialog_start(start_data: Any, manager: DialogManager):
 
 
 dialog = Dialog(
-    main_notifications_window,
-    create_notification_window,
-    delete_notification_window,
+    main_delivery_window,
+    create_delivery_window,
+    delete_delivery_window,
     on_start=_on_dialog_start,
 )

@@ -20,11 +20,11 @@ class UserProvider(Provider):
     )
 
     @provide
-    async def get_telegram_user(self, request: TelegramObject) -> User:
+    async def get_current_telegram_user(self, request: TelegramObject) -> User:
         return request.event.from_user
 
     @provide
-    async def get_full_user_dto(
+    async def get_current_user(
         self,
         tg_user: User,
         uow: UnitOfWork,
@@ -71,7 +71,7 @@ class UserProvider(Provider):
         return user
 
     @provide
-    async def get_services_holder(
+    async def get_app_holder(
         self,
         uow: UnitOfWork,
         identity: FullUserDTO,

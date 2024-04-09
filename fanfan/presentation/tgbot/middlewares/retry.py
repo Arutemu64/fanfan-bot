@@ -21,5 +21,8 @@ class RetryMiddleware(BaseRequestMiddleware):
             try:
                 return await make_request(bot, method)
             except TelegramRetryAfter as e:
-                logging.info(f"Too many requests, retrying in {e.retry_after}")
+                logging.warning(
+                    f"Flood control, retrying in {e.retry_after} seconds...",
+                    exc_info=e,
+                )
                 await asyncio.sleep(e.retry_after)

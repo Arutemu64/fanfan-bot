@@ -6,7 +6,7 @@ class AccessDenied(ServiceError):
 
 
 class TicketNotLinked(AccessDenied):
-    message = "⚠️🎫 Привяжите билет для доступа к этой функции"
+    message = "⚠️ Привяжите билет для доступа к этой функции"
 
 
 class NoIdentityProvided(AccessDenied):

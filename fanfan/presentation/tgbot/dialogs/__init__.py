@@ -12,7 +12,7 @@ def setup_router() -> Router:
         user_manager,
         voting,
     )
-    from fanfan.presentation.tgbot.dialogs.menus.org import notifications
+    from fanfan.presentation.tgbot.dialogs.menus.org import deliveries
     from fanfan.presentation.tgbot.dialogs.menus.schedule import subscriptions
 
     visitor_router = Router()
@@ -29,7 +29,7 @@ def setup_router() -> Router:
 
     org_router = Router()
     org_router.include_router(org.dialog)
-    org_router.include_router(notifications.dialog)
+    org_router.include_router(deliveries.dialog)
 
     dialog_router = Router()
     dialog_router.include_router(visitor_router)

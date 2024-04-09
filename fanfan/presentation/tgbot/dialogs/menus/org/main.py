@@ -112,7 +112,7 @@ org_main_window = Window(
         url=Const("https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"),
     ),
     Start(
-        state=states.NOTIFICATIONS.MAIN,
+        state=states.DELIVERIES.MAIN,
         id="new_notification",
         text=Const("✉️ Рассылки"),
     ),

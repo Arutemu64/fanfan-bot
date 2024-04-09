@@ -1,6 +1,6 @@
 from typing import Optional, Sequence
 
-from sqlalchemy import and_, delete, select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -48,7 +48,6 @@ class SubscriptionsRepository(Repository[Subscription]):
             select(Subscription)
             .where(
                 and_(Subscription.user_id == user_id),
-                (Subscription.event.has(Event.skip.isnot(True))),
             )
             .order_by(Subscription.event_id)
             .options(joinedload(Subscription.event))
@@ -77,7 +76,3 @@ class SubscriptionsRepository(Repository[Subscription]):
             .options(joinedload(Subscription.event))
         )
         return (await self.session.scalars(query)).all()
-
-    async def bulk_delete_subscriptions_by_event(self, event_id: int) -> None:
-        query = delete(Subscription).where(Subscription.event_id == event_id)
-        await self.session.execute(query)
