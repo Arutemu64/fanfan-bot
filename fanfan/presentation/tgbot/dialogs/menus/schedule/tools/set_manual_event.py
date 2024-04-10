@@ -1,4 +1,5 @@
 from aiogram.types import Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
@@ -7,6 +8,7 @@ from aiogram_dialog.widgets.text import Const
 
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
+from fanfan.common.utils import NOTIFICATIONS_PLURALS, pluralize
 from fanfan.presentation.tgbot.dialogs import (
     states,
 )
@@ -15,7 +17,7 @@ from fanfan.presentation.tgbot.dialogs.menus.schedule.common import (
     ScheduleWindow,
     set_search_query_handler,
 )
-from fanfan.presentation.tgbot.dialogs.widgets import Title
+from fanfan.presentation.tgbot.dialogs.widgets import Title, get_delete_delivery_button
 from fanfan.presentation.tgbot.ui import strings
 
 
@@ -28,12 +30,19 @@ async def set_manual_event_handler(
     app: AppHolder = dialog_manager.middleware_data["app"]
 
     try:
-        event = await app.schedule_mgmt.set_current_event(data)
+        event, delivery_info = await app.schedule_mgmt.set_current_event(data)
     except ServiceError as e:
         await message.reply(e.message)
         return
 
-    await message.reply(f"✅ Выступление <b>{event.title}</b> отмечено как текущее")
+    await message.reply(
+        f"✅ Выступление <b>{event.title}</b> отмечено как текущее\n"
+        f"Будет отправлено {delivery_info.count} "
+        f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
+        reply_markup=InlineKeyboardBuilder(
+            [[get_delete_delivery_button(delivery_info.delivery_id)]]
+        ).as_markup(),
+    )
     await show_event_page(dialog_manager, event.id)
     await dialog_manager.switch_to(states.SCHEDULE.MAIN)
 

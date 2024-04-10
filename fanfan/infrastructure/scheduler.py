@@ -3,6 +3,7 @@ from typing import Annotated, Optional
 
 from aiogram import Bot
 from aiogram.types import Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
@@ -14,7 +15,7 @@ from taskiq import (
 from taskiq.serializers import ORJSONSerializer
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
-from fanfan.application.dto.common import UserNotification
+from fanfan.application.dto.notification import UserNotification
 from fanfan.config import get_config
 from fanfan.presentation.tgbot.dialogs.widgets import DELETE_BUTTON
 
@@ -47,13 +48,13 @@ async def send_notification(
             chat_id=notification.user_id,
             photo=str(notification.image_id),
             caption=notification.render_message_text(),
-            reply_markup=DELETE_BUTTON.as_markup(),
+            reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
         )
     else:
         message = await bot.send_message(
             chat_id=notification.user_id,
             text=notification.render_message_text(),
-            reply_markup=DELETE_BUTTON.as_markup(),
+            reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
         )
     await dialog_bg_factory.bg(
         bot=bot,

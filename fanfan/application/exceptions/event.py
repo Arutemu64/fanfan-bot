@@ -1,6 +1,7 @@
 from typing import Optional
 
 from fanfan.application.exceptions import ServiceError
+from fanfan.common.utils import SECONDS_PLURALS, pluralize
 
 
 class EventServiceError(ServiceError):
@@ -24,21 +25,12 @@ class NoNextEvent(EventNotFound):
 
 
 class AnnounceTooFast(EventServiceError):
-    @staticmethod
-    def _seconds_pluralize(seconds: int) -> str:
-        if (seconds % 10 == 1) and (seconds % 100 != 11):
-            return "секунду"
-        elif (2 <= seconds % 10 <= 4) and (seconds % 100 < 10 or seconds % 100 >= 20):
-            return "секунды"
-        else:
-            return "секунд"
-
     def __init__(self, announcement_timeout: int, time_left: int) -> None:
         self.message = (
             f"⚠️ С последнего анонса не прошло {announcement_timeout} "
-            f"{self._seconds_pluralize(announcement_timeout)}! "
+            f"{pluralize(announcement_timeout, SECONDS_PLURALS)}!\n"
             f"Попробуйте ещё раз через "
-            f"{time_left} {self._seconds_pluralize(time_left)}."
+            f"{time_left} {pluralize(time_left, SECONDS_PLURALS)}."
         )
 
 

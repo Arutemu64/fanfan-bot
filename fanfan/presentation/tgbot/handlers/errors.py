@@ -4,6 +4,7 @@ from aiogram import Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.filters import ExceptionTypeFilter
 from aiogram.types import ErrorEvent
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import DialogManager
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from sentry_sdk import capture_exception
@@ -31,7 +32,7 @@ async def on_unknown_error(event: ErrorEvent, dialog_manager: DialogManager):
                 user_id=user_id,
             ).message,
             parse_mode=ParseMode.HTML,
-            reply_markup=DELETE_BUTTON.as_markup(),
+            reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
         )
     elif event.update.message:
         user_id = event.update.message.from_user.id
@@ -41,7 +42,7 @@ async def on_unknown_error(event: ErrorEvent, dialog_manager: DialogManager):
                 user_id=user_id,
             ).message,
             parse_mode=ParseMode.HTML,
-            reply_markup=DELETE_BUTTON.as_markup(),
+            reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
         )
 
 

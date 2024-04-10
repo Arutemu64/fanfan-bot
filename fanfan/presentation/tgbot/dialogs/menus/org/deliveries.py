@@ -1,5 +1,4 @@
 import operator
-import uuid
 from datetime import datetime
 from typing import Any
 
@@ -20,10 +19,11 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 from pytz import timezone
 
-from fanfan.application.dto.common import UserNotification
+from fanfan.application.dto.notification import UserNotification
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
+from fanfan.common.utils import NOTIFICATIONS_PLURALS, pluralize
 from fanfan.config import get_config
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.getters import get_roles_list
@@ -48,7 +48,6 @@ async def send_delivery_handler(
     roles_picker: ManagedMultiselect[UserRole] = manager.find(ID_ROLES_PICKER)
 
     roles = roles_picker.get_checked()
-    delivery_id = uuid.uuid4().hex
     notifications = []
     timestamp = datetime.now(tz=timezone(get_config().bot.timezone))
 
@@ -63,13 +62,16 @@ async def send_delivery_handler(
                     timestamp=timestamp,
                 ),
             )
-        await app.notifications.send_notifications(notifications, delivery_id)
+        delivery_info = await app.notifications.send_notifications(notifications)
     except ServiceError as e:
         await callback.answer(e.message)
         return
 
     await callback.message.answer(
-        "✅ Рассылка запущена!\n" f"Уникальный ID рассылки: <code>{delivery_id}</code>",
+        "✅ Рассылка запущена!\n"
+        f"Будет отправлено {delivery_info.count} "
+        f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n"
+        f"Уникальный ID рассылки: <code>{delivery_info.delivery_id}</code>",
     )
     await manager.switch_to(states.DELIVERIES.MAIN)
 
@@ -121,8 +123,11 @@ async def delete_delivery_handler(
     app: AppHolder = dialog_manager.middleware_data["app"]
 
     try:
-        count = await app.notifications.delete_delivery(data)
-        await message.answer(f"✅ Будет удалено {count} сообщений")
+        delivery_info = await app.notifications.delete_delivery(data)
+        await message.answer(
+            f"✅ Будет удалено {delivery_info.count} "
+            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}"
+        )
     except ServiceError as e:
         await message.answer(e.message)
 

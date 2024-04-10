@@ -1,7 +1,8 @@
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.application.dto.achievement import FullAchievementDTO
-from fanfan.application.dto.common import Page, UserNotification
+from fanfan.application.dto.common import Page
+from fanfan.application.dto.notification import UserNotification
 from fanfan.application.dto.user import UserStats
 from fanfan.application.exceptions.quest import (
     AchievementNotFound,

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from aiogram import Bot
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.web_app import safe_parse_webapp_init_data
 from aiogram_dialog import BgManagerFactory
 from dishka import FromDishka
@@ -72,17 +73,19 @@ async def proceed_qr_post(
                     await bot.send_message(
                         chat_id=web_app_init_data.user.id,
                         text="⚠️ У тебя уже есть это достижение",
-                        reply_markup=DELETE_BUTTON.as_markup(),
+                        reply_markup=InlineKeyboardBuilder(
+                            [[DELETE_BUTTON]]
+                        ).as_markup(),
                     )
     except ValidationError:
         await bot.send_message(
             chat_id=web_app_init_data.user.id,
             text="⚠️ Ошибка при валидации QR-кода, попробуйте ещё раз",
-            reply_markup=DELETE_BUTTON.as_markup(),
+            reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
         )
     except ServiceError as e:
         await bot.send_message(
             chat_id=web_app_init_data.user.id,
             text=e.message,
-            reply_markup=DELETE_BUTTON.as_markup(),
+            reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
         )
