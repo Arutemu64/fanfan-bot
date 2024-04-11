@@ -26,6 +26,8 @@ from fanfan.presentation.admin import setup_admin
 from fanfan.presentation.tgbot.web.webapp import webapp_router
 from fanfan.presentation.tgbot.web.webhook import webhook_router
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -67,24 +69,24 @@ async def lifespan(app: FastAPI):
             app.include_router(webapp_router)
             if (await bot.get_webhook_info()).url != webhook_url:
                 await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
-            logging.info(
+            logger.info(
                 f"Running in webhook mode at {(await bot.get_webhook_info()).url}",
             )
         case BotMode.POLLING:
             dp = await app_container.get(Dispatcher)
             await bot.delete_webhook(drop_pending_updates=True)
             bot_task = asyncio.create_task(dp.start_polling(bot))
-            logging.info("Running in polling mode")
+            logger.info("Running in polling mode")
     yield
-    logging.info("Stopping scheduler worker...")
+    logger.info("Stopping scheduler worker...")
     worker_task.cancel()
     await broker.shutdown()
-    logging.info("Stopping bot...")
+    logger.info("Stopping bot...")
     if bot_task:
         bot_task.cancel()
-    logging.info("Disposing container...")
+    logger.info("Disposing container...")
     await app_container.close()
-    logging.info("Bot stopped!")
+    logger.info("Bot stopped!")
 
 
 def create_app() -> FastAPI:
@@ -117,6 +119,8 @@ def create_app() -> FastAPI:
 if __name__ == "__main__":
     config = get_config()
     logging.basicConfig(level=config.debug.logging_level)
+    if not config.debug.enabled:
+        logging.getLogger("aiogram").setLevel(logging.WARNING)
     try:
         uvicorn.run(
             host=config.web.host,

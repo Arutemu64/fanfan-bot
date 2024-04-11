@@ -9,6 +9,8 @@ from aiogram.client.session.middlewares.base import (
 from aiogram.exceptions import TelegramRetryAfter
 from aiogram.methods.base import Response, TelegramMethod, TelegramType
 
+logger = logging.getLogger(__name__)
+
 
 class RetryMiddleware(BaseRequestMiddleware):
     async def __call__(
@@ -21,7 +23,7 @@ class RetryMiddleware(BaseRequestMiddleware):
             try:
                 return await make_request(bot, method)
             except TelegramRetryAfter as e:
-                logging.warning(
+                logger.warning(
                     f"Flood control, retrying in {e.retry_after} seconds...",
                     exc_info=e,
                 )

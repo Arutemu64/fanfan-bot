@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime
 from typing import List, Optional, Tuple
@@ -22,6 +23,8 @@ from fanfan.common.enums import UserRole
 from fanfan.config import get_config
 from fanfan.infrastructure.db.models import Event
 from fanfan.presentation.tgbot import JINJA_TEMPLATES_DIR
+
+logger = logging.getLogger(__name__)
 
 templateLoader = FileSystemLoader(searchpath=JINJA_TEMPLATES_DIR)
 jinja = Environment(
@@ -140,6 +143,10 @@ class ScheduleManagementService(BaseService):
             delivery_info = await NotificationService(
                 self.uow, self.identity
             ).send_notifications(notifications)
+            logger.info(
+                f"Event id={event.id} was skipped by user id={self.identity.id}\n"
+                f"Delivery: {delivery_info}"
+            )
             return event.to_dto(), delivery_info
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
@@ -179,6 +186,11 @@ class ScheduleManagementService(BaseService):
             delivery_info = await NotificationService(
                 self.uow, self.identity
             ).send_notifications(notifications)
+            logger.info(
+                f"Event id={event1.id} was swapped with Event id={event2.id} "
+                f"by User id={self.identity.id}\n"
+                f"Delivery: {delivery_info}"
+            )
             return event1.to_dto(), event2.to_dto(), delivery_info
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
@@ -213,6 +225,9 @@ class ScheduleManagementService(BaseService):
             delivery_info = await NotificationService(
                 self.uow, self.identity
             ).send_notifications(notifications)
+            logger.info(
+                f"Event id={event.id} was set as current by User id={self.identity.id}"
+            )
             return event.to_dto(), delivery_info
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])

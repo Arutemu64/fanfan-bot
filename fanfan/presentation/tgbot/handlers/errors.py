@@ -12,6 +12,8 @@ from sentry_sdk import capture_exception
 from fanfan.application.exceptions import UnhandledError
 from fanfan.presentation.tgbot.dialogs.widgets import DELETE_BUTTON
 
+logger = logging.getLogger(__name__)
+
 
 async def on_unknown_intent_or_state(event: ErrorEvent, dialog_manager: DialogManager):
     message = "⌛⚠️ Ваша сессия истекла, перезапустите бота командой /start"
@@ -23,12 +25,12 @@ async def on_unknown_intent_or_state(event: ErrorEvent, dialog_manager: DialogMa
 
 async def on_unknown_error(event: ErrorEvent, dialog_manager: DialogManager):
     capture_exception(event.exception)
-    logging.critical("Critical error caused by %s", event.exception, exc_info=True)
+    logger.critical("Critical error caused by %s", event.exception, exc_info=True)
     if event.update.callback_query:
         user_id = event.update.callback_query.from_user.id
         await event.update.callback_query.message.answer(
             UnhandledError(
-                exception_name=type(event.exception).__name__,
+                exception=event.exception,
                 user_id=user_id,
             ).message,
             parse_mode=ParseMode.HTML,
@@ -38,7 +40,7 @@ async def on_unknown_error(event: ErrorEvent, dialog_manager: DialogManager):
         user_id = event.update.message.from_user.id
         await event.update.message.answer(
             UnhandledError(
-                exception_name=type(event.exception).__name__,
+                exception=event.exception,
                 user_id=user_id,
             ).message,
             parse_mode=ParseMode.HTML,

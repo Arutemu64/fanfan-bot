@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -12,6 +13,8 @@ from fanfan.infrastructure.db.models import Nomination, Participant, Ticket
 from fanfan.infrastructure.db.uow import UnitOfWork
 from fanfan.infrastructure.di.config import ConfigProvider
 from fanfan.infrastructure.di.db import DbProvider
+
+logger = logging.getLogger(__name__)
 
 
 async def parse(path: Path, uow: UnitOfWork):
@@ -96,6 +99,7 @@ class AioParserView(BaseView):
                     await uow.commit()
                 except Exception as e:
                     await container.close()
+                    logger.exception(e)
                     return await self.templates.TemplateResponse(
                         request,
                         "aioparser.html",

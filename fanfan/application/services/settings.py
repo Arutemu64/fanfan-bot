@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.application.dto.settings import SettingsDTO
@@ -6,6 +8,8 @@ from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class SettingsService(BaseService):
@@ -31,3 +35,4 @@ class SettingsService(BaseService):
                 raise SettingsServiceNotFound
             settings.voting_enabled = value
             await self.uow.commit()
+            logger.info(f"Voting was switched by user id={self.identity.id}")

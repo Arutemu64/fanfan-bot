@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.application.dto.ticket import TicketDTO
@@ -15,6 +17,8 @@ from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models import Ticket
 
+logger = logging.getLogger(__name__)
+
 
 class TicketService(BaseService):
     @check_permission(allowed_roles=[UserRole.ORG])
@@ -25,6 +29,7 @@ class TicketService(BaseService):
                 ticket = Ticket(id=ticket_id, role=role)
                 self.uow.session.add(ticket)
                 await self.uow.commit()
+                logger.info(f"New ticket id={ticket.id} was created")
                 return ticket.to_dto()
             except IntegrityError:
                 raise TicketAlreadyExist
@@ -47,4 +52,5 @@ class TicketService(BaseService):
             user.ticket = ticket
             user.role = ticket.role
             await self.uow.commit()
-            return user.to_full_dto()
+            logger.info(f"Ticket id={ticket.id} was linked to user id={user.id}")
+            return

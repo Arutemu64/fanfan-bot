@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.application.dto.achievement import FullAchievementDTO
@@ -13,7 +15,9 @@ from fanfan.application.exceptions.users import (
     UserNotFound,
 )
 from fanfan.application.services.base import BaseService
-from fanfan.infrastructure.scheduler import send_notification
+from fanfan.infrastructure.scheduler.tasks import send_notification
+
+logger = logging.getLogger(__name__)
 
 
 class QuestService(BaseService):
@@ -54,6 +58,9 @@ class QuestService(BaseService):
             try:
                 user.received_achievements.add(achievement)
                 await self.uow.commit()
+                logger.info(
+                    f"User id={user_id} received achievement id={achievement_id}"
+                )
             except IntegrityError:
                 await self.uow.rollback()
                 raise UserAlreadyHasThisAchievement

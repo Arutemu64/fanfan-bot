@@ -54,7 +54,7 @@ async def swap_events_handler(
         return
 
     await message.reply(
-        f"✅ Выступление <b>{event1.title}</b> заменено на <b>{event2.title}</b>"
+        f"✅ Выступление <b>{event1.title}</b> заменено на <b>{event2.title}</b>\n"
         f"Будет отправлено {delivery_info.count} "
         f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
         reply_markup=InlineKeyboardBuilder(

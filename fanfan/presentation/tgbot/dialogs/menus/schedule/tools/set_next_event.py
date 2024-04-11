@@ -24,7 +24,7 @@ async def set_next_event_handler(
         return
 
     await callback.message.answer(
-        f"✅ Выступление {event.title} отмечено текущим\n"
+        f"✅ Выступление <b>{event.title}</b> отмечено текущим\n"
         f"Будет отправлено {delivery_info.count} "
         f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
         reply_markup=InlineKeyboardBuilder(

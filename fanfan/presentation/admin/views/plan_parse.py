@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from dishka import make_async_container
@@ -13,6 +14,8 @@ from fanfan.infrastructure.db import UnitOfWork
 from fanfan.infrastructure.db.models import Event, Nomination, Participant
 from fanfan.infrastructure.di.config import ConfigProvider
 from fanfan.infrastructure.di.db import DbProvider
+
+logger = logging.getLogger(__name__)
 
 
 async def proceed_plan(path: Path, uow: UnitOfWork):
@@ -84,6 +87,7 @@ class PlanParseView(BaseView):
                     await uow.commit()
                 except Exception as e:
                     await container.close()
+                    logger.exception(e)
                     return await self.templates.TemplateResponse(
                         request,
                         "plan_parse.html",

@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import List, Optional
 
@@ -12,10 +13,11 @@ from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.config import get_config
 from fanfan.infrastructure.scheduler import (
-    delete_message,
     redis_async_result,
-    send_notification,
 )
+from fanfan.infrastructure.scheduler.tasks import delete_message, send_notification
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationService(BaseService):
@@ -31,11 +33,12 @@ class NotificationService(BaseService):
         """
         if delivery_id is None:
             delivery_id = uuid.uuid4().hex
+        logger.info(f"Delivery id={delivery_id} started by user id={self.identity.id}")
         for n in notifications:
             await send_notification.kiq(notification=n, delivery_id=delivery_id)
         return DeliveryInfo(delivery_id=delivery_id, count=len(notifications))
 
-    @check_permission(allowed_roles=[UserRole.ORG])
+    @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def delete_delivery(self, delivery_id: str) -> DeliveryInfo:
         """Mass delete sent notifications by group ID
         @param delivery_id: Delivery ID
@@ -54,4 +57,8 @@ class NotificationService(BaseService):
             except ResultIsMissingError:
                 pass
         await redis.aclose()
+        logger.info(
+            f"Delivery id={delivery_id} ({count}) "
+            f"was deleted by user id={self.identity.id}"
+        )
         return DeliveryInfo(delivery_id=delivery_id, count=count)

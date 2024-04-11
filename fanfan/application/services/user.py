@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from fanfan.application.dto.user import (
@@ -11,6 +12,8 @@ from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models import User
 
+logger = logging.getLogger(__name__)
+
 
 class UserService(BaseService):
     async def create_user(self, dto: CreateUserDTO) -> FullUserDTO:
@@ -19,6 +22,7 @@ class UserService(BaseService):
             user = User(id=dto.id, username=dto.username, role=dto.role)
             await self.uow.session.merge(user)
             await self.uow.commit()
+            logger.info(f"New user id={user.id} has registered")
             user = await self.uow.users.get_user_by_id(user.id)
             return user.to_full_dto()
 

@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from fanfan.application.dto.common import Page
@@ -18,6 +19,8 @@ from fanfan.application.exceptions.voting import (
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.infrastructure.db.models import Participant, User, Vote
+
+logger = logging.getLogger(__name__)
 
 
 class VotingService(BaseService):
@@ -125,6 +128,7 @@ class VotingService(BaseService):
             vote = Vote(user_id=user_id, participant_id=participant_id)
             self.uow.session.add(vote)
             await self.uow.commit()
+            logger.info(f"User id={user.id} vote for Participant id={participant.id}")
             return vote.to_dto()
 
     async def get_vote_by_nomination(self, user_id: int, nomination_id: str) -> VoteDTO:
@@ -142,4 +146,5 @@ class VotingService(BaseService):
             raise VoteNotFound
         async with self.uow:
             await self.uow.session.delete(vote)
+            logger.info(f"Vote id={vote.id} was cancelled")
             await self.uow.commit()

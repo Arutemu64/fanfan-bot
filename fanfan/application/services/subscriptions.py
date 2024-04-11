@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.application.dto.common import Page
@@ -9,6 +11,8 @@ from fanfan.application.exceptions.subscriptions import (
 )
 from fanfan.application.services.base import BaseService
 from fanfan.infrastructure.db.models import Subscription
+
+logger = logging.getLogger(__name__)
 
 
 class SubscriptionsService(BaseService):
@@ -31,6 +35,10 @@ class SubscriptionsService(BaseService):
                 )
                 self.uow.session.add(subscription)
                 await self.uow.session.commit()
+                logger.info(
+                    f"New subscription id={subscription.id} "
+                    f"was created by user id={dto.user_id}"
+                )
                 return subscription.to_dto()
             except IntegrityError:
                 await self.uow.rollback()
@@ -78,3 +86,6 @@ class SubscriptionsService(BaseService):
         async with self.uow:
             await self.uow.session.delete(subscription)
             await self.uow.commit()
+            logger.info(
+                f"Subscription id={subscription.id} was deleted by user id={user_id}"
+            )

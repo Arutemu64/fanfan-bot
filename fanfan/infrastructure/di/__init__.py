@@ -8,7 +8,7 @@ from fanfan.infrastructure.di.db import DbProvider, RedisProvider
 from fanfan.infrastructure.di.user_bot import UserProvider
 
 
-def get_common_providers() -> List[Provider]:
+def get_app_providers() -> List[Provider]:
     return [
         ConfigProvider(),
         DbProvider(),
@@ -18,9 +18,5 @@ def get_common_providers() -> List[Provider]:
     ]
 
 
-def get_app_providers() -> List[Provider]:
-    return get_common_providers()
-
-
 def get_bot_providers() -> List[Provider]:
-    return [*get_common_providers(), UserProvider()]
+    return [*get_app_providers(), UserProvider()]

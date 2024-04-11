@@ -6,9 +6,9 @@ class ServiceError(Exception):
 
 
 class UnhandledError(ServiceError):
-    def __init__(self, exception_name: str, user_id: int):
+    def __init__(self, exception: Exception, user_id: int):
         self.message = (
-            f"⚠️ Возникла необработанная ошибка ({exception_name})\n\n"
+            f"⚠️ Возникла необработанная ошибка ({type(exception).__name__})\n\n"
             "Пожалуйста, сообщите о ней @Arutemu64 (не забудьте "
             f"также назвать свой ID <code>{user_id}</code>) "
             "и попробуйте перезапустить бота командой /start"
