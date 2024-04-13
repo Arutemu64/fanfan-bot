@@ -50,7 +50,8 @@ def upgrade() -> None:
     )
     op.alter_column("achievements", "secret_id", existing_type=sa.UUID(), nullable=True)
     op.execute(
-        "INSERT INTO user_settings (user_id, receive_all_announcements, items_per_page) "
+        "INSERT INTO user_settings (user_id, receive_all_announcements, "
+        "items_per_page) "
         "SELECT id, receive_all_announcements, items_per_page "
         "FROM users"
     )

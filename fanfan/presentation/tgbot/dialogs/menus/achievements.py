@@ -74,4 +74,4 @@ achievements_window = Window(
     getter=achievements_getter,
 )
 
-dialog = Dialog(achievements_window)
+dialog = Dialog(achievements_window, on_start=on_start_achievements)
