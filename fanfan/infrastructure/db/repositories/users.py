@@ -8,7 +8,7 @@ from fanfan.application.dto.user import UserStats
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.repositories.repo import Repository
 
-from ..models import Achievement, ReceivedAchievement, User
+from ..models import Achievement, ReceivedAchievement, User, UserSettings
 
 
 class UsersRepository(Repository[User]):
@@ -17,7 +17,9 @@ class UsersRepository(Repository[User]):
         super().__init__(type_model=User, session=session)
 
     async def get_user_by_id(self, user_id: int) -> Optional[User]:
-        return await self.session.get(User, user_id, options=[joinedload(User.ticket)])
+        return await self.session.get(
+            User, user_id, options=[joinedload(User.ticket), joinedload(User.settings)]
+        )
 
     async def get_user_by_username(self, username: str) -> Optional[User]:
         query = (
@@ -25,7 +27,7 @@ class UsersRepository(Repository[User]):
             .where(func.lower(User.username) == username.lower().replace("@", ""))
             .limit(1)
         )
-        query = query.options(joinedload(User.ticket))
+        query = query.options(joinedload(User.ticket), joinedload(User.settings))
         return await self.session.scalar(query)
 
     async def get_all_by_roles(self, roles: List[UserRole]) -> Sequence[User]:
@@ -33,7 +35,9 @@ class UsersRepository(Repository[User]):
         return (await self.session.scalars(query)).all()
 
     async def get_receive_all_announcements_users(self) -> Sequence[User]:
-        query = select(User).where(User.receive_all_announcements.is_(True))
+        query = select(User).where(
+            User.settings.has(UserSettings.receive_all_announcements.is_(True))
+        )
         return (await self.session.scalars(query)).all()
 
     async def get_user_stats(self, user_id: int) -> UserStats:

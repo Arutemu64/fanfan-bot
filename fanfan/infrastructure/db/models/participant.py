@@ -38,20 +38,10 @@ class Participant(Base):
     )
 
     def to_dto(self) -> ParticipantDTO:
-        return ParticipantDTO(
-            id=self.id,
-            title=self.title,
-            nomination_id=self.nomination_id,
-        )
+        return ParticipantDTO.model_validate(self)
 
     def to_voting_dto(self) -> VotingParticipantDTO:
-        return VotingParticipantDTO(
-            id=self.id,
-            title=self.title,
-            nomination_id=self.nomination_id,
-            votes_count=self.votes_count,
-            user_vote=self.user_vote.to_dto() if self.user_vote else None,
-        )
+        return VotingParticipantDTO.model_validate(self)
 
     def __str__(self):
         return self.title

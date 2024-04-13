@@ -31,5 +31,5 @@ class Activity(Base):
             title=self.title,
             description=self.description,
             subtext=self.subtext,
-            image=self.image,
+            image_path=self.image.path if self.image else None,
         )

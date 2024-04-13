@@ -38,7 +38,7 @@ async def schedule_getter(
 ):
     page = await app.schedule.get_schedule_page(
         page_number=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page(),
-        events_per_page=user.items_per_page,
+        events_per_page=user.settings.items_per_page,
         search_query=dialog_manager.dialog_data.get(SEARCH_QUERY, None),
         user_id=dialog_manager.event.from_user.id,
     )
@@ -55,7 +55,7 @@ async def show_event_page(manager: DialogManager, event_id: int):
     app: AppHolder = manager.middleware_data["app"]
     page = await app.schedule.get_page_number_by_event(
         event_id=event_id,
-        events_per_page=user.items_per_page,
+        events_per_page=user.settings.items_per_page,
         search_query=manager.dialog_data.get(SEARCH_QUERY, None),
     )
     await manager.find(ID_SCHEDULE_SCROLL).set_page(page)

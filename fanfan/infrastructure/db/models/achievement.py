@@ -32,19 +32,10 @@ class Achievement(Base):
     )
 
     def to_dto(self) -> AchievementDTO:
-        return AchievementDTO(
-            id=self.id,
-            title=self.title,
-            description=self.description,
-        )
+        return AchievementDTO.model_validate(self)
 
     def to_full_dto(self) -> FullAchievementDTO:
-        return FullAchievementDTO(
-            id=self.id,
-            title=self.title,
-            description=self.description,
-            user_received=self.user_received.to_dto() if self.user_received else None,
-        )
+        return FullAchievementDTO.model_validate(self)
 
     def __str__(self):
         return self.title

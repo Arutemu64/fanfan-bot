@@ -1,16 +1,22 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
 from typing import Optional
 
-from fanfan.application.dto.vote import VoteDTO
+from pydantic import BaseModel, ConfigDict
 
 
-@dataclass(frozen=True, slots=True)
-class NominationDTO:
+class NominationDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True, frozen=True)
+
     id: str
     title: str
     votable: bool
 
 
-@dataclass(frozen=True, slots=True)
 class VotingNominationDTO(NominationDTO):
     user_vote: Optional[VoteDTO]
+
+
+from fanfan.application.dto.vote import VoteDTO  # noqa: E402
+
+VotingNominationDTO.model_rebuild()

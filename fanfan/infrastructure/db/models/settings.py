@@ -13,8 +13,4 @@ class Settings(Base):
     announcement_timestamp: Mapped[float] = mapped_column(server_default="0")
 
     def to_dto(self) -> SettingsDTO:
-        return SettingsDTO(
-            voting_enabled=self.voting_enabled,
-            announcement_timeout=self.announcement_timeout,
-            announcement_timestamp=self.announcement_timestamp,
-        )
+        return SettingsDTO.model_validate(self)

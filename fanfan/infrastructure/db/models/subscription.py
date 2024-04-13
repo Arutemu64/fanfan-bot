@@ -25,10 +25,4 @@ class Subscription(Base):
     event: Mapped[Event] = relationship()
 
     def to_dto(self) -> SubscriptionDTO:
-        return SubscriptionDTO(
-            id=self.id,
-            event_id=self.event_id,
-            user_id=self.user_id,
-            counter=self.counter,
-            event=self.event.to_dto(),
-        )
+        return SubscriptionDTO.model_validate(self)

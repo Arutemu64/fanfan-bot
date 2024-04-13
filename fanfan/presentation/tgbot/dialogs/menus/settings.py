@@ -3,7 +3,10 @@ from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Counter, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, List
 
-from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
+from fanfan.application.dto.user import (
+    FullUserDTO,
+    UpdateUserSettingsDTO,
+)
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.presentation.tgbot.dialogs import states
@@ -34,7 +37,7 @@ async def update_counter_value(
     manager: DialogManager,
 ):
     user: FullUserDTO = manager.middleware_data["user"]
-    await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(user.items_per_page)
+    await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(user.settings.items_per_page)
 
 
 async def items_per_page_handler(
@@ -43,13 +46,15 @@ async def items_per_page_handler(
     manager: DialogManager,
 ):
     app: AppHolder = manager.middleware_data["app"]
+    user: FullUserDTO = manager.middleware_data["user"]
     try:
-        manager.middleware_data["user"] = await app.users.update_user(
-            UpdateUserDTO(
-                id=manager.event.from_user.id,
+        await app.users.update_user_settings(
+            UpdateUserSettingsDTO(
+                user_id=manager.event.from_user.id,
                 items_per_page=manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value(),
             ),
         )
+        manager.middleware_data["user"] = await app.users.get_user_by_id(user.id)
     except ServiceError as e:
         await callback.answer(e.message)
         return
@@ -81,7 +86,7 @@ settings_main_window = Window(
     Title(Const(strings.titles.settings)),
     List(Format("<b>{item[0]}</b> {item[1]}"), items="user_info_list"),
     SwitchTo(
-        text=Format("🔢 Элементов на страницу: {user.items_per_page}"),
+        text=Format("🔢 Элементов на страницу: {user.settings.items_per_page}"),
         id="set_items_per_page_button",
         on_click=update_counter_value,
         state=states.SETTINGS.SET_ITEMS_PER_PAGE,

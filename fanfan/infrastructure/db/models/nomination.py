@@ -35,19 +35,10 @@ class Nomination(Base):
     )
 
     def to_dto(self) -> NominationDTO:
-        return NominationDTO(
-            id=self.id,
-            title=self.title,
-            votable=self.votable,
-        )
+        return NominationDTO.model_validate(self)
 
     def to_voting_dto(self) -> VotingNominationDTO:
-        return VotingNominationDTO(
-            id=self.id,
-            title=self.title,
-            votable=self.votable,
-            user_vote=self.user_vote.to_dto() if self.user_vote else None,
-        )
+        return VotingNominationDTO.model_validate(self)
 
     def __str__(self):
         return self.title

@@ -5,7 +5,6 @@ import typing
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from fanfan.application.dto.achievement import ReceivedAchievementDTO
 from fanfan.infrastructure.db.models.base import Base
 
 if typing.TYPE_CHECKING:
@@ -26,9 +25,3 @@ class ReceivedAchievement(Base):
 
     user: Mapped[User] = relationship(viewonly=True)
     achievement: Mapped[Achievement] = relationship(viewonly=True)
-
-    def to_dto(self) -> ReceivedAchievementDTO:
-        return ReceivedAchievementDTO(
-            user_id=self.user_id,
-            achievement_id=self.achievement_id,
-        )

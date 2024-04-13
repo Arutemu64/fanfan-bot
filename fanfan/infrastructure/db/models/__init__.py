@@ -10,6 +10,7 @@ from .settings import Settings
 from .subscription import Subscription
 from .ticket import Ticket
 from .user import User
+from .user_settings import UserSettings
 from .vote import Vote
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "Subscription",
     "Ticket",
     "User",
+    "UserSettings",
     "Vote",
     "Activity",
     "Quote",

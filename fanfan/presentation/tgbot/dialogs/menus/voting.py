@@ -47,7 +47,7 @@ async def nominations_getter(
 ):
     page = await app.voting.get_nominations_page(
         page_number=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page(),
-        nominations_per_page=user.items_per_page,
+        nominations_per_page=user.settings.items_per_page,
         user_id=user.id,
     )
     nominations_list = []
@@ -76,7 +76,7 @@ async def participants_getter(
     page = await app.voting.get_participants_page(
         nomination_id=dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
         page_number=await dialog_manager.find(ID_VOTING_SCROLL).get_page(),
-        participants_per_page=user.items_per_page,
+        participants_per_page=user.settings.items_per_page,
         user_id=user.id,
     )
     try:

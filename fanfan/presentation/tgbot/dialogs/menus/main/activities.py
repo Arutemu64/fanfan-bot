@@ -30,7 +30,7 @@ async def activity_getter(dialog_manager: DialogManager, app: AppHolder, **kwarg
         "title": activity.title,
         "description": activity.description,
         "subtext": activity.subtext,
-        "image_path": activity.image.path if activity.image else None,
+        "image_path": activity.image_path,
         "pages": page.total_pages,
     }
 

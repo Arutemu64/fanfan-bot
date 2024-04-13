@@ -20,6 +20,7 @@ from fanfan.infrastructure.db.models.received_achievement import ReceivedAchieve
 if TYPE_CHECKING:
     from fanfan.infrastructure.db.models.achievement import Achievement
     from fanfan.infrastructure.db.models.ticket import Ticket
+    from fanfan.infrastructure.db.models.user_settings import UserSettings
 
 
 class User(Base):
@@ -37,9 +38,7 @@ class User(Base):
         server_default="VISITOR",
     )
 
-    items_per_page: Mapped[int] = mapped_column(server_default="5")
-    receive_all_announcements: Mapped[bool] = mapped_column(server_default="True")
-
+    settings: Mapped[UserSettings] = relationship(single_parent=True)
     ticket: Mapped[Optional[Ticket]] = relationship(foreign_keys="Ticket.used_by_id")
 
     achievements_count = column_property(
@@ -55,23 +54,10 @@ class User(Base):
     )
 
     def to_dto(self) -> UserDTO:
-        return UserDTO(
-            id=self.id,
-            username=self.username,
-            role=self.role,
-            items_per_page=self.items_per_page,
-            receive_all_announcements=self.receive_all_announcements,
-        )
+        return UserDTO.model_validate(self)
 
     def to_full_dto(self) -> FullUserDTO:
-        return FullUserDTO(
-            id=self.id,
-            username=self.username,
-            role=self.role,
-            items_per_page=self.items_per_page,
-            receive_all_announcements=self.receive_all_announcements,
-            ticket=self.ticket.to_dto() if self.ticket else None,
-        )
+        return FullUserDTO.model_validate(self)
 
     def __str__(self):
         return f"{self.username} ({self.id})"

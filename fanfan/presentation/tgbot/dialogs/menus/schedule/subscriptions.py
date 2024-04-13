@@ -17,7 +17,10 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
 from fanfan.application.dto.subscription import CreateSubscriptionDTO
-from fanfan.application.dto.user import FullUserDTO, UpdateUserDTO
+from fanfan.application.dto.user import (
+    FullUserDTO,
+    UpdateUserSettingsDTO,
+)
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.exceptions.event import (
     EventNotFound,
@@ -56,7 +59,7 @@ async def subscriptions_getter(
 ):
     page = await app.subscriptions.get_subscriptions_page(
         page_number=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page(),
-        subscriptions_per_page=user.items_per_page,
+        subscriptions_per_page=user.settings.items_per_page,
         user_id=user.id,
     )
     try:
@@ -64,7 +67,7 @@ async def subscriptions_getter(
     except NoCurrentEvent:
         current_event = None
     return {
-        "receive_all_announcements": user.receive_all_announcements,
+        "receive_all_announcements": user.settings.receive_all_announcements,
         "pages": page.total_pages,
         "subscriptions": page.items,
         "current_event": current_event,
@@ -152,12 +155,13 @@ async def toggle_all_notifications_handler(
     user: FullUserDTO = manager.middleware_data["user"]
     app: AppHolder = manager.middleware_data["app"]
     try:
-        manager.middleware_data["user"] = await app.users.update_user(
-            UpdateUserDTO(
-                id=user.id,
-                receive_all_announcements=not user.receive_all_announcements,
+        await app.users.update_user_settings(
+            UpdateUserSettingsDTO(
+                user_id=user.id,
+                receive_all_announcements=not user.settings.receive_all_announcements,
             ),
         )
+        manager.middleware_data["user"] = await app.users.get_user_by_id(user.id)
     except ServiceError as e:
         await callback.answer(e.message)
 

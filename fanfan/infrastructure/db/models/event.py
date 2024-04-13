@@ -52,28 +52,10 @@ class Event(Base):
     )
 
     def to_dto(self) -> EventDTO:
-        return EventDTO(
-            id=self.id,
-            title=self.title,
-            position=self.position,
-            current=self.current,
-            skip=self.skip,
-            real_position=self.real_position,
-        )
+        return EventDTO.model_validate(self)
 
     def to_schedule_dto(self) -> ScheduleEventDTO:
-        return ScheduleEventDTO(
-            id=self.id,
-            title=self.title,
-            position=self.position,
-            current=self.current,
-            skip=self.skip,
-            real_position=self.real_position,
-            nomination=self.nomination.to_dto() if self.nomination else None,
-            user_subscription=(
-                self.user_subscription.to_dto() if self.user_subscription else None
-            ),
-        )
+        return ScheduleEventDTO.model_validate(self)
 
     def __str__(self):
         return self.title

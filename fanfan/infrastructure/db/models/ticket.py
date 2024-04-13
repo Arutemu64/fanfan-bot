@@ -39,12 +39,7 @@ class Ticket(Base):
     issued_by: Mapped[Optional[User]] = relationship(foreign_keys=issued_by_id)
 
     def to_dto(self) -> TicketDTO:
-        return TicketDTO(
-            id=self.id,
-            role=self.role,
-            used_by_id=self.used_by_id,
-            issued_by_id=self.issued_by_id,
-        )
+        return TicketDTO.model_validate(self)
 
     def __str__(self):
         return self.id

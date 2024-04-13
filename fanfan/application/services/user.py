@@ -5,12 +5,13 @@ from fanfan.application.dto.user import (
     CreateUserDTO,
     FullUserDTO,
     UpdateUserDTO,
+    UpdateUserSettingsDTO,
     UserDTO,
 )
 from fanfan.application.exceptions.users import UserNotFound
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
-from fanfan.infrastructure.db.models import User
+from fanfan.infrastructure.db.models import User, UserSettings
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,9 @@ class UserService(BaseService):
     async def create_user(self, dto: CreateUserDTO) -> FullUserDTO:
         """Create a new user"""
         async with self.uow:
-            user = User(id=dto.id, username=dto.username, role=dto.role)
+            user = User(
+                id=dto.id, username=dto.username, role=dto.role, settings=UserSettings()
+            )
             await self.uow.session.merge(user)
             await self.uow.commit()
             logger.info(f"New user id={user.id} has registered")
@@ -44,7 +47,7 @@ class UserService(BaseService):
         users = await self.uow.users.get_all_by_roles(roles)
         return [u.to_dto() for u in users]
 
-    async def update_user(self, dto: UpdateUserDTO) -> FullUserDTO:
+    async def update_user(self, dto: UpdateUserDTO) -> None:
         """Update user data"""
         async with self.uow:
             user = await self.uow.users.get_user_by_id(dto.id)
@@ -53,4 +56,14 @@ class UserService(BaseService):
             for k, v in dto.model_dump(exclude={"id"}, exclude_defaults=True).items():
                 user.__setattr__(k, v)
             await self.uow.commit()
-            return user.to_full_dto()
+
+    async def update_user_settings(self, dto: UpdateUserSettingsDTO) -> None:
+        async with self.uow:
+            user = await self.uow.users.get_user_by_id(dto.user_id)
+            if not user:
+                raise UserNotFound
+            for k, v in dto.model_dump(
+                exclude={"user_id"}, exclude_defaults=True
+            ).items():
+                user.settings.__setattr__(k, v)
+            await self.uow.commit()

@@ -13,8 +13,6 @@ class UserView(ModelView, model=User):
         User.role: "Роль",
         User.achievements_count: "Достижений получено",
         User.ticket: "Билет пользователя",
-        User.items_per_page: "Элементов на странице",
-        User.receive_all_announcements: "Получает глобальные уведомления",
         User.created_on: "Время создания",
         User.updated_on: "Время изменения",
     }

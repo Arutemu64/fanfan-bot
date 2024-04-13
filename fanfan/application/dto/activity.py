@@ -1,13 +1,12 @@
-from dataclasses import dataclass
 from typing import Optional
 
-from fastapi_storages import StorageImage
+from pydantic import BaseModel, ConfigDict
 
 
-@dataclass
-class ActivityDTO:
+class ActivityDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True, frozen=True)
     id: int
     title: str
     description: str
     subtext: Optional[str]
-    image: Optional[StorageImage]
+    image_path: Optional[str]
