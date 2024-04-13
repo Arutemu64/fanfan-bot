@@ -1,6 +1,5 @@
 import operator
 from datetime import datetime
-from typing import Any
 
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
@@ -78,11 +77,11 @@ async def send_delivery_handler(
 
 async def create_delivery_getter(dialog_manager: DialogManager, **kwargs):
     roles_picker: ManagedMultiselect[UserRole] = dialog_manager.find(ID_ROLES_PICKER)
-    notification_text = dialog_manager.dialog_data[DATA_TEXT] or "не задан"
-    if dialog_manager.dialog_data[DATA_IMAGE_ID]:
+    notification_text = dialog_manager.dialog_data.get(DATA_TEXT) or "не задан"
+    if dialog_manager.dialog_data.get(DATA_IMAGE_ID):
         image = MediaAttachment(
             type=ContentType.PHOTO,
-            file_id=MediaId(dialog_manager.dialog_data[DATA_IMAGE_ID]),
+            file_id=MediaId(dialog_manager.dialog_data.get(DATA_IMAGE_ID)),
         )
     else:
         image = None
@@ -90,7 +89,7 @@ async def create_delivery_getter(dialog_manager: DialogManager, **kwargs):
         "notification_text": notification_text,
         "image": image,
         "roles": get_roles_list(),
-        "sending_allowed": dialog_manager.dialog_data[DATA_TEXT]
+        "sending_allowed": dialog_manager.dialog_data.get(DATA_TEXT)
         and len(roles_picker.get_checked()) > 0,
     }
 
@@ -213,14 +212,8 @@ main_delivery_window = Window(
 )
 
 
-async def _on_dialog_start(start_data: Any, manager: DialogManager):
-    manager.dialog_data[DATA_TEXT] = None
-    manager.dialog_data[DATA_IMAGE_ID] = None
-
-
 dialog = Dialog(
     main_delivery_window,
     create_delivery_window,
     delete_delivery_window,
-    on_start=_on_dialog_start,
 )

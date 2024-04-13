@@ -1,12 +1,15 @@
 import math
 
 from aiogram import F
+from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Group, Start, SwitchTo, WebApp
+from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Multi, Progress
 
 from fanfan.application.dto.user import FullUserDTO
+from fanfan.application.exceptions.access import AccessDenied, TicketNotLinked
+from fanfan.application.exceptions.voting import VotingDisabled
 from fanfan.application.holder import AppHolder
 from fanfan.common.enums import BotMode, UserRole
 from fanfan.config import get_config
@@ -44,9 +47,51 @@ async def main_menu_getter(
         # Settings
         "voting_enabled": settings.voting_enabled,
         "show_qr_webapp": get_config().web.mode is BotMode.WEBHOOK,
+        "is_feedback_allowed": user.permissions.can_send_feedback,
         # Most important thing ever
         "random_quote": await app.common.get_random_quote(),
     }
+
+
+async def open_achievements_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+):
+    user: FullUserDTO = manager.middleware_data["user"]
+    if not user.ticket:
+        await callback.answer(TicketNotLinked.message, show_alert=True)
+        return
+    await manager.start(states.ACHIEVEMENTS.MAIN)
+
+
+async def open_voting_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+):
+    app: AppHolder = manager.middleware_data["app"]
+    settings = await app.settings.get_settings()
+    if not settings.voting_enabled:
+        await callback.answer(VotingDisabled.message, show_alert=True)
+        return
+    user: FullUserDTO = manager.middleware_data["user"]
+    if not user.ticket:
+        await callback.answer(TicketNotLinked.message, show_alert=True)
+        return
+    await manager.start(states.VOTING.SELECT_NOMINATION)
+
+
+async def open_feedback_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+):
+    user: FullUserDTO = manager.middleware_data["user"]
+    if not user.permissions.can_send_feedback:
+        await callback.answer(AccessDenied.message, show_alert=True)
+        return
+    await manager.start(states.FEEDBACK.MAIN)
 
 
 main_window = Window(
@@ -99,7 +144,7 @@ main_window = Window(
             id="open_schedule",
             state=states.SCHEDULE.MAIN,
         ),
-        Start(
+        Button(
             text=Case(
                 {
                     True: Const(strings.titles.achievements),
@@ -108,9 +153,9 @@ main_window = Window(
                 selector="is_ticket_linked",
             ),
             id="open_achievements",
-            state=states.ACHIEVEMENTS.MAIN,
+            on_click=open_achievements_handler,
         ),
-        Start(
+        Button(
             text=Case(
                 texts={
                     True: Const(strings.titles.voting),
@@ -119,7 +164,7 @@ main_window = Window(
                 selector=F["voting_enabled"] & F["is_ticket_linked"],
             ),
             id="open_voting",
-            state=states.VOTING.SELECT_NOMINATION,
+            on_click=open_voting_handler,
         ),
         Start(
             text=Const(strings.titles.helper_menu),
@@ -133,12 +178,23 @@ main_window = Window(
             state=states.ORG.MAIN,
             when="is_org",
         ),
+        Button(
+            text=Case(
+                {
+                    True: Const(strings.titles.feedback),
+                    False: Const(f"{strings.titles.feedback} 🔒"),
+                },
+                selector="is_feedback_allowed",
+            ),
+            id="open_feedback",
+            on_click=open_feedback_handler,
+        ),
+        Start(
+            text=Const(strings.titles.settings),
+            id="open_settings",
+            state=states.SETTINGS.MAIN,
+        ),
         width=2,
-    ),
-    Start(
-        text=Const(strings.titles.settings),
-        id="open_settings",
-        state=states.SETTINGS.MAIN,
     ),
     state=states.MAIN.HOME,
     getter=main_menu_getter,

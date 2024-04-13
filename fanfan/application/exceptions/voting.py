@@ -5,7 +5,7 @@ class VotingServiceError(ServiceError):
     message = "⚠️ Произошла неизвестная ошибка в сервисе голосования"
 
 
-class VotingServiceDisabled(VotingServiceError):
+class VotingDisabled(VotingServiceError):
     message = "⚠️ Голосование сейчас отключено"
 
 

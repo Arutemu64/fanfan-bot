@@ -10,7 +10,7 @@ from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from sentry_sdk import capture_exception
 
 from fanfan.application.exceptions import UnhandledError
-from fanfan.presentation.tgbot.dialogs.widgets import DELETE_BUTTON
+from fanfan.presentation.tgbot.buttons import DELETE_BUTTON
 
 logger = logging.getLogger(__name__)
 

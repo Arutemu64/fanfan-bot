@@ -18,7 +18,13 @@ class UsersRepository(Repository[User]):
 
     async def get_user_by_id(self, user_id: int) -> Optional[User]:
         return await self.session.get(
-            User, user_id, options=[joinedload(User.ticket), joinedload(User.settings)]
+            User,
+            user_id,
+            options=[
+                joinedload(User.ticket),
+                joinedload(User.settings),
+                joinedload(User.permissions),
+            ],
         )
 
     async def get_user_by_username(self, username: str) -> Optional[User]:
@@ -27,7 +33,11 @@ class UsersRepository(Repository[User]):
             .where(func.lower(User.username) == username.lower().replace("@", ""))
             .limit(1)
         )
-        query = query.options(joinedload(User.ticket), joinedload(User.settings))
+        query = query.options(
+            joinedload(User.ticket),
+            joinedload(User.settings),
+            joinedload(User.permissions),
+        )
         return await self.session.scalar(query)
 
     async def get_all_by_roles(self, roles: List[UserRole]) -> Sequence[User]:

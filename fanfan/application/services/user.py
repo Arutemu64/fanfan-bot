@@ -11,7 +11,7 @@ from fanfan.application.dto.user import (
 from fanfan.application.exceptions.users import UserNotFound
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
-from fanfan.infrastructure.db.models import User, UserSettings
+from fanfan.infrastructure.db.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,9 @@ class UserService(BaseService):
         """Create a new user"""
         async with self.uow:
             user = User(
-                id=dto.id, username=dto.username, role=dto.role, settings=UserSettings()
+                id=dto.id,
+                username=dto.username,
+                role=dto.role,
             )
             await self.uow.session.merge(user)
             await self.uow.commit()

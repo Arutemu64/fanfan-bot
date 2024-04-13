@@ -55,3 +55,7 @@ class USER_MANAGER(StatesGroup):
     MAIN = State()
     MANUAL_USER_SEARCH = State()
     CHANGE_ROLE = State()
+
+
+class FEEDBACK(StatesGroup):
+    MAIN = State()

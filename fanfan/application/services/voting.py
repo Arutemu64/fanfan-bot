@@ -14,7 +14,7 @@ from fanfan.application.exceptions.users import (
 from fanfan.application.exceptions.voting import (
     AlreadyVotedInThisNomination,
     VoteNotFound,
-    VotingServiceDisabled,
+    VotingDisabled,
 )
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
@@ -34,7 +34,7 @@ class VotingService(BaseService):
             raise UserHasNoTicket
         settings = await self.uow.settings.get_settings()
         if not settings.voting_enabled:
-            raise VotingServiceDisabled
+            raise VotingDisabled
         if participant.event:
             if participant.event.skip:
                 raise ParticipantNotFound

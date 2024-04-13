@@ -6,15 +6,9 @@ Create Date: 2024-04-08 19:36:49.872625
 
 """
 
-import uuid
-
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy import select
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import Session
-
-from fanfan.infrastructure.db.models import Achievement
 
 # revision identifiers, used by Alembic.
 revision = "006"
@@ -31,12 +25,7 @@ def upgrade() -> None:
     op.create_unique_constraint(
         op.f("uq_achievements_secret_id"), "achievements", ["secret_id"]
     )
-    with Session(bind=op.get_bind()) as session:
-        for a in session.scalars(
-            select(Achievement).where(Achievement.secret_id.is_(None))
-        ):
-            a.secret_id = uuid.uuid4()
-        session.commit()
+    op.execute("UPDATE achievements SET secret_id = gen_random_uuid ()")
     op.alter_column("achievements", "secret_id", nullable=False)
     # ### end Alembic commands ###
 

@@ -17,7 +17,7 @@ from fanfan.application.holder import AppHolder
 from fanfan.application.services import UserService
 from fanfan.common.enums import QRType
 from fanfan.infrastructure.db import UnitOfWork
-from fanfan.presentation.tgbot.dialogs.widgets import DELETE_BUTTON
+from fanfan.presentation.tgbot.buttons import DELETE_BUTTON
 
 QR_SCANNER_APP = Path(__file__).parent.joinpath("qr_scanner.html")
 
@@ -73,19 +73,19 @@ async def proceed_qr_post(
                     await bot.send_message(
                         chat_id=web_app_init_data.user.id,
                         text="⚠️ У тебя уже есть это достижение",
-                        reply_markup=InlineKeyboardBuilder(
-                            [[DELETE_BUTTON]]
-                        ).as_markup(),
+                        reply_markup=InlineKeyboardBuilder()
+                        .add(DELETE_BUTTON)
+                        .as_markup(),
                     )
     except ValidationError:
         await bot.send_message(
             chat_id=web_app_init_data.user.id,
             text="⚠️ Ошибка при валидации QR-кода, попробуйте ещё раз",
-            reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
+            reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
         )
     except ServiceError as e:
         await bot.send_message(
             chat_id=web_app_init_data.user.id,
             text=e.message,
-            reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
+            reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
         )

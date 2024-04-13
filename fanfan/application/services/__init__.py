@@ -1,4 +1,5 @@
 from fanfan.application.services.common import CommonService
+from fanfan.application.services.feedback import FeedbackService
 from fanfan.application.services.notification import NotificationService
 from fanfan.application.services.qr import QRService
 from fanfan.application.services.quest import QuestService
@@ -22,4 +23,5 @@ __all__ = [
     "UserService",
     "VotingService",
     "CommonService",
+    "FeedbackService",
 ]

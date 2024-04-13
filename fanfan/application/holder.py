@@ -3,6 +3,7 @@ from typing import Optional
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.services import (
     CommonService,
+    FeedbackService,
     NotificationService,
     QRService,
     QuestService,
@@ -34,3 +35,4 @@ class AppHolder:
         self.voting = VotingService(uow, identity)
         self.common = CommonService(uow, identity)
         self.qr = QRService(uow, identity)
+        self.feedback = FeedbackService(uow, identity)

@@ -5,7 +5,6 @@ from typing import Annotated, Optional
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
@@ -14,7 +13,6 @@ from taskiq import Context, TaskiqDepends
 
 from fanfan.application.dto.notification import UserNotification
 from fanfan.infrastructure.scheduler import broker
-from fanfan.presentation.tgbot.dialogs.widgets import DELETE_BUTTON
 
 logger = logging.getLogger("__name__")
 
@@ -35,13 +33,13 @@ async def send_notification(
                 chat_id=notification.user_id,
                 photo=str(notification.image_id),
                 caption=notification.render_message_text(),
-                reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
+                reply_markup=notification.reply_markup,
             )
         else:
             message = await bot.send_message(
                 chat_id=notification.user_id,
                 text=notification.render_message_text(),
-                reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
+                reply_markup=notification.reply_markup,
             )
         await dialog_bg_factory.bg(
             bot=bot,

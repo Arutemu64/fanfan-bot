@@ -20,6 +20,12 @@ class UserDTO(BaseModel):
     role: UserRole
 
 
+class UserPermissionsDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True, frozen=True)
+
+    can_send_feedback: bool
+
+
 class UserSettingsDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True, frozen=True)
 
@@ -28,6 +34,7 @@ class UserSettingsDTO(BaseModel):
 
 
 class FullUserDTO(UserDTO):
+    permissions: UserPermissionsDTO
     settings: UserSettingsDTO
     ticket: Optional[TicketDTO]
 

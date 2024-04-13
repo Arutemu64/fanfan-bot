@@ -6,8 +6,8 @@ from aiogram_dialog.widgets.kbd import Button
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.common.utils import NOTIFICATIONS_PLURALS, pluralize
+from fanfan.presentation.tgbot.buttons import get_delete_delivery_button
 from fanfan.presentation.tgbot.dialogs.menus.schedule import show_event_page
-from fanfan.presentation.tgbot.dialogs.widgets import get_delete_delivery_button
 
 
 async def set_next_event_handler(

@@ -10,6 +10,7 @@ from aiogram_dialog.widgets.text import Const
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.common.utils import NOTIFICATIONS_PLURALS, pluralize
+from fanfan.presentation.tgbot.buttons import get_delete_delivery_button
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.menus.schedule.common import (
     ID_SCHEDULE_SCROLL,
@@ -17,7 +18,7 @@ from fanfan.presentation.tgbot.dialogs.menus.schedule.common import (
     ScheduleWindow,
     show_event_page,
 )
-from fanfan.presentation.tgbot.dialogs.widgets import Title, get_delete_delivery_button
+from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
 
 

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from aiogram import F
-from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
+from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import (
     Cancel,
     CurrentPage,
@@ -14,8 +14,6 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
-from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.exceptions.access import TicketNotLinked
 from fanfan.application.holder import AppHolder
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.widgets import Title
@@ -45,19 +43,7 @@ async def achievements_getter(
 
 
 async def on_start_achievements(start_data: Optional[int], manager: DialogManager):
-    if start_data is not None:
-        manager.dialog_data[DATA_USER_ID] = start_data
-    else:
-        user: FullUserDTO = manager.middleware_data["user"]
-        if not user.ticket:
-            await manager.event.bot.send_message(
-                chat_id=user.id,
-                text=TicketNotLinked.message,
-            )
-            await manager.done(show_mode=ShowMode.DELETE_AND_SEND)
-            manager.show_mode = ShowMode.NO_UPDATE
-            return
-        manager.dialog_data[DATA_USER_ID] = user.id
+    manager.dialog_data[DATA_USER_ID] = start_data or manager.event.from_user.id
 
 
 achievements_window = Window(
@@ -88,4 +74,4 @@ achievements_window = Window(
     getter=achievements_getter,
 )
 
-dialog = Dialog(achievements_window, on_start=on_start_achievements)
+dialog = Dialog(achievements_window)

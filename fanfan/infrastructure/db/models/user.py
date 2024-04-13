@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import BigInteger, func, select
 from sqlalchemy.dialects import postgresql
@@ -16,11 +16,12 @@ from fanfan.application.dto.user import FullUserDTO, UserDTO
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models.base import Base
 from fanfan.infrastructure.db.models.received_achievement import ReceivedAchievement
+from fanfan.infrastructure.db.models.user_permissions import UserPermissions
+from fanfan.infrastructure.db.models.user_settings import UserSettings
 
 if TYPE_CHECKING:
     from fanfan.infrastructure.db.models.achievement import Achievement
     from fanfan.infrastructure.db.models.ticket import Ticket
-    from fanfan.infrastructure.db.models.user_settings import UserSettings
 
 
 class User(Base):
@@ -38,7 +39,8 @@ class User(Base):
         server_default="VISITOR",
     )
 
-    settings: Mapped[UserSettings] = relationship(single_parent=True)
+    settings: Mapped[UserSettings] = relationship()
+    permissions: Mapped[UserPermissions] = relationship()
     ticket: Mapped[Optional[Ticket]] = relationship(foreign_keys="Ticket.used_by_id")
 
     achievements_count = column_property(
@@ -58,6 +60,11 @@ class User(Base):
 
     def to_full_dto(self) -> FullUserDTO:
         return FullUserDTO.model_validate(self)
+
+    def __init__(self, **kw: Any):
+        super().__init__(**kw)
+        self.permissions = UserPermissions()
+        self.settings = UserSettings()
 
     def __str__(self):
         return f"{self.username} ({self.id})"

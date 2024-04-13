@@ -1,7 +1,13 @@
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+import typing
 
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from fanfan.application.dto.user import UserSettingsDTO
 from fanfan.infrastructure.db.models.base import Base
+
+if typing.TYPE_CHECKING:
+    from fanfan.infrastructure.db.models import User
 
 
 class UserSettings(Base):
@@ -12,3 +18,8 @@ class UserSettings(Base):
     )
     items_per_page: Mapped[int] = mapped_column(server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="True")
+
+    user: Mapped["User"] = relationship(back_populates="settings")
+
+    def __str__(self):
+        return UserSettingsDTO.model_validate(self).__str__()
