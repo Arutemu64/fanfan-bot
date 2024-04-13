@@ -49,19 +49,19 @@ async def swap_events_handler(
         event1, event2, delivery_info = await app.schedule_mgmt.swap_events(
             int(args[0]), int(args[1])
         )
+        await message.reply(
+            f"✅ Выступление <b>{event1.title}</b> заменено на <b>{event2.title}</b>\n"
+            f"Будет отправлено {delivery_info.count} "
+            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
+            reply_markup=InlineKeyboardBuilder(
+                [[get_delete_delivery_button(delivery_info.delivery_id)]]
+            ).as_markup()
+            if delivery_info.count > 0
+            else None,
+        )
+        await show_event_page(dialog_manager, event1.id)
     except ServiceError as e:
         await message.reply(e.message)
-        return
-
-    await message.reply(
-        f"✅ Выступление <b>{event1.title}</b> заменено на <b>{event2.title}</b>\n"
-        f"Будет отправлено {delivery_info.count} "
-        f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
-        reply_markup=InlineKeyboardBuilder(
-            [[get_delete_delivery_button(delivery_info.delivery_id)]]
-        ).as_markup(),
-    )
-    await show_event_page(dialog_manager, event1.id)
 
 
 swap_events_window = ScheduleWindow(

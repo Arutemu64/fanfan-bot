@@ -19,16 +19,16 @@ async def set_next_event_handler(
 
     try:
         event, delivery_info = await app.schedule_mgmt.set_next_event()
+        await callback.message.answer(
+            f"✅ Выступление <b>{event.title}</b> отмечено текущим\n"
+            f"Будет отправлено {delivery_info.count} "
+            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
+            reply_markup=InlineKeyboardBuilder(
+                [[get_delete_delivery_button(delivery_info.delivery_id)]]
+            ).as_markup()
+            if delivery_info.count > 0
+            else None,
+        )
+        await show_event_page(manager, event.id)
     except ServiceError as e:
         await callback.answer(e.message, show_alert=True)
-        return
-
-    await callback.message.answer(
-        f"✅ Выступление <b>{event.title}</b> отмечено текущим\n"
-        f"Будет отправлено {delivery_info.count} "
-        f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
-        reply_markup=InlineKeyboardBuilder(
-            [[get_delete_delivery_button(delivery_info.delivery_id)]]
-        ).as_markup(),
-    )
-    await show_event_page(manager, event.id)

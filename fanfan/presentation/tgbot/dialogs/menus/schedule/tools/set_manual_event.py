@@ -31,20 +31,20 @@ async def set_manual_event_handler(
 
     try:
         event, delivery_info = await app.schedule_mgmt.set_current_event(data)
+        await message.reply(
+            f"✅ Выступление <b>{event.title}</b> отмечено как текущее\n"
+            f"Будет отправлено {delivery_info.count} "
+            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
+            reply_markup=InlineKeyboardBuilder(
+                [[get_delete_delivery_button(delivery_info.delivery_id)]]
+            ).as_markup()
+            if delivery_info.count > 0
+            else None,
+        )
+        await show_event_page(dialog_manager, event.id)
+        await dialog_manager.switch_to(states.SCHEDULE.MAIN)
     except ServiceError as e:
         await message.reply(e.message)
-        return
-
-    await message.reply(
-        f"✅ Выступление <b>{event.title}</b> отмечено как текущее\n"
-        f"Будет отправлено {delivery_info.count} "
-        f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
-        reply_markup=InlineKeyboardBuilder(
-            [[get_delete_delivery_button(delivery_info.delivery_id)]]
-        ).as_markup(),
-    )
-    await show_event_page(dialog_manager, event.id)
-    await dialog_manager.switch_to(states.SCHEDULE.MAIN)
 
 
 set_manual_event_window = ScheduleWindow(

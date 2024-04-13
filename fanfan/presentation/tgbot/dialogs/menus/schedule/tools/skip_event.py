@@ -30,29 +30,25 @@ async def skip_event_handler(
 
     try:
         event, delivery_info = await app.schedule_mgmt.skip_event(data)
+        if event.skip:
+            text = f"🙈 Выступление <b>{event.title}</b> пропущено\n"
+            f"Будет отправлено {delivery_info.count} "
+            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n"
+        else:
+            text = f"🙉 Выступление <b>{event.title}</b> возвращено\n"
+            f"Будет отправлено {delivery_info.count} "
+            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n"
+        await message.reply(
+            text,
+            reply_markup=InlineKeyboardBuilder(
+                [[get_delete_delivery_button(delivery_info.delivery_id)]]
+            ).as_markup()
+            if delivery_info.count > 0
+            else None,
+        )
+        await show_event_page(dialog_manager, event.id)
     except ServiceError as e:
         await message.reply(e.message)
-        return
-
-    if event.skip:
-        await message.reply(
-            f"🙈 Выступление <b>{event.title}</b> пропущено\n"
-            f"Будет отправлено {delivery_info.count} "
-            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
-            reply_markup=InlineKeyboardBuilder(
-                [[get_delete_delivery_button(delivery_info.delivery_id)]]
-            ).as_markup(),
-        )
-    if not event.skip:
-        await message.reply(
-            f"🙉 Выступление <b>{event.title}</b> возвращено\n"
-            f"Будет отправлено {delivery_info.count} "
-            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
-            reply_markup=InlineKeyboardBuilder(
-                [[get_delete_delivery_button(delivery_info.delivery_id)]]
-            ).as_markup(),
-        )
-    await show_event_page(dialog_manager, event.id)
 
 
 toggle_event_skip_window = ScheduleWindow(

@@ -57,7 +57,6 @@ class ScheduleManagementService(BaseService):
 
     async def _prepare_notifications(
         self,
-        current_event_before: Optional[Event],
         next_event_before: Optional[Event],
         changed_events: List[Event],
     ) -> List[UserNotification]:
@@ -73,7 +72,7 @@ class ScheduleManagementService(BaseService):
         next_event = await self.uow.events.get_next_event()
 
         # Preparing global notifications
-        if (current_event != current_event_before) or (next_event != next_event_before):
+        if next_event != next_event_before:
             await self._throttle_global_announcement()
             text = await global_announcement_template.render_async(
                 {"current_event": current_event, "next_event": next_event},
@@ -135,7 +134,6 @@ class ScheduleManagementService(BaseService):
             await self.uow.session.flush([event])
             await self.uow.session.refresh(event, ["real_position"])
             notifications = await self._prepare_notifications(
-                current_event_before=current_event,
                 next_event_before=next_event,
                 changed_events=[event],
             )
@@ -169,7 +167,6 @@ class ScheduleManagementService(BaseService):
         if not event2:
             raise EventNotFound(event2_id)
 
-        current_event = await self.uow.events.get_current_event()
         next_event = await self.uow.events.get_next_event()
 
         async with self.uow:
@@ -178,7 +175,6 @@ class ScheduleManagementService(BaseService):
             await self.uow.session.refresh(event1, ["real_position"])
             await self.uow.session.refresh(event2, ["real_position"])
             notifications = await self._prepare_notifications(
-                current_event_before=current_event,
                 next_event_before=next_event,
                 changed_events=[event1, event2],
             )
@@ -217,7 +213,6 @@ class ScheduleManagementService(BaseService):
             event.current = True
             await self.uow.session.flush([event])
             notifications = await self._prepare_notifications(
-                current_event_before=current_event,
                 next_event_before=next_event,
                 changed_events=[event],
             )
