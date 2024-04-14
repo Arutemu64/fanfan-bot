@@ -31,6 +31,7 @@ class UserService(BaseService):
                 self.uow.session.add(user)
                 await self.uow.commit()
                 logger.info(f"New user id={user.id} has registered")
+                self.uow.session.expunge(user)  # To refresh relationships
                 user = await self.uow.users.get_user_by_id(user.id)
                 return user.to_full_dto()
             except IntegrityError:
