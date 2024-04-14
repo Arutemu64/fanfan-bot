@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+from sqlalchemy.exc import IntegrityError
+
 from fanfan.application.dto.user import (
     CreateUserDTO,
     FullUserDTO,
@@ -8,7 +10,7 @@ from fanfan.application.dto.user import (
     UpdateUserSettingsDTO,
     UserDTO,
 )
-from fanfan.application.exceptions.users import UserNotFound
+from fanfan.application.exceptions.users import UserAlreadyExist, UserNotFound
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models import User
@@ -20,16 +22,20 @@ class UserService(BaseService):
     async def create_user(self, dto: CreateUserDTO) -> FullUserDTO:
         """Create a new user"""
         async with self.uow:
-            user = User(
-                id=dto.id,
-                username=dto.username,
-                role=dto.role,
-            )
-            await self.uow.session.merge(user)
-            await self.uow.commit()
-            logger.info(f"New user id={user.id} has registered")
-            user = await self.uow.users.get_user_by_id(user.id)
-            return user.to_full_dto()
+            try:
+                user = User(
+                    id=dto.id,
+                    username=dto.username,
+                    role=dto.role,
+                )
+                self.uow.session.add(user)
+                await self.uow.commit()
+                logger.info(f"New user id={user.id} has registered")
+                user = await self.uow.users.get_user_by_id(user.id)
+                return user.to_full_dto()
+            except IntegrityError:
+                await self.uow.rollback()
+                raise UserAlreadyExist
 
     async def get_user_by_id(self, user_id: int) -> FullUserDTO:
         """Get user by their ID"""

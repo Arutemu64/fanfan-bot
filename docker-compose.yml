@@ -1,7 +1,6 @@
 version: '3.8'
 services:
   bot:
-    container_name: 'fanfan-bot'
     build:
       context: .
       dockerfile: buildfiles/BotDockerfile
@@ -18,7 +17,6 @@ services:
       - db
       - redis
   db:
-    container_name: 'fanfan-db'
     build:
       context: buildfiles
       dockerfile: DBDockerfile
@@ -30,7 +28,6 @@ services:
     ports:
       - "5432:5432"
   redis:
-    container_name: 'fanfan-redis'
     build:
       context: buildfiles
       dockerfile: RedisDockerfile
@@ -44,11 +41,8 @@ services:
 
 volumes:
   bot-data:
-    name: "fanfan-bot-data"
     driver: local
   db-data:
-    name: "fanfan-db-data"
     driver: local
   redis-data:
-    name: "fanfan-redis-data"
     driver: local
