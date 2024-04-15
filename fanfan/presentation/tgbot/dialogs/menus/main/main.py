@@ -47,6 +47,7 @@ async def main_menu_getter(
         # Settings
         "voting_enabled": settings.voting_enabled,
         "show_qr_webapp": get_config().web.mode is BotMode.WEBHOOK,
+        # Permissions
         "is_feedback_allowed": user.permissions.can_send_feedback,
         # Most important thing ever
         "random_quote": await app.common.get_random_quote(),

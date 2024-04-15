@@ -8,9 +8,7 @@ from taskiq import TaskiqResult
 from taskiq_redis.exceptions import ResultIsMissingError
 
 from fanfan.application.dto.notification import DeliveryInfo, UserNotification
-from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
-from fanfan.common.enums import UserRole
 from fanfan.config import get_config
 from fanfan.infrastructure.scheduler import (
     redis_async_result,
@@ -21,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class NotificationService(BaseService):
-    @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def send_notifications(
         self,
         notifications: List[UserNotification],
@@ -38,7 +35,6 @@ class NotificationService(BaseService):
             await send_notification.kiq(notification=n, delivery_id=delivery_id)
         return DeliveryInfo(delivery_id=delivery_id, count=len(notifications))
 
-    @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def delete_delivery(self, delivery_id: str) -> DeliveryInfo:
         """Mass delete sent notifications by group ID
         @param delivery_id: Delivery ID

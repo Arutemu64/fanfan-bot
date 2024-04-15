@@ -7,3 +7,4 @@ class SettingsDTO(BaseModel):
     voting_enabled: bool
     announcement_timeout: int
     announcement_timestamp: float
+    asap_feedback_enabled: bool
