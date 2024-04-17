@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +13,13 @@ class ActivitiesRepository(Repository[Activity]):
         self.session = session
         super().__init__(type_model=Activity, session=session)
 
-    async def get_activity_page(self, page_number: int) -> Page[Activity]:
+    async def get_activity(self, activity_id: int) -> Optional[Activity]:
+        return await self.session.get(Activity, activity_id)
+
+    async def get_activities_page(
+        self, page_number: int, activities_per_page: int
+    ) -> Page[Activity]:
         query = select(Activity).order_by(Activity.id)
-        return await super()._paginate(query, page_number, 1)
+        return await super()._paginate(
+            query=query, page_number=page_number, items_per_page=activities_per_page
+        )

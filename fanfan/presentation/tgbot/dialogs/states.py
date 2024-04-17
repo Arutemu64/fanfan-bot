@@ -3,9 +3,13 @@ from aiogram.fsm.state import State, StatesGroup
 
 class MAIN(StatesGroup):
     HOME = State()
-    ACTIVITIES = State()
     QR_PASS = State()
     LINK_TICKET = State()
+
+
+class ACTIVITIES(StatesGroup):
+    SELECT_ACTIVITY = State()
+    ACTIVITY_INFO = State()
 
 
 class ACHIEVEMENTS(StatesGroup):

@@ -135,10 +135,10 @@ main_window = Window(
             ),
             when=F["is_ticket_linked"],
         ),
-        SwitchTo(
+        Start(
             Const(strings.titles.activities),
             id="open_activities",
-            state=states.MAIN.ACTIVITIES,
+            state=states.ACTIVITIES.SELECT_ACTIVITY,
         ),
         Start(
             text=Const(strings.titles.schedule),

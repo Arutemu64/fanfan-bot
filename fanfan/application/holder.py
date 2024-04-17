@@ -2,6 +2,7 @@ from typing import Optional
 
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.services import (
+    ActivitiesService,
     CommonService,
     FeedbackService,
     NotificationService,
@@ -36,3 +37,4 @@ class AppHolder:
         self.common = CommonService(uow, identity)
         self.qr = QRService(uow, identity)
         self.feedback = FeedbackService(uow, identity)
+        self.activities = ActivitiesService(uow, identity)

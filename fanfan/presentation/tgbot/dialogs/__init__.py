@@ -16,6 +16,7 @@ def setup_router() -> Router:
         user_manager,
         voting,
     )
+    from fanfan.presentation.tgbot.dialogs.menus.main import activities
     from fanfan.presentation.tgbot.dialogs.menus.org import deliveries
     from fanfan.presentation.tgbot.dialogs.menus.schedule import subscriptions
 
@@ -28,6 +29,7 @@ def setup_router() -> Router:
         voting.dialog,
         settings.dialog,
         feedback.dialog,
+        activities.dialog,
     )
 
     helper_router = Router(name="helper_dialog_router")

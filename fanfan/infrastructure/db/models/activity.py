@@ -4,7 +4,7 @@ from fastapi_storages import FileSystemStorage, StorageImage
 from fastapi_storages.integrations.sqlalchemy import ImageType
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fanfan.application.dto.activity import ActivityDTO
+from fanfan.application.dto.activity import ActivityDTO, FullActivityDTO
 from fanfan.config import get_config
 from fanfan.infrastructure.db.models.base import Base
 
@@ -26,7 +26,10 @@ class Activity(Base):
     )
 
     def to_dto(self) -> ActivityDTO:
-        return ActivityDTO(
+        return ActivityDTO.model_validate(self)
+
+    def to_full_dto(self) -> FullActivityDTO:
+        return FullActivityDTO(
             id=self.id,
             title=self.title,
             description=self.description,

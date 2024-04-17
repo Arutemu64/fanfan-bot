@@ -58,7 +58,7 @@ async def qr_pass_cmd(
 
 @router.message(Command(ACTIVITIES_CMD))
 async def activities_cmd(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(states.MAIN.ACTIVITIES)
+    await dialog_manager.start(states.ACTIVITIES.SELECT_ACTIVITY)
 
 
 @router.message(Command(SCHEDULE_CMD))
