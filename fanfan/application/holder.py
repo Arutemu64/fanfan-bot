@@ -1,21 +1,6 @@
 from typing import Optional
 
 from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.services import (
-    ActivitiesService,
-    CommonService,
-    FeedbackService,
-    NotificationService,
-    QRService,
-    QuestService,
-    ScheduleManagementService,
-    ScheduleService,
-    SettingsService,
-    SubscriptionsService,
-    TicketService,
-    UserService,
-    VotingService,
-)
 from fanfan.infrastructure.db import UnitOfWork
 
 
@@ -23,6 +8,22 @@ class AppHolder:
     def __init__(self, uow: UnitOfWork, identity: Optional[FullUserDTO]):
         self.uow = uow
         self.identity = identity
+
+        from fanfan.application.services import (
+            ActivitiesService,
+            CommonService,
+            FeedbackService,
+            NotificationService,
+            QRService,
+            QuestService,
+            ScheduleManagementService,
+            ScheduleService,
+            SettingsService,
+            SubscriptionsService,
+            TicketService,
+            UserService,
+            VotingService,
+        )
 
         self.schedule = ScheduleService(uow, identity)
         self.notifications = NotificationService(uow, identity)

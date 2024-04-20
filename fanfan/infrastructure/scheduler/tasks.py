@@ -8,10 +8,10 @@ from aiogram.types import Message
 from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
-from redis.asyncio import Redis
 from taskiq import Context, TaskiqDepends
 
 from fanfan.application.dto.notification import UserNotification
+from fanfan.infrastructure.di.redis import SchedulerRedis
 from fanfan.infrastructure.scheduler import broker
 
 logger = logging.getLogger("__name__")
@@ -23,7 +23,7 @@ async def send_notification(
     notification: UserNotification,
     context: Annotated[Context, TaskiqDepends()],
     bot: FromDishka[Bot],
-    redis: FromDishka[Redis],
+    redis: FromDishka[SchedulerRedis],
     dialog_bg_factory: FromDishka[BgManagerFactory],
     delivery_id: Optional[str] = None,
 ) -> dict:
@@ -48,8 +48,10 @@ async def send_notification(
             load=True,
         ).update(data={}, show_mode=ShowMode.DELETE_AND_SEND)
         if delivery_id:
-            await redis.lpush(delivery_id, context.message.task_id)
-            await redis.expire(delivery_id, time=timedelta(hours=1).seconds)
+            await redis.lpush(f"delivery:{delivery_id}", context.message.task_id)
+            await redis.expire(
+                f"delivery:{delivery_id}", time=timedelta(hours=1).seconds
+            )
         logger.info(
             f"Notification message id={message.message_id} "
             f"was sent to user id={message.chat.id}"

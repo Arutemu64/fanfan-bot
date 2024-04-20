@@ -3,13 +3,15 @@ import uuid
 from typing import List, Optional
 
 from aiogram.types import Message
-from redis.asyncio import Redis
+from dishka import make_async_container
 from taskiq import TaskiqResult
 from taskiq_redis.exceptions import ResultIsMissingError
 
 from fanfan.application.dto.notification import DeliveryInfo, UserNotification
 from fanfan.application.services.base import BaseService
-from fanfan.config import get_config
+from fanfan.infrastructure.di import RedisProvider
+from fanfan.infrastructure.di.config import ConfigProvider
+from fanfan.infrastructure.di.redis import SchedulerRedis
 from fanfan.infrastructure.scheduler import (
     redis_async_result,
 )
@@ -39,22 +41,25 @@ class NotificationService(BaseService):
         """Mass delete sent notifications by group ID
         @param delivery_id: Delivery ID
         """
-        redis = Redis().from_url(get_config().redis.build_connection_str())
-        count = await redis.llen(delivery_id)
-        while await redis.llen(delivery_id) > 0:
-            try:
-                task_id = await redis.lpop(delivery_id)
-                result: TaskiqResult = await redis_async_result.get_result(task_id)
-                if not result.is_err:
-                    await delete_message.kiq(
-                        Message.model_validate(result.return_value),
-                    )
-                    await redis.delete(task_id)
-            except ResultIsMissingError:
-                pass
-        await redis.aclose()
-        logger.info(
-            f"Delivery id={delivery_id} ({count}) "
-            f"was deleted by user id={self.identity.id}"
-        )
+        container = make_async_container(ConfigProvider(), RedisProvider())
+        async with container() as container:
+            redis = await container.get(SchedulerRedis)
+            key = f"delivery:{delivery_id}"
+            count = await redis.llen(key)
+            while await redis.llen(key) > 0:
+                try:
+                    task_id = await redis.lpop(key)
+                    result: TaskiqResult = await redis_async_result.get_result(task_id)
+                    if not result.is_err:
+                        await delete_message.kiq(
+                            Message.model_validate(result.return_value),
+                        )
+                        await redis.delete(task_id)
+                except ResultIsMissingError:
+                    pass
+            logger.info(
+                f"Delivery id={delivery_id} ({count}) "
+                f"was deleted by user id={self.identity.id}"
+            )
+        await container.close()
         return DeliveryInfo(delivery_id=delivery_id, count=count)

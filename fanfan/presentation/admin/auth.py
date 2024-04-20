@@ -10,7 +10,7 @@ from starlette.responses import RedirectResponse, Response
 
 from fanfan.common.enums import UserRole
 from fanfan.config import get_config
-from fanfan.infrastructure.db.uow import UnitOfWork
+from fanfan.infrastructure.db import UnitOfWork
 from fanfan.infrastructure.di.config import ConfigProvider
 from fanfan.infrastructure.di.db import DbProvider
 

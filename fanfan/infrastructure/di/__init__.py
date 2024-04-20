@@ -4,7 +4,8 @@ from dishka import Provider
 
 from fanfan.infrastructure.di.bot import BotProvider, DpProvider
 from fanfan.infrastructure.di.config import ConfigProvider
-from fanfan.infrastructure.di.db import DbProvider, RedisProvider
+from fanfan.infrastructure.di.db import DbProvider
+from fanfan.infrastructure.di.redis import RedisProvider
 from fanfan.infrastructure.di.user_bot import UserProvider
 
 
