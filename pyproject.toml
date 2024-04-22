@@ -37,7 +37,7 @@ optional=true
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
-ruff = "^0.3.4"
+ruff = "^0.4.1"
 
 [tool.ruff]
 lint.select = ['E', 'F', 'W', 'A', 'PLC', 'PLE', 'PLW', 'I']
