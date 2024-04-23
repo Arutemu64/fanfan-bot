@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Optional, Tuple, Type
+from typing import Any, List, Optional, Self, Tuple, Type
 
 from dotenv import find_dotenv, load_dotenv
 from pydantic import (
@@ -119,33 +119,37 @@ class WebConfig(BaseSettings):
 
     mode: BotMode = BotMode.POLLING
     host: str = "127.0.0.1"
-    port: int = 8090
-    domain: str = "127.0.0.1"
+    port: int = 8080
+    base_url: HttpUrl = HttpUrl("http://127.0.0.1:8080")
     secret_key: SecretStr = Field("a_super_secret_key123")
 
-    @model_validator(mode="before")
-    def check_if_domain_set(cls, data: dict) -> dict:
-        if data.get("mode") == BotMode.WEBHOOK:
-            if data.get("domain"):
-                assert len(data["domain"]) > 0, "Domain not set!"
-            else:
-                raise AssertionError("Domain not set!")
-        return data
+    @model_validator(mode="after")
+    def check_url(self) -> Self:
+        if self.mode == BotMode.WEBHOOK:
+            if not self.base_url.scheme == "https":
+                raise AssertionError("URL must be https!")
+        return self
 
     def build_webhook_url(self) -> str:
         url: HttpUrl = HttpUrl.build(
-            scheme="https",
-            host=self.domain,
-            path="webhook",
+            scheme=self.base_url.scheme, host=self.base_url.host, path="webhook"
         )
         return url.unicode_string()
 
     def build_admin_auth_url(self) -> str:
         url: HttpUrl = HttpUrl.build(
-            scheme="https" if self.mode is BotMode.WEBHOOK else "http",
-            host=self.domain,
-            port=self.port if self.mode is BotMode.POLLING else None,
+            scheme=self.base_url.scheme,
+            host=self.base_url.host,
+            port=self.base_url.port,
             path="auth",
+        )
+        return url.unicode_string()
+
+    def build_qr_scanner_url(self) -> str:
+        url: HttpUrl = HttpUrl.build(
+            scheme=self.base_url.scheme,
+            host=self.base_url.host,
+            path="qr_scanner",
         )
         return url.unicode_string()
 

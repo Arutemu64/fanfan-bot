@@ -10,11 +10,9 @@ class EventDTO(BaseModel):
 
     id: int
     title: str
-    position: int
+    position: Optional[int]
     current: Optional[bool]
     skip: bool
-
-    real_position: Optional[int]
 
 
 class ScheduleEventDTO(EventDTO):

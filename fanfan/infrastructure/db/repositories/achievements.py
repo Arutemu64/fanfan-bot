@@ -30,7 +30,7 @@ class AchievementsRepository(Repository[Achievement]):
         achievements_per_page: int,
         user_id: Optional[int] = None,
     ) -> Page[Achievement]:
-        query = select(Achievement).order_by(Achievement.id)
+        query = select(Achievement).order_by(Achievement.order)
         if user_id:
             query = query.options(contains_eager(Achievement.user_received)).outerjoin(
                 ReceivedAchievement,

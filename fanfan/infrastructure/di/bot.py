@@ -12,6 +12,7 @@ from aiogram_dialog.manager.bg_manager import BgManagerFactoryImpl
 from dishka import Provider, Scope, make_async_container, provide
 from dishka.integrations.aiogram import setup_dishka
 from redis.asyncio import Redis
+from sulguk import AiogramSulgukMiddleware
 
 from fanfan.config import BotConfig, RedisConfig
 from fanfan.presentation.tgbot import dialogs, handlers
@@ -26,6 +27,7 @@ class BotProvider(Provider):
     def get_bot(self, config: BotConfig) -> Bot:
         bot = Bot(token=config.token.get_secret_value(), parse_mode=ParseMode.HTML)
         bot.session.middleware(RetryMiddleware())
+        bot.session.middleware(AiogramSulgukMiddleware())
         return bot
 
 

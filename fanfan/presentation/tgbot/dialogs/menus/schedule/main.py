@@ -18,8 +18,8 @@ from fanfan.presentation.tgbot.dialogs import (
     states,
 )
 from fanfan.presentation.tgbot.dialogs.menus.schedule.common import (
+    DATA_SEARCH_QUERY,
     ID_SCHEDULE_SCROLL,
-    SEARCH_QUERY,
     ScheduleWindow,
     set_search_query_handler,
 )
@@ -46,10 +46,6 @@ async def set_page_handler(
 schedule_main_window = ScheduleWindow(
     state=states.SCHEDULE.MAIN,
     header=Title(Const(strings.titles.schedule)),
-    footer=Const(
-        "🔍⌨️ <i>Отправьте поисковой запрос или номер страницы</i>",
-        when=~F["dialog_data"][SEARCH_QUERY],
-    ),
     before_paginator=Group(
         Group(
             Group(
@@ -57,7 +53,7 @@ schedule_main_window = ScheduleWindow(
                     text=Const("⏭️ Следующее"),
                     id="next_event",
                     on_click=set_next_event_handler,
-                    when=~F["dialog_data"][SEARCH_QUERY],
+                    when=~F["dialog_data"][DATA_SEARCH_QUERY],
                 ),
                 SwitchTo(
                     text=Const("🔢 Указать вручную"),

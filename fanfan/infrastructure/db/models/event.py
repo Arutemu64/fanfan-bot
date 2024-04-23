@@ -21,17 +21,16 @@ if TYPE_CHECKING:
 
 class Event(Base):
     __tablename__ = "schedule"
-    position_sequence = Sequence("schedule_position_seq", start=1)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(index=True)
-    position: Mapped[float] = mapped_column(
+    order: Mapped[float] = mapped_column(
         unique=True,
         nullable=False,
-        server_default=position_sequence.next_value(),
+        server_default=Sequence("schedule_order_seq", start=1).next_value(),
     )
-    UniqueConstraint(position, deferrable=True, initially="DEFERRED")
-    real_position = None  # Placeholder
+    UniqueConstraint(order, deferrable=True, initially="DEFERRED")
+    position = None  # Placeholder
     participant_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE"),
         nullable=True,
@@ -61,20 +60,20 @@ class Event(Base):
         return self.title
 
 
-rp_subquery = select(
+position_subquery = select(
     Event.id.label("event_id"),
     case(
         (
             Event.skip.isnot(True),
-            func.row_number().over(order_by=Event.position, partition_by=Event.skip),
+            func.row_number().over(order_by=Event.order, partition_by=Event.skip),
         ),
         else_=None,
-    ).label("real_position"),
+    ).label("position"),
 ).subquery()
 
-Event.real_position = column_property(
-    select(rp_subquery.c.real_position)
-    .where(Event.id == rp_subquery.c.event_id)
+Event.position = column_property(
+    select(position_subquery.c.position)
+    .where(Event.id == position_subquery.c.event_id)
     .scalar_subquery(),
     expire_on_flush=True,
 )

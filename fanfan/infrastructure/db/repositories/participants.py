@@ -21,6 +21,21 @@ class ParticipantsRepository(Repository[Participant]):
             options=[joinedload(Participant.nomination), joinedload(Participant.event)],
         )
 
+    async def get_participant_by_nomination_position(
+        self, nomination_id: str, nomination_position: int
+    ) -> Optional[Participant]:
+        query = (
+            select(Participant)
+            .where(
+                and_(
+                    Participant.nomination_id == nomination_id,
+                    Participant.nomination_position == nomination_position,
+                )
+            )
+            .limit(1)
+        )
+        return await self.session.scalar(query)
+
     async def get_participant_by_title(self, title: str) -> Optional[Participant]:
         query = select(Participant).where(Participant.title == title).limit(1)
         return await self.session.scalar(query)
@@ -32,10 +47,11 @@ class ParticipantsRepository(Repository[Participant]):
         only_votable: Optional[bool] = None,
         nomination_id: Optional[str] = None,
         user_id: Optional[int] = None,
+        search_query: Optional[str] = None,
     ) -> Page[Participant]:
         query = (
             select(Participant)
-            .order_by(Participant.id)
+            .order_by(Participant.order)
             .options(undefer(Participant.votes_count))
         )
         if only_votable:
@@ -57,4 +73,6 @@ class ParticipantsRepository(Repository[Participant]):
                     Vote.user_id == user_id,
                 ),
             )
+        if search_query:
+            query = query.where(Participant.title.ilike(f"%{search_query}%"))
         return await super()._paginate(query, page_number, participants_per_page)

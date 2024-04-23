@@ -14,7 +14,7 @@
         {% set tag %}{% endset %}
         {% if current_event %}
             {% if not subscription.event.skip %}
-                {% set events_left = subscription.event.real_position - current_event.real_position %}
+                {% set events_left = subscription.event.position - current_event.position %}
                 {% if (events_left > 0) and (events_left > subscription.counter) %}
                     {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}, начнём оповещать за {{subscription.counter}} {{events_pluralize(subscription.counter)}}]{% endset %}
                 {% elif (events_left > 0) and (events_left < subscription.counter) %}

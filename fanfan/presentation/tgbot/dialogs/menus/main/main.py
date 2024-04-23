@@ -25,6 +25,7 @@ async def main_menu_getter(
     user: FullUserDTO,
     **kwargs,
 ):
+    config = get_config()
     settings = await app.settings.get_settings()
     user_stats = None
     achievements_progress = 0
@@ -46,7 +47,9 @@ async def main_menu_getter(
         "total_achievements": user_stats.total_achievements if user_stats else None,
         # Settings
         "voting_enabled": settings.voting_enabled,
-        "show_qr_webapp": get_config().web.mode is BotMode.WEBHOOK,
+        "webapp_link": config.web.build_qr_scanner_url()
+        if config.web.mode is BotMode.WEBHOOK
+        else None,
         # Permissions
         "is_feedback_allowed": user.permissions.can_send_feedback,
         # Most important thing ever
@@ -130,8 +133,8 @@ main_window = Window(
             ),
             WebApp(
                 Const(strings.titles.qr_scanner),
-                url=Const(f"""https://{get_config().web.domain}/qr_scanner"""),
-                when=F["show_qr_webapp"],
+                url=Format("{webapp_link}"),
+                when=F["webapp_link"],
             ),
             when=F["is_ticket_linked"],
         ),

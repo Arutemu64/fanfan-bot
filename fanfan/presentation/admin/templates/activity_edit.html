@@ -1,0 +1,12 @@
+{% extends "edit.html" %}
+{% block tail %}
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#description'), {
+        } )
+        .catch(error => {
+            console.error(error);
+        });
+</script>
+{% endblock %}

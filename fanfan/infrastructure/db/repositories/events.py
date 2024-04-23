@@ -31,8 +31,8 @@ class EventsRepository(Repository[Event]):
     async def get_event(self, event_id: int) -> Optional[Event]:
         return await self.session.get(Event, event_id)
 
-    async def get_event_by_real_position(self, real_position: int) -> Optional[Event]:
-        query = select(Event).where(Event.real_position == real_position).limit(1)
+    async def get_event_by_position(self, position: int) -> Optional[Event]:
+        query = select(Event).where(Event.position == position).limit(1)
         return await self.session.scalar(query)
 
     async def get_current_event(self) -> Optional[Event]:
@@ -40,16 +40,14 @@ class EventsRepository(Repository[Event]):
         return await self.session.scalar(query)
 
     async def get_next_event(self) -> Optional[Event]:
-        current_event_real_position = (
-            select(Event.real_position)
+        current_event_position = (
+            select(Event.position)
             .where(Event.current.is_(True))
             .limit(1)
             .scalar_subquery()
         )
         query = (
-            select(Event)
-            .where(Event.real_position == current_event_real_position + 1)
-            .limit(1)
+            select(Event).where(Event.position == current_event_position + 1).limit(1)
         )
         return await self.session.scalar(query)
 
@@ -61,7 +59,7 @@ class EventsRepository(Repository[Event]):
         user_id: Optional[int] = None,
     ) -> Page[Event]:
         query = (
-            select(Event).order_by(Event.position).options(joinedload(Event.nomination))
+            select(Event).order_by(Event.order).options(joinedload(Event.nomination))
         )
         if search_query:
             query = _filter_events(query, search_query)
@@ -81,11 +79,12 @@ class EventsRepository(Repository[Event]):
         events_per_page: int,
         search_query: Optional[str] = None,
     ) -> int:
-        query = select(Event.position).where(Event.id == event_id).limit(1)
+        query = select(Event.order).where(Event.id == event_id).limit(1)
         if search_query:
             query = _filter_events(
-                select(func.count(Event.id)).where(Event.position <= query),
+                select(func.count(Event.id)).where(Event.order <= query),
                 search_query,
             )
-        event_position = await self.session.scalar(query)
-        return math.floor((event_position - 1) / events_per_page)
+        event_order = await self.session.scalar(query)
+        page = math.floor((event_order - 1) / events_per_page)
+        return page if page > 0 else 0

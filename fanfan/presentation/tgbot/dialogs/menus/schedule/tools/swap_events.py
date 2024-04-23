@@ -13,8 +13,8 @@ from fanfan.common.utils import NOTIFICATIONS_PLURALS, pluralize
 from fanfan.presentation.tgbot.buttons import get_delete_delivery_button
 from fanfan.presentation.tgbot.dialogs import states
 from fanfan.presentation.tgbot.dialogs.menus.schedule.common import (
+    DATA_SEARCH_QUERY,
     ID_SCHEDULE_SCROLL,
-    SEARCH_QUERY,
     ScheduleWindow,
     show_event_page,
 )
@@ -32,7 +32,7 @@ async def swap_events_handler(
 
     # Поиск
     if len(data.split()) == 1:
-        dialog_manager.dialog_data[SEARCH_QUERY] = data
+        dialog_manager.dialog_data[DATA_SEARCH_QUERY] = data
         scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
         await scroll.set_page(0)
         return

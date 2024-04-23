@@ -55,8 +55,8 @@ class SubscriptionsRepository(Repository[Subscription]):
         return await super()._paginate(query, page_number, subscriptions_per_page)
 
     async def get_upcoming_subscriptions(self) -> Sequence[Subscription]:
-        event_real_position = (
-            select(Event.real_position)
+        event_position = (
+            select(Event.position)
             .where(Event.current.is_(True))
             .limit(1)
             .scalar_subquery()
@@ -67,9 +67,8 @@ class SubscriptionsRepository(Repository[Subscription]):
                 Subscription.event.has(
                     and_(
                         Event.skip.isnot(True),
-                        Subscription.counter
-                        >= (Event.real_position - event_real_position),
-                        (Event.real_position - event_real_position) >= 0,
+                        Subscription.counter >= (Event.position - event_position),
+                        (Event.position - event_position) >= 0,
                     ),
                 ),
             )

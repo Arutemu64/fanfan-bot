@@ -4,6 +4,7 @@ from typing import Any
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
+from aiogram_dialog.widgets.common import ManagedScroll
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import (
@@ -36,6 +37,7 @@ ID_VOTING_SCROLL = "voting_scroll"
 
 DATA_CURRENT_NOMINATION_ID = "current_nomination_id"
 DATA_USER_VOTE_ID = "user_vote"
+DATA_SEARCH_QUERY = "data_search_query"
 
 
 async def nominations_getter(
@@ -77,6 +79,7 @@ async def participants_getter(
         page_number=await dialog_manager.find(ID_VOTING_SCROLL).get_page(),
         participants_per_page=user.settings.items_per_page,
         user_id=user.id,
+        search_query=dialog_manager.dialog_data.get(DATA_SEARCH_QUERY, None),
     )
     try:
         user_vote = await app.voting.get_vote_by_nomination(
@@ -101,6 +104,7 @@ async def select_nomination_handler(
     item_id: str,
 ):
     dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID] = item_id
+    dialog_manager.dialog_data[DATA_SEARCH_QUERY] = None
     await dialog_manager.find(ID_VOTING_SCROLL).set_page(0)
     await dialog_manager.switch_to(states.VOTING.VOTING)
 
@@ -113,9 +117,13 @@ async def add_vote_handler(
 ):
     app: AppHolder = dialog_manager.middleware_data["app"]
     try:
+        participant = await app.voting.get_participant_by_nomination_position(
+            nomination_id=dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
+            nomination_position=data,
+        )
         await app.voting.add_vote(
             user_id=dialog_manager.event.from_user.id,
-            participant_id=data,
+            participant_id=participant.id,
             nomination_id=dialog_manager.dialog_data[DATA_CURRENT_NOMINATION_ID],
         )
     except ServiceError as e:
@@ -168,11 +176,45 @@ nominations_window = Window(
     getter=nominations_getter,
 )
 
+
+async def reset_search_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+):
+    manager.dialog_data.pop(DATA_SEARCH_QUERY)
+
+
+async def set_search_query_handler(
+    message: Message,
+    widget: ManagedTextInput,
+    dialog_manager: DialogManager,
+    error: ValueError,
+):
+    dialog_manager.dialog_data[DATA_SEARCH_QUERY] = message.text
+    scroll: ManagedScroll = dialog_manager.find(ID_VOTING_SCROLL)
+    await scroll.set_page(0)
+
+
 voting_window = Window(
     Title(Format("🎖️ Номинация {nomination_title}")),
     Jinja(voting_list),
+    Format(
+        "🔍 Результаты поиска по запросу {dialog_data[data_search_query]}",
+        when=F["dialog_data"][DATA_SEARCH_QUERY],
+    ),
     Const("⌨️ Чтобы проголосовать, отправь номер участника.", when=~F["voted"]),
+    Const(
+        "🔍 <i>Для поиска отправьте запрос сообщением</i>",
+        when=~F["dialog_data"][DATA_SEARCH_QUERY],
+    ),
     StubScroll(ID_VOTING_SCROLL, pages="pages"),
+    Button(
+        text=Const("🔍❌ Сбросить поиск"),
+        id="reset_search",
+        on_click=reset_search_handler,
+        when=F["dialog_data"][DATA_SEARCH_QUERY],
+    ),
     Row(
         FirstPage(scroll=ID_VOTING_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_VOTING_SCROLL, text=Const("◀️")),
@@ -188,6 +230,7 @@ voting_window = Window(
         id="vote_id_input",
         type_factory=int,
         on_success=add_vote_handler,
+        on_error=set_search_query_handler,
     ),
     Button(
         Const("🗑️ Отменить голос"),
@@ -203,6 +246,5 @@ voting_window = Window(
     state=states.VOTING.VOTING,
     getter=participants_getter,
 )
-
 
 dialog = Dialog(nominations_window, voting_window)

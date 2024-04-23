@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import UUID
+from sqlalchemy import UUID, Sequence
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.application.dto.achievement import AchievementDTO, FullAchievementDTO
@@ -17,6 +17,11 @@ class Achievement(Base):
     __tablename__ = "achievements"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    order: Mapped[float] = mapped_column(
+        unique=True,
+        nullable=False,
+        server_default=Sequence("achievements_order_seq", start=1).next_value(),
+    )
     secret_id: Mapped[UUID] = mapped_column(
         UUID,
         default=uuid.uuid4,

@@ -11,16 +11,21 @@ from fanfan.presentation.tgbot.dialogs.menus.main.qr_pass import QR_CODES_TEMP_D
 class AchievementView(ModelView, model=Achievement):
     name_plural = "Достижения"
     icon = "fa-solid fa-trophy"
+    column_default_sort = [(Achievement.order, False)]
+
+    column_list = [Achievement.order, Achievement.title, Achievement.description]
+    column_details_exclude_list = [Achievement.user_received]
+    form_columns = [Achievement.order, Achievement.title, Achievement.description]
+
     column_labels = {
         Achievement.id: "ID",
+        Achievement.order: "Порядок",
+        Achievement.secret_id: "Секретный ID",
         Achievement.title: "Название",
         Achievement.description: "Описание",
         Achievement.created_on: "Время создания",
         Achievement.updated_on: "Время изменения",
     }
-    column_list = [Achievement.title, Achievement.description]
-    column_details_exclude_list = [Achievement.user_received]
-    form_columns = [Achievement.title, Achievement.description]
 
     @action(
         name="show_qr_code",

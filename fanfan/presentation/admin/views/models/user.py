@@ -7,6 +7,7 @@ class UserView(ModelView, model=User):
     name_plural = "Пользователи"
     category = "Пользователи"
     icon = "fa-solid fa-users"
+
     can_create = False
     column_list = [
         User.id,
@@ -14,6 +15,12 @@ class UserView(ModelView, model=User):
         User.role,
         User.achievements_count,
     ]
+    form_columns = [
+        User.role,
+    ]
+    column_details_exclude_list = [User.received_achievements]
+    column_searchable_list = [User.username, User.role]
+    column_sortable_list = [User.achievements_count]
     column_labels = {
         User.id: "Telegram ID",
         User.username: "Имя пользователя",
@@ -25,9 +32,6 @@ class UserView(ModelView, model=User):
         User.created_on: "Время создания",
         User.updated_on: "Время изменения",
     }
-    column_details_exclude_list = [User.received_achievements]
-    column_searchable_list = [User.username, User.role]
-    column_sortable_list = [User.achievements_count]
 
 
 class UserPermissionsView(ModelView, model=UserPermissions):
@@ -35,6 +39,7 @@ class UserPermissionsView(ModelView, model=UserPermissions):
     category = "Пользователи"
     icon = "fa-solid fa-passport"
     can_create = False
+
     column_list = [
         UserPermissions.user,
     ]
@@ -50,6 +55,7 @@ class UserSettingsView(ModelView, model=UserSettings):
     category = "Пользователи"
     icon = "fa-solid fa-gear"
     can_create = False
+
     column_list = [
         UserSettings.user,
     ]

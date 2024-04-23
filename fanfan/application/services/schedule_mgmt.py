@@ -94,7 +94,7 @@ class ScheduleManagementService(BaseService):
                 if current_event.position <= e.position <= subscription.event.position:
                     notify = True
             if notify:
-                await self.uow.session.refresh(subscription.event, ["real_position"])
+                await self.uow.session.refresh(subscription.event, ["position"])
                 text = await subscription_template.render_async(
                     {
                         "current_event": current_event,
@@ -132,7 +132,7 @@ class ScheduleManagementService(BaseService):
         async with self.uow:
             event.skip = not event.skip
             await self.uow.session.flush([event])
-            await self.uow.session.refresh(event, ["real_position"])
+            await self.uow.session.refresh(event, ["position"])
             notifications = await self._prepare_notifications(
                 next_event_before=next_event,
                 changed_events=[event],
@@ -170,10 +170,10 @@ class ScheduleManagementService(BaseService):
         next_event = await self.uow.events.get_next_event()
 
         async with self.uow:
-            event1.position, event2.position = event2.position, event1.position
+            event1.order, event2.order = event2.order, event1.order
             await self.uow.session.flush([event1, event2])
-            await self.uow.session.refresh(event1, ["real_position"])
-            await self.uow.session.refresh(event2, ["real_position"])
+            await self.uow.session.refresh(event1, ["position"])
+            await self.uow.session.refresh(event2, ["position"])
             notifications = await self._prepare_notifications(
                 next_event_before=next_event,
                 changed_events=[event1, event2],
@@ -236,7 +236,7 @@ class ScheduleManagementService(BaseService):
             if not next_event:
                 raise NoNextEvent
         else:
-            next_event = await self.uow.events.get_event_by_real_position(1)
+            next_event = await self.uow.events.get_event_by_position(1)
             if not next_event:
                 raise EventNotFound
         return await self.set_current_event(next_event.id)

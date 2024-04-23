@@ -19,7 +19,7 @@ class ActivitiesRepository(Repository[Activity]):
     async def get_activities_page(
         self, page_number: int, activities_per_page: int
     ) -> Page[Activity]:
-        query = select(Activity).order_by(Activity.id)
+        query = select(Activity).order_by(Activity.order)
         return await super()._paginate(
             query=query, page_number=page_number, items_per_page=activities_per_page
         )

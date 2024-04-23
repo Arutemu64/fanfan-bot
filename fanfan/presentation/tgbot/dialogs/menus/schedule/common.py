@@ -16,7 +16,7 @@ from aiogram_dialog.widgets.kbd import (
     Row,
     StubScroll,
 )
-from aiogram_dialog.widgets.text import Const, Format, Jinja, Text
+from aiogram_dialog.widgets.text import Const, Format, Jinja, Multi, Text
 from aiogram_dialog.widgets.utils import GetterVariant
 
 from fanfan.application.dto.user import FullUserDTO
@@ -27,7 +27,7 @@ from fanfan.presentation.tgbot.static.templates import schedule_list
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
-SEARCH_QUERY = "search_query"
+DATA_SEARCH_QUERY = "data_search_query"
 
 
 async def schedule_getter(
@@ -39,7 +39,7 @@ async def schedule_getter(
     page = await app.schedule.get_schedule_page(
         page_number=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page(),
         events_per_page=user.settings.items_per_page,
-        search_query=dialog_manager.dialog_data.get(SEARCH_QUERY, None),
+        search_query=dialog_manager.dialog_data.get(DATA_SEARCH_QUERY, None),
         user_id=dialog_manager.event.from_user.id,
     )
     return {
@@ -56,7 +56,7 @@ async def show_event_page(manager: DialogManager, event_id: int):
     page = await app.schedule.get_page_number_by_event(
         event_id=event_id,
         events_per_page=user.settings.items_per_page,
-        search_query=manager.dialog_data.get(SEARCH_QUERY, None),
+        search_query=manager.dialog_data.get(DATA_SEARCH_QUERY, None),
     )
     await manager.find(ID_SCHEDULE_SCROLL).set_page(page)
 
@@ -80,7 +80,7 @@ async def set_search_query_handler(
     dialog_manager: DialogManager,
     error: ValueError,
 ):
-    dialog_manager.dialog_data[SEARCH_QUERY] = message.text
+    dialog_manager.dialog_data[DATA_SEARCH_QUERY] = message.text
     scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
     await scroll.set_page(0)
 
@@ -90,7 +90,7 @@ async def reset_search_handler(
     button: Button,
     manager: DialogManager,
 ):
-    manager.dialog_data.pop(SEARCH_QUERY)
+    manager.dialog_data.pop(DATA_SEARCH_QUERY)
     await update_schedule_handler(callback, button, manager)
 
 
@@ -99,9 +99,15 @@ class ScheduleWindow(Window):
         self,
         state: State,
         header: Optional[Text] = "",
-        footer: Optional[Text] = Const(
-            "🔍 <i>Для поиска отправьте запрос сообщением</i>",
-            when=~F["dialog_data"][SEARCH_QUERY],
+        footer: Optional[Text] = Multi(
+            Const(
+                "🔍 <i>Для поиска отправьте запрос сообщением</i>",
+                when=~F["dialog_data"][DATA_SEARCH_QUERY],
+            ),
+            Format(
+                "🔍 Результаты поиска по запросу {dialog_data[data_search_query]}",
+                when=F["dialog_data"][DATA_SEARCH_QUERY],
+            ),
         ),
         before_paginator: Optional[Keyboard] = "",
         after_paginator: Optional[Keyboard] = "",
@@ -118,7 +124,7 @@ class ScheduleWindow(Window):
                 text=Const("🔍❌ Сбросить поиск"),
                 id="reset_search",
                 on_click=reset_search_handler,
-                when=F["dialog_data"][SEARCH_QUERY],
+                when=F["dialog_data"][DATA_SEARCH_QUERY],
             ),
             Row(
                 FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪ · 1")),

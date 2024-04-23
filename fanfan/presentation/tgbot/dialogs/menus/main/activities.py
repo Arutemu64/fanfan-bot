@@ -19,6 +19,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
+from sulguk import SULGUK_PARSE_MODE
 
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.holder import AppHolder
@@ -108,6 +109,7 @@ activity_info_window = Window(
         "back_to_activity_selection",
         states.ACTIVITIES.SELECT_ACTIVITY,
     ),
+    parse_mode=SULGUK_PARSE_MODE,
     state=states.ACTIVITIES.ACTIVITY_INFO,
     getter=activity_info_getter,
 )

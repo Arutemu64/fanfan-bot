@@ -26,7 +26,7 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
     )
     await uow.session.execute(text("ALTER SEQUENCE schedule_id_seq RESTART WITH 1"))
     await uow.session.execute(
-        text("ALTER SEQUENCE schedule_position_seq RESTART WITH 1"),
+        text("ALTER SEQUENCE schedule_order_seq RESTART WITH 1"),
     )
     #
     wb = load_workbook(path)

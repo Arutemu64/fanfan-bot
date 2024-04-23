@@ -7,11 +7,11 @@ packages = [{include = "fanfan"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-aiogram = {version = "^3.4.1", extras = ["fast"]}
+aiogram = {version = "^3.5.0", extras = ["fast"]}
 aiogram-dialog = "^2.1.0"
 alembic = "^1.13.1"
 asyncpg = "^0.29.0"
-dishka = "^1.0.0"
+dishka = "^1.1.0"
 fastapi = "^0.110.1"
 fastapi-storages = "^0.3.0"
 itsdangerous = "^2.2.0"
@@ -20,7 +20,7 @@ numpy = "^1.26.4"
 openpyxl = "^3.1.2"
 orjson = "^3.10.1"
 pandas = "^2.2.2"
-pydantic = "2.5.3"
+pydantic = "^2.7.1"
 pydantic-settings = "^2.2.1"
 pyjwt = "^2.8.0"
 qrcode = {version = "^7.4.2", extras = ["pil"]}
@@ -28,6 +28,7 @@ redis = "^5.0.3"
 sentry-sdk = "^1.45.0"
 sqladmin = "^0.16.1"
 sqlalchemy = "^2.0.29"
+sulguk = "^0.7.0"
 taskiq = "^0.11.0"
 taskiq-redis = "^0.5.5"
 uvicorn = "^0.29.0"
@@ -37,7 +38,7 @@ optional=true
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
-ruff = "^0.3.4"
+ruff = "^0.4.1"
 
 [tool.ruff]
 lint.select = ['E', 'F', 'W', 'A', 'PLC', 'PLE', 'PLW', 'I']

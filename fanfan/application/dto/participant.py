@@ -14,6 +14,7 @@ class ParticipantDTO(BaseModel):
 
 
 class VotingParticipantDTO(ParticipantDTO):
+    nomination_position: int
     votes_count: int
     user_vote: Optional[VoteDTO]
 

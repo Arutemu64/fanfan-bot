@@ -10,6 +10,6 @@
 {% if current_event.id == subscription.event_id %}
 Выступление {{ subscription.event.title }} <b>НАЧАЛОСЬ!</b>
 {% else %}
-    {% set counter = subscription.event.real_position - current_event.real_position %}
+    {% set counter = subscription.event.position - current_event.position %}
 До выступления {{ subscription.event.title }} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
-{% endif %}
+{%- endif %}

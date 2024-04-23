@@ -3,7 +3,7 @@ from typing import Optional
 
 from fanfan.application.dto.common import Page
 from fanfan.application.dto.nomination import NominationDTO, VotingNominationDTO
-from fanfan.application.dto.participant import VotingParticipantDTO
+from fanfan.application.dto.participant import ParticipantDTO, VotingParticipantDTO
 from fanfan.application.dto.vote import VoteDTO
 from fanfan.application.exceptions.nomination import NominationNotFound
 from fanfan.application.exceptions.participant import ParticipantNotFound
@@ -81,6 +81,7 @@ class VotingService(BaseService):
         page_number: int,
         participants_per_page: int,
         user_id: Optional[int] = None,
+        search_query: Optional[str] = None,
     ) -> Page[VotingParticipantDTO]:
         """Get participants page
         @param nomination_id: Nomination ID
@@ -95,12 +96,25 @@ class VotingService(BaseService):
             only_votable=True,
             nomination_id=nomination_id,
             user_id=user_id,
+            search_query=search_query,
         )
         return Page(
             items=[p.to_voting_dto() for p in page.items],
             number=page.number,
             total_pages=page.total_pages,
         )
+
+    async def get_participant_by_nomination_position(
+        self, nomination_id: str, nomination_position: int
+    ) -> ParticipantDTO:
+        participant = (
+            await self.uow.participants.get_participant_by_nomination_position(
+                nomination_id=nomination_id, nomination_position=nomination_position
+            )
+        )
+        if participant:
+            return participant.to_dto()
+        raise ParticipantNotFound
 
     @check_permission(ticket_required=True)
     async def add_vote(

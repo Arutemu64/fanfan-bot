@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import ForeignKey, func, select
+from sqlalchemy import ForeignKey, Sequence, func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from fanfan.application.dto.participant import ParticipantDTO, VotingParticipantDTO
@@ -18,6 +18,12 @@ class Participant(Base):
     __tablename__ = "participants"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    order: Mapped[float] = mapped_column(
+        unique=True,
+        nullable=False,
+        server_default=Sequence("participants_order_seq", start=1).next_value(),
+    )
+
     title: Mapped[str] = mapped_column(unique=True, index=True)
     nomination_id: Mapped[Optional[str]] = mapped_column(
         ForeignKey("nominations.id", ondelete="SET NULL"),
@@ -45,3 +51,18 @@ class Participant(Base):
 
     def __str__(self):
         return self.title
+
+
+nomination_position_subquery = select(
+    Participant.id.label("participant_id"),
+    func.row_number()
+    .over(order_by=Participant.order, partition_by=Participant.nomination_id)
+    .label("nomination_position"),
+).subquery()
+
+Participant.nomination_position = column_property(
+    select(nomination_position_subquery.c.nomination_position)
+    .where(Participant.id == nomination_position_subquery.c.participant_id)
+    .scalar_subquery(),
+    expire_on_flush=True,
+)
