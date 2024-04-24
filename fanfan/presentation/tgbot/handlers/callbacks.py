@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery
+from aiogram_dialog import DialogManager
 
 from fanfan.application.dto.callback import DeleteDeliveryCallback
 from fanfan.application.exceptions import ServiceError
@@ -15,6 +16,11 @@ async def delete_message(callback: CallbackQuery):
         await callback.message.delete()
     except TelegramBadRequest:
         await callback.answer("⚠️ Этому сообщению больше 2 дней, удалите его вручную")
+
+
+@router.callback_query(F.data == "pull_down_dialog")
+async def pull_down_dialog(callback: CallbackQuery, dialog_manager: DialogManager):
+    await dialog_manager.update(data={})
 
 
 @router.callback_query(DeleteDeliveryCallback.filter())

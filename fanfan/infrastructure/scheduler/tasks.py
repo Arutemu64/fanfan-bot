@@ -5,7 +5,6 @@ from typing import Annotated, Optional
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message
-from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
 from taskiq import Context, TaskiqDepends
@@ -24,7 +23,6 @@ async def send_notification(
     context: Annotated[Context, TaskiqDepends()],
     bot: FromDishka[Bot],
     redis: FromDishka[SchedulerRedis],
-    dialog_bg_factory: FromDishka[BgManagerFactory],
     delivery_id: Optional[str] = None,
 ) -> dict:
     try:
@@ -41,12 +39,6 @@ async def send_notification(
                 text=notification.render_message_text(),
                 reply_markup=notification.reply_markup,
             )
-        await dialog_bg_factory.bg(
-            bot=bot,
-            user_id=notification.user_id,
-            chat_id=notification.user_id,
-            load=True,
-        ).update(data={}, show_mode=ShowMode.DELETE_AND_SEND)
         if delivery_id:
             await redis.lpush(f"delivery:{delivery_id}", context.message.task_id)
             await redis.expire(

@@ -18,6 +18,7 @@ from fanfan.presentation.tgbot.dialogs import (
     states,
 )
 from fanfan.presentation.tgbot.dialogs.menus.schedule.common import (
+    DATA_PAGES_COUNT,
     DATA_SEARCH_QUERY,
     ID_SCHEDULE_SCROLL,
     ScheduleWindow,
@@ -39,7 +40,7 @@ async def set_page_handler(
     data: int,
 ):
     scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
-    if 0 <= data - 1 < dialog_manager.dialog_data["pages"]:
+    if 0 <= data - 1 < dialog_manager.dialog_data[DATA_PAGES_COUNT]:
         await scroll.set_page(data - 1)
 
 
@@ -50,33 +51,33 @@ schedule_main_window = ScheduleWindow(
         Group(
             Group(
                 Button(
-                    text=Const("⏭️ Следующее"),
+                    text=Const("⏭️"),
                     id="next_event",
                     on_click=set_next_event_handler,
                     when=~F["dialog_data"][DATA_SEARCH_QUERY],
                 ),
                 SwitchTo(
-                    text=Const("🔢 Указать вручную"),
+                    text=Const("🔢"),
                     id="manual_event",
                     state=states.SCHEDULE.ASK_MANUAL_EVENT,
                 ),
                 SwitchTo(
-                    text=Const("🔃 Поменять местами"),
+                    text=Const("🔀"),
                     id="swap_events",
                     state=states.SCHEDULE.SWAP_EVENTS,
                 ),
                 SwitchTo(
-                    text=Const("🙈 Пропустить/вернуть"),
+                    text=Const("🙈"),
                     id="skip_events",
                     state=states.SCHEDULE.TOGGLE_EVENT_SKIP,
                 ),
                 Url(
-                    text=Const(strings.buttons.help_page),
+                    text=Const("❓"),
                     url=Const(
-                        "https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe",
+                        "https://fan-fan.notion.site/0781a7598cf34348866226315372c49e",
                     ),
                 ),
-                width=2,
+                width=5,
                 when=F["middleware_data"]["dialog_manager"]
                 .find(ID_TOGGLE_HELPER_TOOLS)
                 .is_checked(),

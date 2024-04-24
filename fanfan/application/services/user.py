@@ -56,7 +56,7 @@ class UserService(BaseService):
         users = await self.uow.users.get_all_by_roles(roles)
         return [u.to_dto() for u in users]
 
-    async def update_user(self, dto: UpdateUserDTO) -> None:
+    async def update_user(self, dto: UpdateUserDTO) -> FullUserDTO:
         """Update user data"""
         async with self.uow:
             user = await self.uow.users.get_user_by_id(dto.id)
@@ -65,6 +65,7 @@ class UserService(BaseService):
             for k, v in dto.model_dump(exclude={"id"}, exclude_defaults=True).items():
                 user.__setattr__(k, v)
             await self.uow.commit()
+            return user.to_full_dto()
 
     async def update_user_settings(self, dto: UpdateUserSettingsDTO) -> None:
         async with self.uow:

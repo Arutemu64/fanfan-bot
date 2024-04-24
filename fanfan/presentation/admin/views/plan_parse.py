@@ -4,10 +4,8 @@ from pathlib import Path
 from dishka import make_async_container
 from fastapi import Request, UploadFile
 from openpyxl import load_workbook
-from openpyxl.cell import Cell
 from sqladmin import BaseView, expose
 from sqlalchemy import text
-from sqlalchemy.exc import IntegrityError
 
 from fanfan.common import TEMP_DIR
 from fanfan.infrastructure.db import UnitOfWork
@@ -28,39 +26,37 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
     await uow.session.execute(
         text("ALTER SEQUENCE schedule_order_seq RESTART WITH 1"),
     )
-    #
     wb = load_workbook(path)
-    ws = wb.active
-    for row in ws.iter_rows(min_row=3, min_col=2):
-        cc: Cell = row[0]
-        nc = ws.cell(cc.row + 1, cc.column)
-        if cc.font.b:  # Either Event or Nomination
-            if nc.font.b or nc.value is None:  # Event
-                new_event = Event(title=cc.value)
-                uow.session.add(new_event)
-            else:  # Nomination
-                try:
-                    async with uow.session.begin_nested():
-                        new_nomination = Nomination(
-                            id=nc.value.split()[0],
-                            title=cc.value,
-                        )
-                        uow.session.add(new_nomination)
-                except IntegrityError:
-                    pass
-        else:  # Participant
-            participant_title = cc.value.split(", ", 1)[1]
-            nomination_id = cc.value.split()[0]
+    ws = wb.worksheets[0]
+    for row in ws.iter_rows():
+        id_ = row[1]
+        data = row[2]
+        if id_.value:
+            participant_title = data.value.split(", ", 1)[1]
             participant = await uow.participants.get_participant_by_title(
-                participant_title,
+                participant_title
             )
             if not participant:
+                nomination_id = data.value.split()[0]
+                nomination = await uow.nominations.get_nomination(nomination_id)
+                if not nomination:
+                    nomination = Nomination(
+                        id=nomination_id,
+                        title=ws.cell(data.row - 1, data.column).value,
+                    )
+                    uow.session.add(nomination)
                 participant = Participant(
                     title=participant_title,
-                    nomination_id=nomination_id,
+                    nomination=nomination,
                 )
-            new_event = Event(title=participant_title, participant=participant)
-            uow.session.add(new_event)
+                uow.session.add(participant)
+            uow.session.add(
+                Event(
+                    id=id_.value,
+                    title=participant.title,
+                    participant=participant,
+                )
+            )
 
 
 class PlanParseView(BaseView):
