@@ -26,8 +26,12 @@ async def qr_pass_getter(dialog_manager: DialogManager, user: FullUserDTO, **kwa
 qr_pass_window = Window(
     Title(Const(strings.titles.qr_pass)),
     Const(
-        "Это твой FAN-Pass, покажи его волонтёру, "
-        "чтобы он смог проверить полученные тобой достижения.",
+        "Покажи свой FAN Pass волонтёру, " "чтобы он смог проверить твои достижения.",
+    ),
+    Const(" "),
+    Const(
+        "<b>⚠️ FAN Pass не является эквивалентом билета и "
+        "не может быть использован для входа на фестиваль</b>"
     ),
     Const(" "),
     Format("""<i>ID: {event.from_user.id}</i>"""),

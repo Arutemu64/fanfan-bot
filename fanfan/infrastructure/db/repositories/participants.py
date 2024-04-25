@@ -37,7 +37,12 @@ class ParticipantsRepository(Repository[Participant]):
         return await self.session.scalar(query)
 
     async def get_participant_by_title(self, title: str) -> Optional[Participant]:
-        query = select(Participant).where(Participant.title == title).limit(1)
+        query = (
+            select(Participant)
+            .where(Participant.title == title)
+            .options(joinedload(Participant.event))
+            .limit(1)
+        )
         return await self.session.scalar(query)
 
     async def paginate_participants(

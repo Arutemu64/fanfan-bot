@@ -71,6 +71,10 @@ async def select_activity_handler(
 
 select_activity_window = Window(
     Title(Const(strings.titles.activities)),
+    Const(
+        "В этом разделе собрана вся самая необходимая "
+        "и интересная информация о фестивале",
+    ),
     Column(
         Select(
             Format("{item[1]}"),

@@ -168,8 +168,9 @@ async def toggle_all_notifications_handler(
 
 set_counter_window = Window(
     Format(
-        """🔢 За сколько выступлений до начала """
-        """<b>{dialog_data[selected_event_title]}</b> начать оповещать Вас?""",
+        "🔢 За сколько выступлений до начала "
+        "<b>{dialog_data[selected_event_title]}</b>"
+        "начать присылать уведомления?",
     ),
     TextInput(
         id="counter_input",
@@ -187,7 +188,9 @@ set_counter_window = Window(
 select_event_window = ScheduleWindow(
     state=states.SUBSCRIPTIONS.SELECT_EVENT,
     header=Title(
-        Const("➕ Пришлите номер выступления, на которое хотите подписаться:"),
+        Const(
+            "➕ Пришли номер выступления из списка, " "на которое хочешь подписаться:"
+        ),
         upper=False,
     ),
     after_paginator=SwitchTo(
@@ -207,7 +210,7 @@ subscriptions_main_window = Window(
     Title(Const(strings.titles.notifications)),
     Jinja(subscriptions_list),
     Const(
-        "🗑️ <i>Чтобы отписаться, пришлите номер выступления</i>",
+        "🗑️ <i>Чтобы отписаться, пришли номер выступления из списка</i>",
         when=F["subscriptions"],
     ),
     TextInput(

@@ -17,15 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 async def proceed_plan(path: Path, uow: UnitOfWork):
-    # Drop schedule first
-    await uow.session.execute(text("TRUNCATE TABLE schedule CASCADE"))
-    await uow.session.execute(
-        text("ALTER SEQUENCE subscriptions_id_seq RESTART WITH 1"),
-    )
-    await uow.session.execute(text("ALTER SEQUENCE schedule_id_seq RESTART WITH 1"))
-    await uow.session.execute(
-        text("ALTER SEQUENCE schedule_order_seq RESTART WITH 1"),
-    )
+    # Constraints must be deferred, so we can swap ids and order
+    await uow.session.execute(text("SET CONSTRAINTS ALL DEFERRED"))
+    events_to_delete = list(await uow.events.get_all_events())
+    order = 1.0
     wb = load_workbook(path)
     ws = wb.worksheets[0]
     for row in ws.iter_rows():
@@ -36,7 +31,18 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
             participant = await uow.participants.get_participant_by_title(
                 participant_title
             )
-            if not participant:
+            if participant:
+                if participant.event:
+                    events_to_delete.remove(participant.event)
+                    participant.event.id = id_.value
+                    participant.event.order = order
+                else:
+                    participant.event = Event(
+                        id=id_.value,
+                        order=order,
+                        title=participant.title,
+                    )
+            else:
                 nomination_id = data.value.split()[0]
                 nomination = await uow.nominations.get_nomination(nomination_id)
                 if not nomination:
@@ -48,15 +54,16 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
                 participant = Participant(
                     title=participant_title,
                     nomination=nomination,
+                    event=Event(
+                        id=id_.value,
+                        order=order,
+                        title=participant.title,
+                    ),
                 )
                 uow.session.add(participant)
-            uow.session.add(
-                Event(
-                    id=id_.value,
-                    title=participant.title,
-                    participant=participant,
-                )
-            )
+            order += 1.0
+    for e in events_to_delete:
+        await uow.session.delete(e)
 
 
 class PlanParseView(BaseView):

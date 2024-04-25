@@ -50,7 +50,7 @@ achievements_window = Window(
     Title(
         Case(
             texts={
-                True: Const("🏆 Ваши достижения"),
+                True: Const("🏆 Твои достижения"),
                 False: Const(strings.titles.achievements),
             },
             selector="showing_self",

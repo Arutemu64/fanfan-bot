@@ -1,5 +1,5 @@
 import math
-from typing import Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,6 +50,9 @@ class EventsRepository(Repository[Event]):
             select(Event).where(Event.position == current_event_position + 1).limit(1)
         )
         return await self.session.scalar(query)
+
+    async def get_all_events(self) -> Sequence[Event]:
+        return (await self.session.scalars(select(Event))).all()
 
     async def paginate_events(
         self,

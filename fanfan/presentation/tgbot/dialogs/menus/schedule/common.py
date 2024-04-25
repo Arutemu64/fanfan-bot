@@ -107,7 +107,7 @@ class ScheduleWindow(Window):
         header: Optional[Text] = "",
         footer: Optional[Text] = Multi(
             Const(
-                "🔍 <i>Для поиска отправьте запрос сообщением</i>",
+                "🔍 <i>Для поиска отправь запрос сообщением</i>",
                 when=~F["dialog_data"][DATA_SEARCH_QUERY],
             ),
             Format(
@@ -127,7 +127,7 @@ class ScheduleWindow(Window):
             footer,
             before_paginator,
             Button(
-                text=Const("🔍❌ Сбросить поиск"),
+                text=Const("❌ Сбросить поиск"),
                 id="reset_search",
                 on_click=reset_search_handler,
                 when=F["dialog_data"][DATA_SEARCH_QUERY],
