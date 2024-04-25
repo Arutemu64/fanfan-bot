@@ -68,6 +68,6 @@ class QuestService(BaseService):
         await send_notification.kiq(
             UserNotification(
                 user_id=user.id,
-                text=f"🏆 Вы получили достижение <b>{achievement.title}</b>!",
+                text=f"🏆 Ты получил достижение <b>{achievement.title}</b>!",
             ),
         )
