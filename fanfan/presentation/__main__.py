@@ -15,13 +15,13 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from taskiq.api import run_receiver_task
+from taskiq.api import run_receiver_task, run_scheduler_task
 
 from fanfan.application.services import SettingsService
 from fanfan.common.enums import BotMode
 from fanfan.config import get_config
 from fanfan.infrastructure.db import UnitOfWork
-from fanfan.infrastructure.scheduler import broker
+from fanfan.infrastructure.scheduler import broker, scheduler
 from fanfan.presentation.admin import setup_admin
 from fanfan.presentation.tgbot.web.webapp import webapp_router
 from fanfan.presentation.tgbot.web.webhook import webhook_router
@@ -50,7 +50,8 @@ async def lifespan(app: FastAPI):
 
     # Run scheduler
     setup_dishka_taskiq(app_container, broker)
-    worker_task = asyncio.create_task(run_receiver_task(broker, run_startup=True))
+    worker_task = asyncio.create_task(run_receiver_task(broker))
+    scheduler_task = asyncio.create_task(run_scheduler_task(scheduler))
 
     async with app_container() as request_container:
         uow = await request_container.get(UnitOfWork)
@@ -78,7 +79,8 @@ async def lifespan(app: FastAPI):
             bot_task = asyncio.create_task(dp.start_polling(bot))
             logger.info("Running in polling mode")
     yield
-    logger.info("Stopping scheduler worker...")
+    logger.info("Stopping scheduler...")
+    scheduler_task.cancel()
     worker_task.cancel()
     await broker.shutdown()
     logger.info("Stopping bot...")
@@ -126,6 +128,7 @@ if __name__ == "__main__":
             host=config.web.host,
             port=config.web.port,
             app=create_app(),
+            log_level=logging.ERROR,
         )
     except KeyboardInterrupt:
         pass

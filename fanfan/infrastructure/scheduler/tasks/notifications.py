@@ -16,7 +16,7 @@ from fanfan.infrastructure.scheduler import broker
 logger = logging.getLogger("__name__")
 
 
-@broker.task
+@broker.task()
 @inject
 async def send_notification(
     notification: UserNotification,
@@ -53,7 +53,7 @@ async def send_notification(
         logger.info(f"Failed to send message to {notification.user_id}, skip")
 
 
-@broker.task
+@broker.task()
 @inject
 async def delete_message(
     message: Message,

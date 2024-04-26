@@ -12,7 +12,6 @@ from fanfan.application.exceptions.ticket import (
 from fanfan.application.exceptions.users import (
     UserNotFound,
 )
-from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.common.enums import UserRole
 from fanfan.infrastructure.db.models import Ticket
@@ -21,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 class TicketService(BaseService):
-    @check_permission(allowed_roles=[UserRole.ORG])
     async def create_ticket(self, ticket_id: str, role: UserRole) -> TicketDTO:
         """Create a new ticket"""
         async with self.uow:
@@ -53,4 +51,14 @@ class TicketService(BaseService):
             user.role = ticket.role
             await self.uow.commit()
             logger.info(f"Ticket id={ticket.id} was linked to user id={user.id}")
+            return
+
+    async def delete_ticket(self, ticket_id: str) -> None:
+        ticket = await self.uow.tickets.get_ticket(ticket_id)
+        if not ticket:
+            raise TicketNotFound
+        async with self.uow:
+            await self.uow.session.delete(ticket)
+            await self.uow.commit()
+            logger.info(f"Ticket id={ticket_id} was deleted")
             return

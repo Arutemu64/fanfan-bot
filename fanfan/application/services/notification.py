@@ -15,7 +15,10 @@ from fanfan.infrastructure.di.redis import SchedulerRedis
 from fanfan.infrastructure.scheduler import (
     redis_async_result,
 )
-from fanfan.infrastructure.scheduler.tasks import delete_message, send_notification
+from fanfan.infrastructure.scheduler.tasks.notifications import (
+    delete_message,
+    send_notification,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -154,6 +154,13 @@ class WebConfig(BaseSettings):
         return url.unicode_string()
 
 
+class TimepadConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="TIMEPAD_")
+
+    client_id: Optional[SecretStr] = None
+    event_id: Optional[int] = None
+
+
 class DebugConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DEBUG_")
 
@@ -177,6 +184,7 @@ class Configuration:
     redis: RedisConfig = RedisConfig()
     bot: BotConfig = BotConfig()
     web: WebConfig = WebConfig()
+    timepad: TimepadConfig = TimepadConfig()
     debug: DebugConfig = DebugConfig()
 
 

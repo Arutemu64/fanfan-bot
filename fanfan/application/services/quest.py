@@ -15,7 +15,7 @@ from fanfan.application.exceptions.users import (
     UserNotFound,
 )
 from fanfan.application.services.base import BaseService
-from fanfan.infrastructure.scheduler.tasks import send_notification
+from fanfan.infrastructure.scheduler.tasks.notifications import send_notification
 
 logger = logging.getLogger(__name__)
 

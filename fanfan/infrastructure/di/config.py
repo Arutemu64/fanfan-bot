@@ -1,6 +1,13 @@
 from dishka import Provider, Scope, provide
 
-from fanfan.config import BotConfig, DatabaseConfig, DebugConfig, RedisConfig, WebConfig
+from fanfan.config import (
+    BotConfig,
+    DatabaseConfig,
+    DebugConfig,
+    RedisConfig,
+    TimepadConfig,
+    WebConfig,
+)
 
 
 class ConfigProvider(Provider):
@@ -21,6 +28,10 @@ class ConfigProvider(Provider):
     @provide
     def get_web_config(self) -> WebConfig:
         return WebConfig()
+
+    @provide
+    def get_timepad_config(self) -> TimepadConfig:
+        return TimepadConfig()
 
     @provide
     def get_debug_config(self) -> DebugConfig:
