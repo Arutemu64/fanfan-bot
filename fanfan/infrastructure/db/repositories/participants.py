@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, case, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, undefer
 
@@ -62,8 +62,14 @@ class ParticipantsRepository(Repository[Participant]):
         if only_votable:
             query = query.where(
                 and_(
+                    case(
+                        (
+                            Participant.event.has(),
+                            Participant.event.has(Event.skip.isnot(True)),
+                        ),
+                        else_=True,
+                    ),
                     Participant.nomination.has(Nomination.votable.is_(True)),
-                    Participant.event.has(Event.skip.isnot(True)),
                 ),
             )
         if nomination_id:
