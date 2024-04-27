@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
-from aiogram_dialog.widgets.text import Case, Const, Format, Multi, Progress
+from aiogram_dialog.widgets.text import Case, Const, Format, Jinja, Multi, Progress
 
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.exceptions.access import AccessDenied, TicketNotLinked
@@ -100,8 +100,8 @@ async def open_feedback_handler(
 
 main_window = Window(
     Title(Const(strings.titles.main_menu)),
-    Format(
-        "👋 Привет, {name}! Сейчас ты находишься в главном меню. "
+    Jinja(
+        "👋 Привет, {{ name|e }}! Сейчас ты находишься в главном меню. "
         "Сюда всегда можно вернуться по команде <b>/start</b>.",
     ),
     Const(" "),
