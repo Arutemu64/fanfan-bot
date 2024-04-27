@@ -74,14 +74,16 @@ async def open_voting_handler(
     button: Button,
     manager: DialogManager,
 ):
+    user: FullUserDTO = manager.middleware_data["user"]
+    if user.role is UserRole.ORG:
+        await manager.start(states.VOTING.SELECT_NOMINATION)
+    if not user.ticket:
+        await callback.answer(TicketNotLinked.message, show_alert=True)
+        return
     app: AppHolder = manager.middleware_data["app"]
     settings = await app.settings.get_settings()
     if not settings.voting_enabled:
         await callback.answer(VotingDisabled.message, show_alert=True)
-        return
-    user: FullUserDTO = manager.middleware_data["user"]
-    if not user.ticket:
-        await callback.answer(TicketNotLinked.message, show_alert=True)
         return
     await manager.start(states.VOTING.SELECT_NOMINATION)
 
