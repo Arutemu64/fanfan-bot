@@ -329,17 +329,17 @@ tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "p
 
 [[package]]
 name = "boto3"
-version = "1.34.92"
+version = "1.34.93"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.34.92-py3-none-any.whl", hash = "sha256:db7bbb1c6059e99b74dcf634e497b04addcac4c527ae2b2696e47c39eccc6c50"},
-    {file = "boto3-1.34.92.tar.gz", hash = "sha256:684cba753d64978a486e8ea9645d53de0d4e3b4a3ab1495b26bd04b9541cea2d"},
+    {file = "boto3-1.34.93-py3-none-any.whl", hash = "sha256:b59355bf4a1408563969526f314611dbeacc151cf90ecb22af295dcc4fe18def"},
+    {file = "boto3-1.34.93.tar.gz", hash = "sha256:e39516e4ca21612932599819662759c04485d53ca457996a913163da11f052a4"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.92,<1.35.0"
+botocore = ">=1.34.93,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -348,13 +348,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.92"
+version = "1.34.93"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.34.92-py3-none-any.whl", hash = "sha256:4211a22a1f6c6935e70cbb84c2cd93b29f9723eaf5036d59748dd104f389a681"},
-    {file = "botocore-1.34.92.tar.gz", hash = "sha256:d1ca4886271f184445ec737cd2e752498648cca383887c5a37b2e01c8ab94039"},
+    {file = "botocore-1.34.93-py3-none-any.whl", hash = "sha256:6fbd5a53a2adc9b3d4ebd90ae0ede83a91a41d96231f8a5984051f75495f246d"},
+    {file = "botocore-1.34.93.tar.gz", hash = "sha256:79d39b0b87e962991c6dd55e78ce15155099f6fb741be88b1b8a456a702cc150"},
 ]
 
 [package.dependencies]
@@ -492,13 +492,13 @@ adaptix = "*"
 
 [[package]]
 name = "dishka"
-version = "1.1.0"
+version = "1.1.1"
 description = "Minimal DI framework"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "dishka-1.1.0-py3-none-any.whl", hash = "sha256:ad4c36e1907049ddbebad2f543623be5039df45dd72c36845f95f64c1c6edb9a"},
-    {file = "dishka-1.1.0.tar.gz", hash = "sha256:ce76e92b05ab72633df2449039f4cc408979d3450a0d5b180e205d73526a9ebc"},
+    {file = "dishka-1.1.1-py3-none-any.whl", hash = "sha256:08faeffdbc1598971cb7f57c9d54832b729382e0205e737f36f9ee8c659d2d76"},
+    {file = "dishka-1.1.1.tar.gz", hash = "sha256:738a849bb8786ec919c2ae2c7e2579c1f391f88614a3de245eb766cbaa66b636"},
 ]
 
 [[package]]
@@ -1914,13 +1914,13 @@ cli = ["aiogram"]
 
 [[package]]
 name = "taskiq"
-version = "0.11.1"
+version = "0.11.3"
 description = "Distributed task queue with full async support"
 optional = false
 python-versions = "<4.0.0,>=3.8.1"
 files = [
-    {file = "taskiq-0.11.1-py3-none-any.whl", hash = "sha256:35a058f5478aeffc048a1ab23728077d88ce162b30452d0eef8282793c607a58"},
-    {file = "taskiq-0.11.1.tar.gz", hash = "sha256:cf21f2fc433293ff5c01dbb0fc3cef4d0a9f90641ca48e82594043003512f261"},
+    {file = "taskiq-0.11.3-py3-none-any.whl", hash = "sha256:6e67b90c245160c24df0ab5b326952dfa251ed2cacb0e6c1e9e64cce7ab3c279"},
+    {file = "taskiq-0.11.3.tar.gz", hash = "sha256:d6d8a00bd195c77d3dfb2a609e9b2f54d026e072db88ff79bb19477404f207c0"},
 ]
 
 [package.dependencies]
@@ -2207,4 +2207,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "dcd058bfb11d761d82e913a2b87f535a263c9b259e48c7a840a16c2f31cd28de"
+content-hash = "776ba2658e367094595f1b4c4c70df8d485198fd3955ee95bf1161e213d7b71f"

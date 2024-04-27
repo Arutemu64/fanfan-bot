@@ -7,7 +7,6 @@ import uvicorn
 from aiogram import Bot, Dispatcher
 from dishka import AsyncContainer, make_async_container
 from dishka.integrations.fastapi import setup_dishka as setup_dishka_fastapi
-from dishka.integrations.taskiq import setup_dishka as setup_dishka_taskiq
 from fastapi import FastAPI
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
@@ -15,13 +14,11 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from taskiq.api import run_receiver_task, run_scheduler_task
 
 from fanfan.application.services import SettingsService
 from fanfan.common.enums import BotMode
 from fanfan.config import get_config
 from fanfan.infrastructure.db import UnitOfWork
-from fanfan.infrastructure.scheduler import broker, scheduler
 from fanfan.presentation.admin import setup_admin
 from fanfan.presentation.tgbot.web.webapp import webapp_router
 from fanfan.presentation.tgbot.web.webhook import webhook_router
@@ -47,11 +44,6 @@ async def lifespan(app: FastAPI):
                 RedisIntegration(),
             ],
         )
-
-    # Run scheduler
-    setup_dishka_taskiq(app_container, broker)
-    worker_task = asyncio.create_task(run_receiver_task(broker))
-    scheduler_task = asyncio.create_task(run_scheduler_task(scheduler))
 
     async with app_container() as request_container:
         uow = await request_container.get(UnitOfWork)
@@ -79,10 +71,6 @@ async def lifespan(app: FastAPI):
             bot_task = asyncio.create_task(dp.start_polling(bot))
             logger.info("Running in polling mode")
     yield
-    logger.info("Stopping scheduler...")
-    scheduler_task.cancel()
-    worker_task.cancel()
-    await broker.shutdown()
     logger.info("Stopping bot...")
     if bot_task:
         bot_task.cancel()

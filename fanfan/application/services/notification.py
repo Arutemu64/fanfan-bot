@@ -9,13 +9,12 @@ from taskiq_redis.exceptions import ResultIsMissingError
 
 from fanfan.application.dto.notification import DeliveryInfo, UserNotification
 from fanfan.application.services.base import BaseService
-from fanfan.infrastructure.di import RedisProvider
 from fanfan.infrastructure.di.config import ConfigProvider
-from fanfan.infrastructure.di.redis import SchedulerRedis
+from fanfan.infrastructure.di.redis import RedisProvider, SchedulerRedis
 from fanfan.infrastructure.scheduler import (
     redis_async_result,
 )
-from fanfan.infrastructure.scheduler.tasks.notifications import (
+from fanfan.infrastructure.scheduler.tasks import (
     delete_message,
     send_notification,
 )

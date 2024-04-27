@@ -6,7 +6,7 @@ from dishka import FromDishka
 from dishka.integrations.taskiq import inject
 
 from fanfan.application.exceptions.ticket import TicketAlreadyExist, TicketNotFound
-from fanfan.application.services import TicketService
+from fanfan.application.services.ticket import TicketService
 from fanfan.common.enums import UserRole
 from fanfan.config import TimepadConfig
 from fanfan.infrastructure.db import UnitOfWork

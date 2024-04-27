@@ -1,5 +1,6 @@
 services:
   bot:
+    image: bot_image
     build:
       context: .
       dockerfile: buildfiles/BotDockerfile
@@ -15,6 +16,42 @@ services:
     depends_on:
       - db
       - redis
+  worker:
+    image: bot_image
+    depends_on:
+      - bot
+    command:
+      [
+        "poetry",
+        "run",
+        "taskiq",
+        "worker",
+        "fanfan.infrastructure.scheduler:broker",
+        "fanfan.infrastructure.scheduler.tasks",
+      ]
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - bot-data:/media/bot-data
+  scheduler:
+    image: bot_image
+    depends_on:
+      - bot
+    command:
+      [
+        "poetry",
+        "run",
+        "taskiq",
+        "scheduler",
+        "fanfan.infrastructure.scheduler:scheduler",
+        "fanfan.infrastructure.scheduler.tasks",
+      ]
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - bot-data:/media/bot-data
   db:
     build:
       context: buildfiles
