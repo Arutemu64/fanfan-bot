@@ -12,15 +12,23 @@ class UserView(ModelView, model=User):
     column_list = [
         User.id,
         User.username,
+        User.ticket,
         User.role,
         User.achievements_count,
     ]
     form_columns = [
         User.role,
+        User.ticket,
     ]
     column_details_exclude_list = [User.received_achievements]
     column_searchable_list = [User.username, User.role]
     column_sortable_list = [User.achievements_count]
+    form_ajax_refs = {
+        "ticket": {
+            "fields": ("id",),
+            "order_by": "id",
+        }
+    }
     column_labels = {
         User.id: "Telegram ID",
         User.username: "Имя пользователя",
@@ -28,7 +36,7 @@ class UserView(ModelView, model=User):
         User.achievements_count: "Достижений получено",
         User.settings: "Настройки пользователя",
         User.permissions: "Права пользователя",
-        User.ticket: "Билет пользователя",
+        User.ticket: "Билет",
         User.created_on: "Время создания",
         User.updated_on: "Время изменения",
     }
