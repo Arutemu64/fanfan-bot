@@ -1,4 +1,3 @@
-from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
@@ -14,7 +13,6 @@ from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
 
 ID_FEEDBACK_TEXT_INPUT = "id_feedback_text_input"
-ID_CONTACT_AGREEMENT_CHECKBOX = "id_contact_agreement_checkbox"
 ID_ASAP_CHECKBOX = "id_asap_checkbox"
 
 DATA_FEEDBACK_TEXT = "data_feedback_text"
@@ -49,9 +47,6 @@ async def send_feedback_handler(
     manager: DialogManager,
 ):
     text_input: ManagedTextInput = manager.find(ID_FEEDBACK_TEXT_INPUT)
-    contact_agreement_checkbox: ManagedCheckbox = manager.find(
-        ID_CONTACT_AGREEMENT_CHECKBOX
-    )
     asap_checkbox: ManagedCheckbox = manager.find(ID_ASAP_CHECKBOX)
     if text_input.get_value() is None:
         await callback.answer("⚠️ Сообщение не может быть пустым")
@@ -64,9 +59,6 @@ async def send_feedback_handler(
             CreateFeedbackDTO(
                 user_id=user.id,
                 text=text_input.get_value(),
-                contact_agreement=True
-                if asap_checkbox.is_checked()
-                else contact_agreement_checkbox.is_checked(),
                 asap=asap_checkbox.is_checked() and settings.asap_feedback_enabled,
             )
         )
@@ -79,7 +71,7 @@ async def send_feedback_handler(
 feedback_window = Window(
     Title(Const(strings.titles.feedback)),
     Const(
-        "Появились вопросы? Есть пожелания как сделать фестиваль ещё лучше? "
+        "Есть пожелания как сделать фестиваль ещё лучше? "
         "Отправь их нам и мы обязательно учтём твоё мнение!"
     ),
     Const(" "),
@@ -98,12 +90,6 @@ feedback_window = Window(
         checked_text=Const("✅ Срочно"),
         unchecked_text=Const("🟩 Срочно"),
         when="asap_feedback_enabled",
-    ),
-    Checkbox(
-        id=ID_CONTACT_AGREEMENT_CHECKBOX,
-        checked_text=Const("✅ Разрешаю связаться со мной"),
-        unchecked_text=Const("🟩 Разрешаю связаться со мной"),
-        when=~F["asap"],
     ),
     Button(
         text=Const(strings.buttons.send),

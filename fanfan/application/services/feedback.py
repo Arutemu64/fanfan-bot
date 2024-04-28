@@ -21,7 +21,6 @@ class FeedbackService(BaseService):
             feedback = Feedback(
                 user_id=dto.user_id,
                 text=dto.text,
-                contact_agreement=dto.contact_agreement,
                 asap=dto.asap,
             )
             self.uow.session.add(feedback)

@@ -14,7 +14,6 @@ class Feedback(Base):
     )
     text: Mapped[str] = mapped_column()
 
-    contact_agreement: Mapped[bool] = mapped_column()
     asap: Mapped[bool] = mapped_column()  # Like, ASAP!!!
 
     user: Mapped[User] = relationship()

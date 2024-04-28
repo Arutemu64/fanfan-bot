@@ -10,10 +10,9 @@ class FeedbackView(ModelView, model=Feedback):
     column_list = [
         Feedback.user,
         Feedback.text,
-        Feedback.contact_agreement,
     ]
     column_labels = {
         Feedback.user: "Пользователь",
         Feedback.text: "Текст",
-        Feedback.contact_agreement: "Разрешил связаться",
+        Feedback.asap: "Срочно",
     }
