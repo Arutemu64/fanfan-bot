@@ -122,8 +122,8 @@ async def set_counter_handler(
         return
     await message.reply(
         f"✅ Подписка на выступление "
-        f"<b>{subscription.event.title}</b>"
-        f" успешно оформлена!",
+        f"<b>{subscription.event.title}</b> "
+        f"успешно оформлена!",
     )
     await dialog_manager.switch_to(states.SUBSCRIPTIONS.MAIN)
 
@@ -169,7 +169,7 @@ async def toggle_all_notifications_handler(
 set_counter_window = Window(
     Format(
         "🔢 За сколько выступлений до начала "
-        "<b>{dialog_data[selected_event_title]}</b>"
+        "<b>{dialog_data[selected_event_title]}</b> "
         "начать присылать уведомления?",
     ),
     TextInput(

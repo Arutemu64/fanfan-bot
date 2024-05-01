@@ -16,11 +16,13 @@
             {% if not subscription.event.skip %}
                 {% set events_left = subscription.event.position - current_event.position %}
                 {% if (events_left > 0) and (events_left > subscription.counter) %}
-                    {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}, начнём оповещать за {{subscription.counter}} {{events_pluralize(subscription.counter)}}]{% endset %}
+                    {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}, начнём напоминать за {{subscription.counter}} {{events_pluralize(subscription.counter)}} до начала]{% endset %}
                 {% elif (events_left > 0) and (events_left < subscription.counter) %}
                     {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}]{% endset %}
                 {% endif -%}
             {% endif %}
+        {% else %}
+            {% set tag %}[начнём напоминать за {{subscription.counter}} {{events_pluralize(subscription.counter)}} до начала]{% endset %}
         {% endif %}
 {% if subscription.event.skip %}<s>{% endif %}
 <b>{{ subscription.event.id }}.</b> {{ subscription.event.title }} <b>{{ tag }}</b>
