@@ -25,7 +25,7 @@ class SCHEDULE(StatesGroup):
     MAIN = State()
 
     ASK_MANUAL_EVENT = State()
-    SWAP_EVENTS = State()
+    MOVE_EVENT = State()
     TOGGLE_EVENT_SKIP = State()
 
 

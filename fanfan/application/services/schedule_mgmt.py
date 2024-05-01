@@ -69,7 +69,7 @@ class ScheduleManagementService(BaseService):
         current_event = await self.uow.events.get_current_event()
         if not current_event:
             return notifications
-        next_event = await self.uow.events.get_next_event()
+        next_event = await self.uow.events.get_next_active_event()
 
         # Preparing global notifications
         if next_event != next_event_before:
@@ -127,7 +127,7 @@ class ScheduleManagementService(BaseService):
         current_event = await self.uow.events.get_current_event()
         if event is current_event:
             raise CurrentEventNotAllowed
-        next_event = await self.uow.events.get_next_event()
+        next_event = await self.uow.events.get_next_active_event()
 
         async with self.uow:
             event.skip = not event.skip
@@ -148,46 +148,45 @@ class ScheduleManagementService(BaseService):
             return event.to_dto(), delivery_info
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
-    async def swap_events(
-        self,
-        event1_id: int,
-        event2_id: int,
+    async def move_event(
+        self, event_id: int, after_event_id: int
     ) -> Tuple[EventDTO, EventDTO, DeliveryInfo]:
-        """Swap two schedule positions
-        @param event1_id:
-        @param event2_id:
-        @return: Tuple of both schedule
         """
-        if event1_id == event2_id:
+        Move selected event after another event
+        @param event_id: Selected event
+        @param after_event_id: Event to place after
+        @return:
+        """
+        if event_id == after_event_id:
             raise SameEventsAreNotAllowed
-        event1 = await self.uow.events.get_event(event1_id)
-        if not event1:
-            raise EventNotFound(event1_id)
-        event2 = await self.uow.events.get_event(event2_id)
-        if not event2:
-            raise EventNotFound(event2_id)
-
-        next_event = await self.uow.events.get_next_event()
-
+        event = await self.uow.events.get_event(event_id)
+        if not event:
+            raise EventNotFound
+        after_event = await self.uow.events.get_event(after_event_id)
+        if not after_event:
+            raise EventNotFound
+        next_event = await self.uow.events.get_next_active_event()
+        before_event = await self.uow.events.get_next_by_order(after_event.id)
         async with self.uow:
-            event1.order, event2.order = event2.order, event1.order
-            await self.uow.session.flush([event1, event2])
-            await self.uow.session.refresh(event1, ["position"])
-            await self.uow.session.refresh(event2, ["position"])
+            if before_event:
+                event.order = (after_event.order + before_event.order) / 2
+            else:
+                event.order = after_event.order + 0.5
+            await self.uow.session.flush([event])
+            await self.uow.session.refresh(event, ["position"])
             notifications = await self._prepare_notifications(
-                next_event_before=next_event,
-                changed_events=[event1, event2],
+                next_event_before=next_event, changed_events=[event]
             )
             await self.uow.commit()
             delivery_info = await NotificationService(
                 self.uow, self.identity
             ).send_notifications(notifications)
             logger.info(
-                f"Event id={event1.id} was swapped with Event id={event2.id} "
+                f"Event id={event.id} was placed after event id={after_event_id} "
                 f"by User id={self.identity.id}\n"
                 f"Delivery: {delivery_info}"
             )
-            return event1.to_dto(), event2.to_dto(), delivery_info
+            return event.to_dto(), after_event.to_dto(), delivery_info
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def set_current_event(self, event_id: int) -> Tuple[EventDTO, DeliveryInfo]:
@@ -207,7 +206,7 @@ class ScheduleManagementService(BaseService):
                 raise CurrentEventNotAllowed
             current_event.current = None
             await self.uow.session.flush([current_event])
-        next_event = await self.uow.events.get_next_event()
+        next_event = await self.uow.events.get_next_active_event()
 
         async with self.uow:
             event.current = True
@@ -232,7 +231,7 @@ class ScheduleManagementService(BaseService):
         """
         current_event = await self.uow.events.get_current_event()
         if current_event:
-            next_event = await self.uow.events.get_next_event()
+            next_event = await self.uow.events.get_next_active_event()
             if not next_event:
                 raise NoNextEvent
         else:

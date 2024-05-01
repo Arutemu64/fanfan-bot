@@ -63,8 +63,8 @@ schedule_main_window = ScheduleWindow(
                 ),
                 SwitchTo(
                     text=Const("🔀"),
-                    id="swap_events",
-                    state=states.SCHEDULE.SWAP_EVENTS,
+                    id="move_event",
+                    state=states.SCHEDULE.MOVE_EVENT,
                 ),
                 SwitchTo(
                     text=Const("🙈"),

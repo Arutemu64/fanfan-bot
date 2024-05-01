@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import Annotated, Optional
 
 from aiogram import Bot
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.types import Message
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
@@ -49,7 +49,7 @@ async def send_notification(
             f"was sent to user id={message.chat.id}"
         )
         return message.model_dump(mode="json", exclude_none=True)
-    except TelegramBadRequest:
+    except (TelegramBadRequest, TelegramForbiddenError):
         logger.info(f"Failed to send message to {notification.user_id}, skip")
 
 
@@ -61,5 +61,5 @@ async def delete_message(
 ) -> None:
     try:
         await bot.delete_message(message.chat.id, message.message_id)
-    except TelegramBadRequest:
+    except (TelegramBadRequest, TelegramForbiddenError):
         logger.info(f"Failed to delete message id={message.message_id}, skip")

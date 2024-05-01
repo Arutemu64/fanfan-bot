@@ -39,7 +39,19 @@ class EventsRepository(Repository[Event]):
         query = select(Event).where(Event.current.is_(True)).limit(1)
         return await self.session.scalar(query)
 
-    async def get_next_event(self) -> Optional[Event]:
+    async def get_next_by_order(self, event_id: int) -> Optional[Event]:
+        selected_event_order = (
+            select(Event.order).where(Event.id == event_id).limit(1).scalar_subquery()
+        )
+        query = (
+            select(Event)
+            .order_by(Event.order)
+            .where(Event.order > selected_event_order)
+            .limit(1)
+        )
+        return await self.session.scalar(query)
+
+    async def get_next_active_event(self) -> Optional[Event]:
         current_event_position = (
             select(Event.position)
             .where(Event.current.is_(True))

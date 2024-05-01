@@ -23,7 +23,7 @@ from fanfan.presentation.tgbot.dialogs.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
 
 
-async def swap_events_handler(
+async def move_event_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
@@ -49,11 +49,12 @@ async def swap_events_handler(
         return
 
     try:
-        event1, event2, delivery_info = await app.schedule_mgmt.swap_events(
+        event1, event2, delivery_info = await app.schedule_mgmt.move_event(
             int(args[0]), int(args[1])
         )
         await message.reply(
-            f"✅ Выступление <b>{event1.title}</b> заменено на <b>{event2.title}</b>\n"
+            f"✅ Выступление <b>{event1.title}</b> поставлено "
+            f"после <b>{event2.title}</b>\n"
             f"Будет отправлено {delivery_info.count} "
             f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
             reply_markup=InlineKeyboardBuilder(
@@ -67,12 +68,15 @@ async def swap_events_handler(
         await message.reply(e.message)
 
 
-swap_events_window = ScheduleWindow(
-    state=states.SCHEDULE.SWAP_EVENTS,
+move_event_window = ScheduleWindow(
+    state=states.SCHEDULE.MOVE_EVENT,
     header=Title(
-        Const("🔃 Укажите номера двух выступлений, которые нужно поменять местами:"),
+        Const(
+            "🔃 Укажите: &lt;номер выступления&gt; &lt;номер выступления, "
+            "после которого его нужно поставить&gt;"
+        ),
         upper=False,
-        subtitle=Const("""(через пробел, например: "5 2")"""),
+        subtitle=Const("""(через пробел, например: "2 5")"""),
     ),
     after_paginator=SwitchTo(
         state=states.SCHEDULE.MAIN,
@@ -80,8 +84,8 @@ swap_events_window = ScheduleWindow(
         id="back",
     ),
     text_input=TextInput(
-        id="swap_events_window_input",
+        id="move_event_window_input",
         type_factory=str,
-        on_success=swap_events_handler,
+        on_success=move_event_handler,
     ),
 )

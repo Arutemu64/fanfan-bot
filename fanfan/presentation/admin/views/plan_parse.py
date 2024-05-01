@@ -57,7 +57,7 @@ async def proceed_plan(path: Path, uow: UnitOfWork):
                     event=Event(
                         id=id_.value,
                         order=order,
-                        title=participant.title,
+                        title=participant_title,
                     ),
                 )
                 uow.session.add(participant)
