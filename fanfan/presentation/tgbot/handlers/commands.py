@@ -3,7 +3,7 @@ from typing import List
 from aiogram import Bot, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import BotCommand, BotCommandScopeChat, Message
-from aiogram_dialog import DialogManager, StartMode
+from aiogram_dialog import DialogManager, ShowMode, StartMode
 from pydantic_core import to_json
 
 from fanfan.application.dto.settings import SettingsDTO
@@ -34,8 +34,7 @@ router = Router(name="commands_router")
 @router.message(CommandStart())
 async def start_cmd(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(
-        state=states.MAIN.HOME,
-        mode=StartMode.RESET_STACK,
+        state=states.MAIN.HOME, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND
     )
 
 
