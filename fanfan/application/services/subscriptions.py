@@ -25,7 +25,7 @@ class SubscriptionsService(BaseService):
             try:
                 event = await self.uow.events.get_event(dto.event_id)
                 if event is None:
-                    raise EventNotFound
+                    raise EventNotFound(event_id=dto.event_id)
                 if event.skip:
                     raise SkippedEventNotAllowed
                 subscription = Subscription(

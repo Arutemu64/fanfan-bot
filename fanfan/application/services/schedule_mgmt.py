@@ -122,7 +122,7 @@ class ScheduleManagementService(BaseService):
         """
         event = await self.uow.events.get_event(event_id)
         if not event:
-            raise EventNotFound(event_id)
+            raise EventNotFound(event_id=event_id)
 
         current_event = await self.uow.events.get_current_event()
         if event is current_event:
@@ -161,10 +161,10 @@ class ScheduleManagementService(BaseService):
             raise SameEventsAreNotAllowed
         event = await self.uow.events.get_event(event_id)
         if not event:
-            raise EventNotFound
+            raise EventNotFound(event_id=event_id)
         after_event = await self.uow.events.get_event(after_event_id)
         if not after_event:
-            raise EventNotFound
+            raise EventNotFound(event_id=after_event_id)
         next_event = await self.uow.events.get_next_active_event()
         before_event = await self.uow.events.get_next_by_order(after_event.id)
         async with self.uow:
@@ -196,7 +196,7 @@ class ScheduleManagementService(BaseService):
         """
         event = await self.uow.events.get_event(event_id)
         if not event:
-            raise EventNotFound
+            raise EventNotFound(event_id=event_id)
         if event.skip:
             raise SkippedEventNotAllowed
 

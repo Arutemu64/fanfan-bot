@@ -12,7 +12,7 @@ class EventNotFound(EventServiceError):
     message = "⚠️ Выступление не найдено"
 
     def __init__(self, event_id: Optional[int] = None):
-        if event_id:
+        if isinstance(event_id, int):
             self.message = f"⚠️ Выступление под номером {event_id} не найдено"
 
 

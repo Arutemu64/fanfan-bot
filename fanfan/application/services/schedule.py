@@ -17,7 +17,7 @@ class ScheduleService(BaseService):
         """
         if event := await self.uow.events.get_event(event_id):
             return event.to_dto()
-        raise EventNotFound
+        raise EventNotFound(event_id=event_id)
 
     async def get_current_event(self) -> EventDTO:
         """Get current event
@@ -64,7 +64,7 @@ class ScheduleService(BaseService):
     ) -> int:
         event = await self.uow.events.get_event(event_id)
         if not event:
-            raise EventNotFound
+            raise EventNotFound(event_id=event_id)
         return await self.uow.events.get_page_number_by_event(
             event_id=event_id,
             events_per_page=events_per_page,

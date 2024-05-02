@@ -28,7 +28,6 @@ from fanfan.presentation.tgbot.static.templates import schedule_list
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 DATA_SEARCH_QUERY = "data_search_query"
-DATA_PAGES_COUNT = "data_pages_count"
 DATA_PAGE_BEFORE_SEARCH = "data_page_before_search"
 
 
@@ -44,7 +43,6 @@ async def schedule_getter(
         search_query=dialog_manager.dialog_data.get(DATA_SEARCH_QUERY, None),
         user_id=dialog_manager.event.from_user.id,
     )
-    dialog_manager.dialog_data[DATA_PAGES_COUNT] = page.total_pages
     return {
         "events": page.items,
         "page_number": page.number + 1,
@@ -107,7 +105,7 @@ class ScheduleWindow(Window):
         header: Optional[Text] = "",
         footer: Optional[Text] = Multi(
             Const(
-                "🔍 <i>Для поиска отправь запрос сообщением</i>",
+                "🔍 <i>Для поиска отправь текст/номер выступления сообщением</i>",
                 when=~F["dialog_data"][DATA_SEARCH_QUERY],
             ),
             Format(

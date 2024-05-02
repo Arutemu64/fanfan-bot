@@ -1,7 +1,6 @@
 from aiogram import F
 from aiogram.types import Message
 from aiogram_dialog import DialogManager
-from aiogram_dialog.widgets.common import ManagedScroll
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
@@ -14,15 +13,15 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const
 
+from fanfan.application.exceptions.event import EventNotFound
 from fanfan.presentation.tgbot.dialogs import (
     states,
 )
 from fanfan.presentation.tgbot.dialogs.menus.schedule.common import (
-    DATA_PAGES_COUNT,
     DATA_SEARCH_QUERY,
-    ID_SCHEDULE_SCROLL,
     ScheduleWindow,
     set_search_query_handler,
+    show_event_page,
 )
 from fanfan.presentation.tgbot.dialogs.menus.schedule.tools.set_next_event import (
     set_next_event_handler,
@@ -39,9 +38,11 @@ async def set_page_handler(
     dialog_manager: DialogManager,
     data: int,
 ):
-    scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
-    if 0 <= data - 1 < dialog_manager.dialog_data[DATA_PAGES_COUNT]:
-        await scroll.set_page(data - 1)
+    try:
+        await show_event_page(dialog_manager, data)
+    except EventNotFound as e:
+        await message.answer(e.message)
+        return
 
 
 schedule_main_window = ScheduleWindow(
