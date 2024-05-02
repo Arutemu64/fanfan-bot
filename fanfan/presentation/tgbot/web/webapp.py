@@ -52,17 +52,6 @@ async def proceed_qr_post(
     try:
         qr = QR.model_validate_json(data["qr_text"])
         match qr.type:
-            case QRType.USER:
-                manager = dialog_bg_factory.bg(
-                    bot=bot,
-                    user_id=web_app_init_data.user.id,
-                    chat_id=web_app_init_data.user.id,
-                    load=True,
-                )
-                await app.qr.open_user_manager(
-                    user_id=int(qr.data),
-                    manager=manager,
-                )
             case QRType.ACHIEVEMENT:
                 try:
                     await app.qr.receive_achievement(

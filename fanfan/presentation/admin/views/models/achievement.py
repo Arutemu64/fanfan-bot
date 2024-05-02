@@ -3,9 +3,9 @@ from starlette.requests import Request
 from starlette.responses import FileResponse
 
 from fanfan.application.dto.qr import QR
+from fanfan.common import QR_CODES_TEMP_DIR
 from fanfan.common.enums import QRType
 from fanfan.infrastructure.db.models import Achievement
-from fanfan.presentation.tgbot.dialogs.menus.main.qr_pass import QR_CODES_TEMP_DIR
 
 
 class AchievementView(ModelView, model=Achievement):

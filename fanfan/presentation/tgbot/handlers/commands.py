@@ -16,7 +16,6 @@ from fanfan.presentation.tgbot.ui.strings import titles
 
 START_CMD = BotCommand(command="start", description=titles.main_menu)
 LINK_TICKET_CMD = BotCommand(command="ticket", description=titles.link_ticket)
-QR_CMD = BotCommand(command="qr", description=titles.qr_pass)
 ACTIVITIES_CMD = BotCommand(command="activities", description=titles.activities)
 SCHEDULE_CMD = BotCommand(command="schedule", description=titles.schedule)
 NOTIFICATIONS_CMD = BotCommand(
@@ -46,14 +45,6 @@ async def link_ticket_cmd(
 ):
     if not user.ticket:
         await dialog_manager.start(states.MAIN.LINK_TICKET)
-
-
-@router.message(Command(QR_CMD))
-async def qr_pass_cmd(
-    message: Message, dialog_manager: DialogManager, user: FullUserDTO
-):
-    if user.ticket:
-        await dialog_manager.start(states.MAIN.QR_PASS)
 
 
 @router.message(Command(ACTIVITIES_CMD))
@@ -117,7 +108,7 @@ async def update_user_commands(
     scope = BotCommandScopeChat(chat_id=user.id)
     commands: List[BotCommand] = [START_CMD]
     if user.ticket:
-        commands = commands + [QR_CMD, ACHIEVEMENTS_CMD]
+        commands.append(ACHIEVEMENTS_CMD)
         if settings.voting_enabled:
             commands.append(VOTING_CMD)
     else:

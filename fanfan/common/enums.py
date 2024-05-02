@@ -7,7 +7,6 @@ class BotMode(enum.StrEnum):
 
 
 class QRType(enum.StrEnum):
-    USER = "user"
     ACHIEVEMENT = "achievement"
 
 

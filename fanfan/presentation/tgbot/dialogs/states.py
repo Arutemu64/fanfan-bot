@@ -3,7 +3,6 @@ from aiogram.fsm.state import State, StatesGroup
 
 class MAIN(StatesGroup):
     HOME = State()
-    QR_PASS = State()
     LINK_TICKET = State()
 
 

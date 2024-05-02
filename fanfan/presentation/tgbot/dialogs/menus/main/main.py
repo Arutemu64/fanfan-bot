@@ -3,7 +3,7 @@ import math
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo, WebApp
+from aiogram_dialog.widgets.kbd import Button, Group, Start, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja, Multi, Progress
 
@@ -128,19 +128,6 @@ main_window = Window(
         when=~F["is_ticket_linked"],
     ),
     Group(
-        Group(
-            SwitchTo(
-                text=Const(strings.titles.qr_pass),
-                id="open_qr_pass",
-                state=states.MAIN.QR_PASS,
-            ),
-            WebApp(
-                Const(strings.titles.qr_scanner),
-                url=Format("{webapp_link}"),
-                when=F["webapp_link"],
-            ),
-            when=F["is_ticket_linked"],
-        ),
         Start(
             Const(strings.titles.activities),
             id="open_activities",
@@ -161,6 +148,11 @@ main_window = Window(
             ),
             id="open_achievements",
             on_click=open_achievements_handler,
+        ),
+        WebApp(
+            Const(strings.titles.qr_scanner),
+            url=Format("{webapp_link}"),
+            when=F["webapp_link"] & F["is_ticket_linked"],
         ),
         Button(
             text=Case(
