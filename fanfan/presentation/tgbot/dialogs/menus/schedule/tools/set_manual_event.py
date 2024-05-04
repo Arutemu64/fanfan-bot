@@ -52,7 +52,6 @@ async def set_manual_event_handler(
             else None,
         )
         await show_event_page(dialog_manager, event.id)
-        dialog_manager.show_mode = ShowMode.NO_UPDATE
         await dialog_manager.switch_to(
             states.SCHEDULE.MAIN, show_mode=ShowMode.DELETE_AND_SEND
         )

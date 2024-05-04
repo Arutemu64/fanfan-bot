@@ -40,7 +40,6 @@ async def set_next_event_handler(
             else None,
         )
         await show_event_page(manager, event.id)
-        manager.show_mode = ShowMode.NO_UPDATE
         await manager.switch_to(
             states.SCHEDULE.MAIN, show_mode=ShowMode.DELETE_AND_SEND
         )
