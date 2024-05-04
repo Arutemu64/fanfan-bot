@@ -91,7 +91,7 @@ class ScheduleManagementService(BaseService):
         for subscription in await self.uow.subscriptions.get_upcoming_subscriptions():
             notify = False
             for e in changed_events:
-                if current_event.position <= e.position <= subscription.event.position:
+                if current_event.order <= e.order <= subscription.event.order:
                     notify = True
             if notify:
                 await self.uow.session.refresh(subscription.event, ["position"])

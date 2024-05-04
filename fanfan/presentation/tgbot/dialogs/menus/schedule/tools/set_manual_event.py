@@ -1,6 +1,6 @@
 from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram_dialog import DialogManager
+from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.input.text import ManagedTextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
@@ -9,7 +9,10 @@ from aiogram_dialog.widgets.text import Const
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.common.utils import NOTIFICATIONS_PLURALS, pluralize
-from fanfan.presentation.tgbot.buttons import get_delete_delivery_button
+from fanfan.presentation.tgbot.buttons import (
+    PULL_DOWN_DIALOG,
+    get_delete_delivery_button,
+)
 from fanfan.presentation.tgbot.dialogs import (
     states,
 )
@@ -35,15 +38,24 @@ async def set_manual_event_handler(
         await message.reply(
             f"✅ Выступление <b>{event.title}</b> отмечено как текущее\n"
             f"Будет отправлено {delivery_info.count} "
-            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n",
+            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}\n"
+            f"Уникальный ID рассылки: <code>{delivery_info.delivery_id}</code>",
             reply_markup=InlineKeyboardBuilder(
-                [[get_delete_delivery_button(delivery_info.delivery_id)]]
+                [
+                    [
+                        get_delete_delivery_button(delivery_info.delivery_id),
+                        PULL_DOWN_DIALOG,
+                    ]
+                ]
             ).as_markup()
             if delivery_info.count > 0
             else None,
         )
         await show_event_page(dialog_manager, event.id)
-        await dialog_manager.switch_to(states.SCHEDULE.MAIN)
+        dialog_manager.show_mode = ShowMode.NO_UPDATE
+        await dialog_manager.switch_to(
+            states.SCHEDULE.MAIN, show_mode=ShowMode.DELETE_AND_SEND
+        )
     except ServiceError as e:
         await message.reply(e.message)
 
