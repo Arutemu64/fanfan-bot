@@ -101,5 +101,5 @@ class EventsRepository(Repository[Event]):
                 search_query,
             )
         event_order = await self.session.scalar(query)
-        page = math.floor((event_order - 1) / events_per_page)
-        return page if page > 0 else 0
+        page = math.ceil(math.floor(event_order) / events_per_page)
+        return page - 1
