@@ -6,7 +6,7 @@ from aiogram.filters import ExceptionTypeFilter
 from aiogram.types import ErrorEvent
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import DialogManager
-from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from aiogram_dialog.api.exceptions import DialogsError
 from sentry_sdk import capture_exception
 
 from fanfan.application.exceptions import UnhandledError
@@ -15,8 +15,8 @@ from fanfan.presentation.tgbot.buttons import DELETE_BUTTON
 logger = logging.getLogger(__name__)
 
 
-async def on_unknown_intent_or_state(event: ErrorEvent, dialog_manager: DialogManager):
-    message = "⌛⚠️ Ваша сессия истекла, перезапустите бота командой /start"
+async def on_dialogs_error(event: ErrorEvent, dialog_manager: DialogManager):
+    message = "⚠️ Ваша сессия истекла, перезапустите бота командой /start"
     if event.update.callback_query:
         await event.update.callback_query.message.answer(message)
     elif event.update.message:
@@ -49,6 +49,5 @@ async def on_unknown_error(event: ErrorEvent, dialog_manager: DialogManager):
 
 
 def register_error_handlers(dp: Dispatcher):
-    dp.errors.register(on_unknown_intent_or_state, ExceptionTypeFilter(UnknownIntent))
-    dp.errors.register(on_unknown_intent_or_state, ExceptionTypeFilter(UnknownState))
+    dp.errors.register(on_dialogs_error, ExceptionTypeFilter(DialogsError))
     dp.errors.register(on_unknown_error, ExceptionTypeFilter(Exception))

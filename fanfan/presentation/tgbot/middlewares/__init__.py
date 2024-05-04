@@ -1,4 +1,4 @@
 from fanfan.presentation.tgbot.middlewares.load_user import LoadUserMiddleware
-from fanfan.presentation.tgbot.middlewares.retry import RetryMiddleware
+from fanfan.presentation.tgbot.middlewares.retry import RetryRequestMiddleware
 
-__all__ = ["LoadUserMiddleware", "RetryMiddleware"]
+__all__ = ["LoadUserMiddleware", "RetryRequestMiddleware"]

@@ -17,7 +17,10 @@ from sulguk import AiogramSulgukMiddleware
 from fanfan.config import BotConfig, RedisConfig
 from fanfan.presentation.tgbot import dialogs, handlers
 from fanfan.presentation.tgbot.handlers.errors import register_error_handlers
-from fanfan.presentation.tgbot.middlewares import LoadUserMiddleware, RetryMiddleware
+from fanfan.presentation.tgbot.middlewares import (
+    LoadUserMiddleware,
+    RetryRequestMiddleware,
+)
 
 
 class BotProvider(Provider):
@@ -26,7 +29,7 @@ class BotProvider(Provider):
     @provide
     def get_bot(self, config: BotConfig) -> Bot:
         bot = Bot(token=config.token.get_secret_value(), parse_mode=ParseMode.HTML)
-        bot.session.middleware(RetryMiddleware())
+        bot.session.middleware(RetryRequestMiddleware())
         bot.session.middleware(AiogramSulgukMiddleware())
         return bot
 
