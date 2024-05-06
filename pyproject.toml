@@ -28,7 +28,7 @@ qrcode = {version = "^7.4.2", extras = ["pil"]}
 redis = "^5.0.4"
 sentry-sdk = "^2.0.1"
 sqladmin = "^0.16.1"
-sqlalchemy = "^2.0.29"
+sqlalchemy = "^2.0.30"
 sulguk = "^0.7.0"
 taskiq = "^0.11.0"
 taskiq-redis = "^0.5.5"
