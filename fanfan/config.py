@@ -102,14 +102,14 @@ class RedisConfig(BaseSettings):
     state_ttl: Optional[int] = None
     data_ttl: Optional[int] = None
 
-    def build_connection_str(self, database: Optional[str] = None) -> str:
+    def build_connection_str(self) -> str:
         dsn: RedisDsn = RedisDsn.build(
             scheme="redis",
             username=self.username,
             password=self.password.get_secret_value() if self.password else None,
             host=self.host,
             port=self.port,
-            path=database or self.database,
+            path=self.database,
         )
         return dsn.unicode_string()
 

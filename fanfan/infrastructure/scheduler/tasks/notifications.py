@@ -8,10 +8,10 @@ from aiogram.types import Message
 from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
+from redis.asyncio import Redis
 from taskiq import Context, TaskiqDepends
 
 from fanfan.application.dto.notification import UserNotification
-from fanfan.infrastructure.di.redis import SchedulerRedis
 from fanfan.infrastructure.scheduler import broker
 
 logger = logging.getLogger("__name__")
@@ -23,7 +23,7 @@ async def send_notification(
     notification: UserNotification,
     context: Annotated[Context, TaskiqDepends()],
     bot: FromDishka[Bot],
-    redis: FromDishka[SchedulerRedis],
+    redis: FromDishka[Redis],
     dialog_bg_factory: FromDishka[BgManagerFactory],
     delivery_id: Optional[str] = None,
 ) -> dict:

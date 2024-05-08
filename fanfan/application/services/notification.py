@@ -4,13 +4,14 @@ from typing import List, Optional
 
 from aiogram.types import Message
 from dishka import make_async_container
+from redis.asyncio import Redis
 from taskiq import TaskiqResult
 from taskiq_redis.exceptions import ResultIsMissingError
 
 from fanfan.application.dto.notification import DeliveryInfo, UserNotification
 from fanfan.application.services.base import BaseService
 from fanfan.infrastructure.di.config import ConfigProvider
-from fanfan.infrastructure.di.redis import RedisProvider, SchedulerRedis
+from fanfan.infrastructure.di.redis import RedisProvider
 from fanfan.infrastructure.scheduler import (
     redis_async_result,
 )
@@ -45,7 +46,7 @@ class NotificationService(BaseService):
         """
         container = make_async_container(ConfigProvider(), RedisProvider())
         async with container() as container:
-            redis = await container.get(SchedulerRedis)
+            redis = await container.get(Redis)
             key = f"delivery:{delivery_id}"
             count = await redis.llen(key)
             while await redis.llen(key) > 0:

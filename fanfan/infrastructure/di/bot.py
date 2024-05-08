@@ -1,9 +1,9 @@
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.base import BaseEventIsolation, BaseStorage
-from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.fsm.storage.redis import (
     DefaultKeyBuilder,
+    RedisEventIsolation,
     RedisStorage,
 )
 from aiogram_dialog import BgManagerFactory, setup_dialogs
@@ -79,5 +79,8 @@ class DpProvider(Provider):
         )
 
     @provide
-    def get_event_isolation(self) -> BaseEventIsolation:
-        return SimpleEventIsolation()
+    def get_event_isolation(self, redis: Redis) -> BaseEventIsolation:
+        return RedisEventIsolation(
+            redis=redis,
+            key_builder=DefaultKeyBuilder(with_destiny=True),
+        )
