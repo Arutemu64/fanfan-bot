@@ -5,7 +5,7 @@ from typing import Optional
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from fanfan.presentation.tgbot.buttons import DELETE_BUTTON, PULL_DOWN_DIALOG
+from fanfan.presentation.tgbot.buttons import DELETE_BUTTON
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,7 +17,7 @@ class UserNotification:
     image_id: Optional[str] = None
     timestamp: Optional[datetime] = None
     reply_markup: InlineKeyboardMarkup = InlineKeyboardBuilder(
-        [[DELETE_BUTTON, PULL_DOWN_DIALOG]]
+        [[DELETE_BUTTON]]
     ).as_markup()
 
     def render_message_text(self) -> str:

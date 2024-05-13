@@ -6,7 +6,7 @@ from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
 from fanfan.application.services.quest import QuestService
 from fanfan.common.enums import UserRole
-from fanfan.presentation.tgbot.dialogs import states
+from fanfan.presentation.tgbot import states
 
 
 class QRService(BaseService):

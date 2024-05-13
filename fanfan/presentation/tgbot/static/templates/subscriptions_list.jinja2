@@ -25,7 +25,7 @@
             {% set tag %}[начнём напоминать за {{subscription.counter}} {{events_pluralize(subscription.counter)}} до начала]{% endset %}
         {% endif %}
 {% if subscription.event.skip %}<s>{% endif %}
-<b>{{ subscription.event.id }}.</b> {{ subscription.event.title }} <b>{{ tag }}</b>
+<b>/{{ subscription.event.id }}</b> {{ subscription.event.title }} <b>{{ tag }}</b>
 {% if subscription.event.skip %}</s>{% endif %}
     {% endfor %}
 {% endif %}

@@ -31,6 +31,25 @@ class EventsRepository(Repository[Event]):
     async def get_event(self, event_id: int) -> Optional[Event]:
         return await self.session.get(Event, event_id)
 
+    async def get_event_for_user(
+        self, event_id: int, user_id: Optional[int] = None
+    ) -> Optional[Event]:
+        query = (
+            select(Event)
+            .where(Event.id == event_id)
+            .limit(1)
+            .options(joinedload(Event.nomination))
+        )
+        if user_id:
+            query = query.options(contains_eager(Event.user_subscription)).outerjoin(
+                Subscription,
+                and_(
+                    Subscription.event_id == Event.id,
+                    Subscription.user_id == user_id,
+                ),
+            )
+        return await self.session.scalar(query)
+
     async def get_event_by_position(self, position: int) -> Optional[Event]:
         query = select(Event).where(Event.position == position).limit(1)
         return await self.session.scalar(query)

@@ -1,12 +1,14 @@
 from aiogram import Router
 
 from fanfan.common.enums import UserRole
-from fanfan.presentation.tgbot.filters import RoleFilter
+from fanfan.presentation.tgbot.utils.filters import RoleFilter
 
 
 def setup_router() -> Router:
-    from fanfan.presentation.tgbot.dialogs.menus import (
+    from fanfan.presentation.tgbot.dialogs import (
         achievements,
+        activities,
+        deliveries,
         feedback,
         helper,
         main,
@@ -16,15 +18,13 @@ def setup_router() -> Router:
         user_manager,
         voting,
     )
-    from fanfan.presentation.tgbot.dialogs.menus.main import activities
-    from fanfan.presentation.tgbot.dialogs.menus.org import deliveries
-    from fanfan.presentation.tgbot.dialogs.menus.schedule import subscriptions
+    from fanfan.presentation.tgbot.dialogs.schedule import event_details
 
     common_router = Router(name="common_dialog_router")
     common_router.include_routers(
         main.dialog,
         schedule.dialog,
-        subscriptions.dialog,
+        event_details.dialog,
         achievements.dialog,
         voting.dialog,
         settings.dialog,

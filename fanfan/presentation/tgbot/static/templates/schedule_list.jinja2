@@ -13,7 +13,7 @@
         {% endif %}
         {% if event.skip %}<s>{% endif %}
         {% if event.current %}<b>{% endif %}
-<b>{{event.id}}.</b> {{event.title}}
+<b>/{{event.id}}</b> {{event.title}}
         {%- if event.current %} 👈</b>{% endif %}
         {%- if event.user_subscription %} 🔔{% endif %}
         {%- if event.skip %}</s>{% endif +%}

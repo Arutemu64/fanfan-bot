@@ -10,9 +10,9 @@ from fanfan.application.dto.settings import SettingsDTO
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
-from fanfan.presentation.tgbot.dialogs import states
-from fanfan.presentation.tgbot.filters import RoleFilter
+from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.ui.strings import titles
+from fanfan.presentation.tgbot.utils.filters import RoleFilter
 
 START_CMD = BotCommand(command="start", description=titles.main_menu)
 LINK_TICKET_CMD = BotCommand(command="ticket", description=titles.link_ticket)
@@ -58,7 +58,7 @@ async def schedule_cmd(message: Message, dialog_manager: DialogManager):
 
 @router.message(Command(NOTIFICATIONS_CMD))
 async def notifications_cmd(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(states.SUBSCRIPTIONS.MAIN)
+    await dialog_manager.start(states.SCHEDULE.SUBSCRIPTIONS)
 
 
 @router.message(Command(ACHIEVEMENTS_CMD))

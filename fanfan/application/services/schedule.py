@@ -19,6 +19,13 @@ class ScheduleService(BaseService):
             return event.to_dto()
         raise EventNotFound(event_id=event_id)
 
+    async def get_schedule_event(
+        self, event_id: int, user_id: Optional[int] = None
+    ) -> ScheduleEventDTO:
+        if event := await self.uow.events.get_event_for_user(event_id, user_id):
+            return event.to_schedule_dto()
+        raise EventNotFound(event_id=event_id)
+
     async def get_current_event(self) -> EventDTO:
         """Get current event
         @raise NoCurrentEvent
