@@ -5,6 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, undefer
 
 from fanfan.application.dto.common import Page
+from fanfan.application.dto.participant import (
+    CreateParticipantDTO,
+    FullParticipantDTO,
+    ParticipantDTO,
+    VotingParticipantDTO,
+)
 from fanfan.infrastructure.db.models import Event, Nomination, Participant, Vote
 from fanfan.infrastructure.db.repositories.repo import Repository
 
@@ -14,36 +20,50 @@ class ParticipantsRepository(Repository[Participant]):
         self.session = session
         super().__init__(type_model=Participant, session=session)
 
-    async def get_participant(self, participant_id: int) -> Optional[Participant]:
-        return await self.session.get(
+    async def add_participant(self, dto: CreateParticipantDTO) -> ParticipantDTO:
+        participant = Participant(**dto.model_dump(exclude_unset=True))
+        self.session.add(participant)
+        await self.session.flush([participant])
+        return participant.to_dto()
+
+    async def get_participant(
+        self, participant_id: int
+    ) -> Optional[FullParticipantDTO]:
+        participant = await self.session.get(
             Participant,
             participant_id,
             options=[joinedload(Participant.nomination), joinedload(Participant.event)],
         )
+        return participant.to_full_dto() if participant else None
 
-    async def get_participant_by_nomination_position(
-        self, nomination_id: str, nomination_position: int
-    ) -> Optional[Participant]:
+    async def get_participant_by_title(
+        self, title: str
+    ) -> Optional[FullParticipantDTO]:
+        query = (
+            select(Participant)
+            .where(Participant.title == title)
+            .options(joinedload(Participant.event), joinedload(Participant.nomination))
+            .limit(1)
+        )
+        participant = await self.session.scalar(query)
+        return participant.to_full_dto() if participant else None
+
+    async def get_participant_by_scoped_id(
+        self, nomination_id: str, scoped_id: int
+    ) -> Optional[FullParticipantDTO]:
         query = (
             select(Participant)
             .where(
                 and_(
                     Participant.nomination_id == nomination_id,
-                    Participant.nomination_position == nomination_position,
+                    Participant.scoped_id == scoped_id,
                 )
             )
+            .options(joinedload(Participant.event), joinedload(Participant.nomination))
             .limit(1)
         )
-        return await self.session.scalar(query)
-
-    async def get_participant_by_title(self, title: str) -> Optional[Participant]:
-        query = (
-            select(Participant)
-            .where(Participant.title == title)
-            .options(joinedload(Participant.event))
-            .limit(1)
-        )
-        return await self.session.scalar(query)
+        participant = await self.session.scalar(query)
+        return participant.to_full_dto() if participant else None
 
     async def paginate_participants(
         self,
@@ -53,10 +73,10 @@ class ParticipantsRepository(Repository[Participant]):
         nomination_id: Optional[str] = None,
         user_id: Optional[int] = None,
         search_query: Optional[str] = None,
-    ) -> Page[Participant]:
+    ) -> Page[VotingParticipantDTO]:
         query = (
             select(Participant)
-            .order_by(Participant.order)
+            .order_by(Participant.scoped_id)
             .options(undefer(Participant.votes_count))
         )
         if only_votable:
@@ -86,4 +106,9 @@ class ParticipantsRepository(Repository[Participant]):
             )
         if search_query:
             query = query.where(Participant.title.ilike(f"%{search_query}%"))
-        return await super()._paginate(query, page_number, participants_per_page)
+        page = await super()._paginate(query, page_number, participants_per_page)
+        return Page(
+            items=[p.to_voting_dto() for p in page.items],
+            number=page.number,
+            total_pages=page.total_pages,
+        )

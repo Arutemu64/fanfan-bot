@@ -2,7 +2,11 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
-from fanfan.application.dto.user import FullUserDTO, UpdateUserSettingsDTO
+from fanfan.application.dto.user import (
+    FullUserDTO,
+    UpdateUserDTO,
+    UpdateUserSettingsDTO,
+)
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.presentation.tgbot import states
@@ -27,11 +31,13 @@ async def items_per_page_handler(
     app: AppHolder = manager.middleware_data["app"]
     user: FullUserDTO = manager.middleware_data["user"]
     try:
-        await app.users.update_user_settings(
-            UpdateUserSettingsDTO(
-                user_id=manager.event.from_user.id,
-                items_per_page=manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value(),
-            ),
+        await app.users.update_user(
+            UpdateUserDTO(
+                id=user.id,
+                settings=UpdateUserSettingsDTO(
+                    items_per_page=manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value(),
+                ),
+            )
         )
         manager.middleware_data["user"] = await app.users.get_user_by_id(user.id)
     except ServiceError as e:

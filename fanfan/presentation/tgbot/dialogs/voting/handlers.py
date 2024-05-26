@@ -40,14 +40,10 @@ async def add_vote_handler(
     if "/" in data and data.replace("/", "").isnumeric():
         app: AppHolder = dialog_manager.middleware_data["app"]
         try:
-            participant = await app.voting.get_participant_by_nomination_position(
-                nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
-                nomination_position=int(data.replace("/", "")),
-            )
             await app.voting.add_vote(
                 user_id=dialog_manager.event.from_user.id,
-                participant_id=participant.id,
                 nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
+                participant_scoped_id=int(data.replace("/", "")),
             )
         except ServiceError as e:
             await message.reply(e.message)

@@ -33,15 +33,10 @@ class QuestService(BaseService):
         achievements_per_page: int,
         user_id: int,
     ) -> Page[FullAchievementDTO]:
-        page = await self.uow.achievements.paginate_achievements(
+        return await self.uow.achievements.paginate_achievements(
             page_number=page_number,
             achievements_per_page=achievements_per_page,
             user_id=user_id,
-        )
-        return Page(
-            items=[a.to_full_dto() for a in page.items],
-            number=page.number,
-            total_pages=page.total_pages if page.total_pages > 0 else 1,
         )
 
     async def add_achievement(self, user_id: int, achievement_id: int):
@@ -52,11 +47,14 @@ class QuestService(BaseService):
             raise UserHasNoTicket
         achievement = await self.uow.achievements.get_achievement(achievement_id)
         if not achievement:
-            raise AchievementNotFound(achievement_id)
+            raise AchievementNotFound
 
         async with self.uow:
             try:
-                user.received_achievements.add(achievement)
+                await self.uow.achievements.add_achievement_to_user(
+                    achievement_id=achievement_id,
+                    user_id=user_id,
+                )
                 await self.uow.commit()
                 logger.info(
                     f"User id={user_id} received achievement id={achievement_id}"

@@ -3,8 +3,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery
 
 from fanfan.application.dto.callback import DeleteDeliveryCallback
-from fanfan.application.exceptions import ServiceError
-from fanfan.application.holder import AppHolder
+from fanfan.infrastructure.scheduler.utils.notifications import delete_delivery
 
 router = Router(name="callbacks_router")
 
@@ -21,19 +20,9 @@ async def delete_message(callback: CallbackQuery):
 async def delete_delivery_callback(
     query: CallbackQuery,
     callback_data: DeleteDeliveryCallback,
-    app: AppHolder,
 ):
-    try:
-        delivery_info = await app.notifications.delete_delivery(
-            delivery_id=callback_data.delivery_id
-        )
-        await query.answer(
-            text=f"✅ Будет удалено {delivery_info.count} уведомлений",
-            show_alert=True,
-        )
-    except ServiceError as e:
-        await query.answer(
-            text=e.message,
-            show_alert=True,
-        )
-        await query.answer()
+    delivery_info = await delete_delivery(delivery_id=callback_data.delivery_id)
+    await query.answer(
+        text=f"✅ Будет удалено {delivery_info.count} уведомлений",
+        show_alert=True,
+    )

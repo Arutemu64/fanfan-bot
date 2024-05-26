@@ -42,12 +42,13 @@ class UserProvider(Provider):
         try:
             user = await UserService(uow).get_user_by_id(tg_user.id)
         except UserNotFound:
-            user = await UserService(uow).create_user(
+            await UserService(uow).create_user(
                 CreateUserDTO(
                     id=tg_user.id,
                     username=tg_user.username,
                 ),
             )
+            user = await UserService(uow).get_user_by_id(tg_user.id)
         services = AppHolder(uow, user)
         # Updating user data
         if user.username != tg_user.username:

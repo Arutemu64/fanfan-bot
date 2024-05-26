@@ -5,11 +5,13 @@ from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja, Multi, Progress
 
-from fanfan.common.enums import UserRole
+from fanfan.common.enums import BotMode, UserRole
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
     CURRENT_USER,
+    SETTINGS,
     current_user_getter,
+    settings_getter,
 )
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -74,7 +76,7 @@ main_window = Window(
         WebApp(
             Const(strings.titles.qr_scanner),
             url=Format("{webapp_link}"),
-            when=F["webapp_link"] & F[CURRENT_USER].ticket,
+            when=F["bot_mode"].is_(BotMode.WEBHOOK) & F[CURRENT_USER].ticket,
         ),
         Button(
             text=Case(
@@ -82,7 +84,8 @@ main_window = Window(
                     True: Const(strings.titles.voting),
                     False: Const(f"{strings.titles.voting} 🔒"),
                 },
-                selector=F["voting_enabled"] & F[CURRENT_USER].ticket.is_not(None),
+                selector=F[SETTINGS].voting_enabled
+                & F[CURRENT_USER].ticket.is_not(None),
             ),
             id="open_voting",
             on_click=open_voting_handler,
@@ -118,7 +121,7 @@ main_window = Window(
         width=2,
     ),
     state=states.MAIN.HOME,
-    getter=[main_menu_getter, current_user_getter],
+    getter=[main_menu_getter, current_user_getter, settings_getter],
 )
 link_ticket_window = Window(
     Title(Const(strings.titles.link_ticket)),

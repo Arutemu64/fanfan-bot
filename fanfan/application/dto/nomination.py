@@ -5,6 +5,12 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
+class CreateNominationDTO(BaseModel):
+    id: str
+    title: str
+    votable: Optional[bool] = None
+
+
 class NominationDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True, frozen=True)
 
@@ -13,10 +19,10 @@ class NominationDTO(BaseModel):
     votable: bool
 
 
-class VotingNominationDTO(NominationDTO):
+class FullNominationDTO(NominationDTO):
     user_vote: Optional[VoteDTO]
 
 
 from fanfan.application.dto.vote import VoteDTO  # noqa: E402
 
-VotingNominationDTO.model_rebuild()
+FullNominationDTO.model_rebuild()

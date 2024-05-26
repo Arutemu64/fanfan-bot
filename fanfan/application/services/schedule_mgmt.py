@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple
 from jinja2 import Environment, FileSystemLoader
 from pytz import timezone
 
-from fanfan.application.dto.event import EventDTO
+from fanfan.application.dto.event import EventDTO, UpdateEventDTO
 from fanfan.application.dto.notification import DeliveryInfo, UserNotification
 from fanfan.application.exceptions.event import (
     AnnounceTooFast,
@@ -18,10 +18,9 @@ from fanfan.application.exceptions.event import (
 )
 from fanfan.application.services.access import check_permission
 from fanfan.application.services.base import BaseService
-from fanfan.application.services.notification import NotificationService
 from fanfan.common.enums import UserRole
 from fanfan.config import get_config
-from fanfan.infrastructure.db.models import Event
+from fanfan.infrastructure.scheduler.utils.notifications import send_notifications
 from fanfan.presentation.tgbot import JINJA_TEMPLATES_DIR
 
 logger = logging.getLogger(__name__)
@@ -40,25 +39,22 @@ global_announcement_template = jinja.get_template("global_announcement.jinja2")
 class ScheduleManagementService(BaseService):
     async def _throttle_global_announcement(self) -> None:
         settings = await self.uow.settings.get_settings()
+        announcement_timestamp = await self.uow.settings.get_announcement_timestamp()
         timestamp = time.time()
-        if (
-            timestamp - settings.announcement_timestamp
-        ) < settings.announcement_timeout:
+        if (timestamp - announcement_timestamp) < settings.announcement_timeout:
             raise AnnounceTooFast(
                 settings.announcement_timeout,
                 int(
-                    settings.announcement_timestamp
-                    + settings.announcement_timeout
-                    - timestamp,
+                    announcement_timestamp + settings.announcement_timeout - timestamp,
                 ),
             )
         else:
-            settings.announcement_timestamp = timestamp
+            await self.uow.settings.update_announcement_timestamp(timestamp=timestamp)
 
     async def _prepare_notifications(
         self,
-        next_event_before: Optional[Event],
-        changed_events: List[Event],
+        next_event_before: Optional[EventDTO],
+        changed_events: List[EventDTO],
     ) -> List[UserNotification]:
         """Proceed upcoming subscriptions"""
         # Prepare notifications list and timestamp
@@ -69,7 +65,7 @@ class ScheduleManagementService(BaseService):
         current_event = await self.uow.events.get_current_event()
         if not current_event:
             return notifications
-        next_event = await self.uow.events.get_next_active_event()
+        next_event = await self.uow.events.get_next_event()
 
         # Preparing global notifications
         if next_event != next_event_before:
@@ -90,11 +86,12 @@ class ScheduleManagementService(BaseService):
         # Checking subscriptions
         for subscription in await self.uow.subscriptions.get_upcoming_subscriptions():
             notify = False
+            print(current_event)
+            print(subscription.event)
             for e in changed_events:
                 if current_event.order <= e.order <= subscription.event.order:
                     notify = True
             if notify:
-                await self.uow.session.refresh(subscription.event, ["position"])
                 text = await subscription_template.render_async(
                     {
                         "current_event": current_event,
@@ -109,8 +106,8 @@ class ScheduleManagementService(BaseService):
                         timestamp=timestamp,
                     ),
                 )
-            if subscription.event is current_event:
-                await self.uow.session.delete(subscription)
+
+        await self.uow.subscriptions.bulk_delete_subscriptions(current_event.id)
 
         return notifications
 
@@ -127,25 +124,28 @@ class ScheduleManagementService(BaseService):
         current_event = await self.uow.events.get_current_event()
         if event is current_event:
             raise CurrentEventNotAllowed
-        next_event = await self.uow.events.get_next_active_event()
+        next_event = await self.uow.events.get_next_event()
 
         async with self.uow:
-            event.skip = not event.skip
-            await self.uow.session.flush([event])
-            await self.uow.session.refresh(event, ["position"])
+            await self.uow.events.update_event(
+                UpdateEventDTO(
+                    id=event.id,
+                    skip=not event.skip,
+                ),
+            )
+            await self.uow.flush()
+            event = await self.uow.events.get_event(event_id)
             notifications = await self._prepare_notifications(
                 next_event_before=next_event,
                 changed_events=[event],
             )
             await self.uow.commit()
-            delivery_info = await NotificationService(
-                self.uow, self.identity
-            ).send_notifications(notifications)
+            delivery_info = await send_notifications(notifications)
             logger.info(
                 f"Event id={event.id} was skipped by user id={self.identity.id}\n"
                 f"Delivery: {delivery_info}"
             )
-            return event.to_dto(), delivery_info
+            return event, delivery_info
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def move_event(
@@ -165,28 +165,30 @@ class ScheduleManagementService(BaseService):
         after_event = await self.uow.events.get_event(after_event_id)
         if not after_event:
             raise EventNotFound(event_id=after_event_id)
-        next_event = await self.uow.events.get_next_active_event()
+        next_event = await self.uow.events.get_next_event()
         before_event = await self.uow.events.get_next_by_order(after_event.id)
         async with self.uow:
-            if before_event:
-                event.order = (after_event.order + before_event.order) / 2
-            else:
-                event.order = after_event.order + 0.5
-            await self.uow.session.flush([event])
-            await self.uow.session.refresh(event, ["position"])
+            await self.uow.events.update_event(
+                UpdateEventDTO(
+                    id=event_id,
+                    order=(after_event.order + before_event.order) / 2
+                    if before_event
+                    else after_event.order + 0.5,
+                ),
+            )
+            await self.uow.flush()
+            event = await self.uow.events.get_event(event_id)
             notifications = await self._prepare_notifications(
                 next_event_before=next_event, changed_events=[event]
             )
             await self.uow.commit()
-            delivery_info = await NotificationService(
-                self.uow, self.identity
-            ).send_notifications(notifications)
+            delivery_info = await send_notifications(notifications)
             logger.info(
                 f"Event id={event.id} was placed after event id={after_event_id} "
                 f"by User id={self.identity.id}\n"
                 f"Delivery: {delivery_info}"
             )
-            return event.to_dto(), after_event.to_dto(), delivery_info
+            return event, after_event, delivery_info
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def set_current_event(self, event_id: int) -> Tuple[EventDTO, DeliveryInfo]:
@@ -204,38 +206,40 @@ class ScheduleManagementService(BaseService):
         if current_event:
             if event is current_event:
                 raise CurrentEventNotAllowed
-            current_event.current = None
-            await self.uow.session.flush([current_event])
-        next_event = await self.uow.events.get_next_active_event()
+            await self.uow.events.update_event(
+                UpdateEventDTO(
+                    id=current_event.id,
+                    current=None,
+                ),
+            )
+            await self.uow.flush()
+        next_event = await self.uow.events.get_next_event()
 
         async with self.uow:
-            event.current = True
-            await self.uow.session.flush([event])
+            await self.uow.events.update_event(
+                UpdateEventDTO(
+                    id=event_id,
+                    current=True,
+                ),
+            )
+            await self.uow.flush()
             notifications = await self._prepare_notifications(
                 next_event_before=next_event,
                 changed_events=[event],
             )
             await self.uow.commit()
-            delivery_info = await NotificationService(
-                self.uow, self.identity
-            ).send_notifications(notifications)
+            delivery_info = await send_notifications(notifications)
             logger.info(
                 f"Event id={event.id} was set as current by User id={self.identity.id}"
             )
-            return event.to_dto(), delivery_info
+            return event, delivery_info
 
     @check_permission(allowed_roles=[UserRole.HELPER, UserRole.ORG])
     async def set_next_event(self) -> Tuple[EventDTO, DeliveryInfo]:
         """Sets next event as current
         @return: Current event
         """
-        current_event = await self.uow.events.get_current_event()
-        if current_event:
-            next_event = await self.uow.events.get_next_active_event()
-            if not next_event:
-                raise NoNextEvent
-        else:
-            next_event = await self.uow.events.get_event_by_position(1)
-            if not next_event:
-                raise EventNotFound
+        next_event = await self.uow.events.get_next_event()
+        if not next_event:
+            raise NoNextEvent
         return await self.set_current_event(next_event.id)

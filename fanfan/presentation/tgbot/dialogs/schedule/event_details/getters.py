@@ -12,7 +12,7 @@ async def selected_event_getter(
     **kwargs,
 ):
     try:
-        selected_event = await app.schedule.get_schedule_event(
+        selected_event = await app.schedule.get_event(
             event_id=dialog_manager.start_data,
             user_id=user.id,
         )

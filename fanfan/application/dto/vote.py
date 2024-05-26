@@ -1,6 +1,11 @@
 from pydantic import BaseModel, ConfigDict
 
 
+class CreateVoteDTO(BaseModel):
+    user_id: int
+    participant_id: int
+
+
 class VoteDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True, frozen=True)
 

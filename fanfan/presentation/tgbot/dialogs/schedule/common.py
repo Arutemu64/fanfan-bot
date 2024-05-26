@@ -4,7 +4,7 @@ from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.common import ManagedScroll
 
 from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.exceptions.event import NoCurrentEvent
+from fanfan.application.exceptions.event import EventNotFound, NoCurrentEvent
 from fanfan.application.holder import AppHolder
 from fanfan.presentation.tgbot.dialogs.schedule.constants import (
     DATA_PAGE_BEFORE_SEARCH,
@@ -16,12 +16,15 @@ from fanfan.presentation.tgbot.dialogs.schedule.constants import (
 async def show_event_page(manager: DialogManager, event_id: int):
     user: FullUserDTO = manager.middleware_data["user"]
     app: AppHolder = manager.middleware_data["app"]
-    page = await app.schedule.get_page_number_by_event(
-        event_id=event_id,
-        events_per_page=user.settings.items_per_page,
-        search_query=manager.dialog_data.get(DATA_SEARCH_QUERY, None),
-    )
-    await manager.find(ID_SCHEDULE_SCROLL).set_page(page)
+    try:
+        page = await app.schedule.get_page_number_by_event(
+            event_id=event_id,
+            events_per_page=user.settings.items_per_page,
+            search_query=manager.dialog_data.get(DATA_SEARCH_QUERY, None),
+        )
+        await manager.find(ID_SCHEDULE_SCROLL).set_page(page)
+    except EventNotFound:
+        pass
 
 
 async def update_schedule(

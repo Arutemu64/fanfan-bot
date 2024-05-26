@@ -6,7 +6,6 @@ from sqlalchemy import BigInteger, func, select
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import (
     Mapped,
-    WriteOnlyMapped,
     column_property,
     mapped_column,
     relationship,
@@ -20,7 +19,6 @@ from fanfan.infrastructure.db.models.user_permissions import UserPermissions
 from fanfan.infrastructure.db.models.user_settings import UserSettings
 
 if TYPE_CHECKING:
-    from fanfan.infrastructure.db.models.achievement import Achievement
     from fanfan.infrastructure.db.models.ticket import Ticket
 
 
@@ -39,20 +37,16 @@ class User(Base):
         server_default="VISITOR",
     )
 
+    # Relations
     settings: Mapped[UserSettings] = relationship()
     permissions: Mapped[UserPermissions] = relationship()
     ticket: Mapped[Optional[Ticket]] = relationship(foreign_keys="Ticket.used_by_id")
-
     achievements_count = column_property(
         select(func.count())
         .where(ReceivedAchievement.user_id == id)
         .correlate_except(ReceivedAchievement)
         .scalar_subquery(),
         deferred=True,
-    )
-    received_achievements: WriteOnlyMapped[Achievement] = relationship(
-        secondary="received_achievements",
-        passive_deletes=True,
     )
 
     def to_dto(self) -> UserDTO:

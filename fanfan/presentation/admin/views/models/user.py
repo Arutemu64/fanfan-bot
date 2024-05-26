@@ -20,7 +20,6 @@ class UserView(ModelView, model=User):
         User.role,
         User.ticket,
     ]
-    column_details_exclude_list = [User.received_achievements]
     column_searchable_list = [User.username, User.role]
     column_sortable_list = [User.achievements_count]
     form_ajax_refs = {

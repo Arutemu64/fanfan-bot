@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fanfan.application.dto.common import Page
-from fanfan.application.dto.event import EventDTO, ScheduleEventDTO
+from fanfan.application.dto.event import EventDTO, FullEventDTO, ScheduleEventDTO
 from fanfan.application.exceptions.event import (
     EventNotFound,
     NoCurrentEvent,
@@ -10,20 +10,15 @@ from fanfan.application.services.base import BaseService
 
 
 class ScheduleService(BaseService):
-    async def get_event(self, event_id: int) -> EventDTO:
+    async def get_event(
+        self, event_id: int, user_id: Optional[int] = None
+    ) -> FullEventDTO:
         """@param event_id:
         @raise EventNotFound
         @return:
         """
-        if event := await self.uow.events.get_event(event_id):
-            return event.to_dto()
-        raise EventNotFound(event_id=event_id)
-
-    async def get_schedule_event(
-        self, event_id: int, user_id: Optional[int] = None
-    ) -> ScheduleEventDTO:
-        if event := await self.uow.events.get_event_for_user(event_id, user_id):
-            return event.to_schedule_dto()
+        if event := await self.uow.events.get_event(event_id, user_id):
+            return event
         raise EventNotFound(event_id=event_id)
 
     async def get_current_event(self) -> EventDTO:
@@ -32,7 +27,7 @@ class ScheduleService(BaseService):
         @return:
         """
         if event := await self.uow.events.get_current_event():
-            return event.to_dto()
+            return event
         raise NoCurrentEvent
 
     async def get_schedule_page(
@@ -51,16 +46,11 @@ class ScheduleService(BaseService):
         include user's SubscriptionDTO
         @return:
         """
-        page = await self.uow.events.paginate_events(
+        return await self.uow.events.paginate_events(
             page_number=page_number,
             events_per_page=events_per_page,
             search_query=search_query,
             user_id=user_id,
-        )
-        return Page(
-            items=[e.to_schedule_dto() for e in page.items],
-            number=page.number,
-            total_pages=page.total_pages if page.total_pages > 0 else 1,
         )
 
     async def get_page_number_by_event(
@@ -69,11 +59,11 @@ class ScheduleService(BaseService):
         events_per_page: int,
         search_query: Optional[str] = None,
     ) -> int:
-        event = await self.uow.events.get_event(event_id)
-        if not event:
-            raise EventNotFound(event_id=event_id)
-        return await self.uow.events.get_page_number_by_event(
+        page_number = await self.uow.events.get_page_number_by_event(
             event_id=event_id,
             events_per_page=events_per_page,
             search_query=search_query,
         )
+        if page_number is None:
+            raise EventNotFound(event_id=event_id)
+        return page_number

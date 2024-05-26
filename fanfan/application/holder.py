@@ -13,7 +13,6 @@ class AppHolder:
             ActivitiesService,
             CommonService,
             FeedbackService,
-            NotificationService,
             QRService,
             QuestService,
             ScheduleManagementService,
@@ -26,7 +25,6 @@ class AppHolder:
         )
 
         self.schedule = ScheduleService(uow, identity)
-        self.notifications = NotificationService(uow, identity)
         self.quest = QuestService(uow, identity)
         self.schedule = ScheduleService(uow, identity)
         self.schedule_mgmt = ScheduleManagementService(uow, identity)

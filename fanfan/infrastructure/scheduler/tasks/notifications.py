@@ -1,6 +1,6 @@
 import logging
 from datetime import timedelta
-from typing import Annotated, Optional
+from typing import List, Optional
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
@@ -9,7 +9,6 @@ from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
 from redis.asyncio import Redis
-from taskiq import Context, TaskiqDepends
 
 from fanfan.application.dto.notification import UserNotification
 from fanfan.infrastructure.scheduler import broker
@@ -20,46 +19,45 @@ logger = logging.getLogger("__name__")
 @broker.task()
 @inject
 async def send_notification(
-    notification: UserNotification,
-    context: Annotated[Context, TaskiqDepends()],
+    user_id: int,
+    user_notifications: List[UserNotification],
     bot: FromDishka[Bot],
     redis: FromDishka[Redis],
     dialog_bg_factory: FromDishka[BgManagerFactory],
     delivery_id: Optional[str] = None,
-) -> dict:
+) -> None:
     try:
-        if notification.image_id:
-            message = await bot.send_photo(
-                chat_id=notification.user_id,
-                photo=str(notification.image_id),
-                caption=notification.render_message_text(),
-                reply_markup=notification.reply_markup,
-            )
-        else:
-            message = await bot.send_message(
-                chat_id=notification.user_id,
-                text=notification.render_message_text(),
-                reply_markup=notification.reply_markup,
-            )
+        for notification in user_notifications:
+            if notification.image_id:
+                message = await bot.send_photo(
+                    chat_id=user_id,
+                    photo=str(notification.image_id),
+                    caption=notification.render_message_text(),
+                    reply_markup=notification.reply_markup,
+                )
+            else:
+                message = await bot.send_message(
+                    chat_id=user_id,
+                    text=notification.render_message_text(),
+                    reply_markup=notification.reply_markup,
+                )
+            if delivery_id:
+                await redis.lpush(
+                    f"delivery:{delivery_id}",
+                    message.model_dump_json(exclude_none=True),
+                )
+                await redis.expire(
+                    f"delivery:{delivery_id}", time=timedelta(hours=1).seconds
+                )
         bg = dialog_bg_factory.bg(
             bot=bot,
-            user_id=notification.user_id,
-            chat_id=notification.user_id,
+            user_id=user_id,
+            chat_id=user_id,
             load=True,
         )
         await bg.update(data={}, show_mode=ShowMode.DELETE_AND_SEND)
-        if delivery_id:
-            await redis.lpush(f"delivery:{delivery_id}", context.message.task_id)
-            await redis.expire(
-                f"delivery:{delivery_id}", time=timedelta(hours=1).seconds
-            )
-        logger.info(
-            f"Notification message id={message.message_id} "
-            f"was sent to user id={message.chat.id}"
-        )
-        return message.model_dump(mode="json", exclude_none=True)
     except (TelegramBadRequest, TelegramForbiddenError):
-        logger.info(f"Failed to send message to {notification.user_id}, skip")
+        logger.info(f"Failed to send messages to {user_id}, skip")
 
 
 @broker.task()

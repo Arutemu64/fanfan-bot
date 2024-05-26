@@ -22,19 +22,20 @@ class Ticket(Base):
         postgresql.ENUM(UserRole),
         server_default="VISITOR",
     )
+
+    # Users relations
     used_by_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True,
         unique=True,
     )
-    issued_by_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"),
-        nullable=True,
-    )
-
     used_by: Mapped[Optional[User]] = relationship(
         foreign_keys=used_by_id,
         back_populates="ticket",
+    )
+    issued_by_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
     )
     issued_by: Mapped[Optional[User]] = relationship(foreign_keys=issued_by_id)
 

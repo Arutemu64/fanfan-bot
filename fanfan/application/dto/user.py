@@ -39,16 +39,17 @@ class FullUserDTO(UserDTO):
     ticket: Optional[TicketDTO]
 
 
-class UpdateUserDTO(BaseModel):
-    id: int
-    username: Optional[str] = ""
-    role: Optional[UserRole] = None
-
-
 class UpdateUserSettingsDTO(BaseModel):
-    user_id: int
     items_per_page: Optional[int] = None
     receive_all_announcements: Optional[bool] = None
+
+
+class UpdateUserDTO(BaseModel):
+    id: int
+    username: Optional[str] = None
+    role: Optional[UserRole] = None
+
+    settings: Optional[UpdateUserSettingsDTO] = None
 
 
 class UserStats(BaseModel):

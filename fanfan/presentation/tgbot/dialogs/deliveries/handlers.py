@@ -12,6 +12,10 @@ from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
 from fanfan.common.utils import NOTIFICATIONS_PLURALS, pluralize
 from fanfan.config import get_config
+from fanfan.infrastructure.scheduler.utils.notifications import (
+    delete_delivery,
+    send_notifications,
+)
 from fanfan.presentation.tgbot import states
 
 from .constants import (
@@ -44,7 +48,7 @@ async def send_delivery_handler(
                     timestamp=timestamp,
                 ),
             )
-        delivery_info = await app.notifications.send_notifications(notifications)
+        delivery_info = await send_notifications(notifications)
     except ServiceError as e:
         await callback.answer(e.message)
         return
@@ -83,15 +87,10 @@ async def delete_delivery_handler(
     dialog_manager: DialogManager,
     data: str,
 ):
-    app: AppHolder = dialog_manager.middleware_data["app"]
-
-    try:
-        delivery_info = await app.notifications.delete_delivery(data)
-        await message.answer(
-            f"✅ Будет удалено {delivery_info.count} "
-            f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}"
-        )
-    except ServiceError as e:
-        await message.answer(e.message)
+    delivery_info = await delete_delivery(data)
+    await message.answer(
+        f"✅ Будет удалено {delivery_info.count} "
+        f"{pluralize(delivery_info.count, NOTIFICATIONS_PLURALS)}"
+    )
 
     await dialog_manager.switch_to(states.DELIVERIES.MAIN)

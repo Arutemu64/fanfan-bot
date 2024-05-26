@@ -1,7 +1,6 @@
 from aiogram_dialog import DialogManager
 
 from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.exceptions.voting import VoteNotFound
 from fanfan.application.holder import AppHolder
 
 from .constants import (
@@ -45,7 +44,8 @@ async def participants_getter(
     **kwargs,
 ):
     nomination = await app.voting.get_nomination(
-        dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
+        nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
+        user_id=user.id,
     )
     page = await app.voting.get_participants_page(
         nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
@@ -54,14 +54,9 @@ async def participants_getter(
         user_id=user.id,
         search_query=dialog_manager.dialog_data.get(DATA_SEARCH_QUERY, None),
     )
-    try:
-        user_vote = await app.voting.get_vote_by_nomination(
-            user_id=user.id,
-            nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
-        )
-        dialog_manager.dialog_data[DATA_USER_VOTE_ID] = user_vote.id
-    except VoteNotFound:
-        dialog_manager.dialog_data[DATA_USER_VOTE_ID] = None
+    dialog_manager.dialog_data[DATA_USER_VOTE_ID] = (
+        nomination.user_vote.id if nomination.user_vote else None
+    )
     return {
         "nomination_title": nomination.title,
         "pages": page.total_pages,

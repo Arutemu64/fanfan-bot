@@ -13,12 +13,13 @@ if typing.TYPE_CHECKING:
 class UserSettings(Base):
     __tablename__ = "user_settings"
 
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
-    )
     items_per_page: Mapped[int] = mapped_column(server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="True")
 
+    # User relation
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
     user: Mapped["User"] = relationship(back_populates="settings")
 
     def __str__(self):

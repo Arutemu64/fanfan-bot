@@ -18,19 +18,21 @@ class Vote(Base):
     __tablename__ = "votes"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+
+    # Participant relation
     participant_id: Mapped[int] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE"),
     )
-
-    UniqueConstraint(user_id, participant_id)
-
-    user: Mapped[User] = relationship()
     participant: Mapped[Participant] = relationship()
     nomination: Mapped[Nomination] = relationship(
         secondary="participants",
         viewonly=True,
     )
+
+    # User relation
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user: Mapped[User] = relationship()
+    UniqueConstraint(user_id, participant_id)  # User can vote once for participant
 
     def to_dto(self) -> VoteDTO:
         return VoteDTO.model_validate(self)

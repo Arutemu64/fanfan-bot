@@ -13,12 +13,12 @@ if typing.TYPE_CHECKING:
 class UserPermissions(Base):
     __tablename__ = "user_permissions"
 
+    can_send_feedback: Mapped[bool] = mapped_column(server_default="True")
+
+    # User elation
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
-
-    can_send_feedback: Mapped[bool] = mapped_column(server_default="True")
-
     user: Mapped["User"] = relationship(back_populates="permissions")
 
     def __str__(self):

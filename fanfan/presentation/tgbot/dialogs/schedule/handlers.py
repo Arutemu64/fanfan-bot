@@ -4,7 +4,11 @@ from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.input import ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button
 
-from fanfan.application.dto.user import FullUserDTO, UpdateUserSettingsDTO
+from fanfan.application.dto.user import (
+    FullUserDTO,
+    UpdateUserDTO,
+    UpdateUserSettingsDTO,
+)
 from fanfan.application.exceptions import ServiceError
 from fanfan.application.holder import AppHolder
 from fanfan.common.utils import NOTIFICATIONS_PLURALS, pluralize
@@ -50,10 +54,12 @@ async def toggle_all_notifications_handler(
     user: FullUserDTO = manager.middleware_data["user"]
     app: AppHolder = manager.middleware_data["app"]
     try:
-        await app.users.update_user_settings(
-            UpdateUserSettingsDTO(
-                user_id=user.id,
-                receive_all_announcements=not user.settings.receive_all_announcements,
+        await app.users.update_user(
+            UpdateUserDTO(
+                id=user.id,
+                settings=UpdateUserSettingsDTO(
+                    receive_all_announcements=not user.settings.receive_all_announcements,
+                ),
             ),
         )
         manager.middleware_data["user"] = await app.users.get_user_by_id(user.id)

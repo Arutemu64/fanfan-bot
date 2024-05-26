@@ -4,7 +4,6 @@ from aiogram_dialog import DialogManager
 
 from fanfan.application.dto.user import FullUserDTO
 from fanfan.application.holder import AppHolder
-from fanfan.common.enums import BotMode
 from fanfan.config import get_config
 
 
@@ -15,7 +14,6 @@ async def main_menu_getter(
     **kwargs,
 ):
     config = get_config()
-    settings = await app.settings.get_settings()
     user_stats = None
     achievements_progress = 0
     if user.ticket:
@@ -30,10 +28,8 @@ async def main_menu_getter(
         "achievements_progress": achievements_progress if user_stats else None,
         "total_achievements": user_stats.total_achievements if user_stats else None,
         # Settings
-        "voting_enabled": settings.voting_enabled,
-        "webapp_link": config.web.build_qr_scanner_url()
-        if config.web.mode is BotMode.WEBHOOK
-        else None,
+        "bot_mode": config.web.mode,
+        "webapp_link": config.web.build_qr_scanner_url(),
         # Most important thing ever
         "random_quote": await app.common.get_random_quote(),
     }

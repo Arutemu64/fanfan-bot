@@ -7,9 +7,11 @@ from fastapi import Request, UploadFile
 from sqladmin import BaseView, expose
 from sqlalchemy.exc import IntegrityError
 
+from fanfan.application.dto.nomination import CreateNominationDTO
+from fanfan.application.dto.participant import CreateParticipantDTO
+from fanfan.application.dto.ticket import CreateTicketDTO
 from fanfan.common import TEMP_DIR
 from fanfan.common.enums import UserRole
-from fanfan.infrastructure.db.models import Nomination, Participant, Ticket
 from fanfan.infrastructure.db.uow import UnitOfWork
 from fanfan.infrastructure.di.config import ConfigProvider
 from fanfan.infrastructure.di.db import DbProvider
@@ -31,12 +33,13 @@ async def parse(path: Path, uow: UnitOfWork):
     for index, row in df.iterrows():
         try:
             async with uow.session.begin_nested():
-                nomination = Nomination(
-                    id=row["id"],
-                    title=row["title"],
-                    votable=row["votable"],
+                await uow.nominations.add_nomination(
+                    CreateNominationDTO(
+                        id=row["id"],
+                        title=row["title"],
+                        votable=row["votable"],
+                    )
                 )
-                uow.session.add(nomination)
         except IntegrityError as e:
             nomination = await uow.nominations.get_nomination(row["id"])
             if not nomination:
@@ -46,11 +49,12 @@ async def parse(path: Path, uow: UnitOfWork):
     for index, row in df.iterrows():
         try:
             async with uow.session.begin_nested():
-                participant = Participant(
-                    title=row["title"],
-                    nomination_id=row["nomination_id"],
+                await uow.participants.add_participant(
+                    CreateParticipantDTO(
+                        title=row["title"],
+                        nomination_id=row["nomination_id"],
+                    )
                 )
-                uow.session.add(participant)
         except IntegrityError as e:
             participant = await uow.participants.get_participant_by_title(row["title"])
             if not participant:
@@ -67,8 +71,9 @@ async def parse(path: Path, uow: UnitOfWork):
     for index, row in df.iterrows():
         try:
             async with uow.session.begin_nested():
-                ticket = Ticket(id=row["id"], role=row["role"])
-                uow.session.add(ticket)
+                await uow.tickets.add_ticket(
+                    CreateTicketDTO(id=row["id"], role=row["role"])
+                )
         except IntegrityError as e:
             ticket = await uow.tickets.get_ticket(row["id"])
             if not ticket:

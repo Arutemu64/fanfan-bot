@@ -5,9 +5,8 @@ from fanfan.application.dto.notification import UserNotification
 from fanfan.application.exceptions.access import AccessDenied
 from fanfan.application.exceptions.users import UserNotFound
 from fanfan.application.services.base import BaseService
-from fanfan.application.services.notification import NotificationService
 from fanfan.common.enums import UserRole
-from fanfan.infrastructure.db.models import Feedback
+from fanfan.infrastructure.scheduler.utils.notifications import send_notifications
 
 
 class FeedbackService(BaseService):
@@ -18,12 +17,7 @@ class FeedbackService(BaseService):
         if not user.permissions.can_send_feedback:
             raise AccessDenied
         async with self.uow:
-            feedback = Feedback(
-                user_id=dto.user_id,
-                text=dto.text,
-                asap=dto.asap,
-            )
-            self.uow.session.add(feedback)
+            await self.uow.feedback.add_feedback(dto)
             await self.uow.session.commit()
             if dto.asap:
                 notifications: List[UserNotification] = []
@@ -40,7 +34,5 @@ class FeedbackService(BaseService):
                             "у него право can_send_feedback",
                         )
                     )
-                await NotificationService(self.uow, self.identity).send_notifications(
-                    notifications
-                )
+                await send_notifications(notifications)
             return

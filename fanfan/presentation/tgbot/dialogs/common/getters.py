@@ -3,6 +3,7 @@ from fanfan.application.holder import AppHolder
 from fanfan.common.enums import UserRole
 
 CURRENT_USER = "current_user"
+SETTINGS = "settings"
 
 
 async def roles_getter(**kwargs) -> dict:

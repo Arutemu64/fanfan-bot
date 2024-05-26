@@ -1,11 +1,10 @@
 import datetime
 
 from sqlalchemy import DateTime, MetaData, func
-from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 
-class Base(DeclarativeBase, AsyncAttrs):
+class Base(DeclarativeBase):
     """Abstract model with declarative base functionality."""
 
     metadata = MetaData(

@@ -163,10 +163,11 @@ async def unsubscribe_button_handler(
 ):
     app: AppHolder = manager.middleware_data["app"]
     try:
-        await app.subscriptions.delete_subscription_by_event(
+        subscription = await app.subscriptions.get_subscription_by_event(
             user_id=manager.event.from_user.id,
             event_id=manager.start_data,
         )
+        await app.subscriptions.delete_subscription(subscription.id)
     except ServiceError as e:
         await callback.answer(e.message, show_alert=True)
         manager.show_mode = ShowMode.DELETE_AND_SEND

@@ -4,6 +4,7 @@ from .repositories import (
     AchievementsRepository,
     ActivitiesRepository,
     EventsRepository,
+    FeedbackRepository,
     NominationsRepository,
     ParticipantsRepository,
     QuotesRepository,
@@ -29,6 +30,7 @@ class UnitOfWork:
         self.votes = VotesRepository(self.session)
         self.activities = ActivitiesRepository(self.session)
         self.quotes = QuotesRepository(self.session)
+        self.feedback = FeedbackRepository(self.session)
 
     async def __aenter__(self):
         pass
@@ -39,6 +41,9 @@ class UnitOfWork:
 
     async def rollback(self):
         await self.session.rollback()
+
+    async def flush(self):
+        await self.session.flush()
 
     async def commit(self):
         await self.session.commit()
