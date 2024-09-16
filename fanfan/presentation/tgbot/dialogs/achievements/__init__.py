@@ -1,13 +1,17 @@
-from typing import Optional
-
 from aiogram_dialog import Dialog, DialogManager
 
-from .constants import DATA_USER_ID
-from .windows import achievements_window
+from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.achievements.list_achievements import (
+    DATA_USER_ID,
+    list_achievements_window,
+)
 
 
-async def on_start_achievements(start_data: Optional[int], manager: DialogManager):
-    manager.dialog_data[DATA_USER_ID] = start_data or manager.event.from_user.id
+async def start_achievements(manager: DialogManager, user_id: int | None = None):
+    await manager.start(
+        state=states.Achievements.list_achievements,
+        data={DATA_USER_ID: user_id or manager.event.from_user.id},
+    )
 
 
-dialog = Dialog(achievements_window, on_start=on_start_achievements)
+dialog = Dialog(list_achievements_window)

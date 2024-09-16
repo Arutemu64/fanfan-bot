@@ -6,3 +6,4 @@ TEMP_DIR = Path(tempfile.gettempdir())
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 QR_CODES_TEMP_DIR = TEMP_DIR.joinpath("qr_codes")
+QR_CODES_TEMP_DIR.mkdir(parents=True, exist_ok=True)

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fanfan.application.dto.settings import SettingsDTO
+from fanfan.core.models.settings import SettingsDTO
 from fanfan.infrastructure.db.models.base import Base
 
 
@@ -15,9 +15,10 @@ class Settings(Base):
 
     # Announcements
     announcement_timeout: Mapped[int] = mapped_column(server_default="10")
-    announcement_timestamp: Mapped[float] = mapped_column(
-        server_default="0", deferred=True
-    )
 
     def to_dto(self) -> SettingsDTO:
-        return SettingsDTO.model_validate(self)
+        return SettingsDTO(
+            announcement_timeout=self.announcement_timeout,
+            voting_enabled=self.voting_enabled,
+            asap_feedback_enabled=self.asap_feedback_enabled,
+        )

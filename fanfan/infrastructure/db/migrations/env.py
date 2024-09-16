@@ -7,7 +7,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from fanfan.config import get_config
+from fanfan.common.config import get_config
 from fanfan.infrastructure.db.models import Base
 
 # this is the Alembic Config object, which provides
@@ -21,14 +21,14 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# from myapp import mymodel  # noqa: ERA001
+# target_metadata = mymodel.Base.metadata  # noqa: ERA001
 target_metadata = Base.metadata
 config.set_main_option("sqlalchemy.url", get_config().db.build_connection_str())
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
+# my_important_option = config.get_main_option("my_important_option")  # noqa: ERA001
 # ... etc.
 
 
@@ -90,7 +90,7 @@ def run_migrations_online() -> None:
     asyncio.run(run_async_migrations())
 
 
-def process_revision_directives(context, revision, directives):
+def process_revision_directives(context, revision, directives) -> None:
     # extract Migration
     migration_script = directives[0]
     # extract current head revision
@@ -108,8 +108,6 @@ def process_revision_directives(context, revision, directives):
 
 
 if context.is_offline_mode():
-    # asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     run_migrations_offline()
 else:
-    # asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     run_migrations_online()

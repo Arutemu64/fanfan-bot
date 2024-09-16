@@ -1,4 +1,4 @@
-"""feedback_remove_agreement
+"""feedback_remove_agreement.
 
 Revision ID: 013
 Revises: 012
@@ -27,7 +27,10 @@ def downgrade() -> None:
     op.add_column(
         "feedback",
         sa.Column(
-            "contact_agreement", sa.BOOLEAN(), autoincrement=False, nullable=False
+            "contact_agreement",
+            sa.BOOLEAN(),
+            autoincrement=False,
+            nullable=False,
         ),
     )
     # ### end Alembic commands ###

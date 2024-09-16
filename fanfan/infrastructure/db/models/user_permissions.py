@@ -3,7 +3,7 @@ import typing
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from fanfan.application.dto.user import UserPermissionsDTO
+from fanfan.core.models.user import UserPermissionsDTO
 from fanfan.infrastructure.db.models.base import Base
 
 if typing.TYPE_CHECKING:
@@ -15,11 +15,12 @@ class UserPermissions(Base):
 
     can_send_feedback: Mapped[bool] = mapped_column(server_default="True")
 
-    # User elation
+    # User relation
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+        ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True,
     )
     user: Mapped["User"] = relationship(back_populates="permissions")
 
-    def __str__(self):
-        return UserPermissionsDTO.model_validate(self).__str__()
+    def to_dto(self) -> UserPermissionsDTO:
+        return UserPermissionsDTO(can_send_feedback=self.can_send_feedback)

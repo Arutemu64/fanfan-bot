@@ -12,46 +12,59 @@ services:
       - bot-data:/media/bot-data
       - ./alembic.ini:/app/alembic.ini
     ports:
-      - "8080:8080"
+      - $BOT_WEBHOOK_PORT:$BOT_WEBHOOK_PORT
     depends_on:
       - db
       - redis
-  worker:
+  web:
     image: bot_image
+    env_file:
+      - .env
+    restart: unless-stopped
+    stop_signal: SIGINT
+    volumes:
+      - bot-data:/media/bot-data
+    ports:
+      - $WEB_PORT:$WEB_PORT
     depends_on:
-      - bot
+      - db
+      - redis
     command:
       [
-        "poetry",
-        "run",
-        "taskiq",
-        "worker",
-        "fanfan.infrastructure.scheduler:broker",
-        "fanfan.infrastructure.scheduler.tasks",
+        "python",
+        "-m",
+        "fanfan.main.web",
       ]
+  worker:
+    image: bot_image
     restart: always
     env_file:
       - .env
     volumes:
       - bot-data:/media/bot-data
+    command:
+      [
+        "taskiq",
+        "worker",
+        "fanfan.infrastructure.scheduler:broker",
+        "fanfan.infrastructure.scheduler.tasks",
+      ]
   scheduler:
     image: bot_image
     depends_on:
       - bot
-    command:
-      [
-        "poetry",
-        "run",
-        "taskiq",
-        "scheduler",
-        "fanfan.infrastructure.scheduler:scheduler",
-        "fanfan.infrastructure.scheduler.tasks",
-      ]
     restart: unless-stopped
     env_file:
       - .env
     volumes:
       - bot-data:/media/bot-data
+    command:
+      [
+        "taskiq",
+        "scheduler",
+        "fanfan.infrastructure.scheduler:scheduler",
+        "fanfan.infrastructure.scheduler.tasks",
+      ]
   db:
     build:
       context: buildfiles

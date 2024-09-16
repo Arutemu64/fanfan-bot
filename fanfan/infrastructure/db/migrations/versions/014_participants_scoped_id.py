@@ -1,4 +1,4 @@
-"""participants_scoped_id
+"""participants_scoped_id.
 
 Revision ID: 014
 Revises: 013
@@ -51,7 +51,9 @@ def downgrade() -> None:
         ),
     )
     op.drop_constraint(
-        op.f("uq_participants_nomination_id"), "participants", type_="unique"
+        op.f("uq_participants_nomination_id"),
+        "participants",
+        type_="unique",
     )
     op.create_unique_constraint("uq_participants_order", "participants", ["order"])
     op.drop_column("participants", "scoped_id")

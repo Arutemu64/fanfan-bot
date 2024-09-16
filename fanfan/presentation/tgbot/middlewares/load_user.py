@@ -1,35 +1,77 @@
-from typing import Any, Awaitable, Callable, Dict
+from __future__ import annotations
 
-from aiogram import BaseMiddleware, Bot
-from aiogram.types import TelegramObject
-from dishka import AsyncContainer
+from typing import TYPE_CHECKING, Any
+
+import sentry_sdk
+from aiogram import BaseMiddleware
 from dishka.integrations.aiogram import CONTAINER_NAME
 
-from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.holder import AppHolder
-from fanfan.presentation.tgbot.handlers.commands import (
-    update_user_commands,
-)
+from fanfan.application.users.create_user import CreateUser, CreateUserDTO
+from fanfan.application.users.get_user_by_id import GetUserById
+from fanfan.application.users.update_user import UpdateUser, UpdateUserDTO
+from fanfan.application.users.update_user_commands import UpdateUserCommands
+from fanfan.common.config import DebugConfig
+from fanfan.core.exceptions.users import UserNotFound
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from aiogram.types import TelegramObject, User
+    from dishka import AsyncContainer
 
 
-class LoadUserMiddleware(BaseMiddleware):
+class LoadDataMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
-        container: AsyncContainer = data[CONTAINER_NAME]
-        user = await container.get(FullUserDTO)
-        app = await container.get(AppHolder)
+        if data.get("event_from_user"):
+            tg_user: User = data["event_from_user"]
+            container: AsyncContainer = data[CONTAINER_NAME]
+            create_user = await container.get(CreateUser)
+            update_user = await container.get(UpdateUser)
+            get_user_by_id = await container.get(GetUserById)
+            update_user_commands = await container.get(UpdateUserCommands)
 
-        # Update user commands
-        await update_user_commands(
-            bot=await container.get(Bot),
-            user=user,
-            settings=await app.settings.get_settings(),
-        )
+            # Setup Sentry logging
+            debug_config = await container.get(DebugConfig)
+            if debug_config.sentry_enabled:
+                sentry_sdk.set_user(
+                    {
+                        "id": tg_user.id,
+                        "username": tg_user.username,
+                    },
+                )
 
-        data["user"] = user
-        data["app"] = app
+            # Check if user exists, create if not
+            try:
+                user = await get_user_by_id(tg_user.id)
+            except UserNotFound:
+                await create_user(
+                    CreateUserDTO(
+                        id=tg_user.id,
+                        username=tg_user.username,
+                    ),
+                )
+                user = await get_user_by_id(tg_user.id)
+
+            # Update username in database
+            if user.username != tg_user.username:
+                await update_user(
+                    UpdateUserDTO(
+                        id=tg_user.id,
+                        username=tg_user.username,
+                    ),
+                )
+                user = await get_user_by_id(tg_user.id)
+
+            # Update user commands
+            await update_user_commands(user_id=tg_user.id)
+
+            # DI
+            data["user"] = user
+            data["container"] = container
+
         return await handler(event, data)

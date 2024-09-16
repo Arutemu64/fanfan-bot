@@ -1,4 +1,4 @@
-"""activity
+"""activity.
 
 Revision ID: 003
 Revises: 002

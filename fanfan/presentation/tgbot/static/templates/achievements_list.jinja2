@@ -1,5 +1,5 @@
 {% for achievement in achievements %}
-<b>{{ achievement.title }} {% if achievement.user_received %}✅{% else %}<i>(не получено)</i>{% endif %}</b>
+<b>{{ achievement.title }} {% if achievement.received %}✅{% else %}⬜{% endif %}</b>
     {% if achievement.description %}
 {{ achievement.description }}
     {% endif %}

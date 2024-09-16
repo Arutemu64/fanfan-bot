@@ -1,6 +1,5 @@
 import enum
 from dataclasses import dataclass
-from typing import List
 
 
 class OrderStatus(enum.StrEnum):
@@ -44,10 +43,10 @@ class OrderStatusResponse:
 @dataclass
 class RegistrationOrderResponse:
     status: OrderStatusResponse
-    tickets: List[TicketResponse]
+    tickets: list[TicketResponse]
 
 
 @dataclass
 class RegistrationOrdersResponse:
     total: int
-    values: List[RegistrationOrderResponse]
+    values: list[RegistrationOrderResponse]

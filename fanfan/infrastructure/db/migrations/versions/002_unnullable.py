@@ -1,4 +1,4 @@
-"""unnullable
+"""unnullable.
 
 Revision ID: 002
 Revises: 001

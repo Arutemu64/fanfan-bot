@@ -1,4 +1,4 @@
-"""feedback_asap
+"""feedback_asap.
 
 Revision ID: 010
 Revises: 009
@@ -21,7 +21,10 @@ def upgrade() -> None:
     op.add_column(
         "settings",
         sa.Column(
-            "asap_feedback_enabled", sa.Boolean(), server_default="True", nullable=False
+            "asap_feedback_enabled",
+            sa.Boolean(),
+            server_default="True",
+            nullable=False,
         ),
     )
     # ### end Alembic commands ###

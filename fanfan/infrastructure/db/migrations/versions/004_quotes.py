@@ -1,4 +1,4 @@
-"""quotes
+"""quotes.
 
 Revision ID: 004
 Revises: 003

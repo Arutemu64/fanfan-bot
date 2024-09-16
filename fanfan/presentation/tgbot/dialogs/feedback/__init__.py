@@ -1,5 +1,7 @@
 from aiogram_dialog import Dialog
 
-from .windows import feedback_window
+from fanfan.presentation.tgbot.dialogs.feedback.send_feedback import (
+    send_feedback_window,
+)
 
-dialog = Dialog(feedback_window)
+dialog = Dialog(send_feedback_window)

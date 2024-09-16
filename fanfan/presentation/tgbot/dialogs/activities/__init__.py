@@ -1,8 +1,9 @@
 from aiogram_dialog import Dialog
 
-from .windows import activity_info_window, select_activity_window
+from .list_activities import list_activities_window
+from .view_activity import view_activity_window
 
 dialog = Dialog(
-    select_activity_window,
-    activity_info_window,
+    list_activities_window,
+    view_activity_window,
 )

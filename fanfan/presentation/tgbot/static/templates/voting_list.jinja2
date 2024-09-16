@@ -8,5 +8,5 @@
 {%- endif %}
 {% endmacro %}
 {% for participant in participants %}
-<b>/{{participant.scoped_id}}</b> {{participant.title}} <b>[{{participant.votes_count}} {{votes_pluralize(participant.votes_count)}}]</b>{{ " ✅" if participant.user_vote else ""}}
+<b>/{{participant.scoped_id}}</b> {{participant.title}} <b>[{{participant.votes_count}} {{votes_pluralize(participant.votes_count)}}]</b>{{ " ✅" if participant.vote else ""}}
 {% endfor %}

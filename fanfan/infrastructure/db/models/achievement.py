@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
-from sqlalchemy import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from fanfan.application.dto.achievement import AchievementDTO, FullAchievementDTO
+from fanfan.core.models.achievement import AchievementDTO, UserAchievementDTO
 from fanfan.infrastructure.db.models.base import Base
 from fanfan.infrastructure.db.models.mixins.order import OrderMixin
 
@@ -19,25 +17,27 @@ class Achievement(Base, OrderMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column()
-    description: Mapped[Optional[str]] = mapped_column(nullable=True)
-    secret_id: Mapped[UUID] = mapped_column(
-        UUID,
-        default=uuid.uuid4,
-        nullable=True,
-        unique=True,
-    )  # Secret ID for quest
+    description: Mapped[str | None] = mapped_column(nullable=True)
+    secret_id: Mapped[str] = mapped_column(unique=True)  # Secret ID for quest
 
     # Relationships
-    user_received: Mapped[Optional[ReceivedAchievement]] = relationship(
-        lazy="noload",
+    user_received: Mapped[ReceivedAchievement | None] = relationship(
+        lazy="raise",
         viewonly=True,
     )
 
-    def to_dto(self) -> AchievementDTO:
-        return AchievementDTO.model_validate(self)
-
-    def to_full_dto(self) -> FullAchievementDTO:
-        return FullAchievementDTO.model_validate(self)
-
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
+
+    def to_dto(self) -> AchievementDTO:
+        return AchievementDTO(
+            id=self.id, title=self.title, description=self.description
+        )
+
+    def to_user_dto(self) -> UserAchievementDTO:
+        return UserAchievementDTO(
+            id=self.id,
+            title=self.title,
+            description=self.description,
+            received=bool(self.user_received),
+        )

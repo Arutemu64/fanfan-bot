@@ -7,8 +7,7 @@
 выступлений
 {%- endif %}
 {% endmacro %}
-{% if current_event.id == subscription.event_id %}
-Выступление {{ subscription.event.title }} <b>НАЧАЛОСЬ!</b>{% else %}
-    {% set counter = subscription.event.position - current_event.position %}
-До выступления {{ subscription.event.title }} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
+{% if current %}
+Выступление {{ id }}. {{ title }} <b>НАЧАЛОСЬ!</b>{% else %}
+До выступления {{ id }}. {{ title }} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
 {%- endif %}

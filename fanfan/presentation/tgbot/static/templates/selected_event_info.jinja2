@@ -7,10 +7,14 @@
 выступлений
 {%- endif %}
 {% endmacro %}
-<blockquote>{{selected_event.title}}</blockquote>
-{% if selected_event.position and current_event %}
-    {% if selected_event.position > current_event.position %}
-        {% set events_left = selected_event.position - current_event.position %}
-До начала осталось <b>{{ events_left }} {{events_pluralize(events_left)}}</b>
+<blockquote>{{ selected_event.id }}. {{ selected_event.title }}</blockquote>
+{% if selected_event.queue and current_event %}
+    {% set queue_difference = selected_event.queue - current_event.queue %}
+    {% if queue_difference < 0 %}
+Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference)}}</b> назад ⌛
+    {% elif queue_difference == 0 %}
+Выступление идёт <b>ПРЯМО СЕЙЧАС</b> 🔴
+    {% elif queue_difference > 0 %}
+До начала осталось <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b> ⌚
     {% endif %}
 {% endif %}

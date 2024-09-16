@@ -1,4 +1,4 @@
-"""final_quest
+"""final_quest.
 
 Revision ID: 006
 Revises: 005
@@ -23,7 +23,9 @@ def upgrade() -> None:
     op.drop_column("users", "points")
     op.add_column("achievements", sa.Column("secret_id", sa.UUID(), nullable=True))
     op.create_unique_constraint(
-        op.f("uq_achievements_secret_id"), "achievements", ["secret_id"]
+        op.f("uq_achievements_secret_id"),
+        "achievements",
+        ["secret_id"],
     )
     op.execute("UPDATE achievements SET secret_id = gen_random_uuid ()")
     op.alter_column("achievements", "secret_id", nullable=False)
@@ -43,7 +45,9 @@ def downgrade() -> None:
         ),
     )
     op.drop_constraint(
-        op.f("uq_achievements_secret_id"), "achievements", type_="unique"
+        op.f("uq_achievements_secret_id"),
+        "achievements",
+        type_="unique",
     )
     op.drop_column("achievements", "secret_id")
     op.create_table(
@@ -53,7 +57,10 @@ def downgrade() -> None:
         sa.Column("to_user_id", sa.BIGINT(), autoincrement=False, nullable=False),
         sa.Column("points_added", sa.INTEGER(), autoincrement=False, nullable=True),
         sa.Column(
-            "achievement_id_added", sa.INTEGER(), autoincrement=False, nullable=True
+            "achievement_id_added",
+            sa.INTEGER(),
+            autoincrement=False,
+            nullable=True,
         ),
         sa.Column(
             "created_on",

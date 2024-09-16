@@ -5,11 +5,11 @@ import typing
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from fanfan.application.dto.subscription import FullSubscriptionDTO, SubscriptionDTO
+from fanfan.core.models.subscription import FullSubscriptionDTO, SubscriptionDTO
 from fanfan.infrastructure.db.models.base import Base
 
 if typing.TYPE_CHECKING:
-    from fanfan.infrastructure.db.models import Event
+    from fanfan.infrastructure.db.models import Event, User
 
 
 class Subscription(Base):
@@ -20,6 +20,7 @@ class Subscription(Base):
 
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user: Mapped[User] = relationship()
 
     # Event relation
     event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id", ondelete="CASCADE"))
@@ -27,7 +28,19 @@ class Subscription(Base):
     UniqueConstraint(event_id, user_id)
 
     def to_dto(self) -> SubscriptionDTO:
-        return SubscriptionDTO.model_validate(self)
+        return SubscriptionDTO(
+            id=self.id,
+            user_id=self.user_id,
+            event_id=self.event_id,
+            counter=self.counter,
+        )
 
     def to_full_dto(self) -> FullSubscriptionDTO:
-        return FullSubscriptionDTO.model_validate(self)
+        self.event: Event
+        return FullSubscriptionDTO(
+            id=self.id,
+            user_id=self.user_id,
+            event_id=self.event_id,
+            counter=self.counter,
+            event=self.event.to_dto() if self.event else None,
+        )

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from fanfan.application.dto.vote import VoteDTO
+from fanfan.core.models.vote import VoteDTO
 from fanfan.infrastructure.db.models.base import Base
 
 if TYPE_CHECKING:
@@ -35,4 +35,6 @@ class Vote(Base):
     UniqueConstraint(user_id, participant_id)  # User can vote once for participant
 
     def to_dto(self) -> VoteDTO:
-        return VoteDTO.model_validate(self)
+        return VoteDTO(
+            id=self.id, user_id=self.user_id, participant_id=self.participant_id
+        )

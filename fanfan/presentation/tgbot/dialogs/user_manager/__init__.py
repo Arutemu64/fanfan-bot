@@ -1,16 +1,19 @@
 from aiogram_dialog import Dialog, DialogManager
 
-from .constants import DATA_MANAGED_USER_ID
-from .windows import manual_user_search_window, role_change_window, user_manager_window
+from fanfan.presentation.tgbot import states
+
+from .change_role import change_role_window
+from .common import DATA_USER_ID
+from .search_user import search_user_window
+from .user_info import user_info_window
 
 
-async def on_user_manager_start(start_data: int, manager: DialogManager):
-    manager.dialog_data[DATA_MANAGED_USER_ID] = start_data
+async def start_user_manager(manager: DialogManager, user_id: int) -> None:
+    await manager.start(state=states.UserManager.main, data={DATA_USER_ID: user_id})
 
 
 dialog = Dialog(
-    user_manager_window,
-    manual_user_search_window,
-    role_change_window,
-    on_start=on_user_manager_start,
+    user_info_window,
+    search_user_window,
+    change_role_window,
 )

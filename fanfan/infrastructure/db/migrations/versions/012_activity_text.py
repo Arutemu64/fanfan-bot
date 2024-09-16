@@ -1,4 +1,4 @@
-"""activity_text
+"""activity_text.
 
 Revision ID: 012
 Revises: 011

@@ -1,0 +1,214 @@
+import math
+
+from aiogram import F
+from aiogram.types import CallbackQuery
+from aiogram_dialog import DialogManager, Window
+from aiogram_dialog.widgets.kbd import Button, Group, Start, WebApp
+from aiogram_dialog.widgets.media import StaticMedia
+from aiogram_dialog.widgets.text import Case, Const, Format, Jinja, Multi, Progress
+from dishka import AsyncContainer
+from dishka.integrations.aiogram import CONTAINER_NAME
+
+from fanfan.application.other.get_random_quote import GetRandomQuote
+from fanfan.application.quest.get_user_stats import GetUserStats
+from fanfan.application.settings.get_settings import GetSettings
+from fanfan.common.config import Configuration
+from fanfan.core.enums import BotMode, UserRole
+from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.exceptions.users import TicketNotLinked
+from fanfan.core.exceptions.votes import VotingDisabled
+from fanfan.core.models.user import FullUserDTO
+from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
+from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
+from fanfan.presentation.tgbot.dialogs.common.getters import (
+    CURRENT_USER,
+    current_user_getter,
+)
+from fanfan.presentation.tgbot.dialogs.common.predicates import is_helper, is_org
+from fanfan.presentation.tgbot.dialogs.common.widgets import Title
+from fanfan.presentation.tgbot.ui import strings
+
+
+async def main_menu_getter(
+    dialog_manager: DialogManager,
+    user: FullUserDTO,
+    container: AsyncContainer,
+    **kwargs,
+):
+    config = await container.get(Configuration)
+    get_user_stats = await container.get(GetUserStats)
+    get_random_quote = await container.get(GetRandomQuote)
+    get_settings = await container.get(GetSettings)
+
+    settings = await get_settings()
+    user_stats = None
+    achievements_progress = 0
+    if user.ticket:
+        user_stats = await get_user_stats(user.id)
+        if user_stats.total_achievements > 0:
+            achievements_progress = math.floor(
+                user_stats.achievements_count * 100 / user_stats.total_achievements,
+            )
+    return {
+        # Info
+        "first_name": dialog_manager.middleware_data["event_from_user"].first_name,
+        # Stats
+        "achievements_count": user_stats.achievements_count if user_stats else None,
+        "achievements_progress": achievements_progress if user_stats else None,
+        "total_achievements": user_stats.total_achievements if user_stats else None,
+        # WebApp
+        "webapp_allowed": config.bot.mode is BotMode.WEBHOOK and user.ticket,
+        "webapp_link": config.web.build_qr_scanner_url(),
+        # Voting
+        "can_vote": settings.voting_enabled and user.ticket is not None,
+        # Most important thing ever
+        "random_quote": await get_random_quote(),
+    }
+
+
+async def open_achievements_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+) -> None:
+    user: FullUserDTO = manager.middleware_data["user"]
+    if not user.ticket:
+        await callback.answer(TicketNotLinked.message, show_alert=True)
+        return
+    await start_achievements(manager, user.id)
+
+
+async def open_voting_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+) -> None:
+    container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
+    get_settings = await container.get(GetSettings)
+
+    user: FullUserDTO = manager.middleware_data["user"]
+    if user.role is UserRole.ORG:
+        await manager.start(states.Voting.list_nominations)
+        return
+    if not user.ticket:
+        await callback.answer(TicketNotLinked.message, show_alert=True)
+        return
+
+    settings = await get_settings()
+    if not settings.voting_enabled:
+        await callback.answer(VotingDisabled.message, show_alert=True)
+        return
+
+    await manager.start(states.Voting.list_nominations)
+
+
+async def open_feedback_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+) -> None:
+    user: FullUserDTO = manager.middleware_data["user"]
+    if not user.permissions.can_send_feedback:
+        await callback.answer(AccessDenied.message, show_alert=True)
+        return
+    await manager.start(states.Feedback.send_feedback)
+
+
+main_window = Window(
+    Title(Const(strings.titles.main_menu)),
+    Jinja(
+        "👋 Привет, {{ first_name|e }}! "
+        "Сейчас ты находишься в главном меню. "
+        "Сюда всегда можно вернуться по команде <b>/start</b>.",
+    ),
+    Const(" "),
+    Multi(
+        Format("<b>🏆 Достижений:</b> {achievements_count} из {total_achievements}"),
+        Progress(field="achievements_progress", filled="🟩", empty="⬜"),
+        Const(" "),
+        when=F[CURRENT_USER].ticket,
+    ),
+    Const(
+        "🎫 Не забудь привязать свой билет, чтобы получить доступ ко "
+        "всем функциям бота (голосование, участие в квесте).\n",
+        when=~F[CURRENT_USER].ticket,
+    ),
+    Format("<i>{random_quote}</i>", when=F["random_quote"]),
+    StaticMedia(path=Const(UI_IMAGES_DIR.joinpath("main_menu.png"))),
+    Start(
+        Const(strings.titles.link_ticket),
+        id="link_ticket",
+        state=states.Main.link_ticket,
+        when=~F[CURRENT_USER].ticket,
+    ),
+    Group(
+        Start(
+            Const(strings.titles.activities),
+            id="open_activities",
+            state=states.Activities.list_activities,
+        ),
+        Start(
+            text=Const(strings.titles.schedule),
+            id="open_schedule",
+            state=states.Schedule.main,
+        ),
+        Button(
+            text=Case(
+                {
+                    True: Const(strings.titles.achievements),
+                    False: Const(f"{strings.titles.achievements} 🔒"),
+                },
+                selector=F[CURRENT_USER].ticket.is_not(None),
+            ),
+            id="open_achievements",
+            on_click=open_achievements_handler,
+        ),
+        WebApp(
+            Const(strings.titles.qr_scanner),
+            url=Format("{webapp_link}"),
+            when="webapp_allowed",
+        ),
+        Button(
+            text=Case(
+                texts={
+                    True: Const(strings.titles.voting),
+                    False: Const(f"{strings.titles.voting} 🔒"),
+                },
+                selector="can_vote",
+            ),
+            id="open_voting",
+            on_click=open_voting_handler,
+        ),
+        Start(
+            text=Const(strings.titles.helper_menu),
+            id="open_helper_menu",
+            when=is_helper,
+            state=states.Helper.main,
+        ),
+        Start(
+            text=Const(strings.titles.org_menu),
+            id="open_org_menu",
+            state=states.Org.main,
+            when=is_org,
+        ),
+        Button(
+            text=Case(
+                {
+                    True: Const(strings.titles.feedback),
+                    False: Const(f"{strings.titles.feedback} 🔒"),
+                },
+                selector=F[CURRENT_USER].permissions.can_send_feedback,
+            ),
+            id="open_feedback",
+            on_click=open_feedback_handler,
+        ),
+        Start(
+            text=Const(strings.titles.settings),
+            id="open_settings",
+            state=states.Settings.main,
+        ),
+        width=2,
+    ),
+    state=states.Main.home,
+    getter=[main_menu_getter, current_user_getter],
+)

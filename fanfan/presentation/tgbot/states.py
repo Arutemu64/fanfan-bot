@@ -1,61 +1,70 @@
 from aiogram.fsm.state import State, StatesGroup
 
 
-class MAIN(StatesGroup):
-    HOME = State()
-    LINK_TICKET = State()
+class Achievements(StatesGroup):
+    list_achievements = State()
 
 
-class ACTIVITIES(StatesGroup):
-    SELECT_ACTIVITY = State()
-    ACTIVITY_INFO = State()
+class Activities(StatesGroup):
+    list_activities = State()
+    view_activity = State()
 
 
-class ACHIEVEMENTS(StatesGroup):
-    MAIN = State()
+class Feedback(StatesGroup):
+    send_feedback = State()
 
 
-class SETTINGS(StatesGroup):
-    MAIN = State()
-    SET_ITEMS_PER_PAGE = State()
+class Helper(StatesGroup):
+    main = State()
 
 
-class SCHEDULE(StatesGroup):
-    MAIN = State()
-    SUBSCRIPTIONS = State()
+class Main(StatesGroup):
+    home = State()
+    link_ticket = State()
 
 
-class EVENT_DETAILS(StatesGroup):
-    MAIN = State()
-    MOVE_EVENT = State()
-    SET_SUBSCRIPTION_COUNTER = State()
+class Org(StatesGroup):
+    main = State()
+    add_ticket = State()
 
 
-class VOTING(StatesGroup):
-    SELECT_NOMINATION = State()
-    VOTING = State()
+class Mailing(StatesGroup):
+    main = State()
+    create_mailing = State()
+    delete_mailing = State()
 
 
-class HELPER(StatesGroup):
-    MAIN = State()
+class Schedule(StatesGroup):
+    main = State()
+    subscriptions = State()
+
+    event_details = State()
+    move_event = State()
+    add_subscription = State()
 
 
-class ORG(StatesGroup):
-    MAIN = State()
-    ADD_NEW_TICKET = State()
+class EventDetails(StatesGroup):
+    main = State()
+    move_event = State()
+    add_subscription = State()
 
 
-class DELIVERIES(StatesGroup):
-    MAIN = State()
-    CREATE = State()
-    DELETE = State()
+class Settings(StatesGroup):
+    main = State()
+    set_items_per_page = State()
 
 
-class USER_MANAGER(StatesGroup):
-    MAIN = State()
-    MANUAL_USER_SEARCH = State()
-    CHANGE_ROLE = State()
+class UserManager(StatesGroup):
+    main = State()
+    search_user = State()
+    change_role = State()
 
 
-class FEEDBACK(StatesGroup):
-    MAIN = State()
+class Voting(StatesGroup):
+    list_nominations = State()
+    add_vote = State()
+
+
+class InlineQuerySearch(StatesGroup):
+    events = State()
+    voting_participants = State()

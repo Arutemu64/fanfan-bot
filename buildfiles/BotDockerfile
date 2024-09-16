@@ -1,27 +1,31 @@
-FROM python:3.12-slim as python-base
+# Use a Python image with uv pre-installed
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-ENV POETRY_VERSION=1.8.2 \
-    POETRY_HOME=/opt/poetry \
-    POETRY_VENV=/opt/poetry-venv \
-    POETRY_CACHE_DIR=/opt/.cache
-
-FROM python-base as poetry-base
-
-RUN python3 -m venv $POETRY_VENV \
-    && $POETRY_VENV/bin/pip install -U pip setuptools \
-    && $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION}
-
-FROM python-base as app
-
-COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
-ENV PATH="${PATH}:${POETRY_VENV}/bin"
-
+# Install the project into `/app`
 WORKDIR /app
-COPY ../poetry.lock pyproject.toml ./
 
-RUN poetry check && \
-    poetry install --no-interaction --no-cache --no-root
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
 
-COPY .. .
+# Copy from the cache instead of linking since it's a mounted volume
+ENV UV_LINK_MODE=copy
 
-CMD poetry run alembic upgrade head && poetry run python -m fanfan.presentation.__main__
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev
+
+# Then, add the rest of the project source code and install it
+ADD . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Reset the entrypoint, don't invoke `uv`
+ENTRYPOINT []
+
+# Run
+CMD alembic upgrade head && python -m fanfan.main.bot

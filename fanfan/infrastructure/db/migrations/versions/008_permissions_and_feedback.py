@@ -1,4 +1,4 @@
-"""permissions_and_feedback
+"""permissions_and_feedback.
 
 Revision ID: 008
 Revises: 007
@@ -49,7 +49,10 @@ def upgrade() -> None:
         "user_permissions",
         sa.Column("user_id", sa.BigInteger(), nullable=False),
         sa.Column(
-            "can_send_feedback", sa.Boolean(), server_default="True", nullable=False
+            "can_send_feedback",
+            sa.Boolean(),
+            server_default="True",
+            nullable=False,
         ),
         sa.Column(
             "created_on",

@@ -1,4 +1,4 @@
-"""user_settings
+"""user_settings.
 
 Revision ID: 007
 Revises: 006
@@ -53,7 +53,7 @@ def upgrade() -> None:
         "INSERT INTO user_settings (user_id, receive_all_announcements, "
         "items_per_page) "
         "SELECT id, receive_all_announcements, items_per_page "
-        "FROM users"
+        "FROM users",
     )
     op.drop_column("users", "receive_all_announcements")
     op.drop_column("users", "items_per_page")
@@ -83,14 +83,17 @@ def downgrade() -> None:
         ),
     )
     op.alter_column(
-        "achievements", "secret_id", existing_type=sa.UUID(), nullable=False
+        "achievements",
+        "secret_id",
+        existing_type=sa.UUID(),
+        nullable=False,
     )
     op.execute(
         "UPDATE users "
         "SET items_per_page = user_settings.items_per_page, "
         "receive_all_announcements = user_settings.receive_all_announcements "
         "FROM user_settings "
-        "WHERE user_settings.user_id = users.id"
+        "WHERE user_settings.user_id = users.id",
     )
     op.drop_table("user_settings")
     # ### end Alembic commands ###

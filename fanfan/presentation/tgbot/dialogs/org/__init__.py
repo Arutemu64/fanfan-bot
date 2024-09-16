@@ -1,8 +1,9 @@
 from aiogram_dialog import Dialog
 
-from .windows import new_ticket_window, org_main_window
+from .add_ticket import add_ticket_window
+from .main import org_main_window
 
 dialog = Dialog(
     org_main_window,
-    new_ticket_window,
+    add_ticket_window,
 )

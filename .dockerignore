@@ -243,8 +243,6 @@ cython_debug/
 
 .gitignore
 .github
-LICENSE
-README.md
 .ruff_cache
 .git
 .dockerignore

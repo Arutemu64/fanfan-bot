@@ -14,7 +14,7 @@
         {% set tag %}{% endset %}
         {% if current_event %}
             {% if not subscription.event.skip %}
-                {% set events_left = subscription.event.position - current_event.position %}
+                {% set events_left = subscription.event.queue - current_event.queue %}
                 {% if (events_left > 0) and (events_left > subscription.counter) %}
                     {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}, начнём напоминать за {{subscription.counter}} {{events_pluralize(subscription.counter)}} до начала]{% endset %}
                 {% elif (events_left > 0) and (events_left < subscription.counter) %}

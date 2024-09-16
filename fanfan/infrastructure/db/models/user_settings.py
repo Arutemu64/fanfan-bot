@@ -3,7 +3,7 @@ import typing
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from fanfan.application.dto.user import UserSettingsDTO
+from fanfan.core.models.user import UserSettingsDTO
 from fanfan.infrastructure.db.models.base import Base
 
 if typing.TYPE_CHECKING:
@@ -18,9 +18,13 @@ class UserSettings(Base):
 
     # User relation
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+        ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True,
     )
     user: Mapped["User"] = relationship(back_populates="settings")
 
-    def __str__(self):
-        return UserSettingsDTO.model_validate(self).__str__()
+    def to_dto(self) -> UserSettingsDTO:
+        return UserSettingsDTO(
+            items_per_page=self.items_per_page,
+            receive_all_announcements=self.receive_all_announcements,
+        )

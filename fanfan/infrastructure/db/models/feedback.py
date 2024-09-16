@@ -14,6 +14,7 @@ class Feedback(Base):
 
     # User relation
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
     )
     user: Mapped[User] = relationship()

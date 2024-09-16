@@ -1,7 +1,8 @@
 from dishka import Provider, Scope, provide
 
-from fanfan.config import (
+from fanfan.common.config import (
     BotConfig,
+    Configuration,
     DatabaseConfig,
     DebugConfig,
     RedisConfig,
@@ -36,3 +37,7 @@ class ConfigProvider(Provider):
     @provide
     def get_debug_config(self) -> DebugConfig:
         return DebugConfig()
+
+    @provide
+    def get_config(self) -> Configuration:
+        return Configuration()

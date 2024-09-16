@@ -1,9 +1,10 @@
-from typing import AsyncIterable, NewType
+from collections.abc import AsyncIterable
+from typing import NewType
 
 from aiohttp import ClientSession
 from dishka import Provider, Scope, provide
 
-from fanfan.config import TimepadConfig
+from fanfan.common.config import TimepadConfig
 from fanfan.infrastructure.timepad.client import TimepadClient
 
 TimepadSession = NewType("TimepadSession", ClientSession)
@@ -14,10 +15,11 @@ class TimepadProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     async def get_timepad_session(
-        self, config: TimepadConfig
+        self,
+        config: TimepadConfig,
     ) -> AsyncIterable[TimepadSession]:
         async with ClientSession(
-            headers={"Authorization": f"Bearer {config.client_id.get_secret_value()}"}
+            headers={"Authorization": f"Bearer {config.client_id.get_secret_value()}"},
         ) as session:
             yield session
 

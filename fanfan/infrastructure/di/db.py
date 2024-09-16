@@ -1,4 +1,4 @@
-from typing import AsyncIterable
+from collections.abc import AsyncIterable
 
 import sentry_sdk
 from dishka import Provider, Scope, provide
@@ -9,14 +9,11 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from fanfan.config import DatabaseConfig
-from fanfan.infrastructure.db import UnitOfWork
+from fanfan.common.config import DatabaseConfig
 
 
 class DbProvider(Provider):
-    scope = Scope.APP
-
-    @provide
+    @provide(scope=Scope.APP)
     async def get_engine(self, config: DatabaseConfig) -> AsyncIterable[AsyncEngine]:
         engine = create_async_engine(
             url=config.build_connection_str(),
@@ -24,13 +21,12 @@ class DbProvider(Provider):
             pool_pre_ping=True,
         )
         yield engine
-        await engine.dispose(close=True)
+        await engine.dispose()
 
-    @provide
+    @provide(scope=Scope.APP)
     def get_pool(self, engine: AsyncEngine) -> async_sessionmaker:
         return async_sessionmaker(
             bind=engine,
-            class_=AsyncSession,
             expire_on_commit=False,
         )
 
@@ -43,7 +39,3 @@ class DbProvider(Provider):
         async with pool() as session:
             yield session
         sentry_transaction.finish()
-
-    @provide(scope=Scope.REQUEST)
-    async def get_uow(self, session: AsyncSession) -> UnitOfWork:
-        return UnitOfWork(session)

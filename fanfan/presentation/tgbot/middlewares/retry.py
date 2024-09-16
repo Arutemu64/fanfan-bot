@@ -48,7 +48,7 @@ class RetryRequestMiddleware(BaseRequestMiddleware):
                     raise
                 if retries == self.max_retries:
                     raise
-                logger.error(
+                logger.exception(
                     "Request '%s' failed due to rate limit. Sleeping %s seconds.",
                     type(method).__name__,
                     e.retry_after,
@@ -59,11 +59,10 @@ class RetryRequestMiddleware(BaseRequestMiddleware):
             except (TelegramServerError, RestartingTelegram, TelegramNetworkError) as e:
                 if retries == self.max_retries:
                     raise
-                logger.error(
-                    "Request '%s' failed due to %s - %s. Sleeping %s seconds.",
+                logger.exception(
+                    "Request '%s' failed due to %s. Sleeping %s seconds.",
                     type(method).__name__,
                     type(e).__name__,
-                    e,
                     backoff.next_delay,
                 )
                 await backoff.asleep()

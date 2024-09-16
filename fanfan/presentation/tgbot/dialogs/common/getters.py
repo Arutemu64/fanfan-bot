@@ -1,29 +1,17 @@
-from fanfan.application.dto.user import FullUserDTO
-from fanfan.application.holder import AppHolder
-from fanfan.common.enums import UserRole
+from fanfan.core.enums import UserRole
+from fanfan.core.models.user import FullUserDTO
 
 CURRENT_USER = "current_user"
-SETTINGS = "settings"
 
 
 async def roles_getter(**kwargs) -> dict:
     return {
-        "roles": list(
-            map(lambda item: (item.value, item.label, item.label_plural), UserRole)
-        )
+        "roles": [(item.value, item.label, item.label_plural) for item in UserRole],
     }
 
 
 async def current_user_getter(
     user: FullUserDTO,
     **kwargs,
-):
-    return {"current_user": user}
-
-
-async def settings_getter(
-    app: AppHolder,
-    **kwargs,
-):
-    settings = await app.settings.get_settings()
-    return {"settings": settings}
+) -> dict[str, FullUserDTO]:
+    return {CURRENT_USER: user}

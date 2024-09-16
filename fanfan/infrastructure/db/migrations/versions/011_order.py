@@ -1,4 +1,4 @@
-"""order
+"""order.
 
 Revision ID: 011
 Revises: 010
@@ -32,7 +32,9 @@ def upgrade() -> None:
         ),
     )
     op.create_unique_constraint(
-        op.f("uq_achievements_order"), "achievements", ["order"]
+        op.f("uq_achievements_order"),
+        "achievements",
+        ["order"],
     )
     op.add_column(
         "activities",
@@ -54,7 +56,9 @@ def upgrade() -> None:
         ),
     )
     op.create_unique_constraint(
-        op.f("uq_participants_order"), "participants", ["order"]
+        op.f("uq_participants_order"),
+        "participants",
+        ["order"],
     )
     op.add_column(
         "schedule",
