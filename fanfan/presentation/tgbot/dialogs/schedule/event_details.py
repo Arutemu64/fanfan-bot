@@ -7,8 +7,8 @@ from aiogram_dialog.widgets.text import Case, Const, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.events.get_event_by_id import GetEventById
-from fanfan.application.events.set_current_event import SetCurrentEvent
-from fanfan.application.events.skip_event import SkipEvent
+from fanfan.application.schedule_mgmt.set_current_event import SetCurrentEvent
+from fanfan.application.schedule_mgmt.skip_event import SkipEvent
 from fanfan.application.subscriptions.delete_subscription import DeleteSubscription
 from fanfan.application.subscriptions.get_subscription_by_event import (
     GetSubscriptionByEvent,

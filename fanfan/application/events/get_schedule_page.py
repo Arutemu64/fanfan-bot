@@ -1,6 +1,6 @@
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager, joinedload, undefer
+from sqlalchemy.orm import contains_eager, joinedload
 
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.models.event import UserFullEventDTO
@@ -22,7 +22,7 @@ class GetSchedulePage:
         query = (
             select(Event)
             .order_by(Event.order)
-            .options(joinedload(Event.nomination), undefer(Event.queue))
+            .options(joinedload(Event.nomination), joinedload(Event.block))
         )
         total_query = select(func.count(Event.id))
 

@@ -17,7 +17,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Jinja
 
-from fanfan.application.events.set_next_event import SetNextEvent
+from fanfan.application.schedule_mgmt.set_next_event import SetNextEvent
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.utils.pluralize import NOTIFICATIONS_PLURALS, pluralize
 from fanfan.presentation.tgbot import states
@@ -99,6 +99,7 @@ async def schedule_text_input_handler(
 schedule_main_window = Window(
     Title(Const(strings.titles.schedule)),
     Jinja(schedule_list),
+    Const("👆 Нажми на номер, чтобы выбрать выступление"),
     TextInput(
         id="schedule_main_window_text_input",
         type_factory=str,

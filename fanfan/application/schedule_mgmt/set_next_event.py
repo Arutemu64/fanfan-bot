@@ -1,11 +1,13 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fanfan.application.schedule_mgmt.set_current_event import (
+    SetCurrentEvent,
+    SetCurrentEventResult,
+)
 from fanfan.core.exceptions.events import EventNotFound, NoNextEvent
 from fanfan.infrastructure.db.models import Event
 from fanfan.infrastructure.db.queries.events import next_event_query
-
-from .set_current_event import SetCurrentEvent, SetCurrentEventResult
 
 
 class SetNextEvent:

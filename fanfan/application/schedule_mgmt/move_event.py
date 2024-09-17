@@ -6,15 +6,20 @@ from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.application.events.common import (
+from fanfan.application.common.id_provider import IdProvider
+from fanfan.application.schedule_mgmt.common import (
     ANNOUNCEMENT_LOCK,
     ANNOUNCEMENT_TIMESTAMP,
-    prepare_notifications,
+)
+from fanfan.application.schedule_mgmt.utils.prepare_notifications import (
+    EventChangeDTO,
+    EventChangeType,
+    PrepareNotifications,
 )
 from fanfan.core.exceptions.events import (
     AnnounceTooFast,
-    CurrentEventNotAllowed,
     EventNotFound,
+    SameEventsAreNotAllowed,
 )
 from fanfan.core.models.event import EventDTO
 from fanfan.core.models.notification import MailingInfo
@@ -26,23 +31,28 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class SkipEventResult:
+class MoveEventResult:
     event: EventDTO
+    after_event: EventDTO
     mailing_info: MailingInfo
 
 
-class SkipEvent:
+class MoveEvent:
     def __init__(
         self,
         session: AsyncSession,
         redis: Redis,
+        id_provider: IdProvider,
+        prepare_notifications: PrepareNotifications,
         notifier: Notifier,
     ) -> None:
         self.session = session
         self.redis = redis
+        self.id_provider = id_provider
+        self.prepare_notifications = prepare_notifications
         self.notifier = notifier
 
-    async def __call__(self, event_id: int) -> SkipEventResult:
+    async def __call__(self, event_id: int, after_event_id: int) -> MoveEventResult:
         async with self.session, self.redis.lock(ANNOUNCEMENT_LOCK, 10):
             # Throttle
             settings = await self.session.get(Settings, 1)
@@ -50,36 +60,56 @@ class SkipEvent:
             if (time.time() - old_timestamp) < settings.announcement_timeout:
                 raise AnnounceTooFast(settings.announcement_timeout, old_timestamp)
 
-            # Get event
+            if event_id == after_event_id:
+                raise SameEventsAreNotAllowed
+
+            # Get event and after_event
             event = await self.session.get(Event, event_id)
             if not event:
                 raise EventNotFound(event_id=event_id)
+            after_event = await self.session.get(Event, after_event_id)
+            if not after_event:
+                raise EventNotFound(event_id=after_event_id)
 
-            # Check if event is not current and get next event
-            current_event = await self.session.scalar(
-                select(Event).where(Event.current.is_(True))
-            )
-            if event is current_event:
-                raise CurrentEventNotAllowed
+            # Get next event at this point
             next_event = await self.session.scalar(next_event_query())
 
-            # Toggle event skip
-            event.skip = not event.skip
+            # Get before_event
+            before_event = await self.session.scalar(
+                select(Event)
+                .order_by(Event.order)
+                .where(Event.order > after_event.order)
+                .limit(1)
+            )
+
+            # Update event order
+            if before_event:
+                event.order = (after_event.order + before_event.order) / 2
+            else:
+                event.order = after_event.order + 1
             await self.session.flush([event])
             await self.session.refresh(event)
 
-            # Prepare subscriptions
-            notifications = await prepare_notifications(
+            # Prepare notifications
+            notifications = await self.prepare_notifications(
                 session=self.session,
                 next_event_before=next_event,
-                changed_events=[event],
+                event_changes=[EventChangeDTO(event, EventChangeType.MOVE)],
             )
 
+            # Commit
             await self.session.commit()
             await self.redis.set(ANNOUNCEMENT_TIMESTAMP, time.time())
-            logger.info("Event %s was skipped", event_id)
+            logger.info(
+                "Event %s was placed after event %s",
+                event_id,
+                after_event_id,
+            )
+
             mailing_info = await self.notifier.schedule_mailing(notifications)
-            return SkipEventResult(
+
+            return MoveEventResult(
                 event=event.to_dto(),
+                after_event=event.to_dto(),
                 mailing_info=mailing_info,
             )

@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 
-from fanfan.application.events.move_event import MoveEvent
+from fanfan.application.schedule_mgmt.move_event import MoveEvent
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.utils.pluralize import NOTIFICATIONS_PLURALS, pluralize
 from fanfan.presentation.tgbot import states

@@ -6,4 +6,3 @@ UI_DIR = BOT_ROOT_DIR / "ui"
 UI_IMAGES_DIR = UI_DIR / "images"
 
 STATIC_DIR = BOT_ROOT_DIR / "static"
-JINJA_TEMPLATES_DIR = STATIC_DIR / "templates"

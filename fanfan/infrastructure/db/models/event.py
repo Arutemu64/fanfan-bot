@@ -13,6 +13,7 @@ from sqlalchemy.orm import (
 
 from fanfan.core.models.event import EventDTO, FullEventDTO, UserFullEventDTO
 from fanfan.infrastructure.db.models.base import Base
+from fanfan.infrastructure.db.models.block import Block
 from fanfan.infrastructure.db.models.mixins.order import OrderMixin
 
 if TYPE_CHECKING:
@@ -49,7 +50,27 @@ class Event(Base, OrderMixin):
 
     @declared_attr
     @classmethod
-    def queue(cls) -> Mapped[int]:
+    def block(cls) -> Mapped[Block | None]:
+        subquery = select(
+            cls.id,
+            select(Block.id)
+            .where(cls.order >= Block.start_order)
+            .order_by(Block.start_order.desc())
+            .limit(1)
+            .label("block_id"),
+        ).subquery()
+        return relationship(
+            Block,
+            primaryjoin=(cls.id == subquery.c.id),
+            secondaryjoin=(Block.id == subquery.c.block_id),
+            secondary=subquery,
+            uselist=False,
+            viewonly=True,
+        )
+
+    @declared_attr
+    @classmethod
+    def queue(cls) -> Mapped[int | None]:
         queue_subquery = select(
             cls.id,
             func.row_number()
@@ -85,6 +106,7 @@ class Event(Base, OrderMixin):
 
     def to_full_dto(self) -> FullEventDTO:
         self.nomination: Nomination
+        self.block: Block
         return FullEventDTO(
             id=self.id,
             title=self.title,
@@ -92,6 +114,7 @@ class Event(Base, OrderMixin):
             skip=self.skip,
             queue=self.queue,
             nomination=self.nomination.to_dto() if self.nomination else None,
+            block=self.block.to_dto() if self.block else None,
         )
 
     def to_user_full_dto(self) -> UserFullEventDTO:
@@ -104,6 +127,7 @@ class Event(Base, OrderMixin):
             skip=self.skip,
             queue=self.queue,
             nomination=self.nomination.to_dto() if self.nomination else None,
+            block=self.block.to_dto() if self.block else None,
             subscription=self.user_subscription.to_dto()
             if self.user_subscription
             else None,

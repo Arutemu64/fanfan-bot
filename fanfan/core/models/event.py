@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from fanfan.core.models.block import BlockDTO
+
 
 @dataclass(frozen=True, slots=True)
 class EventDTO:
@@ -16,6 +18,7 @@ class EventDTO:
 @dataclass(frozen=True, slots=True)
 class FullEventDTO(EventDTO):
     nomination: NominationDTO | None
+    block: BlockDTO | None
 
 
 @dataclass(frozen=True, slots=True)

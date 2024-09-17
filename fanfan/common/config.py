@@ -1,5 +1,6 @@
 import logging
 
+from dotenv import find_dotenv, load_dotenv
 from pydantic import (
     DirectoryPath,
     HttpUrl,
@@ -17,6 +18,8 @@ from pytz import timezone
 from pytz.exceptions import UnknownTimeZoneError
 
 from fanfan.core.enums import BotMode
+
+load_dotenv(find_dotenv(".local-env"))
 
 
 class BotConfig(BaseSettings):

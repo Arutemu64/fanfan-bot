@@ -10,6 +10,7 @@ from fanfan.infrastructure.di.bot import BotProvider, DpProvider, NotifierProvid
 from fanfan.infrastructure.di.config import ConfigProvider
 from fanfan.infrastructure.di.db import DbProvider
 from fanfan.infrastructure.di.interactors import InteractorsProvider
+from fanfan.infrastructure.di.jinja import JinjaProvider
 from fanfan.infrastructure.di.redis import RedisProvider
 from fanfan.infrastructure.di.timepad import TimepadProvider
 
@@ -25,6 +26,7 @@ def get_common_providers() -> list[Provider]:
         DpProvider(),
         RedisProvider(),
         TimepadProvider(),
+        JinjaProvider(),
     ]
 
 

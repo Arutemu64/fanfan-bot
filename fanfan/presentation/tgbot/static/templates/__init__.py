@@ -1,8 +1,8 @@
-from fanfan.presentation.tgbot import JINJA_TEMPLATES_DIR
+from pathlib import Path
 
 
 def load_template(template_filename: str) -> str:
-    return JINJA_TEMPLATES_DIR.joinpath(template_filename).read_text(encoding="utf-8")
+    return Path(__file__).parent.joinpath(template_filename).read_text(encoding="utf-8")
 
 
 achievements_list = load_template("achievements_list.jinja2")

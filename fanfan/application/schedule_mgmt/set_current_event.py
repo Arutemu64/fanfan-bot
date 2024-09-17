@@ -7,10 +7,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.events.common import (
+from fanfan.application.schedule_mgmt.common import (
     ANNOUNCEMENT_LOCK,
     ANNOUNCEMENT_TIMESTAMP,
-    prepare_notifications,
+)
+from fanfan.application.schedule_mgmt.utils.prepare_notifications import (
+    EventChangeDTO,
+    EventChangeType,
+    PrepareNotifications,
 )
 from fanfan.core.exceptions.events import (
     AnnounceTooFast,
@@ -38,6 +42,7 @@ class SetCurrentEvent:
         self,
         session: AsyncSession,
         redis: Redis,
+        prepare_notifications: PrepareNotifications,
         notifier: Notifier,
         id_provider: IdProvider,
     ) -> None:
@@ -74,15 +79,18 @@ class SetCurrentEvent:
                     raise CurrentEventNotAllowed
                 event.current = True
                 await self.session.flush([event])
-                await self.session.refresh(event)
             else:
                 event = None
 
             # Prepare subscriptions
-            notifications = await prepare_notifications(
+            notifications = await self.prepare_notifications(
                 session=self.session,
                 next_event_before=next_event,
-                changed_events=[event],
+                event_changes=[
+                    EventChangeDTO(event, EventChangeType.SET_AS_CURRENT)
+                    if isinstance(event, Event)
+                    else None
+                ],
             )
 
             await self.session.commit()

@@ -1,6 +1,6 @@
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager, joinedload, undefer
+from sqlalchemy.orm import contains_eager, joinedload
 
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.events import EventNotFound
@@ -20,7 +20,7 @@ class GetEventById:
         query = (
             select(Event)
             .where(Event.id == event_id)
-            .options(joinedload(Event.nomination), undefer(Event.queue))
+            .options(joinedload(Event.nomination), joinedload(Event.block))
         )
 
         if self.id_provider.get_current_user_id():

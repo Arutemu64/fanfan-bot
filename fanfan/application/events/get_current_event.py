@@ -15,7 +15,7 @@ class GetCurrentEvent:
         event = await self.session.scalar(
             select(Event)
             .where(Event.current.is_(True))
-            .options(joinedload(Event.nomination))
+            .options(joinedload(Event.nomination), joinedload(Event.block))
         )
         if event:
             return event.to_full_dto()

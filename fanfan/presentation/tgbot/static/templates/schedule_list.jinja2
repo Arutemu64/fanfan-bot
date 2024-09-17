@@ -4,11 +4,19 @@
     {% for event in events %}
         {% if event.nomination %}
             {% if loop.previtem %}
+                {% if event.block != loop.previtem.block %}
+<b>📆 {{event.block.title}}</b>
+                {% endif %}
                 {% if event.nomination != loop.previtem.nomination %}
 <b>➡️ {{event.nomination.title}}</b>
                 {% endif %}
             {% else %}
+            {% if event.block %}
+<b>📆 {{event.block.title}}</b>
+            {% endif %}
+            {% if event.nomination %}
 <b>➡️ {{event.nomination.title}}</b>
+            {% endif %}
             {% endif %}
         {% endif %}
         {% if event.skip %}<s>{% endif %}
