@@ -22,7 +22,7 @@ from dishka import AsyncContainer
 
 from fanfan.application.nominations.get_nominations_page import GetNominationsPage
 from fanfan.core.models.page import Pagination
-from fanfan.core.models.user import FullUserDTO
+from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.voting.common import (
@@ -39,11 +39,11 @@ ID_NOMINATIONS_SCROLL = "nominations_scroll"
 
 async def nominations_getter(
     dialog_manager: DialogManager,
-    user: FullUserDTO,
+    user: FullUserModel,
     container: AsyncContainer,
     **kwargs,
 ) -> dict:
-    get_nominations_page = await container.get(GetNominationsPage)
+    get_nominations_page: GetNominationsPage = await container.get(GetNominationsPage)
 
     page = await get_nominations_page(
         pagination=Pagination(
@@ -53,7 +53,7 @@ async def nominations_getter(
         ),
     )
     nominations_list = [
-        (n.id, f"{n.title} ✅" if n.vote else n.title) for n in page.items
+        (n.id, f"{n.title} ✅" if n.user_vote else n.title) for n in page.items
     ]
     return {
         "nominations_list": nominations_list,

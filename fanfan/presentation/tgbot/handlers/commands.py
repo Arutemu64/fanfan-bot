@@ -6,19 +6,20 @@ from aiogram_dialog import DialogManager, ShowMode, StartMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.application.settings.get_settings import GetSettings
 from fanfan.core.enums import UserRole
-from fanfan.core.models.user import FullUserDTO
+from fanfan.core.exceptions.base import AppException
+from fanfan.core.models.user import FullUserModel
+from fanfan.core.services.access import AccessService
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.filters import RoleFilter
 from fanfan.presentation.tgbot.filters.commands import (
-    ACHIEVEMENTS_CMD,
-    ACTIVITIES_CMD,
+    ABOUT_CMD,
     FEEDBACK_CMD,
     HELPER_CMD,
     LINK_TICKET_CMD,
     NOTIFICATIONS_CMD,
     ORG_CMD,
+    QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
     VOTING_CMD,
@@ -43,13 +44,13 @@ async def start_cmd(
 async def link_ticket_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: FullUserDTO,
+    user: FullUserModel,
 ) -> None:
     if not user.ticket:
         await dialog_manager.start(states.Main.link_ticket)
 
 
-@router.message(Command(ACTIVITIES_CMD))
+@router.message(Command(ABOUT_CMD))
 async def activities_cmd(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(states.Activities.list_activities)
 
@@ -64,14 +65,19 @@ async def notifications_cmd(message: Message, dialog_manager: DialogManager) -> 
     await dialog_manager.start(states.Schedule.subscriptions)
 
 
-@router.message(Command(ACHIEVEMENTS_CMD))
-async def achievements_cmd(
+@router.message(Command(QUEST_CMD))
+@inject
+async def quest_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: FullUserDTO,
+    user: FullUserModel,
+    access: FromDishka[AccessService],
 ) -> None:
-    if user.ticket:
-        await dialog_manager.start(states.Achievements.list_achievements)
+    try:
+        await access.ensure_can_participate_in_quest(user)
+        await dialog_manager.start(states.Quest.main)
+    except AppException:
+        pass
 
 
 @router.message(Command(VOTING_CMD))
@@ -79,12 +85,14 @@ async def achievements_cmd(
 async def voting_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    get_settings: FromDishka[GetSettings],
-    user: FullUserDTO,
+    user: FullUserModel,
+    access: FromDishka[AccessService],
 ) -> None:
-    settings = await get_settings()
-    if user.ticket and settings.voting_enabled:
+    try:
+        await access.ensure_can_vote(user)
         await dialog_manager.start(states.Voting.list_nominations)
+    except AppException:
+        pass
 
 
 @router.message(Command(HELPER_CMD), RoleFilter(UserRole.HELPER, UserRole.ORG))
@@ -101,10 +109,14 @@ async def org_cmd(message: Message, dialog_manager: DialogManager) -> None:
 async def feedback_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: FullUserDTO,
+    user: FullUserModel,
+    access: FromDishka[AccessService],
 ) -> None:
-    if user.permissions.can_send_feedback:
+    try:
+        await access.ensure_can_send_feedback(user)
         await dialog_manager.start(states.Feedback.send_feedback)
+    except AppException:
+        pass
 
 
 @router.message(Command(SETTINGS_CMD))

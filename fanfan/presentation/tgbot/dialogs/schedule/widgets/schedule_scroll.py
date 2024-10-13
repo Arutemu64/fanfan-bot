@@ -31,7 +31,7 @@ async def update_schedule_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_current_event = await container.get(GetCurrentEvent)
+    get_current_event: GetCurrentEvent = await container.get(GetCurrentEvent)
 
     try:
         current_event = await get_current_event()

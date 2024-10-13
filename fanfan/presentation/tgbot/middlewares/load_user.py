@@ -6,12 +6,12 @@ import sentry_sdk
 from aiogram import BaseMiddleware
 from dishka.integrations.aiogram import CONTAINER_NAME
 
-from fanfan.application.users.create_user import CreateUser, CreateUserDTO
-from fanfan.application.users.get_user_by_id import GetUserById
+from fanfan.application.common.id_provider import IdProvider
+from fanfan.application.users.authenticate import Authenticate, AuthenticateDTO
 from fanfan.application.users.update_user import UpdateUser, UpdateUserDTO
 from fanfan.application.users.update_user_commands import UpdateUserCommands
-from fanfan.common.config import DebugConfig
-from fanfan.core.exceptions.users import UserNotFound
+from fanfan.core.models.user import UserId
+from fanfan.infrastructure.config_reader import DebugConfig
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -30,13 +30,15 @@ class LoadDataMiddleware(BaseMiddleware):
         if data.get("event_from_user"):
             tg_user: User = data["event_from_user"]
             container: AsyncContainer = data[CONTAINER_NAME]
-            create_user = await container.get(CreateUser)
-            update_user = await container.get(UpdateUser)
-            get_user_by_id = await container.get(GetUserById)
-            update_user_commands = await container.get(UpdateUserCommands)
+            id_provider: IdProvider = await container.get(IdProvider)
+            authenticate: Authenticate = await container.get(Authenticate)
+            update_user: UpdateUser = await container.get(UpdateUser)
+            update_user_commands: UpdateUserCommands = await container.get(
+                UpdateUserCommands
+            )
 
             # Setup Sentry logging
-            debug_config = await container.get(DebugConfig)
+            debug_config: DebugConfig = await container.get(DebugConfig)
             if debug_config.sentry_enabled:
                 sentry_sdk.set_user(
                     {
@@ -45,30 +47,20 @@ class LoadDataMiddleware(BaseMiddleware):
                     },
                 )
 
-            # Check if user exists, create if not
-            try:
-                user = await get_user_by_id(tg_user.id)
-            except UserNotFound:
-                await create_user(
-                    CreateUserDTO(
-                        id=tg_user.id,
-                        username=tg_user.username,
-                    ),
-                )
-                user = await get_user_by_id(tg_user.id)
+            # Authenticate
+            user = await authenticate(
+                AuthenticateDTO(id=UserId(tg_user.id), username=tg_user.username)
+            )
 
             # Update username in database
             if user.username != tg_user.username:
                 await update_user(
-                    UpdateUserDTO(
-                        id=tg_user.id,
-                        username=tg_user.username,
-                    ),
+                    UpdateUserDTO(id=UserId(tg_user.id), username=tg_user.username)
                 )
-                user = await get_user_by_id(tg_user.id)
+                user = await id_provider.get_current_user()
 
             # Update user commands
-            await update_user_commands(user_id=tg_user.id)
+            await update_user_commands()
 
             # DI
             data["user"] = user

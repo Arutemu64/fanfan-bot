@@ -1,39 +1,21 @@
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager, joinedload
-
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.events import EventNotFound
-from fanfan.core.models.event import UserFullEventDTO
-from fanfan.infrastructure.db.models import Event, Subscription
+from fanfan.core.models.event import EventId, FullEventModel
+from fanfan.infrastructure.db.repositories.events import EventsRepository
 
 
-class GetEventById:
-    def __init__(self, session: AsyncSession, id_provider: IdProvider) -> None:
-        self.session = session
+class GetEventById(Interactor[EventId, FullEventModel]):
+    def __init__(self, events_repo: EventsRepository, id_provider: IdProvider) -> None:
+        self.events_repo = events_repo
         self.id_provider = id_provider
 
     async def __call__(
         self,
-        event_id: int,
-    ) -> UserFullEventDTO:
-        query = (
-            select(Event)
-            .where(Event.id == event_id)
-            .options(joinedload(Event.nomination), joinedload(Event.block))
-        )
-
-        if self.id_provider.get_current_user_id():
-            query = query.options(contains_eager(Event.user_subscription)).outerjoin(
-                Subscription,
-                and_(
-                    Subscription.event_id == Event.id,
-                    Subscription.user_id == self.id_provider.get_current_user_id(),
-                ),
-            )
-
-        event = await self.session.scalar(query)
-
-        if event:
-            return event.to_user_full_dto()
+        event_id: EventId,
+    ) -> FullEventModel:
+        if event := await self.events_repo.get_event_by_id(
+            event_id=event_id, user_id=self.id_provider.get_current_user_id()
+        ):
+            return event
         raise EventNotFound

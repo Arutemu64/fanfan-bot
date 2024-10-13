@@ -53,6 +53,10 @@
             Telegram.WebApp.closeScanQrPopup();
             Telegram.WebApp.close();
           },
+          error(result) {
+            Telegram.WebApp.closeScanQrPopup();
+            Telegram.WebApp.close();
+          },
         });
       });
     } else if (is_telegram_client && !is_telegram_api_updated) {

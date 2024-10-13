@@ -1,3 +1,5 @@
+import asyncio
+import sys
 from contextlib import asynccontextmanager, suppress
 from typing import TYPE_CHECKING
 
@@ -9,8 +11,8 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from fanfan.common.config import get_config
-from fanfan.infrastructure.di import create_web_container
+from fanfan.infrastructure.config_reader import get_config
+from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
 from fanfan.presentation.web.admin.auth import auth_router
 from fanfan.presentation.web.qr_scanner import qr_scanner_router
@@ -41,7 +43,7 @@ def create_app() -> FastAPI:
         )
 
     # Setup FastAPI app
-    app = FastAPI(lifespan=lifespan)
+    app = FastAPI(lifespan=lifespan, debug=config.debug.enabled)
 
     # Setup DI
     setup_dishka(container=create_web_container(), app=app)
@@ -66,6 +68,8 @@ def create_app() -> FastAPI:
 
 
 if __name__ == "__main__":
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     config = get_config()
     with suppress(KeyboardInterrupt):
         uvicorn.run(
@@ -73,4 +77,5 @@ if __name__ == "__main__":
             host=config.web.host,
             port=config.web.port,
             root_path="/web",
+            log_level=config.debug.logging_level,
         )

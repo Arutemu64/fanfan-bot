@@ -1,12 +1,14 @@
 from aiogram.filters.callback_data import CallbackData
 
+from fanfan.core.models.mailing import MailingId
+
 
 class DeleteMessageCallback(CallbackData, prefix="delete_message"):
     pass
 
 
-class DeleteMailingCallback(CallbackData, prefix="delete_mailing"):
-    mailing_id: str
+class ShowMailingInfoCallback(CallbackData, prefix="delete_mailing"):
+    mailing_id: MailingId
 
 
 class OpenSubscriptionsCallback(CallbackData, prefix="open_subscriptions"):

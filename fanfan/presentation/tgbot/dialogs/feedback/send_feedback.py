@@ -5,10 +5,9 @@ from aiogram_dialog.widgets.kbd import Button, Cancel, Checkbox, ManagedCheckbox
 from aiogram_dialog.widgets.text import Const, Format, Multi
 from dishka import AsyncContainer
 
-from fanfan.application.feedback.send_feedback import CreateFeedbackDTO, SendFeedback
+from fanfan.application.feedback.send_feedback import SendFeedback, SendFeedbackDTO
 from fanfan.application.settings.get_settings import GetSettings
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.models.user import FullUserDTO
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -23,7 +22,7 @@ async def send_feedback_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    get_settings = await container.get(GetSettings)
+    get_settings: GetSettings = await container.get(GetSettings)
     settings = await get_settings()
     return {
         "can_send": dialog_manager.dialog_data.get(DATA_FEEDBACK_TEXT),
@@ -48,8 +47,7 @@ async def send_feedback_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    send_feedback = await container.get(SendFeedback)
-    user: FullUserDTO = manager.middleware_data["user"]
+    send_feedback: SendFeedback = await container.get(SendFeedback)
 
     text_input: ManagedTextInput = manager.find(ID_FEEDBACK_TEXT_INPUT)
     asap_checkbox: ManagedCheckbox = manager.find(ID_ASAP_CHECKBOX)
@@ -58,8 +56,7 @@ async def send_feedback_handler(
         return
     try:
         await send_feedback(
-            CreateFeedbackDTO(
-                user_id=user.id,
+            SendFeedbackDTO(
                 text=text_input.get_value(),
                 asap=asap_checkbox.is_checked(),
             ),

@@ -1,19 +1,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import NewType
+
+from fanfan.core.models.user import UserId
+
+SubscriptionId = NewType("SubscriptionId", int)
 
 
-@dataclass(frozen=True, slots=True)
-class SubscriptionDTO:
-    id: int
-    user_id: int
-    event_id: int
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SubscriptionModel:
+    user_id: UserId
+    event_id: EventId
     counter: int
+    id: SubscriptionId | None = None
 
 
-@dataclass(frozen=True, slots=True)
-class FullSubscriptionDTO(SubscriptionDTO):
-    event: EventDTO
+@dataclass(frozen=True, slots=True, kw_only=True)
+class FullSubscriptionModel(SubscriptionModel):
+    event: FullEventModel
 
 
-from fanfan.core.models.event import EventDTO  # noqa: E402
+from fanfan.core.models.event import EventId, FullEventModel  # noqa: E402

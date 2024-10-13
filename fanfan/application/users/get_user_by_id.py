@@ -1,25 +1,14 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
-
+from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.core.models.user import FullUserDTO
-from fanfan.infrastructure.db.models import User
+from fanfan.core.models.user import FullUserModel, UserId
+from fanfan.infrastructure.db.repositories.users import UsersRepository
 
 
-class GetUserById:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+class GetUserById(Interactor[UserId, FullUserModel]):
+    def __init__(self, users_repo: UsersRepository) -> None:
+        self.users_repo = users_repo
 
-    async def __call__(self, user_id: int) -> FullUserDTO:
-        user = await self.session.get(
-            User,
-            user_id,
-            options=[
-                joinedload(User.ticket),
-                joinedload(User.settings),
-                joinedload(User.permissions),
-            ],
-        )
-        if user:
-            return user.to_full_dto()
+    async def __call__(self, user_id: UserId) -> FullUserModel:
+        if user := await self.users_repo.get_user_by_id(user_id):
+            return user
         raise UserNotFound

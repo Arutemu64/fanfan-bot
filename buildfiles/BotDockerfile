@@ -26,6 +26,3 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
-
-# Run
-CMD alembic upgrade head && python -m fanfan.main.bot

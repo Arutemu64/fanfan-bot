@@ -2,11 +2,20 @@ from aiogram_dialog import DialogManager
 from dishka import AsyncContainer
 
 from fanfan.application.events.get_current_event import GetCurrentEvent
-from fanfan.application.events.get_page_number_by_event import GetPageNumberByEvent
-from fanfan.application.events.get_schedule_page import GetSchedulePage
+from fanfan.application.events.get_page_number_by_event import (
+    GetPageNumberByEvent,
+    GetPageNumberByEventDTO,
+)
+from fanfan.application.events.get_schedule_page import (
+    GetSchedulePage,
+    GetSchedulePageDTO,
+)
+from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.events import NoCurrentEvent
+from fanfan.core.models.event import EventId
 from fanfan.core.models.page import Pagination
-from fanfan.core.models.user import FullUserDTO
+from fanfan.core.models.user import FullUserModel
+from fanfan.core.services.access import AccessService
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 DATA_SELECTED_EVENT_ID = "selected_event_id"
@@ -16,37 +25,50 @@ DATA_TOTAL_PAGES = "total_pages"
 async def schedule_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: FullUserDTO,
+    user: FullUserModel,
     **kwargs,
 ):
-    get_schedule_page = await container.get(GetSchedulePage)
+    get_schedule_page: GetSchedulePage = await container.get(GetSchedulePage)
+    access: AccessService = await container.get(AccessService)
 
     page = await get_schedule_page(
-        pagination=Pagination(
-            limit=user.settings.items_per_page,
-            offset=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
-            * user.settings.items_per_page,
+        GetSchedulePageDTO(
+            pagination=Pagination(
+                limit=user.settings.items_per_page,
+                offset=await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page()
+                * user.settings.items_per_page,
+            )
         ),
     )
     dialog_manager.dialog_data[DATA_TOTAL_PAGES] = (
         page.total // user.settings.items_per_page
         + bool(page.total % user.settings.items_per_page)
     )
+    try:
+        await access.ensure_can_edit_schedule(user)
+    except AppException:
+        can_edit_schedule = False
+    else:
+        can_edit_schedule = True
     return {
         "events": page.items,
         "page_number": await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page() + 1,
         "pages": dialog_manager.dialog_data[DATA_TOTAL_PAGES],
+        "can_edit_schedule": can_edit_schedule,
     }
 
 
-async def show_event_page(manager: DialogManager, event_id: int) -> None:
+async def show_event_page(manager: DialogManager, event_id: EventId) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_page_number_by_event = await container.get(GetPageNumberByEvent)
-    user: FullUserDTO = manager.middleware_data["user"]
+    get_page_number_by_event: GetPageNumberByEvent = await container.get(
+        GetPageNumberByEvent
+    )
+    user: FullUserModel = manager.middleware_data["user"]
 
     page_number = await get_page_number_by_event(
-        event_id=event_id,
-        events_per_page=user.settings.items_per_page,
+        GetPageNumberByEventDTO(
+            event_id=event_id, events_per_page=user.settings.items_per_page
+        )
     )
     if page_number is not None:
         await manager.find(ID_SCHEDULE_SCROLL).set_page(page_number)
@@ -56,7 +78,7 @@ async def current_event_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    get_current_event = await container.get(GetCurrentEvent)
+    get_current_event: GetCurrentEvent = await container.get(GetCurrentEvent)
 
     try:
         current_event = await get_current_event()

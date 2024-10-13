@@ -1,89 +1,75 @@
 import logging
+from dataclasses import dataclass
 
-from sqlalchemy import and_, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.participants import ParticipantNotFound
-from fanfan.core.exceptions.users import TicketNotLinked, UserNotFound
 from fanfan.core.exceptions.votes import (
     AlreadyVotedInThisNomination,
-    VotingDisabled,
 )
-from fanfan.core.models.vote import VoteDTO
-from fanfan.infrastructure.db.models import (
-    Nomination,
-    Participant,
-    Settings,
-    User,
-    Vote,
+from fanfan.core.models.participant import ParticipantId
+from fanfan.core.models.vote import VoteModel
+from fanfan.core.services.access import AccessService
+from fanfan.infrastructure.db.repositories.participants import (
+    ParticipantsRepository,
 )
+from fanfan.infrastructure.db.repositories.votes import VotesRepository
+from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 
 
-class AddVote:
+@dataclass(frozen=True, slots=True)
+class AddVoteDTO:
+    participant_id: ParticipantId
+
+
+class AddVote(Interactor[ParticipantId, VoteModel]):
     def __init__(
         self,
-        session: AsyncSession,
+        participants_repo: ParticipantsRepository,
+        votes_repo: VotesRepository,
+        uow: UnitOfWork,
+        access: AccessService,
         id_provider: IdProvider,
     ) -> None:
-        self.session = session
+        self.participants_repo = participants_repo
+        self.votes_repo = votes_repo
+        self.uow = uow
+        self.access = access
         self.id_provider = id_provider
 
     async def __call__(
         self,
-        participant_id: int,
-    ) -> VoteDTO:
-        # Checking settings
-        settings = await self.session.get(Settings, 1)
-        if not settings.voting_enabled:
-            raise VotingDisabled
-
-        # Checking user
-        user = await self.session.get(
-            User,
-            self.id_provider.get_current_user_id(),
-            options=[joinedload(User.ticket)],
-        )
-        if not user:
-            raise UserNotFound
-        if not user.ticket:
-            raise TicketNotLinked
-
+        participant_id: ParticipantId,
+    ) -> VoteModel:
         # Checking participant
-        participant = await self.session.get(
-            Participant, participant_id, options=[joinedload(Participant.event)]
-        )
+        participant = await self.participants_repo.get_participant_by_id(participant_id)
         if not participant:
             raise ParticipantNotFound
         if participant.event and participant.event.skip:
             raise ParticipantNotFound
 
-        # Checking user vote in this nomination
-        if await self.session.scalar(
-            select(Vote).where(
-                and_(
-                    Vote.user_id == user.id,
-                    Vote.nomination.has(Nomination.id == participant.nomination_id),
-                ),
-            )
-        ):
-            raise AlreadyVotedInThisNomination
+        # Checking user
+        user = await self.id_provider.get_current_user()
+        await self.access.ensure_can_vote(user, participant.nomination_id)
 
-        async with self.session:
+        async with self.uow:
             try:
-                vote = Vote(user=user, participant=participant)
-                self.session.add(vote)
-                await self.session.commit()
+                vote = await self.votes_repo.add_vote(
+                    VoteModel(user_id=user.id, participant_id=participant_id)
+                )
+                await self.uow.commit()
+            except IntegrityError as e:
+                await self.uow.rollback()
+                raise AlreadyVotedInThisNomination from e
+            else:
                 logger.info(
                     "User %s voted for participant %s",
                     user.id,
                     participant.id,
+                    extra={"vote": vote},
                 )
-                return vote.to_dto()
-            except IntegrityError as e:
-                await self.session.rollback()
-                raise AlreadyVotedInThisNomination from e
+                return vote

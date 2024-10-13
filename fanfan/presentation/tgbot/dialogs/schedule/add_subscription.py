@@ -26,27 +26,27 @@ async def set_counter_handler(
     data: int,
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
-    create_subscription = await container.get(CreateSubscription)
+    create_subscription: CreateSubscription = await container.get(CreateSubscription)
     try:
         subscription = await create_subscription(
             CreateSubscriptionDTO(
-                user_id=dialog_manager.event.from_user.id,
-                event_id=dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID],
+                event_id=dialog_manager.start_data[DATA_SELECTED_EVENT_ID],
                 counter=data,
             ),
         )
-        await message.reply(
-            f"✅ Подписка на выступление "
-            f"<b>{subscription.event.title}</b> "
-            f"успешно оформлена!",
-        )
-        await dialog_manager.switch_to(
-            states.Schedule.event_details,
-            show_mode=ShowMode.DELETE_AND_SEND,
-        )
     except AppException as e:
         await message.answer(e.message)
-        dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
+        return
+
+    await message.reply(
+        f"✅ Подписка на выступление "
+        f"<b>{subscription.event.title}</b> "
+        f"успешно оформлена!",
+    )
+    await dialog_manager.switch_to(
+        states.Schedule.event_details,
+        show_mode=ShowMode.DELETE_AND_SEND,
+    )
 
 
 set_subscription_counter_window = Window(

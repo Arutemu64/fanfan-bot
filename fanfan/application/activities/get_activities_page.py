@@ -1,27 +1,18 @@
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from fanfan.core.models.activity import ActivityDTO
+from fanfan.application.common.interactor import Interactor
+from fanfan.core.models.activity import ActivityModel
 from fanfan.core.models.page import Page, Pagination
-from fanfan.infrastructure.db.models import Activity
+from fanfan.infrastructure.db.repositories.activities import ActivitiesRepository
 
 
-class GetActivitiesPage:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+class GetActivitiesPage(Interactor[Pagination, Page[ActivityModel]]):
+    def __init__(self, activities_repo: ActivitiesRepository) -> None:
+        self.activities_repo = activities_repo
 
     async def __call__(
         self,
         pagination: Pagination | None = None,
-    ) -> Page[ActivityDTO]:
-        query = select(Activity).order_by(Activity.order)
-        if pagination:
-            query = query.limit(pagination.limit).offset(pagination.offset)
-
-        activities = await self.session.scalars(query)
-        total = await self.session.scalar(select(func.count(Activity.id)))
-
+    ) -> Page[ActivityModel]:
         return Page(
-            items=[a.to_dto() for a in activities],
-            total=total,
+            items=await self.activities_repo.list_activities(pagination),
+            total=await self.activities_repo.count_activities(),
         )

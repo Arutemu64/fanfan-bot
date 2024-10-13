@@ -4,7 +4,11 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from fanfan.core.models.achievement import AchievementDTO, UserAchievementDTO
+from fanfan.core.models.achievement import (
+    AchievementId,
+    AchievementModel,
+    FullAchievementModel,
+)
 from fanfan.infrastructure.db.models.base import Base
 from fanfan.infrastructure.db.models.mixins.order import OrderMixin
 
@@ -29,14 +33,14 @@ class Achievement(Base, OrderMixin):
     def __str__(self) -> str:
         return self.title
 
-    def to_dto(self) -> AchievementDTO:
-        return AchievementDTO(
-            id=self.id, title=self.title, description=self.description
+    def to_model(self) -> AchievementModel:
+        return AchievementModel(
+            id=AchievementId(self.id), title=self.title, description=self.description
         )
 
-    def to_user_dto(self) -> UserAchievementDTO:
-        return UserAchievementDTO(
-            id=self.id,
+    def to_full_model(self) -> FullAchievementModel:
+        return FullAchievementModel(
+            id=AchievementId(self.id),
             title=self.title,
             description=self.description,
             received=bool(self.user_received),

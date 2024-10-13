@@ -9,7 +9,7 @@ from aiogram.filters import ExceptionTypeFilter
 from aiogram.types import ErrorEvent, ReplyKeyboardRemove
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import DialogManager, ShowMode, StartMode
-from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from aiogram_dialog.api.exceptions import OutdatedIntent, UnknownIntent, UnknownState
 from sentry_sdk import capture_exception
 
 from fanfan.core.exceptions.base import AppException, UnhandledException
@@ -22,14 +22,12 @@ logger = logging.getLogger(__name__)
 async def on_app_exception(event: ErrorEvent) -> None:
     exception: AppException = typing.cast(AppException, event.exception)
     if c := event.update.callback_query:
-        await c.message.answer(exception.message)
+        await c.answer(exception.message, show_alert=True)
     elif m := event.update.message:
         await m.reply(exception.message)
 
 
-async def on_unknown_intent_or_state(
-    event: ErrorEvent, dialog_manager: DialogManager
-) -> None:
+async def on_dialog_error(event: ErrorEvent, dialog_manager: DialogManager) -> None:
     logging.error("Restarting dialog: %s", event.exception)
     msg = "⌛ Ваша сессия истекла, перезапуск бота..."
     if c := event.update.callback_query:
@@ -70,7 +68,8 @@ async def on_unknown_error(event: ErrorEvent) -> None:
 
 
 def register_error_handlers(dp: Dispatcher) -> None:
-    dp.errors.register(on_unknown_intent_or_state, ExceptionTypeFilter(UnknownIntent))
-    dp.errors.register(on_unknown_intent_or_state, ExceptionTypeFilter(UnknownState))
+    dp.errors.register(on_dialog_error, ExceptionTypeFilter(UnknownIntent))
+    dp.errors.register(on_dialog_error, ExceptionTypeFilter(UnknownState))
+    dp.error.register(on_dialog_error, ExceptionTypeFilter(OutdatedIntent))
     dp.errors.register(on_app_exception, ExceptionTypeFilter(AppException))
     dp.errors.register(on_unknown_error, ExceptionTypeFilter(Exception))

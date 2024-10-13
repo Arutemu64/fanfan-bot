@@ -8,7 +8,6 @@ from fanfan.presentation.tgbot.keyboards.buttons import PULL_DOWN_DIALOG
 
 @dataclass(frozen=True, slots=True)
 class UserNotification:
-    user_id: int
     text: str
     title: str = "📢 УВЕДОМЛЕНИЕ"
     bottom_text: str | None = None
@@ -23,9 +22,3 @@ class UserNotification:
         if self.bottom_text:
             text = f"{text}\n\n<i>{self.bottom_text}</i>"
         return text
-
-
-@dataclass(frozen=True, slots=True)
-class MailingInfo:
-    mailing_id: str
-    count: int

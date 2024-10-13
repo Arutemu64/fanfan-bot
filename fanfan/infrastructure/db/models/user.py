@@ -13,8 +13,9 @@ from sqlalchemy.orm import (
 )
 
 from fanfan.core.enums import UserRole
-from fanfan.core.models.user import FullUserDTO, UserDTO
+from fanfan.core.models.user import FullUserModel, UserId, UserModel
 from fanfan.infrastructure.db.models.base import Base
+from fanfan.infrastructure.db.models.quest_registration import QuestRegistration
 from fanfan.infrastructure.db.models.received_achievement import ReceivedAchievement
 from fanfan.infrastructure.db.models.user_permissions import UserPermissions
 from fanfan.infrastructure.db.models.user_settings import UserSettings
@@ -40,9 +41,13 @@ class User(Base):
     )
 
     # Relations
-    settings: Mapped[UserSettings] = relationship()
-    permissions: Mapped[UserPermissions] = relationship()
+    settings: Mapped[UserSettings] = relationship(cascade="all, delete-orphan")
+    permissions: Mapped[UserPermissions] = relationship(cascade="all, delete-orphan")
     ticket: Mapped[Ticket | None] = relationship(foreign_keys="Ticket.used_by_id")
+
+    # Quest
+    quest_registration: Mapped[QuestRegistration | None] = relationship()
+    points: Mapped[int] = mapped_column(server_default="0", deferred=True)
     received_achievements: WriteOnlyMapped[Achievement] = relationship(
         secondary="received_achievements",
         passive_deletes=True,
@@ -63,22 +68,19 @@ class User(Base):
     def __str__(self) -> str:
         return f"{self.username} ({self.id})"
 
-    def to_dto(self) -> UserDTO:
-        return UserDTO(
-            id=self.id,
+    def to_model(self) -> UserModel:
+        return UserModel(
+            id=UserId(self.id),
             username=self.username,
             role=self.role,
         )
 
-    def to_full_dto(self) -> FullUserDTO:
-        self.ticket: Ticket
-        self.settings: UserSettings
-        self.permissions: UserPermissions
-        return FullUserDTO(
-            id=self.id,
+    def to_full_model(self) -> FullUserModel:
+        return FullUserModel(
+            id=UserId(self.id),
             username=self.username,
             role=self.role,
-            ticket=self.ticket.to_dto() if self.ticket else None,
-            settings=self.settings.to_dto(),
-            permissions=self.permissions.to_dto(),
+            permissions=self.permissions.to_model(),
+            settings=self.settings.to_model(),
+            ticket=self.ticket.to_model() if self.ticket else None,
         )

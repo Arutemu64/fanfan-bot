@@ -1,24 +1,36 @@
+import json
 from pathlib import Path
 
+from adaptix import Retort
+from adaptix.load_error import LoadError
+from aiogram import Bot
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.web_app import safe_parse_webapp_init_data
+from aiogram_dialog import BgManagerFactory
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Request
-from pydantic import ValidationError
 from starlette.responses import FileResponse, JSONResponse
 
-from fanfan.application.achievements.add_achievement_to_user import AddAchievementToUser
-from fanfan.application.achievements.get_achievement_by_secret_id import (
-    GetAchievementBySecretId,
-)
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.common.config import BotConfig
+from fanfan.application.common.notifier import Notifier
+from fanfan.application.quest.receive_achievement_by_secret_id import (
+    ReceiveAchievementBySecretId,
+)
+from fanfan.application.users.get_user_by_id import GetUserById
+from fanfan.core.enums import UserRole
+from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
+from fanfan.core.models.achievement import SecretId
 from fanfan.core.models.notification import UserNotification
 from fanfan.core.models.qr import QR, QRType
+from fanfan.core.utils.notifications import create_achievement_notification
 from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
-from fanfan.infrastructure.scheduler.notifications.bot_notifier import Notifier
+from fanfan.infrastructure.config_reader import BotConfig
+from fanfan.infrastructure.stream.routes.send_notification import (
+    SendNotificationDTO,
+)
+from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
 from fanfan.presentation.tgbot.keyboards.buttons import DELETE_BUTTON
 
 QR_SCANNER_APP = Path(__file__).parent.joinpath("qr_scanner.html")
@@ -35,12 +47,14 @@ async def open_qr_scanner() -> FileResponse:
 @inject
 async def proceed_qr_post(
     request: Request,
+    bot: FromDishka[Bot],
     config: FromDishka[BotConfig],
     notifier: FromDishka[Notifier],
     token_processor: FromDishka[JwtTokenProcessor],
     id_provider: FromDishka[IdProvider],
-    get_achievement_by_secret_id: FromDishka[GetAchievementBySecretId],
-    receive_achievement: FromDishka[AddAchievementToUser],
+    receive_achievement_by_secret_id: FromDishka[ReceiveAchievementBySecretId],
+    get_user_id_by: FromDishka[GetUserById],
+    bg_factory: FromDishka[BgManagerFactory],
 ) -> JSONResponse:
     data = await request.form()
 
@@ -57,36 +71,50 @@ async def proceed_qr_post(
 
     # Parsing QR code
     try:
-        qr = QR.model_validate_json(data["qr_text"])
-    except ValidationError:
+        qr = Retort(strict_coercion=False).load(json.loads(data["qr_text"]), QR)
+    except LoadError:
         await notifier.send_notification(
-            UserNotification(
+            SendNotificationDTO(
                 user_id=id_provider.get_current_user_id(),
-                title="⚠️ Ошибка",
-                text="⚠️ Ошибка при валидации QR-кода, попробуйте ещё раз",
-                reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
+                notification=UserNotification(
+                    title="⚠️ Ошибка",
+                    text="⚠️ Ошибка при валидации QR-кода, попробуйте ещё раз",
+                    reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
+                ),
             )
         )
         return JSONResponse({"ok": False})
 
-    match qr.type:
-        case QRType.ACHIEVEMENT:
-            try:
-                achievement = await get_achievement_by_secret_id(qr.data)
-                await receive_achievement(
-                    user_id=id_provider.get_current_user_id(),
-                    achievement_id=achievement.id,
+    try:
+        match qr.type:
+            case QRType.ACHIEVEMENT:
+                achievement = await receive_achievement_by_secret_id(SecretId(qr.data))
+                await notifier.show_notification(
+                    create_achievement_notification(achievement)
                 )
-            except AppException as e:
-                await notifier.send_notification(
-                    UserNotification(
+                return JSONResponse({"ok": True})
+            case QRType.USER:
+                user = await get_user_id_by(id_provider.get_current_user_id())
+                if user.role in [UserRole.HELPER, UserRole.ORG]:
+                    bg = bg_factory.bg(
+                        bot=bot,
                         user_id=id_provider.get_current_user_id(),
-                        title="⚠️ Ошибка",
-                        text=e.message,
-                        reply_markup=InlineKeyboardBuilder()
-                        .add(DELETE_BUTTON)
-                        .as_markup(),
+                        chat_id=id_provider.get_current_user_id(),
+                        load=True,
                     )
-                )
-            return JSONResponse({"ok": False})
+                    await start_user_manager(bg, int(qr.data))
+                    return JSONResponse({"ok": True})
+                raise AccessDenied
+    except AppException as e:
+        await notifier.send_notification(
+            SendNotificationDTO(
+                user_id=id_provider.get_current_user_id(),
+                notification=UserNotification(
+                    title="⚠️ Ошибка",
+                    text=e.message,
+                    reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
+                ),
+            )
+        )
+        return JSONResponse({"ok": False})
     return JSONResponse({"ok": True})

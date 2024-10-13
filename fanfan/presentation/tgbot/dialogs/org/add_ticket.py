@@ -10,6 +10,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from fanfan.application.tickets.create_ticket import CreateTicket, CreateTicketDTO
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.base import AppException
+from fanfan.core.models.ticket import TicketId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
 from fanfan.presentation.tgbot.ui import strings
@@ -24,10 +25,10 @@ async def add_ticket_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
-    data: str,
+    data: TicketId,
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
-    create_ticket = await container.get(CreateTicket)
+    create_ticket: CreateTicket = await container.get(CreateTicket)
     role_picker: ManagedRadio[UserRole] = dialog_manager.find(ID_TICKET_ROLE_PICKER)
 
     try:
@@ -59,7 +60,7 @@ add_ticket_window = Window(
             type_factory=UserRole,
         ),
     ),
-    TextInput(id="ticket_id", type_factory=str, on_success=add_ticket_handler),
+    TextInput(id="ticket_id", type_factory=TicketId, on_success=add_ticket_handler),
     SwitchTo(
         state=states.Org.main,
         id="org_main_window",

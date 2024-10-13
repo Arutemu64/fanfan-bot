@@ -7,7 +7,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.core.enums import UserRole
-from fanfan.core.models.ticket import TicketDTO
+from fanfan.core.models.ticket import TicketId, TicketModel
 from fanfan.infrastructure.db.models.base import Base
 
 if TYPE_CHECKING:
@@ -18,7 +18,7 @@ class Ticket(Base):
     __tablename__ = "tickets"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    role: Mapped[int] = mapped_column(
+    role: Mapped[UserRole] = mapped_column(
         postgresql.ENUM(UserRole),
         server_default="VISITOR",
     )
@@ -42,10 +42,7 @@ class Ticket(Base):
     def __str__(self) -> str:
         return self.id
 
-    def to_dto(self) -> TicketDTO:
-        return TicketDTO(
-            id=self.id,
-            role=self.role,
-            used_by_id=self.used_by_id,
-            issued_by_id=self.issued_by_id,
+    def to_model(self) -> TicketModel:
+        return TicketModel(
+            id=TicketId(self.id), role=self.role, issued_by_id=self.issued_by_id
         )

@@ -1,81 +1,65 @@
-import math
-
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Group, Start, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
-from aiogram_dialog.widgets.text import Case, Const, Format, Jinja, Multi, Progress
+from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
-from fanfan.application.other.get_random_quote import GetRandomQuote
-from fanfan.application.quest.get_user_stats import GetUserStats
-from fanfan.application.settings.get_settings import GetSettings
-from fanfan.common.config import Configuration
+from fanfan.application.get_random_quote import GetRandomQuote
 from fanfan.core.enums import BotMode, UserRole
-from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.exceptions.users import TicketNotLinked
-from fanfan.core.exceptions.votes import VotingDisabled
-from fanfan.core.models.user import FullUserDTO
+from fanfan.core.exceptions.base import AppException
+from fanfan.core.models.user import FullUserModel
+from fanfan.core.services.access import AccessService
+from fanfan.infrastructure.config_reader import Configuration
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
-from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
 from fanfan.presentation.tgbot.dialogs.common.getters import (
     CURRENT_USER,
     current_user_getter,
 )
-from fanfan.presentation.tgbot.dialogs.common.predicates import is_helper, is_org
+from fanfan.presentation.tgbot.dialogs.common.predicates import (
+    is_helper,
+    is_org,
+    is_ticket_linked,
+)
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
 
 
 async def main_menu_getter(
     dialog_manager: DialogManager,
-    user: FullUserDTO,
+    user: FullUserModel,
     container: AsyncContainer,
     **kwargs,
 ):
-    config = await container.get(Configuration)
-    get_user_stats = await container.get(GetUserStats)
-    get_random_quote = await container.get(GetRandomQuote)
-    get_settings = await container.get(GetSettings)
+    config: Configuration = await container.get(Configuration)
+    get_random_quote: GetRandomQuote = await container.get(GetRandomQuote)
+    access: AccessService = await container.get(AccessService)
 
-    settings = await get_settings()
-    user_stats = None
-    achievements_progress = 0
-    if user.ticket:
-        user_stats = await get_user_stats(user.id)
-        if user_stats.total_achievements > 0:
-            achievements_progress = math.floor(
-                user_stats.achievements_count * 100 / user_stats.total_achievements,
-            )
+    try:
+        await access.ensure_can_vote(user)
+        can_vote = True
+    except AppException:
+        can_vote = False
+    try:
+        await access.ensure_can_participate_in_quest(user)
+        can_participate_in_quest = True
+    except AppException:
+        can_participate_in_quest = False
+
     return {
         # Info
         "first_name": dialog_manager.middleware_data["event_from_user"].first_name,
-        # Stats
-        "achievements_count": user_stats.achievements_count if user_stats else None,
-        "achievements_progress": achievements_progress if user_stats else None,
-        "total_achievements": user_stats.total_achievements if user_stats else None,
         # WebApp
         "webapp_allowed": config.bot.mode is BotMode.WEBHOOK and user.ticket,
         "webapp_link": config.web.build_qr_scanner_url(),
-        # Voting
-        "can_vote": settings.voting_enabled and user.ticket is not None,
+        # Access
+        "can_vote": can_vote,
+        "can_participate_in_quest": can_participate_in_quest,
         # Most important thing ever
         "random_quote": await get_random_quote(),
     }
-
-
-async def open_achievements_handler(
-    callback: CallbackQuery,
-    button: Button,
-    manager: DialogManager,
-) -> None:
-    user: FullUserDTO = manager.middleware_data["user"]
-    if not user.ticket:
-        await callback.answer(TicketNotLinked.message, show_alert=True)
-        return
-    await start_achievements(manager, user.id)
 
 
 async def open_voting_handler(
@@ -84,22 +68,18 @@ async def open_voting_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    get_settings = await container.get(GetSettings)
+    access: AccessService = await container.get(AccessService)
 
-    user: FullUserDTO = manager.middleware_data["user"]
+    user: FullUserModel = manager.middleware_data["user"]
     if user.role is UserRole.ORG:
         await manager.start(states.Voting.list_nominations)
         return
-    if not user.ticket:
-        await callback.answer(TicketNotLinked.message, show_alert=True)
-        return
 
-    settings = await get_settings()
-    if not settings.voting_enabled:
-        await callback.answer(VotingDisabled.message, show_alert=True)
-        return
-
-    await manager.start(states.Voting.list_nominations)
+    try:
+        await access.ensure_can_vote(user)
+        await manager.start(states.Voting.list_nominations)
+    except AppException as e:
+        await callback.answer(e.message, show_alert=True)
 
 
 async def open_feedback_handler(
@@ -107,11 +87,33 @@ async def open_feedback_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUserDTO = manager.middleware_data["user"]
-    if not user.permissions.can_send_feedback:
-        await callback.answer(AccessDenied.message, show_alert=True)
+    user: FullUserModel = manager.middleware_data["user"]
+    container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
+    access: AccessService = await container.get(AccessService)
+
+    try:
+        await access.ensure_can_send_feedback(user)
+        await manager.start(states.Feedback.send_feedback)
+    except AppException as e:
+        await callback.answer(e.message, show_alert=True)
         return
-    await manager.start(states.Feedback.send_feedback)
+
+
+async def open_quest_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+) -> None:
+    user: FullUserModel = manager.middleware_data["user"]
+    container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
+    access: AccessService = await container.get(AccessService)
+
+    try:
+        await access.ensure_can_participate_in_quest(user)
+        await manager.start(states.Quest.main)
+    except AppException as e:
+        await callback.answer(e.message, show_alert=True)
+        return
 
 
 main_window = Window(
@@ -122,12 +124,6 @@ main_window = Window(
         "Сюда всегда можно вернуться по команде <b>/start</b>.",
     ),
     Const(" "),
-    Multi(
-        Format("<b>🏆 Достижений:</b> {achievements_count} из {total_achievements}"),
-        Progress(field="achievements_progress", filled="🟩", empty="⬜"),
-        Const(" "),
-        when=F[CURRENT_USER].ticket,
-    ),
     Const(
         "🎫 Не забудь привязать свой билет, чтобы получить доступ ко "
         "всем функциям бота (голосование, участие в квесте).\n",
@@ -153,15 +149,15 @@ main_window = Window(
             state=states.Schedule.main,
         ),
         Button(
-            text=Case(
-                {
-                    True: Const(strings.titles.achievements),
-                    False: Const(f"{strings.titles.achievements} 🔒"),
+            Case(
+                texts={
+                    True: Const(strings.titles.quest),
+                    False: Const(f"{strings.titles.quest} 🔒"),
                 },
-                selector=F[CURRENT_USER].ticket.is_not(None),
+                selector=is_ticket_linked,
             ),
-            id="open_achievements",
-            on_click=open_achievements_handler,
+            id="open_quest",
+            on_click=open_quest_handler,
         ),
         WebApp(
             Const(strings.titles.qr_scanner),

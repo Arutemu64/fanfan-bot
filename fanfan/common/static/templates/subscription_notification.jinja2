@@ -7,9 +7,9 @@
 выступлений
 {%- endif %}
 {% endmacro %}
-{% if event == current_event %}
-Выступление {{ event.id }}. {{ event.title }} {% if event.block %}<i>({{ event.block.title }})</i>{% endif %} <b>НАЧАЛОСЬ!</b>
-{% else %}
 {% set counter = event.queue - current_event.queue %}
-До выступления {{ event.id }}. {{ event.title }} {% if event.block %}<i>({{ event.block.title }})</i>{% endif %} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
+{% if counter == 0 %}
+Выступление {{ event.id }}. {{ event.title }}{% if event.block %} <i>({{ event.block.title }})</i>{% endif %} <b>НАЧАЛОСЬ!</b>
+{% else %}
+До выступления {{ event.id }}. {{ event.title }}{% if event.block %} <i>({{ event.block.title }})</i>{% endif %} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
 {%- endif -%}

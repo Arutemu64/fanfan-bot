@@ -1,11 +1,11 @@
 import datetime
 
 import jwt
-from asyncpg.pgproto.pgproto import timedelta
 from jwt import InvalidSignatureError
 
-from fanfan.common.config import WebConfig
 from fanfan.core.exceptions.auth import AuthenticationError
+from fanfan.core.models.user import UserId
+from fanfan.infrastructure.config_reader import WebConfig
 
 
 class JwtTokenProcessor:
@@ -16,12 +16,13 @@ class JwtTokenProcessor:
         return jwt.encode(
             payload={
                 "user_id": user_id,
-                "exp": datetime.datetime.now(datetime.UTC) + timedelta(minutes=15),
+                "exp": datetime.datetime.now(datetime.UTC)
+                + datetime.timedelta(minutes=30),
             },
             key=self.config.secret_key.get_secret_value(),
         )
 
-    def validate_token(self, token: str) -> int:
+    def validate_token(self, token: str) -> UserId:
         try:
             payload = jwt.decode(
                 token,
@@ -32,6 +33,6 @@ class JwtTokenProcessor:
             raise AuthenticationError from InvalidSignatureError
 
         try:
-            return int(payload["user_id"])
+            return UserId(int(payload["user_id"]))
         except ValueError:
             raise AuthenticationError from ValueError

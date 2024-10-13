@@ -1,43 +1,34 @@
 import logging
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.core.exceptions.tickets import (
-    TicketAlreadyUsed,
-    TicketNotFound,
-    UserAlreadyHasTicketLinked,
-)
-from fanfan.core.exceptions.users import UserNotFound
-from fanfan.infrastructure.db.models import Ticket, User
+from fanfan.application.common.id_provider import IdProvider
+from fanfan.application.common.interactor import Interactor
+from fanfan.core.models.ticket import TicketId
+from fanfan.infrastructure.db.repositories.tickets import TicketsRepository
+from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 
 
-class LinkTicket:
+class LinkTicket(Interactor[TicketId, None]):
     def __init__(
-        self,
-        session: AsyncSession,
+        self, tickets_repo: TicketsRepository, uow: UnitOfWork, id_provider: IdProvider
     ) -> None:
-        self.session = session
+        self.tickets_repo = tickets_repo
+        self.uow = uow
+        self.id_provider = id_provider
 
-    async def __call__(self, ticket_id: str, user_id: int) -> None:
-        async with self.session:
-            ticket = await self.session.get(Ticket, ticket_id)
-            if not ticket:
-                raise TicketNotFound
-
-            user = await self.session.get(User, user_id)
-            if not user:
-                raise UserNotFound
-
+    async def __call__(self, ticket_id: TicketId) -> None:
+        user_id = self.id_provider.get_current_user_id()
+        async with self.uow:
             try:
-                user.ticket = ticket
-                await self.session.commit()
+                await self.tickets_repo.link_ticket_to_user(
+                    ticket_id=ticket_id, user_id=user_id
+                )
+                await self.uow.commit()
+            except IntegrityError:
+                await self.uow.rollback()
+                raise
+            else:
                 logger.info("Ticket %s was linked to user %s", ticket_id, user_id)
-            except IntegrityError as e:
-                await self.session.rollback()
-                if ticket.used_by_id:
-                    raise TicketAlreadyUsed from e
-                if user.ticket:
-                    raise UserAlreadyHasTicketLinked from e

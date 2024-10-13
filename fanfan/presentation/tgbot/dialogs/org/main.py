@@ -9,9 +9,9 @@ from fanfan.application.settings.update_settings import (
     UpdateSettings,
     UpdateSettingsDTO,
 )
-from fanfan.common.config import WebConfig
 from fanfan.core.exceptions.base import AppException
 from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
+from fanfan.infrastructure.config_reader import WebConfig
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -24,9 +24,9 @@ async def org_main_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    web_config = await container.get(WebConfig)
+    web_config: WebConfig = await container.get(WebConfig)
     token_processor: JwtTokenProcessor = await container.get(JwtTokenProcessor)
-    get_settings = await container.get(GetSettings)
+    get_settings: GetSettings = await container.get(GetSettings)
 
     settings = await get_settings()
     jwt_token = token_processor.create_access_token(dialog_manager.event.from_user.id)
@@ -42,8 +42,8 @@ async def toggle_voting_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_settings = await container.get(GetSettings)
-    update_settings = await container.get(UpdateSettings)
+    get_settings: GetSettings = await container.get(GetSettings)
+    update_settings: UpdateSettings = await container.get(UpdateSettings)
 
     try:
         settings = await get_settings()
@@ -71,7 +71,7 @@ org_main_window = Window(
         text=Const("✉️ Рассылки"),
     ),
     Start(
-        state=states.UserManager.search_user,
+        state=states.UserManager.manual_user_search,
         id="user_search",
         text=Const("🔍 Найти пользователя"),
     ),

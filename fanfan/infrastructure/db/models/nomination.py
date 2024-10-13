@@ -5,7 +5,11 @@ from typing import TYPE_CHECKING
 from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
-from fanfan.core.models.nomination import NominationDTO, UserNominationDTO
+from fanfan.core.models.nomination import (
+    FullNominationModel,
+    NominationId,
+    NominationModel,
+)
 from fanfan.infrastructure.db.models.base import Base
 from fanfan.infrastructure.db.models.participant import Participant
 
@@ -24,6 +28,7 @@ class Nomination(Base):
     user_vote: Mapped[Vote | None] = relationship(
         secondary="participants",
         viewonly=True,
+        lazy="noload",
     )
     participants_count = column_property(
         select(func.count(Participant.id))
@@ -36,18 +41,16 @@ class Nomination(Base):
     def __str__(self) -> str:
         return self.title
 
-    def to_dto(self) -> NominationDTO:
-        return NominationDTO(
-            id=self.id,
-            title=self.title,
-            votable=self.votable,
+    def to_model(self) -> NominationModel:
+        return NominationModel(
+            id=NominationId(self.id), title=self.title, votable=self.votable
         )
 
-    def to_user_dto(self) -> UserNominationDTO:
+    def to_full_model(self) -> FullNominationModel:
         self.user_vote: Vote
-        return UserNominationDTO(
-            id=self.id,
+        return FullNominationModel(
+            id=NominationId(self.id),
             title=self.title,
             votable=self.votable,
-            vote=self.user_vote.to_dto() if self.user_vote else None,
+            user_vote=self.user_vote.to_model() if self.user_vote else None,
         )

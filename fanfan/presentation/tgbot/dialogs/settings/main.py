@@ -3,7 +3,7 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
-from fanfan.core.models.user import FullUserDTO
+from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.settings.common import ID_ITEMS_PER_PAGE_INPUT
@@ -11,7 +11,7 @@ from fanfan.presentation.tgbot.ui import strings
 
 
 async def settings_user_info_getter(
-    dialog_manager: DialogManager, user: FullUserDTO, **kwargs
+    dialog_manager: DialogManager, user: FullUserModel, **kwargs
 ):
     return {
         "username": user.username,
@@ -27,7 +27,7 @@ async def update_counter_value_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUserDTO = manager.middleware_data["user"]
+    user: FullUserModel = manager.middleware_data["user"]
     await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(user.settings.items_per_page)
 
 

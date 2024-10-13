@@ -1,26 +1,25 @@
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from dataclasses import dataclass
 
+from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.participants import ParticipantNotFound
-from fanfan.core.models.participant import ParticipantDTO
-from fanfan.infrastructure.db.models import Participant
+from fanfan.core.models.nomination import NominationId
+from fanfan.core.models.participant import ParticipantModel, ParticipantScopedId
+from fanfan.infrastructure.db.repositories.participants import ParticipantsRepository
 
 
-class GetParticipantByScopedId:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+@dataclass(frozen=True, slots=True)
+class GetScopedParticipantDTO:
+    nomination_id: NominationId
+    scoped_id: ParticipantScopedId
 
-    async def __call__(self, nomination_id: str, scoped_id: int) -> ParticipantDTO:
-        participant = await self.session.scalar(
-            select(Participant)
-            .where(
-                and_(
-                    Participant.nomination_id == nomination_id,
-                    Participant.scoped_id == scoped_id,
-                ),
-            )
-            .limit(1)
-        )
-        if participant:
-            return participant.to_dto()
+
+class GetScopedParticipant(Interactor[GetScopedParticipantDTO, ParticipantModel]):
+    def __init__(self, participants_repo: ParticipantsRepository) -> None:
+        self.participants_repo = participants_repo
+
+    async def __call__(self, data: GetScopedParticipantDTO) -> ParticipantModel:
+        if participant := await self.participants_repo.get_participant_by_scoped_id(
+            data.nomination_id, data.scoped_id
+        ):
+            return participant
         raise ParticipantNotFound

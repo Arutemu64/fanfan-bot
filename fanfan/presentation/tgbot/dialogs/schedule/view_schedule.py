@@ -19,25 +19,25 @@ from aiogram_dialog.widgets.text import Const, Jinja
 
 from fanfan.application.schedule_mgmt.set_next_event import SetNextEvent
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.utils.pluralize import NOTIFICATIONS_PLURALS, pluralize
+from fanfan.core.exceptions.events import EventNotFound
+from fanfan.core.models.event import EventId
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.common.predicates import is_helper
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
     Title,
 )
 from fanfan.presentation.tgbot.dialogs.schedule import show_event_page
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
-    DATA_SELECTED_EVENT_ID,
     DATA_TOTAL_PAGES,
     ID_SCHEDULE_SCROLL,
     current_event_getter,
     schedule_getter,
 )
+from fanfan.presentation.tgbot.dialogs.schedule.event_details import show_event_details
 from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
 )
-from fanfan.presentation.tgbot.keyboards.buttons import get_delete_mailing_button
+from fanfan.presentation.tgbot.keyboards.buttons import show_mailing_info_button
 from fanfan.presentation.tgbot.static.templates import schedule_list
 from fanfan.presentation.tgbot.ui import strings
 
@@ -54,24 +54,16 @@ async def set_next_event_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    set_next_event = await container.get(SetNextEvent)
+    set_next_event: SetNextEvent = await container.get(SetNextEvent)
 
     try:
         data = await set_next_event()
         await callback.message.answer(
             f"✅ Выступление <b>{data.current_event.title}</b> отмечено текущим\n"
-            f"Будет отправлено {data.mailing_info.count} "
-            f"{pluralize(data.mailing_info.count, NOTIFICATIONS_PLURALS)}\n"
-            f"Уникальный ID рассылки: <code>{data.mailing_info.mailing_id}</code>",
+            f"Уникальный ID рассылки: <code>{data.mailing_data.id}</code>",
             reply_markup=InlineKeyboardBuilder(
-                [
-                    [
-                        get_delete_mailing_button(data.mailing_info.mailing_id),
-                    ],
-                ],
-            ).as_markup()
-            if data.mailing_info.count > 0
-            else None,
+                [[show_mailing_info_button(data.mailing_data.id)]]
+            ).as_markup(),
         )
         await show_event_page(manager, data.current_event.id)
         manager.show_mode = ShowMode.DELETE_AND_SEND
@@ -87,8 +79,12 @@ async def schedule_text_input_handler(
 ) -> None:
     schedule_scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
     if "/" in data and data.replace("/", "").isnumeric():
-        dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID] = int(data.replace("/", ""))
-        await dialog_manager.switch_to(states.Schedule.event_details)
+        event_id = EventId(int(data.replace("/", "")))
+        try:
+            await show_event_details(dialog_manager, event_id)
+        except EventNotFound as e:
+            await message.answer(e.message)
+            return
     elif (
         data.isnumeric()
         and 1 <= int(data) <= dialog_manager.dialog_data[DATA_TOTAL_PAGES]
@@ -127,7 +123,7 @@ schedule_main_window = Window(
             Const("🧰 Инструменты волонтёра ⬆️"),
             id=ID_TOGGLE_HELPER_TOOLS,
         ),
-        when=is_helper,
+        when=F["can_edit_schedule"],
     ),
     Row(
         SwitchInlineQueryCurrentChat(

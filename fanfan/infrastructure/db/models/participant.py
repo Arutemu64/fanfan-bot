@@ -5,7 +5,12 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, Sequence, UniqueConstraint, func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
-from fanfan.core.models.participant import ParticipantDTO, UserFullParticipantDTO
+from fanfan.core.models.participant import (
+    FullParticipantModel,
+    ParticipantId,
+    ParticipantModel,
+    ParticipantScopedId,
+)
 from fanfan.infrastructure.db.models.base import Base
 from fanfan.infrastructure.db.models.vote import Vote
 
@@ -46,25 +51,22 @@ class Participant(Base):
     def __str__(self) -> str:
         return self.title
 
-    def to_dto(self) -> ParticipantDTO:
-        return ParticipantDTO(
-            id=self.id,
+    def to_model(self) -> ParticipantModel:
+        return ParticipantModel(
+            id=ParticipantId(self.id),
             title=self.title,
             nomination_id=self.nomination_id,
-            scoped_id=self.scoped_id,
+            scoped_id=ParticipantScopedId(self.scoped_id),
         )
 
-    def to_user_full_dto(self) -> UserFullParticipantDTO:
-        self.event: Event
-        self.nomination: Nomination
-        self.user_vote: Vote
-        return UserFullParticipantDTO(
-            id=self.id,
+    def to_full_model(self) -> FullParticipantModel:
+        return FullParticipantModel(
+            id=ParticipantId(self.id),
             title=self.title,
             nomination_id=self.nomination_id,
-            scoped_id=self.scoped_id,
-            event=self.event.to_dto() if self.event else None,
-            nomination=self.nomination.to_dto(),
+            scoped_id=ParticipantScopedId(self.scoped_id),
+            event=self.event.to_model() if self.event else None,
+            nomination=self.nomination.to_model() if self.nomination else None,
             votes_count=self.votes_count,
-            vote=self.user_vote.to_dto() if self.user_vote else None,
+            user_vote=self.user_vote.to_model() if self.user_vote else None,
         )

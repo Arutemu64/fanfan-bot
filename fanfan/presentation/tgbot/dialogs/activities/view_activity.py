@@ -23,7 +23,7 @@ async def view_activity_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    get_activity_by_id = await container.get(GetActivityById)
+    get_activity_by_id: GetActivityById = await container.get(GetActivityById)
 
     activity = await get_activity_by_id(
         dialog_manager.dialog_data[DATA_SELECTED_ACTIVITY_ID],

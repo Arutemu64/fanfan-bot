@@ -3,8 +3,8 @@ from fastapi_storages.integrations.sqlalchemy import ImageType
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fanfan.common.config import get_config
-from fanfan.core.models.activity import ActivityDTO, FullActivityDTO
+from fanfan.core.models.activity import ActivityId, ActivityModel
+from fanfan.infrastructure.config_reader import get_config
 from fanfan.infrastructure.db.models.base import Base
 from fanfan.infrastructure.db.models.mixins.order import OrderMixin
 
@@ -25,12 +25,9 @@ class Activity(Base, OrderMixin):
         nullable=True,
     )
 
-    def to_dto(self) -> ActivityDTO:
-        return ActivityDTO(id=self.id, title=self.title)
-
-    def to_full_dto(self) -> FullActivityDTO:
-        return FullActivityDTO(
-            id=self.id,
+    def to_model(self) -> ActivityModel:
+        return ActivityModel(
+            id=ActivityId(self.id),
             title=self.title,
             description=self.description,
             subtext=self.subtext,

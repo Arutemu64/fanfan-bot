@@ -1,26 +1,28 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import NewType
+
+ParticipantId = NewType("ParticipantId", int)
+ParticipantScopedId = NewType("ParticipantScopedId", int)
 
 
 @dataclass(frozen=True, slots=True)
-class ParticipantDTO:
-    id: int
+class ParticipantModel:
+    id: ParticipantId
     title: str
-
-    nomination_id: str | None
-    scoped_id: int
+    nomination_id: NominationId | None
+    scoped_id: ParticipantScopedId
 
 
 @dataclass(frozen=True, slots=True)
-class UserFullParticipantDTO(ParticipantDTO):
-    event: EventDTO | None
-    nomination: NominationDTO
-
+class FullParticipantModel(ParticipantModel):
+    event: EventModel | None
+    nomination: NominationModel | None
     votes_count: int
-    vote: VoteDTO | None
+    user_vote: VoteModel | None
 
 
-from fanfan.core.models.event import EventDTO  # noqa: E402
-from fanfan.core.models.nomination import NominationDTO  # noqa: E402
-from fanfan.core.models.vote import VoteDTO  # noqa: E402
+from fanfan.core.models.event import EventModel  # noqa: E402
+from fanfan.core.models.nomination import NominationId, NominationModel  # noqa: E402
+from fanfan.core.models.vote import VoteModel  # noqa: E402

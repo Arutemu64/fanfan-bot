@@ -5,13 +5,14 @@ from aiogram_dialog import DialogManager, ShowMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.infrastructure.scheduler.notifications.bot_notifier import Notifier
+from fanfan.application.common.notifier import Notifier
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
 from fanfan.presentation.tgbot.filters.callbacks import (
-    DeleteMailingCallback,
     DeleteMessageCallback,
     OpenSubscriptionsCallback,
     PullDialogDownCallback,
+    ShowMailingInfoCallback,
 )
 
 router = Router(name="callbacks_router")
@@ -25,18 +26,15 @@ async def delete_message(callback: CallbackQuery) -> None:
         await callback.answer("⚠️ Этому сообщению больше 2 дней, удалите его вручную")
 
 
-@router.callback_query(DeleteMailingCallback.filter())
+@router.callback_query(ShowMailingInfoCallback.filter())
 @inject
-async def delete_mailing_callback(
+async def show_mailing_info_callback(
     query: CallbackQuery,
-    callback_data: DeleteMailingCallback,
+    callback_data: ShowMailingInfoCallback,
+    dialog_manager: DialogManager,
     notifier: FromDishka[Notifier],
 ) -> None:
-    mailing_info = await notifier.delete_mailing(callback_data.mailing_id)
-    await query.answer(
-        text=f"✅ Будет удалено {mailing_info.count} уведомлений",
-        show_alert=True,
-    )
+    await show_mailing_info(dialog_manager, callback_data.mailing_id)
 
 
 @router.callback_query(OpenSubscriptionsCallback.filter())

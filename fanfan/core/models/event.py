@@ -1,30 +1,29 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import NewType
 
-from fanfan.core.models.block import BlockDTO
+from fanfan.core.models.block import BlockModel
+
+EventId = NewType("EventId", int)
 
 
 @dataclass(frozen=True, slots=True)
-class EventDTO:
-    id: int
+class EventModel:
+    id: EventId
     title: str
     current: bool | None
     skip: bool
-
+    order: float
     queue: int | None
 
 
 @dataclass(frozen=True, slots=True)
-class FullEventDTO(EventDTO):
-    nomination: NominationDTO | None
-    block: BlockDTO | None
+class FullEventModel(EventModel):
+    nomination: NominationModel | None
+    block: BlockModel | None
+    user_subscription: SubscriptionModel | None
 
 
-@dataclass(frozen=True, slots=True)
-class UserFullEventDTO(FullEventDTO):
-    subscription: SubscriptionDTO | None
-
-
-from fanfan.core.models.nomination import NominationDTO  # noqa: E402
-from fanfan.core.models.subscription import SubscriptionDTO  # noqa: E402
+from fanfan.core.models.nomination import NominationModel  # noqa: E402
+from fanfan.core.models.subscription import SubscriptionModel  # noqa: E402

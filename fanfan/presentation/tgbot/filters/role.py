@@ -2,7 +2,8 @@ from aiogram.filters import Filter
 from aiogram.types import CallbackQuery, Message
 
 from fanfan.core.enums import UserRole
-from fanfan.core.models.user import FullUserDTO
+from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.models.user import FullUserModel
 
 
 class RoleFilter(Filter):
@@ -11,9 +12,13 @@ class RoleFilter(Filter):
 
     async def __call__(
         self,
-        message: Message | CallbackQuery,
-        user: FullUserDTO,
+        event: Message | CallbackQuery,
+        user: FullUserModel,
     ) -> bool:
-        if isinstance(message, CallbackQuery):
-            await message.answer()
-        return user.role in self.allowed_roles
+        allowed = user.role in self.allowed_roles
+        if allowed is False:
+            if isinstance(event, CallbackQuery):
+                await event.answer(AccessDenied.message, show_alert=True)
+            else:
+                await event.answer(AccessDenied.message)
+        return allowed

@@ -1,40 +1,38 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import NewType
 
 from fanfan.core.enums import UserRole
 
-
-@dataclass(frozen=True, slots=True)
-class UserDTO:
-    id: int
-    username: str | None
-    role: UserRole
+UserId = NewType("UserId", int)
 
 
 @dataclass(frozen=True, slots=True)
-class UserPermissionsDTO:
+class UserPermissionsModel:
+    user_id: UserId
     can_send_feedback: bool
 
 
 @dataclass(frozen=True, slots=True)
-class UserSettingsDTO:
+class UserSettingsModel:
+    user_id: UserId
     items_per_page: int
     receive_all_announcements: bool
 
 
 @dataclass(frozen=True, slots=True)
-class FullUserDTO(UserDTO):
-    permissions: UserPermissionsDTO
-    settings: UserSettingsDTO
-    ticket: TicketDTO | None
+class UserModel:
+    id: UserId
+    username: str | None
+    role: UserRole
 
 
 @dataclass(frozen=True, slots=True)
-class UserStats:
-    user_id: int
-    achievements_count: int
-    total_achievements: int
+class FullUserModel(UserModel):
+    permissions: UserPermissionsModel
+    settings: UserSettingsModel
+    ticket: TicketModel | None
 
 
-from fanfan.core.models.ticket import TicketDTO  # noqa: E402
+from fanfan.core.models.ticket import TicketModel  # noqa: E402

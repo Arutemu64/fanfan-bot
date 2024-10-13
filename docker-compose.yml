@@ -1,5 +1,7 @@
 services:
+
   bot:
+    container_name: "fanfan-bot-${ENV_NAME}"
     image: bot_image
     build:
       context: .
@@ -7,16 +9,79 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-    stop_signal: SIGINT
+    volumes:
+      - bot-data:/media/bot-data
+    ports:
+      - "${BOT_WEBHOOK_PORT}:${BOT_WEBHOOK_PORT}"
+    depends_on:
+      - migration
+      - redis
+      - nats
+    command: ["python", "-m", "fanfan.main.bot"]
+
+  migration:
+    container_name: "fanfan-migration-${ENV_NAME}"
+    image: bot_image
+    restart: on-failure
+    env_file:
+      - .env
     volumes:
       - bot-data:/media/bot-data
       - ./alembic.ini:/app/alembic.ini
-    ports:
-      - $BOT_WEBHOOK_PORT:$BOT_WEBHOOK_PORT
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+    command: [ "alembic", "upgrade", "head" ]
+
+  db:
+    container_name: "fanfan-db-${ENV_NAME}"
+    image: postgres:17-alpine
+    restart: on-failure
+    env_file:
+      - .env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 2s
+      timeout: 60s
+      retries: 10
+      start_period: 5s
+
+  redis:
+    container_name: "fanfan-redis-${ENV_NAME}"
+    build:
+      context: buildfiles
+      dockerfile: RedisDockerfile
+    env_file:
+      - .env
+    restart: on-failure
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli","ping" ]
+      interval: 5s
+      timeout: 20s
+      retries: 5
+
+  nats:
+    container_name: "fanfan-nats-${ENV_NAME}"
+    image: docker.io/nats:alpine
+    restart: on-failure
+    env_file:
+      - .env
+    ports:
+      - "4222:4222"
+    volumes:
+      - nats-data:/data
+    command: "--js --sd=/data --user ${NATS_USER} --pass ${NATS_PASSWORD}"
+
   web:
+    container_name: "fanfan-web-${ENV_NAME}"
     image: bot_image
     env_file:
       - .env
@@ -25,34 +90,54 @@ services:
     volumes:
       - bot-data:/media/bot-data
     ports:
-      - $WEB_PORT:$WEB_PORT
+      - "${WEB_PORT}:${WEB_PORT}"
     depends_on:
-      - db
-      - redis
-    command:
-      [
+      - migration
+    command: [
         "python",
         "-m",
         "fanfan.main.web",
       ]
-  worker:
+
+  faststream:
+    container_name: "fanfan-faststream-${ENV_NAME}"
     image: bot_image
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     volumes:
       - bot-data:/media/bot-data
+    depends_on:
+      - nats
+      - migration
+      - redis
+    command: ["faststream", "run", "--factory", "fanfan.main.stream:create_app"]
+
+  taskiq:
+    container_name: "fanfan-taskiq-${ENV_NAME}"
+    image: bot_image
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - bot-data:/media/bot-data
+    depends_on:
+      - migration
+      - redis
+      - nats
     command:
       [
         "taskiq",
         "worker",
-        "fanfan.infrastructure.scheduler:broker",
+        "fanfan.main.taskiq:broker",
         "fanfan.infrastructure.scheduler.tasks",
       ]
+
   scheduler:
+    container_name: "fanfan-scheduler-${ENV_NAME}"
     image: bot_image
     depends_on:
-      - bot
+      - redis
     restart: unless-stopped
     env_file:
       - .env
@@ -62,31 +147,9 @@ services:
       [
         "taskiq",
         "scheduler",
-        "fanfan.infrastructure.scheduler:scheduler",
+        "fanfan.main.taskiq:scheduler",
         "fanfan.infrastructure.scheduler.tasks",
       ]
-  db:
-    build:
-      context: buildfiles
-      dockerfile: DBDockerfile
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-  redis:
-    build:
-      context: buildfiles
-      dockerfile: RedisDockerfile
-    env_file:
-      - .env
-    restart: unless-stopped
-    volumes:
-      - redis-data:/data
-    ports:
-      - "6379:6379"
 
 volumes:
   bot-data:
@@ -94,4 +157,6 @@ volumes:
   db-data:
     driver: local
   redis-data:
+    driver: local
+  nats-data:
     driver: local

@@ -1,15 +1,30 @@
-from starlette.requests import Request
+from fastapi import Request
 
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.exceptions.auth import AuthenticationError
+from fanfan.core.exceptions.users import UserNotFound
+from fanfan.core.models.user import FullUserModel, UserId
 from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
+from fanfan.infrastructure.db.repositories.users import UsersRepository
 
 
 class WebIdProvider(IdProvider):
-    def __init__(self, request: Request, token_processor: JwtTokenProcessor):
+    def __init__(
+        self,
+        request: Request,
+        token_processor: JwtTokenProcessor,
+        users_repo: UsersRepository,
+    ):
         self.request = request
         self.token_processor = token_processor
+        self.users_repo = users_repo
 
-    def get_current_user_id(self) -> int | None:
+    def get_current_user_id(self) -> UserId:
         if token := self.request.session.get("token"):
             return self.token_processor.validate_token(token)
-        return None
+        raise AuthenticationError
+
+    async def get_current_user(self) -> FullUserModel:
+        if user := await self.users_repo.get_user_by_id(self.get_current_user_id()):
+            return user
+        raise UserNotFound

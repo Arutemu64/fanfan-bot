@@ -7,9 +7,9 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 
-from fanfan.application.schedule_mgmt.move_event import MoveEvent
+from fanfan.application.schedule_mgmt.move_event import MoveEvent, MoveEventDTO
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.utils.pluralize import NOTIFICATIONS_PLURALS, pluralize
+from fanfan.core.models.event import EventId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
@@ -24,7 +24,7 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
 from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
 )
-from fanfan.presentation.tgbot.keyboards.buttons import get_delete_mailing_button
+from fanfan.presentation.tgbot.keyboards.buttons import show_mailing_info_button
 from fanfan.presentation.tgbot.static.templates import schedule_list
 from fanfan.presentation.tgbot.ui import strings
 
@@ -39,30 +39,24 @@ async def move_event_handler(
     data: str,
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
-    move_event = await container.get(MoveEvent)
+    move_event: MoveEvent = await container.get(MoveEvent)
 
     if "/" in data and data.replace("/", "").isnumeric():
         try:
             data = await move_event(
-                event_id=dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID],
-                after_event_id=int(data.replace("/", "")),
+                MoveEventDTO(
+                    event_id=EventId(dialog_manager.start_data[DATA_SELECTED_EVENT_ID]),
+                    after_event_id=EventId(int(data.replace("/", ""))),
+                )
             )
             await message.reply(
                 f"✅ Выступление <b>{data.event.title}</b> поставлено "
                 f"после <b>{data.after_event.title}</b>\n"
-                f"Будет отправлено {data.mailing_info.count} "
-                f"{pluralize(data.mailing_info.count, NOTIFICATIONS_PLURALS)}\n"
                 f"Уникальный ID рассылки: "
-                f"<code>{data.mailing_info.mailing_id}</code>",
+                f"<code>{data.mailing_data.id}</code>",
                 reply_markup=InlineKeyboardBuilder(
-                    [
-                        [
-                            get_delete_mailing_button(data.mailing_info.mailing_id),
-                        ],
-                    ],
-                ).as_markup()
-                if data.mailing_info.count > 0
-                else None,
+                    [[show_mailing_info_button(data.mailing_data.id)]]
+                ).as_markup(),
             )
             await dialog_manager.switch_to(
                 states.Schedule.event_details,
@@ -73,7 +67,7 @@ async def move_event_handler(
             dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
             return
     elif data.isnumeric():
-        await show_event_page(dialog_manager, int(data))
+        await show_event_page(dialog_manager, EventId(int(data)))
 
 
 move_event_window = Window(

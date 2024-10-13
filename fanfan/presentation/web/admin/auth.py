@@ -10,6 +10,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.users import UserNotFound
+from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -33,6 +34,13 @@ class AdminAuth(AuthenticationBackend):
             try:
                 user = await get_user_by_id(user_id)
                 if user.role is UserRole.ORG:
+                    # Updating token
+                    token_processor: JwtTokenProcessor = await container.get(
+                        JwtTokenProcessor
+                    )
+                    request.session["token"] = token_processor.create_access_token(
+                        user_id
+                    )
                     return True
             except UserNotFound:
                 request.session.clear()

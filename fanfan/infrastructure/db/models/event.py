@@ -11,7 +11,7 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from fanfan.core.models.event import EventDTO, FullEventDTO, UserFullEventDTO
+from fanfan.core.models.event import EventId, EventModel, FullEventModel
 from fanfan.infrastructure.db.models.base import Base
 from fanfan.infrastructure.db.models.block import Block
 from fanfan.infrastructure.db.models.mixins.order import OrderMixin
@@ -46,6 +46,7 @@ class Event(Base, OrderMixin):
     # User subscription relation
     user_subscription: Mapped[Subscription | None] = relationship(
         viewonly=True,
+        lazy="noload",
     )
 
     @declared_attr
@@ -95,40 +96,30 @@ class Event(Base, OrderMixin):
     def __str__(self) -> str:
         return self.title
 
-    def to_dto(self) -> EventDTO:
-        return EventDTO(
-            id=self.id,
+    def to_model(self) -> EventModel:
+        return EventModel(
+            id=EventId(self.id),
             title=self.title,
             current=self.current,
             skip=self.skip,
+            order=self.order,
             queue=self.queue,
         )
 
-    def to_full_dto(self) -> FullEventDTO:
+    def to_full_model(self) -> FullEventModel:
         self.nomination: Nomination
         self.block: Block
-        return FullEventDTO(
-            id=self.id,
-            title=self.title,
-            current=self.current,
-            skip=self.skip,
-            queue=self.queue,
-            nomination=self.nomination.to_dto() if self.nomination else None,
-            block=self.block.to_dto() if self.block else None,
-        )
-
-    def to_user_full_dto(self) -> UserFullEventDTO:
-        self.nomination: Nomination
         self.user_subscription: Subscription
-        return UserFullEventDTO(
-            id=self.id,
+        return FullEventModel(
+            id=EventId(self.id),
             title=self.title,
             current=self.current,
             skip=self.skip,
+            order=self.order,
             queue=self.queue,
-            nomination=self.nomination.to_dto() if self.nomination else None,
-            block=self.block.to_dto() if self.block else None,
-            subscription=self.user_subscription.to_dto()
+            nomination=self.nomination.to_model() if self.nomination else None,
+            block=self.block.to_model() if self.block else None,
+            user_subscription=self.user_subscription.to_model()
             if self.user_subscription
             else None,
         )

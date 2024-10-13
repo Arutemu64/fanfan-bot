@@ -2,7 +2,9 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class SettingsDTO:
+class SettingsModel:
     announcement_timeout: int
     voting_enabled: bool
     asap_feedback_enabled: bool
+    quest_registration_enabled: bool
+    quest_registrations_limit: int

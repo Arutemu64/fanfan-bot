@@ -1,10 +1,11 @@
 from aiogram.types import InlineKeyboardButton
 
+from fanfan.core.models.mailing import MailingId
 from fanfan.presentation.tgbot.filters.callbacks import (
-    DeleteMailingCallback,
     DeleteMessageCallback,
     OpenSubscriptionsCallback,
     PullDialogDownCallback,
+    ShowMailingInfoCallback,
 )
 
 DELETE_BUTTON = InlineKeyboardButton(
@@ -21,8 +22,8 @@ PULL_DOWN_DIALOG = InlineKeyboardButton(
 )
 
 
-def get_delete_mailing_button(mailing_id: str) -> InlineKeyboardButton:
+def show_mailing_info_button(mailing_id: MailingId) -> InlineKeyboardButton:
     return InlineKeyboardButton(
-        text="🗑️ Отменить рассылку",
-        callback_data=DeleteMailingCallback(mailing_id=mailing_id).pack(),
+        text="📃 Информация о рассылке",
+        callback_data=ShowMailingInfoCallback(mailing_id=mailing_id).pack(),
     )

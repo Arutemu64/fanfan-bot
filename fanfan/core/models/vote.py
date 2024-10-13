@@ -1,8 +1,18 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import NewType
+
+from fanfan.core.models.user import UserId
+
+VoteId = NewType("VoteId", int)
 
 
 @dataclass(frozen=True, slots=True)
-class VoteDTO:
-    id: int
-    user_id: int
-    participant_id: int
+class VoteModel:
+    user_id: UserId
+    participant_id: ParticipantId
+    id: VoteId | None = None
+
+
+from fanfan.core.models.participant import ParticipantId  # noqa: E402

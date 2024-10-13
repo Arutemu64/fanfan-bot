@@ -18,15 +18,20 @@ from dishka import AsyncContainer
 
 from fanfan.application.nominations.get_nomination_by_id import GetNominationById
 from fanfan.application.participants.get_participant_by_scoped_id import (
-    GetParticipantByScopedId,
+    GetScopedParticipant,
+    GetScopedParticipantDTO,
 )
-from fanfan.application.participants.get_participants_page import GetParticipantsPage
+from fanfan.application.participants.get_participants_page import (
+    GetParticipantsPage,
+    GetParticipantsPageDTO,
+)
 from fanfan.application.votes.add_vote import AddVote
 from fanfan.application.votes.cancel_vote import CancelVote
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.votes import VoteNotFound
 from fanfan.core.models.page import Pagination
-from fanfan.core.models.user import FullUserDTO
+from fanfan.core.models.participant import ParticipantScopedId
+from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
@@ -44,26 +49,30 @@ DATA_USER_VOTE_ID = "user_vote_id"
 
 async def participants_getter(
     dialog_manager: DialogManager,
-    user: FullUserDTO,
+    user: FullUserModel,
     container: AsyncContainer,
     **kwargs,
 ) -> dict:
-    get_nomination_by_id = await container.get(GetNominationById)
-    get_participants_page = await container.get(GetParticipantsPage)
+    get_nomination_by_id: GetNominationById = await container.get(GetNominationById)
+    get_participants_page: GetParticipantsPage = await container.get(
+        GetParticipantsPage
+    )
 
     nomination = await get_nomination_by_id(
         dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
     )
     page = await get_participants_page(
-        pagination=Pagination(
-            limit=user.settings.items_per_page,
-            offset=await dialog_manager.find(ID_VOTING_SCROLL).get_page()
-            * user.settings.items_per_page,
+        GetParticipantsPageDTO(
+            pagination=Pagination(
+                limit=user.settings.items_per_page,
+                offset=await dialog_manager.find(ID_VOTING_SCROLL).get_page()
+                * user.settings.items_per_page,
+            ),
+            nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
         ),
-        nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
     )
     dialog_manager.dialog_data[DATA_USER_VOTE_ID] = (
-        nomination.vote.id if nomination.vote else None
+        nomination.user_vote.id if nomination.user_vote else None
     )
     return {
         "nomination_title": nomination.title,
@@ -81,14 +90,20 @@ async def add_vote_handler(
     data: str,
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
-    add_vote = await container.get(AddVote)
-    get_participant_by_scoped_id = await container.get(GetParticipantByScopedId)
+    add_vote: AddVote = await container.get(AddVote)
+    get_participant_by_scoped_id: GetScopedParticipant = await container.get(
+        GetScopedParticipant
+    )
 
     if "/" in data and data.replace("/", "").isnumeric():
         try:
             participant = await get_participant_by_scoped_id(
-                nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
-                scoped_id=int(data.replace("/", "")),
+                GetScopedParticipantDTO(
+                    nomination_id=dialog_manager.dialog_data[
+                        DATA_SELECTED_NOMINATION_ID
+                    ],
+                    scoped_id=ParticipantScopedId(int(data.replace("/", ""))),
+                )
             )
             await add_vote(participant.id)
         except AppException as e:
@@ -102,7 +117,7 @@ async def cancel_vote_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    cancel_vote = await container.get(CancelVote)
+    cancel_vote: CancelVote = await container.get(CancelVote)
 
     try:
         await cancel_vote(manager.dialog_data[DATA_USER_VOTE_ID])

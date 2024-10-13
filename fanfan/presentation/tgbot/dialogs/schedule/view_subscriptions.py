@@ -18,14 +18,15 @@ from dishka import AsyncContainer
 
 from fanfan.application.subscriptions.get_subscriptions_page import GetSubscriptionsPage
 from fanfan.application.users.get_user_by_id import GetUserById
-from fanfan.application.users.update_user import (
-    UpdateUser,
-    UpdateUserDTO,
+from fanfan.application.users.update_user_settings import (
+    UpdateUserSettings,
     UpdateUserSettingsDTO,
 )
 from fanfan.core.exceptions.base import AppException
+from fanfan.core.exceptions.events import EventNotFound
+from fanfan.core.models.event import EventId
 from fanfan.core.models.page import Pagination
-from fanfan.core.models.user import FullUserDTO
+from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
     CURRENT_USER,
@@ -33,9 +34,9 @@ from fanfan.presentation.tgbot.dialogs.common.getters import (
 )
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
-    DATA_SELECTED_EVENT_ID,
     current_event_getter,
 )
+from fanfan.presentation.tgbot.dialogs.schedule.event_details import show_event_details
 from fanfan.presentation.tgbot.static.templates import subscriptions_list
 from fanfan.presentation.tgbot.ui import strings
 
@@ -46,10 +47,12 @@ ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 async def subscriptions_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: FullUserDTO,
+    user: FullUserModel,
     **kwargs,
 ):
-    get_subscriptions_page = await container.get(GetSubscriptionsPage)
+    get_subscriptions_page: GetSubscriptionsPage = await container.get(
+        GetSubscriptionsPage
+    )
 
     page = await get_subscriptions_page(
         pagination=Pagination(
@@ -72,8 +75,12 @@ async def subscriptions_text_input_handler(
     data: str,
 ) -> None:
     if "/" in data and data.replace("/", "").isnumeric():
-        dialog_manager.dialog_data[DATA_SELECTED_EVENT_ID] = int(data.replace("/", ""))
-        await dialog_manager.switch_to(states.Schedule.event_details)
+        event_id = EventId(int(data.replace("/", "")))
+        try:
+            await show_event_details(dialog_manager, event_id)
+        except EventNotFound as e:
+            await message.answer(e.message)
+            return
 
 
 async def toggle_all_notifications_handler(
@@ -82,17 +89,15 @@ async def toggle_all_notifications_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_user_by_id = await container.get(GetUserById)
-    update_user = await container.get(UpdateUser)
+    get_user_by_id: GetUserById = await container.get(GetUserById)
+    update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 
-    user: FullUserDTO = manager.middleware_data["user"]
+    user: FullUserModel = manager.middleware_data["user"]
     try:
-        await update_user(
-            UpdateUserDTO(
-                id=user.id,
-                settings=UpdateUserSettingsDTO(
-                    receive_all_announcements=not user.settings.receive_all_announcements,  # noqa: E501
-                ),
+        await update_user_settings(
+            UpdateUserSettingsDTO(
+                user_id=user.id,
+                receive_all_announcements=not user.settings.receive_all_announcements,
             ),
         )
         manager.middleware_data["user"] = await get_user_by_id(user.id)
@@ -115,8 +120,8 @@ subscriptions_main_window = Window(
     Button(
         Case(
             {
-                True: Const("🔔 Все выступления"),
-                False: Const("🔕 Только подписки"),
+                True: Const("🔔 Получать все уведомления: ✅"),
+                False: Const("🔔 Получать все уведомления: ❌"),
             },
             selector=F[CURRENT_USER].settings.receive_all_announcements,
         ),

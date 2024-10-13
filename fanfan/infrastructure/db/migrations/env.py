@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from logging.config import fileConfig
 
 from alembic import context
@@ -7,7 +8,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from fanfan.common.config import get_config
+from fanfan.infrastructure.config_reader import DatabaseConfig
 from fanfan.infrastructure.db.models import Base
 
 # this is the Alembic Config object, which provides
@@ -24,7 +25,8 @@ if config.config_file_name is not None:
 # from myapp import mymodel  # noqa: ERA001
 # target_metadata = mymodel.Base.metadata  # noqa: ERA001
 target_metadata = Base.metadata
-config.set_main_option("sqlalchemy.url", get_config().db.build_connection_str())
+db_config = DatabaseConfig()
+config.set_main_option("sqlalchemy.url", db_config.build_connection_str())
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -110,4 +112,7 @@ def process_revision_directives(context, revision, directives) -> None:
 if context.is_offline_mode():
     run_migrations_offline()
 else:
+    # Psycopg cannot use the 'ProactorEventLoop' to run in async mode
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     run_migrations_online()

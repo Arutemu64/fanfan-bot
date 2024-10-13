@@ -1,30 +1,39 @@
 import logging
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.votes import VoteNotFound
-from fanfan.infrastructure.db.models import Vote
+from fanfan.core.models.vote import VoteId
+from fanfan.infrastructure.db.repositories.votes import VotesRepository
+from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 
 
-class CancelVote:
+class CancelVote(Interactor[VoteId, None]):
     def __init__(
         self,
-        session: AsyncSession,
+        votes_repo: VotesRepository,
+        uow: UnitOfWork,
         id_provider: IdProvider,
     ) -> None:
-        self.session = session
+        self.votes_repo = votes_repo
+        self.uow = uow
         self.id_provider = id_provider
 
-    async def __call__(self, vote_id: int) -> None:
-        async with self.session:
-            vote = await self.session.get(Vote, vote_id)
-            if vote is None:
-                raise VoteNotFound
-            if vote.user_id != self.id_provider.get_current_user_id():
-                raise AccessDenied
-            await self.session.delete(vote)
-            await self.session.commit()
+    async def __call__(self, vote_id: VoteId) -> None:
+        vote = await self.votes_repo.get_vote(vote_id)
+        if vote is None:
+            raise VoteNotFound
+        if vote.user_id != self.id_provider.get_current_user_id():
+            raise AccessDenied
+        async with self.uow:
+            await self.votes_repo.delete_vote(vote.id)
+            await self.uow.commit()
+            logger.info(
+                "User %s cancelled their vote for %s",
+                vote.user_id,
+                vote.participant_id,
+                extra={"vote": vote},
+            )

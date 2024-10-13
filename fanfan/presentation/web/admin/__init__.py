@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from sqladmin import Admin
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from fanfan.common.config import get_config
+from fanfan.infrastructure.config_reader import get_config
 
 
 def setup_admin(app: FastAPI, session_pool: async_sessionmaker) -> None:

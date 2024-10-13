@@ -1,6 +1,8 @@
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from fanfan.core.models.feedback import FeedbackId, FeedbackModel
+from fanfan.core.models.user import UserId
 from fanfan.infrastructure.db.models.base import Base
 from fanfan.infrastructure.db.models.user import User
 
@@ -18,3 +20,11 @@ class Feedback(Base):
         nullable=True,
     )
     user: Mapped[User] = relationship()
+
+    def to_model(self) -> FeedbackModel:
+        return FeedbackModel(
+            id=FeedbackId(self.id),
+            user_id=UserId(self.user_id),
+            text=self.text,
+            asap=self.asap,
+        )

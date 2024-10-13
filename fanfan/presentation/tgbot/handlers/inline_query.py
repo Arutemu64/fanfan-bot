@@ -5,8 +5,14 @@ from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessag
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.application.events.get_schedule_page import GetSchedulePage
-from fanfan.application.participants.get_participants_page import GetParticipantsPage
+from fanfan.application.events.get_schedule_page import (
+    GetSchedulePage,
+    GetSchedulePageDTO,
+)
+from fanfan.application.participants.get_participants_page import (
+    GetParticipantsPage,
+    GetParticipantsPageDTO,
+)
 from fanfan.core.models.page import Pagination
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.voting.common import DATA_SELECTED_NOMINATION_ID
@@ -21,11 +27,13 @@ async def search_events(
 ):
     offset = int(inline_query.offset) if inline_query.offset else 0
     page = await get_schedule_page(
-        pagination=Pagination(
-            limit=50,
-            offset=offset,
-        ),
-        search_query=inline_query.query,
+        GetSchedulePageDTO(
+            pagination=Pagination(
+                limit=50,
+                offset=offset,
+            ),
+            search_query=inline_query.query,
+        )
     )
     results = [
         InlineQueryResultArticle(
@@ -50,12 +58,14 @@ async def search_voting_participants(
 ):
     offset = int(inline_query.offset) if inline_query.offset else 0
     page = await get_participants_page(
-        pagination=Pagination(
-            limit=50,
-            offset=offset,
+        GetParticipantsPageDTO(
+            pagination=Pagination(
+                limit=50,
+                offset=offset,
+            ),
+            nomination_id=(await state.get_data())[DATA_SELECTED_NOMINATION_ID],
+            search_query=inline_query.query,
         ),
-        nomination_id=(await state.get_data())[DATA_SELECTED_NOMINATION_ID],
-        search_query=inline_query.query,
     )
     results = [
         InlineQueryResultArticle(

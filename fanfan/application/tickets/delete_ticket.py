@@ -1,23 +1,25 @@
 import logging
 
-from sqlalchemy import delete
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from fanfan.infrastructure.db.models import Ticket
+from fanfan.application.common.interactor import Interactor
+from fanfan.core.exceptions.tickets import TicketNotFound
+from fanfan.core.models.ticket import TicketId
+from fanfan.infrastructure.db.repositories.tickets import TicketsRepository
+from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 
 
-class DeleteTicket:
-    def __init__(
-        self,
-        session: AsyncSession,
-    ) -> None:
-        self.session = session
+class DeleteTicket(Interactor[TicketId, None]):
+    def __init__(self, tickets_repo: TicketsRepository, uow: UnitOfWork) -> None:
+        self.tickets_repo = tickets_repo
+        self.uow = uow
 
-    async def __call__(self, ticket_id: str) -> None:
-        async with self.session:
-            await self.session.execute(delete(Ticket).where(Ticket.id == ticket_id))
-            await self.session.commit()
-            logger.info("Ticket %s was deleted", ticket_id)
+    async def __call__(self, ticket_id: TicketId) -> None:
+        ticket = await self.tickets_repo.get_ticket_by_id(ticket_id)
+        if ticket is None:
+            raise TicketNotFound
+        async with self.uow:
+            await self.tickets_repo.delete_ticket(ticket_id)
+            await self.uow.commit()
+            logger.info("Ticket %s was deleted", ticket_id, extra={"ticket": ticket})
             return

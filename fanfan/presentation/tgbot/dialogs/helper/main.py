@@ -21,7 +21,7 @@ helper_main_window = Window(
         "как полученное",
     ),
     Start(
-        state=states.UserManager.search_user,
+        state=states.UserManager.manual_user_search,
         id="user_search",
         text=Const("🔍 Найти пользователя"),
     ),

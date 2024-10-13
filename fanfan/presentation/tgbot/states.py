@@ -16,6 +16,7 @@ class Feedback(StatesGroup):
 
 class Helper(StatesGroup):
     main = State()
+    search_user = State()
 
 
 class Main(StatesGroup):
@@ -31,6 +32,8 @@ class Org(StatesGroup):
 class Mailing(StatesGroup):
     main = State()
     create_mailing = State()
+    find_mailing = State()
+    mailing_info = State()
     delete_mailing = State()
 
 
@@ -55,14 +58,20 @@ class Settings(StatesGroup):
 
 
 class UserManager(StatesGroup):
-    main = State()
-    search_user = State()
+    user_info = State()
+    manual_user_search = State()
     change_role = State()
+    add_points = State()
 
 
 class Voting(StatesGroup):
     list_nominations = State()
     add_vote = State()
+
+
+class Quest(StatesGroup):
+    main = State()
+    cancel_registration = State()
 
 
 class InlineQuerySearch(StatesGroup):

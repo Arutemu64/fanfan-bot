@@ -1,16 +1,15 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.activities import ActivityNotFound
-from fanfan.core.models.activity import FullActivityDTO
-from fanfan.infrastructure.db.models import Activity
+from fanfan.core.models.activity import ActivityId, ActivityModel
+from fanfan.infrastructure.db.repositories.activities import ActivitiesRepository
 
 
-class GetActivityById:
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+class GetActivityById(Interactor[ActivityId, ActivityModel]):
+    def __init__(self, activities_repo: ActivitiesRepository) -> None:
+        self.activities_repo = activities_repo
 
-    async def __call__(self, activity_id: int) -> FullActivityDTO:
-        activity = await self.session.get(Activity, activity_id)
+    async def __call__(self, activity_id: ActivityId) -> ActivityModel:
+        activity = await self.activities_repo.get_activity_by_id(activity_id)
         if activity:
-            return activity.to_full_dto()
+            return activity
         raise ActivityNotFound

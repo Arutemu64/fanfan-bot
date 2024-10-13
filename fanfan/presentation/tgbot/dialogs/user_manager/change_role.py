@@ -27,7 +27,7 @@ async def change_role_handler(
     data: UserRole,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    update_user = await container.get(UpdateUser)
+    update_user: UpdateUser = await container.get(UpdateUser)
 
     try:
         await update_user(
@@ -41,7 +41,7 @@ async def change_role_handler(
         return
 
     await callback.answer(strings.common.success)
-    await manager.switch_to(states.UserManager.main)
+    await manager.switch_to(states.UserManager.user_info)
 
 
 change_role_window = Window(
@@ -59,7 +59,7 @@ change_role_window = Window(
     SwitchTo(
         id="back",
         text=Const(strings.buttons.back),
-        state=states.UserManager.main,
+        state=states.UserManager.user_info,
     ),
     getter=roles_getter,
     state=states.UserManager.change_role,

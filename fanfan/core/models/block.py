@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+from typing import NewType
+
+BlockId = NewType("BlockId", int)
 
 
-@dataclass
-class BlockDTO:
-    id: int
+@dataclass(frozen=True, slots=True)
+class BlockModel:
+    id: BlockId
     title: str
-    start_order: int

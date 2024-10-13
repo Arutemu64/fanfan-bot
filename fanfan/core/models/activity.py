@@ -1,14 +1,15 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import NewType
+
+ActivityId = NewType("ActivityId", int)
 
 
 @dataclass(frozen=True, slots=True)
-class ActivityDTO:
-    id: int
+class ActivityModel:
+    id: ActivityId
     title: str
-
-
-@dataclass(frozen=True, slots=True)
-class FullActivityDTO(ActivityDTO):
     description: str
     subtext: str | None
     image_path: str | None
