@@ -7,7 +7,7 @@ from nats.aio.client import Client
 from nats.js import JetStreamContext
 
 from fanfan.infrastructure.config_reader import NatsConfig
-from fanfan.infrastructure.stream.routes import setup_router
+from fanfan.presentation.faststream.routes import setup_router
 
 NATS = NewType("NATS", Client)
 

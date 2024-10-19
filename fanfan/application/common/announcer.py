@@ -9,7 +9,7 @@ from fanfan.core.exceptions.events import AnnounceTooFast
 from fanfan.core.models.mailing import MailingData
 from fanfan.infrastructure.db.repositories.settings import SettingsRepository
 from fanfan.infrastructure.redis.repositories.mailing import MailingRepository
-from fanfan.infrastructure.stream.routes.prepare_announcements import (
+from fanfan.presentation.faststream.routes.prepare_announcements import (
     EventChangeDTO,
     PrepareAnnouncementsDTO,
 )
@@ -51,7 +51,7 @@ class Announcer:
     async def send_announcements(
         self,
         send_global_announcement: bool,
-        event_changes: list[EventChangeDTO | None],
+        event_changes: list[EventChangeDTO],
     ) -> MailingData:
         if await self.lock.owned():
             mailing_data = await self.mailing.create_new_mailing(

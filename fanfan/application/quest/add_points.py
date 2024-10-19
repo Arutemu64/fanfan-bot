@@ -5,14 +5,12 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.application.common.notifier import Notifier
 from fanfan.core.exceptions.users import UserNotFound
+from fanfan.core.models.notification import SendNotificationDTO
 from fanfan.core.models.user import UserId
 from fanfan.core.services.access import AccessService
 from fanfan.core.utils.notifications import create_points_notification
 from fanfan.infrastructure.db.repositories.users import UsersRepository
 from fanfan.infrastructure.db.uow import UnitOfWork
-from fanfan.infrastructure.stream.routes.send_notification import (
-    SendNotificationDTO,
-)
 
 logger = logging.getLogger(__name__)
 

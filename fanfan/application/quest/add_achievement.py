@@ -12,15 +12,13 @@ from fanfan.core.exceptions.achievements import (
 )
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.achievement import AchievementId
+from fanfan.core.models.notification import SendNotificationDTO
 from fanfan.core.models.user import UserId
 from fanfan.core.services.access import AccessService
 from fanfan.core.utils.notifications import create_achievement_notification
 from fanfan.infrastructure.db.repositories.achievements import AchievementsRepository
 from fanfan.infrastructure.db.repositories.users import UsersRepository
 from fanfan.infrastructure.db.uow import UnitOfWork
-from fanfan.infrastructure.stream.routes.send_notification import (
-    SendNotificationDTO,
-)
 
 logger = logging.getLogger(__name__)
 

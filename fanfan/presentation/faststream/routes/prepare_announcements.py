@@ -10,16 +10,13 @@ from pytz import timezone
 
 from fanfan.core.models.event import EventModel
 from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import UserNotification
+from fanfan.core.models.notification import SendNotificationDTO, UserNotification
 from fanfan.infrastructure.config_reader import Configuration
 from fanfan.infrastructure.db.repositories.events import EventsRepository
 from fanfan.infrastructure.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.infrastructure.db.repositories.users import UsersRepository
 from fanfan.infrastructure.redis.repositories.mailing import MailingRepository
-from fanfan.infrastructure.stream.routes.send_notification import (
-    SendNotificationDTO,
-)
-from fanfan.infrastructure.stream.stream import stream
+from fanfan.presentation.faststream.stream import stream
 from fanfan.presentation.tgbot.keyboards.buttons import (
     OPEN_SUBSCRIPTIONS_BUTTON,
     PULL_DOWN_DIALOG,
@@ -42,11 +39,16 @@ class EventChangeDTO(BaseModel):
 
 class PrepareAnnouncementsDTO(BaseModel):
     send_global_announcement: bool
-    event_changes: list[EventChangeDTO | None]
+    event_changes: list[EventChangeDTO]
     mailing_id: MailingId
 
 
-@router.subscriber("prepare_announcements", stream=stream, pull_sub=PullSub())
+@router.subscriber(
+    "prepare_announcements",
+    stream=stream,
+    pull_sub=PullSub(),
+    durable="prepare_announcements",
+)
 async def prepare_announcements(
     data: PrepareAnnouncementsDTO,
     events: FromDishka[EventsRepository],
@@ -135,3 +137,4 @@ async def prepare_announcements(
             )
             counter += 1
     await mailing.update_total(data.mailing_id, counter)
+    return

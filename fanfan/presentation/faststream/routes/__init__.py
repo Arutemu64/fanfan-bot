@@ -1,6 +1,6 @@
 from faststream.nats import NatsRouter
 
-from fanfan.infrastructure.stream.routes import (
+from fanfan.presentation.faststream.routes import (
     delete_mailing,
     prepare_announcements,
     send_notification,

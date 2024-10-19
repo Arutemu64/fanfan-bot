@@ -2,7 +2,9 @@ from dataclasses import dataclass
 
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from pydantic import BaseModel
 
+from fanfan.core.models.user import UserId
 from fanfan.presentation.tgbot.keyboards.buttons import PULL_DOWN_DIALOG
 
 
@@ -22,3 +24,8 @@ class UserNotification:
         if self.bottom_text:
             text = f"{text}\n\n<i>{self.bottom_text}</i>"
         return text
+
+
+class SendNotificationDTO(BaseModel):
+    user_id: UserId
+    notification: UserNotification

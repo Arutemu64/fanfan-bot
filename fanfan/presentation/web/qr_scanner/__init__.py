@@ -22,14 +22,11 @@ from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import SecretId
-from fanfan.core.models.notification import UserNotification
+from fanfan.core.models.notification import SendNotificationDTO, UserNotification
 from fanfan.core.models.qr import QR, QRType
 from fanfan.core.utils.notifications import create_achievement_notification
 from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
 from fanfan.infrastructure.config_reader import BotConfig
-from fanfan.infrastructure.stream.routes.send_notification import (
-    SendNotificationDTO,
-)
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
 from fanfan.presentation.tgbot.keyboards.buttons import DELETE_BUTTON
 

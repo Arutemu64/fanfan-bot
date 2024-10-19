@@ -12,7 +12,7 @@ from fanfan.core.models.mailing import MailingData
 from fanfan.core.services.access import AccessService
 from fanfan.infrastructure.db.repositories.events import EventsRepository
 from fanfan.infrastructure.db.uow import UnitOfWork
-from fanfan.infrastructure.stream.routes.prepare_announcements import (
+from fanfan.presentation.faststream.routes.prepare_announcements import (
     EventChangeDTO,
     EventChangeType,
 )

@@ -6,13 +6,10 @@ from faststream.nats import NatsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.enums import UserRole
 from fanfan.core.models.mailing import MailingData, MailingId
-from fanfan.core.models.notification import UserNotification
+from fanfan.core.models.notification import SendNotificationDTO, UserNotification
 from fanfan.infrastructure.db.repositories.users import UsersRepository
 from fanfan.infrastructure.redis.repositories.mailing import MailingRepository
-from fanfan.infrastructure.stream.routes.send_notification import (
-    SendNotificationDTO,
-)
-from fanfan.infrastructure.stream.routes.send_to_roles import (
+from fanfan.presentation.faststream.routes.send_to_roles import (
     SendNotificationToRolesDTO,
 )
 

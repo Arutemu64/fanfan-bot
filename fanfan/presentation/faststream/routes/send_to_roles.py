@@ -4,13 +4,10 @@ from pydantic import BaseModel
 
 from fanfan.core.enums import UserRole
 from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import UserNotification
+from fanfan.core.models.notification import SendNotificationDTO, UserNotification
 from fanfan.infrastructure.db.repositories.users import UsersRepository
 from fanfan.infrastructure.redis.repositories.mailing import MailingRepository
-from fanfan.infrastructure.stream.routes.send_notification import (
-    SendNotificationDTO,
-)
-from fanfan.infrastructure.stream.stream import stream
+from fanfan.presentation.faststream.stream import stream
 
 router = NatsRouter()
 
@@ -21,7 +18,12 @@ class SendNotificationToRolesDTO(BaseModel):
     mailing_id: MailingId
 
 
-@router.subscriber("send_to_roles", stream=stream, pull_sub=PullSub())
+@router.subscriber(
+    "send_to_roles",
+    stream=stream,
+    pull_sub=PullSub(),
+    durable="send_to_roles",
+)
 async def send_to_roles(
     data: SendNotificationToRolesDTO,
     users_dao: FromDishka[UsersRepository],
@@ -38,3 +40,4 @@ async def send_to_roles(
             subject=f"mailing.{data.mailing_id}",
         )
     await mailing.update_total(data.mailing_id, len(users))
+    return
