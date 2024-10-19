@@ -4,11 +4,12 @@ import typing
 from fastapi import Request, UploadFile
 from openpyxl import load_workbook
 from sqladmin import BaseView, expose
-from sqlalchemy import select, text
+from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from fanfan.infrastructure.db.models import Event, Nomination, Participant
+from fanfan.infrastructure.db.models.block import Block
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -19,15 +20,37 @@ logger = logging.getLogger(__name__)
 async def proceed_plan(file: typing.BinaryIO, session: AsyncSession) -> None:
     # Constraints must be deferred, so we can swap ids and order
     await session.execute(text("SET CONSTRAINTS ALL DEFERRED"))
+    # Delete orphaned events later
     events_to_delete = list(await session.scalars(select(Event)))
-    order = 1.0
+    # Delete all blocks
+    await session.execute(delete(Block))
+    await session.flush()
+    # Get everything ready
     wb = load_workbook(file)
     ws = wb.worksheets[0]
-    for row in ws.iter_rows():
-        id_ = row[1]
-        data = row[2]
-        if id_.value:
-            participant_title = data.value.split(", ", 1)[1]
+    current_nomination: Nomination | None = None
+    order = 1.0
+    for row in ws.iter_rows(min_row=4):
+        if row[0].value and row[2].value:  # Block
+            title = str(row[2].value)
+            block = Block(title=title, start_order=order)
+            session.add(block)
+            await session.flush([block])
+            logger.info("New block %s added", title)
+        elif row[2].value and (row[1].value is None):  # Nomination
+            title = str(row[2].value)
+            # Cut ID from next row
+            next_cell = ws.cell(column=row[2].column, row=row[2].row + 1)
+            participant_string = str(next_cell.value)
+            nomination_id = participant_string.split(" ")[0]
+            current_nomination = Nomination(id=nomination_id, title=title)
+            current_nomination = await session.merge(current_nomination)
+            await session.flush([current_nomination])
+            logger.info("New nomination %s added", nomination_id)
+        elif row[1].value:  # Participant
+            id_ = int(row[1].value)
+            data = str(row[2].value)
+            participant_title = data.split(", ", 1)[1]
             participant = await session.scalar(
                 select(Participant)
                 .where(Participant.title == participant_title)
@@ -37,34 +60,29 @@ async def proceed_plan(file: typing.BinaryIO, session: AsyncSession) -> None:
             if participant:
                 if participant.event:
                     events_to_delete.remove(participant.event)
-                    participant.event.id = id_.value
+                    participant.event.id = id_
                     participant.event.order = order
                 else:
                     participant.event = Event(
-                        id=id_.value,
+                        id=id_,
                         order=order,
                         title=participant.title,
                     )
+                await session.flush([participant])
             else:
-                nomination_id = data.value.split()[0]
-                nomination = await session.get(Nomination, nomination_id)
-                if not nomination:
-                    nomination = Nomination(
-                        id=nomination_id,
-                        title=ws.cell(data.row - 1, data.column).value,
-                    )
-                    session.add(nomination)
                 participant = Participant(
                     title=participant_title,
-                    nomination=nomination,
+                    nomination=current_nomination,
                     event=Event(
-                        id=id_.value,
+                        id=id_,
                         order=order,
                         title=participant_title,
                     ),
                 )
                 session.add(participant)
-            order += 1.0
+                await session.flush([participant])
+                logger.info("New participant %s added", participant_title)
+        order += 1.0
     for e in events_to_delete:
         await session.delete(e)
 
