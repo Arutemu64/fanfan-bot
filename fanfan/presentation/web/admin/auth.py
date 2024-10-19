@@ -7,7 +7,6 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
@@ -15,7 +14,7 @@ from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
 if TYPE_CHECKING:
     from dishka import AsyncContainer
 
-auth_router = APIRouter()
+admin_auth_router = APIRouter()
 
 
 class AdminAuth(AuthenticationBackend):
@@ -29,26 +28,24 @@ class AdminAuth(AuthenticationBackend):
     async def authenticate(self, request: Request) -> bool | RedirectResponse:
         container: AsyncContainer = request.state.dishka_container
         id_provider: IdProvider = await container.get(IdProvider)
-        if user_id := id_provider.get_current_user_id():
-            get_user_by_id = await container.get(GetUserById)
-            try:
-                user = await get_user_by_id(user_id)
-                if user.role is UserRole.ORG:
-                    # Updating token
-                    token_processor: JwtTokenProcessor = await container.get(
-                        JwtTokenProcessor
-                    )
-                    request.session["token"] = token_processor.create_access_token(
-                        user_id
-                    )
-                    return True
-            except UserNotFound:
-                request.session.clear()
-                return RedirectResponse(request.url_for("auth"))
+        try:
+            user = await id_provider.get_current_user()
+            if user.role is UserRole.ORG:
+                # Updating token
+                token_processor: JwtTokenProcessor = await container.get(
+                    JwtTokenProcessor
+                )
+                request.session["token"] = token_processor.create_access_token(
+                    user_id=user.id
+                )
+                return True
+        except UserNotFound:
+            request.session.clear()
+            return RedirectResponse(request.url_for("auth"))
         return RedirectResponse(request.url_for("auth"))
 
 
-@auth_router.get("/admin/auth")
+@admin_auth_router.get("/admin/auth")
 @inject
 async def auth(
     request: Request,

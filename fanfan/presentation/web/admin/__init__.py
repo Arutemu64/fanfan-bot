@@ -8,9 +8,9 @@ from fanfan.infrastructure.config_reader import get_config
 
 
 def setup_admin(app: FastAPI, session_pool: async_sessionmaker) -> None:
-    from fanfan.presentation.web.admin.auth import AdminAuth, auth_router
+    from fanfan.presentation.web.admin.auth import AdminAuth, admin_auth_router
 
-    app.include_router(auth_router)
+    app.include_router(admin_auth_router)
     authentication_backend = AdminAuth(
         secret_key=get_config().web.secret_key.get_secret_value(),
     )

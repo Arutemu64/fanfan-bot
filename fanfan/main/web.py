@@ -14,8 +14,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from fanfan.infrastructure.config_reader import get_config
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
-from fanfan.presentation.web.admin.auth import auth_router
-from fanfan.presentation.web.qr_scanner import qr_scanner_router
+from fanfan.presentation.web.webapp import setup_webapp_router
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -49,8 +48,7 @@ def create_app() -> FastAPI:
     setup_dishka(container=create_web_container(), app=app)
 
     # Include routers
-    app.include_router(qr_scanner_router)
-    app.include_router(auth_router)
+    app.include_router(setup_webapp_router())
 
     # Setup FastAPI middlewares
     app.add_middleware(

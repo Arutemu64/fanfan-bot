@@ -5,11 +5,10 @@ from adaptix import Retort
 from adaptix.load_error import LoadError
 from aiogram import Bot
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.utils.web_app import safe_parse_webapp_init_data
 from aiogram_dialog import BgManagerFactory
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from starlette.responses import FileResponse, JSONResponse
 
 from fanfan.application.common.id_provider import IdProvider
@@ -25,10 +24,9 @@ from fanfan.core.models.achievement import SecretId
 from fanfan.core.models.notification import SendNotificationDTO, UserNotification
 from fanfan.core.models.qr import QR, QRType
 from fanfan.core.utils.notifications import create_achievement_notification
-from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
-from fanfan.infrastructure.config_reader import BotConfig
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
 from fanfan.presentation.tgbot.keyboards.buttons import DELETE_BUTTON
+from fanfan.presentation.web.webapp.auth import webapp_auth
 
 QR_SCANNER_APP = Path(__file__).parent.joinpath("qr_scanner.html")
 
@@ -40,32 +38,21 @@ async def open_qr_scanner() -> FileResponse:
     return FileResponse(QR_SCANNER_APP)
 
 
-@qr_scanner_router.post("/qr_scanner")
+@qr_scanner_router.post(
+    "/qr_scanner",
+    dependencies=[Depends(webapp_auth)],
+)
 @inject
 async def proceed_qr_post(
     request: Request,
     bot: FromDishka[Bot],
-    config: FromDishka[BotConfig],
     notifier: FromDishka[Notifier],
-    token_processor: FromDishka[JwtTokenProcessor],
     id_provider: FromDishka[IdProvider],
     receive_achievement_by_secret_id: FromDishka[ReceiveAchievementBySecretId],
     get_user_id_by: FromDishka[GetUserById],
     bg_factory: FromDishka[BgManagerFactory],
 ) -> JSONResponse:
     data = await request.form()
-
-    # Auth
-    try:
-        web_app_init_data = safe_parse_webapp_init_data(
-            token=config.token.get_secret_value(),
-            init_data=data["_auth"],
-        )
-        token = token_processor.create_access_token(web_app_init_data.user.id)
-        request.session["token"] = token
-    except ValueError:
-        return JSONResponse({"ok": False, "err": "Unauthorized"}, status_code=401)
-
     # Parsing QR code
     try:
         qr = Retort(strict_coercion=False).load(json.loads(data["qr_text"]), QR)
