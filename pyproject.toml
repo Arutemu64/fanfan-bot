@@ -5,11 +5,11 @@ authors = [
     { name = "Arutemu64", email = "arutemu64@outlook.com" },
 ]
 description = "Festival bot"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 readme = "README.md"
 dependencies = [
     "adaptix>=3.0.0b8",
-    "aiogram[fast]>=3.13.1",
+    "aiogram>=3.13.1",
     "aiogram-dialog>=2.2.0",
     "alembic>=1.13.3",
     "dataclass-rest>=0.4",
@@ -17,6 +17,7 @@ dependencies = [
     "fastapi>=0.115.2",
     "fastapi-storages>=0.3.0",
     "faststream[cli,nats]",
+    "greenlet>=3.1.1",
     "itsdangerous>=2.2.0",
     "jinja2>=3.1.4",
     "numpy>=2.1.2",

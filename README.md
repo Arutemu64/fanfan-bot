@@ -1,5 +1,5 @@
 # FAN-FAN Bot
-![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=yellow)
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FArutemu64%2Ffanfan-bot%2Frefs%2Fheads%2Fmaster%2Fpyproject.toml&logo=python&logoColor=yellow&label=Python)
 ![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?logo=telegram&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?logo=fastapi)
 ![Postgres](https://img.shields.io/badge/PostgreSQL-%23316192.svg?logo=postgresql&logoColor=white)
