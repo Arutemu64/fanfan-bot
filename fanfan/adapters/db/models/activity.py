@@ -15,7 +15,6 @@ class Activity(Base, OrderMixin):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column(Text)
-    subtext: Mapped[str | None] = mapped_column(nullable=True)
     image: Mapped[StorageImage | None] = mapped_column(
         ImageType(
             storage=FileSystemStorage(
@@ -30,6 +29,5 @@ class Activity(Base, OrderMixin):
             id=ActivityId(self.id),
             title=self.title,
             description=self.description,
-            subtext=self.subtext,
             image_path=self.image.path if self.image else None,
         )

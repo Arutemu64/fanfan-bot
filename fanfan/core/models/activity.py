@@ -11,5 +11,4 @@ class ActivityModel:
     id: ActivityId
     title: str
     description: str
-    subtext: str | None
     image_path: str | None
