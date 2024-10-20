@@ -1,12 +1,12 @@
 import logging
 
+from fanfan.adapters.db.repositories.votes import VotesRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.votes import VoteNotFound
 from fanfan.core.models.vote import VoteId
-from fanfan.infrastructure.db.repositories.votes import VotesRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

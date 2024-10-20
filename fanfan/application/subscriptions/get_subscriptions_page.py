@@ -1,10 +1,10 @@
+from fanfan.adapters.db.repositories.subscriptions import (
+    SubscriptionsRepository,
+)
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.models.page import Page, Pagination
 from fanfan.core.models.subscription import FullSubscriptionModel
-from fanfan.infrastructure.db.repositories.subscriptions import (
-    SubscriptionsRepository,
-)
 
 
 class GetSubscriptionsPage(Interactor[Pagination, Page[FullSubscriptionModel]]):

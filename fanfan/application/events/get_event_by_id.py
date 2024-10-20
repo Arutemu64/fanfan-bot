@@ -1,8 +1,8 @@
+from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.events import EventNotFound
 from fanfan.core.models.event import EventId, FullEventModel
-from fanfan.infrastructure.db.repositories.events import EventsRepository
 
 
 class GetEventById(Interactor[EventId, FullEventModel]):

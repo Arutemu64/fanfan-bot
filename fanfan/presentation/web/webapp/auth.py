@@ -4,8 +4,8 @@ from dishka.integrations.fastapi import inject
 from fastapi import Request
 from starlette.responses import JSONResponse
 
-from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
-from fanfan.infrastructure.config_reader import BotConfig
+from fanfan.adapters.auth.utils.token import JwtTokenProcessor
+from fanfan.adapters.config_reader import BotConfig
 
 
 @inject
@@ -15,7 +15,6 @@ async def webapp_auth(
     token_processor: FromDishka[JwtTokenProcessor],
 ):
     data = await request.form()
-    # Auth
     try:
         web_app_init_data = safe_parse_webapp_init_data(
             token=config.token.get_secret_value(),

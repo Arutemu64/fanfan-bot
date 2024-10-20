@@ -7,12 +7,12 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
+from fanfan.adapters.config_reader import Configuration
 from fanfan.application.get_random_quote import GetRandomQuote
 from fanfan.core.enums import BotMode, UserRole
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import FullUserModel
 from fanfan.core.services.access import AccessService
-from fanfan.infrastructure.config_reader import Configuration
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
     CURRENT_USER,

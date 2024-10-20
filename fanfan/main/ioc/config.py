@@ -1,6 +1,6 @@
 from dishka import Provider, Scope, provide
 
-from fanfan.infrastructure.config_reader import (
+from fanfan.adapters.config_reader import (
     BotConfig,
     Configuration,
     DatabaseConfig,

@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.participants import ParticipantNotFound
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.participant import ParticipantModel, ParticipantScopedId
-from fanfan.infrastructure.db.repositories.participants import ParticipantsRepository
 
 
 @dataclass(frozen=True, slots=True)

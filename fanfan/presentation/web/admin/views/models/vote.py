@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import Vote
+from fanfan.adapters.db.models import Vote
 
 
 class VoteView(ModelView, model=Vote):

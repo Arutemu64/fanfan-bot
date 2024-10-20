@@ -1,12 +1,12 @@
 import logging
 
+from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.subscriptions import SubscriptionNotFound
 from fanfan.core.models.subscription import SubscriptionId
-from fanfan.infrastructure.db.repositories.subscriptions import SubscriptionsRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

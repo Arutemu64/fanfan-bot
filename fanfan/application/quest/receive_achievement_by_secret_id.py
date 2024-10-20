@@ -2,6 +2,8 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 
+from fanfan.adapters.db.repositories.achievements import AchievementsRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.achievements import (
@@ -9,8 +11,6 @@ from fanfan.core.exceptions.achievements import (
     UserAlreadyHasThisAchievement,
 )
 from fanfan.core.models.achievement import AchievementModel, SecretId
-from fanfan.infrastructure.db.repositories.achievements import AchievementsRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

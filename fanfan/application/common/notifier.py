@@ -3,13 +3,13 @@ import logging
 from aiogram import Bot
 from faststream.nats import NatsBroker
 
+from fanfan.adapters.db.repositories.users import UsersRepository
+from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.enums import UserRole
 from fanfan.core.models.mailing import MailingData, MailingId
 from fanfan.core.models.notification import SendNotificationDTO, UserNotification
-from fanfan.infrastructure.db.repositories.users import UsersRepository
-from fanfan.infrastructure.redis.repositories.mailing import MailingRepository
-from fanfan.presentation.faststream.routes.send_to_roles import (
+from fanfan.presentation.stream.routes.send_to_roles import (
     SendNotificationToRolesDTO,
 )
 

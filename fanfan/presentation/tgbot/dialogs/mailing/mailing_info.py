@@ -23,13 +23,14 @@ async def mailing_info_getter(
     get_user_by_id: GetUserById = await container.get(GetUserById)
 
     mailing_info = await get_mailing_info(dialog_manager.start_data[DATA_MAILING_ID])
-    sender = await get_user_by_id(mailing_info.by_user_id)
+    sender = await get_user_by_id(mailing_info.data.by_user_id)
 
     return {
-        "id": mailing_info.id,
-        "total": mailing_info.total,
+        "id": mailing_info.data.id,
+        "total": mailing_info.data.total,
+        "processed": mailing_info.data.processed,
+        "status": mailing_info.data.status,
         "sent": mailing_info.sent,
-        "status": mailing_info.status,
         "sender": sender,
     }
 
@@ -48,12 +49,10 @@ async def cancel_mailing_handler(
 mailing_info_window = Window(
     Title(Const("📨 Информация о рассылке")),
     Jinja("<b>ID:</b> <code>{{ id }}</code>"),
-    Jinja("<b>Отправлено:</b> {{ sent }} из {{ total }}"),
+    Jinja("<b>Обработано:</b> {{ processed }} из {{ total }}"),
+    Jinja("<b>Сообщений в БД:</b> {{ sent }}"),
     Jinja("<b>Статус:</b> {{ status.label }}"),
-    Jinja(
-        "{% if sender %}<b>Отправил:</b> "
-        "@{{ sender.username }} ({{ sender.id }}){% endif %}"
-    ),
+    Jinja("<b>Отправил:</b> @{{ sender.username }} ({{ sender.id }})"),
     Button(
         Const("🗑️ Отменить рассылку"),
         id="cancel_mailing",

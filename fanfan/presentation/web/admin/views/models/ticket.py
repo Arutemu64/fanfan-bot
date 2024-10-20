@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import Ticket
+from fanfan.adapters.db.models import Ticket
 
 
 class TicketView(ModelView, model=Ticket):

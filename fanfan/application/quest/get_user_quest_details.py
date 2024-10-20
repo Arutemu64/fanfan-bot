@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.achievements import AchievementsRepository
+from fanfan.adapters.db.repositories.quest import QuestRepository
+from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import UserId
-from fanfan.infrastructure.db.repositories.achievements import AchievementsRepository
-from fanfan.infrastructure.db.repositories.quest import QuestRepository
-from fanfan.infrastructure.db.repositories.users import UsersRepository
 
 
 @dataclass(frozen=True, slots=True)

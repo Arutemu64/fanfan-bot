@@ -1,6 +1,8 @@
 import logging
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.feedback import FeedbackRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.application.common.notifier import Notifier
@@ -8,8 +10,6 @@ from fanfan.core.enums import UserRole
 from fanfan.core.models.feedback import FeedbackModel
 from fanfan.core.models.notification import UserNotification
 from fanfan.core.services.access import AccessService
-from fanfan.infrastructure.db.repositories.feedback import FeedbackRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

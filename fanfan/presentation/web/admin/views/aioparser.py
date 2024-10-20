@@ -8,8 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fanfan.adapters.db.models import Nomination, Participant, Ticket
 from fanfan.core.enums import UserRole
-from fanfan.infrastructure.db.models import Nomination, Participant, Ticket
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer

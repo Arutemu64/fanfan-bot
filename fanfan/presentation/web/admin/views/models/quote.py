@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import Quote
+from fanfan.adapters.db.models import Quote
 
 
 class QuoteView(ModelView, model=Quote):

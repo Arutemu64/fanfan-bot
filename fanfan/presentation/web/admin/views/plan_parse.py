@@ -8,8 +8,8 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from fanfan.infrastructure.db.models import Event, Nomination, Participant
-from fanfan.infrastructure.db.models.block import Block
+from fanfan.adapters.db.models import Event, Nomination, Participant
+from fanfan.adapters.db.models.block import Block
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer

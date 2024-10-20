@@ -2,10 +2,10 @@ from sqladmin import ModelView, action
 from starlette.requests import Request
 from starlette.responses import FileResponse
 
+from fanfan.adapters.db.models import Achievement
 from fanfan.common import QR_CODES_TEMP_DIR
 from fanfan.core.models.qr import QR, QRType
 from fanfan.core.utils.qr import generate_img
-from fanfan.infrastructure.db.models import Achievement
 
 
 class AchievementView(ModelView, model=Achievement):

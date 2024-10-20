@@ -1,6 +1,6 @@
+from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.core.exceptions.settings import SettingsNotFound
 from fanfan.core.models.settings import SettingsModel
-from fanfan.infrastructure.db.repositories.settings import SettingsRepository
 
 
 class GetSettings:

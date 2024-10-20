@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.infrastructure.db.models import Settings
+from fanfan.adapters.db.models import Settings
 
 
 async def setup_initial_settings(session: AsyncSession) -> None:

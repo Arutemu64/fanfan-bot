@@ -1,12 +1,12 @@
 import logging
 
+from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.application.common.notifier import Notifier
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.models.mailing import MailingData, MailingId
-from fanfan.infrastructure.redis.repositories.mailing import MailingRepository
 
 logger = logging.getLogger(__name__)
 

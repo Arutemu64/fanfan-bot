@@ -1,9 +1,9 @@
+from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.application.schedule_mgmt.set_current_event import (
     SetCurrentEvent,
     SetCurrentEventResult,
 )
 from fanfan.core.exceptions.events import NoNextEvent
-from fanfan.infrastructure.db.repositories.events import EventsRepository
 
 
 class SetNextEvent:

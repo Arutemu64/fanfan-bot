@@ -3,6 +3,11 @@ from dataclasses import dataclass
 
 from sqlalchemy.exc import IntegrityError
 
+from fanfan.adapters.db.repositories.events import EventsRepository
+from fanfan.adapters.db.repositories.subscriptions import (
+    SubscriptionsRepository,
+)
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.events import EventNotFound
@@ -12,11 +17,6 @@ from fanfan.core.models.subscription import (
     FullSubscriptionModel,
     SubscriptionModel,
 )
-from fanfan.infrastructure.db.repositories.events import EventsRepository
-from fanfan.infrastructure.db.repositories.subscriptions import (
-    SubscriptionsRepository,
-)
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

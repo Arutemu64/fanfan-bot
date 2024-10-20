@@ -4,11 +4,11 @@ from aiogram.types import (
 from dishka import Provider, Scope, from_context, provide
 from fastapi import Request
 
+from fanfan.adapters.auth.providers.stub import StubIdProvider
+from fanfan.adapters.auth.providers.telegram import TelegramIdProvider
+from fanfan.adapters.auth.providers.web import WebIdProvider
+from fanfan.adapters.auth.utils.token import JwtTokenProcessor
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.infrastructure.auth.providers.stub import StubIdProvider
-from fanfan.infrastructure.auth.providers.telegram import TelegramIdProvider
-from fanfan.infrastructure.auth.providers.web import WebIdProvider
-from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
 
 
 class JwtTokenProcessorProvider(Provider):

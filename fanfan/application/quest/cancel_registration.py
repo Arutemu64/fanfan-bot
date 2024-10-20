@@ -1,8 +1,8 @@
 import logging
 
+from fanfan.adapters.db.repositories.quest import QuestRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.infrastructure.db.repositories.quest import QuestRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

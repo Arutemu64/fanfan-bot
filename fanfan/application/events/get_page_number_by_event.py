@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.models.event import EventId
-from fanfan.infrastructure.db.repositories.events import EventsRepository
 
 
 @dataclass(frozen=True, slots=True)

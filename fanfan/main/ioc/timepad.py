@@ -4,8 +4,8 @@ from typing import NewType
 from aiohttp import ClientSession
 from dishka import Provider, Scope, provide
 
-from fanfan.infrastructure.config_reader import TimepadConfig
-from fanfan.infrastructure.timepad.client import TimepadClient
+from fanfan.adapters.config_reader import TimepadConfig
+from fanfan.adapters.timepad.client import TimepadClient
 
 TimepadSession = NewType("TimepadSession", ClientSession)
 

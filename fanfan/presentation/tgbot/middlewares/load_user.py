@@ -6,12 +6,12 @@ import sentry_sdk
 from aiogram import BaseMiddleware
 from dishka.integrations.aiogram import CONTAINER_NAME
 
+from fanfan.adapters.config_reader import DebugConfig
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.users.authenticate import Authenticate, AuthenticateDTO
 from fanfan.application.users.update_user import UpdateUser, UpdateUserDTO
 from fanfan.application.users.update_user_commands import UpdateUserCommands
 from fanfan.core.models.user import UserId
-from fanfan.infrastructure.config_reader import DebugConfig
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable

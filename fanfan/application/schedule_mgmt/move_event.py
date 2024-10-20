@@ -1,6 +1,8 @@
 import logging
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.events import EventsRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.announcer import Announcer
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
@@ -11,9 +13,7 @@ from fanfan.core.exceptions.events import (
 from fanfan.core.models.event import EventId, EventModel
 from fanfan.core.models.mailing import MailingData
 from fanfan.core.services.access import AccessService
-from fanfan.infrastructure.db.repositories.events import EventsRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
-from fanfan.presentation.faststream.routes.prepare_announcements import (
+from fanfan.presentation.stream.routes.prepare_announcements import (
     EventChangeDTO,
     EventChangeType,
 )

@@ -1,6 +1,6 @@
+from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.core.exceptions.events import NoCurrentEvent
 from fanfan.core.models.event import FullEventModel
-from fanfan.infrastructure.db.repositories.events import EventsRepository
 
 
 class GetCurrentEvent:

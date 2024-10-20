@@ -3,11 +3,11 @@ from dataclasses import dataclass, replace
 
 from adaptix import Retort, name_mapping
 
+from fanfan.adapters.db.repositories.users import UsersRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import UserId
-from fanfan.infrastructure.db.repositories.users import UsersRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

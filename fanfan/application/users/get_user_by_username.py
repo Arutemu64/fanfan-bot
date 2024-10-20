@@ -1,7 +1,7 @@
+from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import UserModel
-from fanfan.infrastructure.db.repositories.users import UsersRepository
 
 
 class GetUserByUsername(Interactor[str, UserModel]):

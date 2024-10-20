@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import Event
+from fanfan.adapters.db.models import Event
 
 
 class EventView(ModelView, model=Event):

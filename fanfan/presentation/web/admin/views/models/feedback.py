@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import Feedback
+from fanfan.adapters.db.models import Feedback
 
 
 class FeedbackView(ModelView, model=Feedback):

@@ -1,7 +1,7 @@
+from fanfan.adapters.db.repositories.activities import ActivitiesRepository
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.activities import ActivityNotFound
 from fanfan.core.models.activity import ActivityId, ActivityModel
-from fanfan.infrastructure.db.repositories.activities import ActivitiesRepository
 
 
 class GetActivityById(Interactor[ActivityId, ActivityModel]):

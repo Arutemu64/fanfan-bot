@@ -7,9 +7,9 @@ import sentry_sdk
 from aiogram import Bot, Dispatcher
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fanfan.adapters.config_reader import Configuration, get_config
 from fanfan.core.enums import BotMode
 from fanfan.core.utils.settings import setup_initial_settings
-from fanfan.infrastructure.config_reader import Configuration, get_config
 from fanfan.main.di import create_bot_container
 
 logger = logging.getLogger(__name__)

@@ -1,3 +1,6 @@
+from fanfan.adapters.db.repositories.quest import QuestRepository
+from fanfan.adapters.db.repositories.settings import SettingsRepository
+from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.quest import QuestRegistrationClosed
@@ -5,9 +8,6 @@ from fanfan.core.exceptions.users import TicketNotLinked
 from fanfan.core.exceptions.votes import AlreadyVotedInThisNomination, VotingDisabled
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.user import FullUserModel
-from fanfan.infrastructure.db.repositories.quest import QuestRepository
-from fanfan.infrastructure.db.repositories.settings import SettingsRepository
-from fanfan.infrastructure.db.repositories.votes import VotesRepository
 
 
 class AccessService:

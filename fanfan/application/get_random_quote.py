@@ -1,7 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.infrastructure.db.models import Quote
+from fanfan.adapters.db.models import Quote
 
 
 class GetRandomQuote:

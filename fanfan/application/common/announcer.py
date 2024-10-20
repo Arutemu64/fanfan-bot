@@ -3,13 +3,13 @@ import time
 from faststream.nats import NatsBroker
 from redis.asyncio import Redis
 
+from fanfan.adapters.db.repositories.settings import SettingsRepository
+from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.events import AnnounceTooFast
 from fanfan.core.models.mailing import MailingData
-from fanfan.infrastructure.db.repositories.settings import SettingsRepository
-from fanfan.infrastructure.redis.repositories.mailing import MailingRepository
-from fanfan.presentation.faststream.routes.prepare_announcements import (
+from fanfan.presentation.stream.routes.prepare_announcements import (
     EventChangeDTO,
     PrepareAnnouncementsDTO,
 )

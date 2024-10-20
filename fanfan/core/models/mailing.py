@@ -23,6 +23,6 @@ class MailingStatus(enum.StrEnum):
 class MailingData:
     id: MailingId
     total: int
-    sent: int
+    processed: int
     status: MailingStatus
     by_user_id: UserId

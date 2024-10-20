@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import Activity
+from fanfan.adapters.db.models import Activity
 
 
 class ActivityView(ModelView, model=Activity):

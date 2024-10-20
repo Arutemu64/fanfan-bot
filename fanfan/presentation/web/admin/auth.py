@@ -6,10 +6,10 @@ from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
+from fanfan.adapters.auth.utils.token import JwtTokenProcessor
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 from sqlalchemy.exc import IntegrityError
 
+from fanfan.adapters.db.repositories.tickets import TicketsRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.enums import UserRole
@@ -10,8 +12,6 @@ from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.auth import NoAuthenticationRequired
 from fanfan.core.exceptions.tickets import TicketAlreadyExist
 from fanfan.core.models.ticket import TicketId, TicketModel
-from fanfan.infrastructure.db.repositories.tickets import TicketsRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

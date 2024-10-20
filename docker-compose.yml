@@ -129,8 +129,8 @@ services:
       [
         "taskiq",
         "worker",
-        "fanfan.main.taskiq:broker",
-        "fanfan.infrastructure.scheduler.tasks",
+        "fanfan.main.scheduler:broker",
+        "fanfan.presentation.scheduler.tasks",
       ]
 
   scheduler:
@@ -147,8 +147,8 @@ services:
       [
         "taskiq",
         "scheduler",
-        "fanfan.main.taskiq:scheduler",
-        "fanfan.infrastructure.scheduler.tasks",
+        "fanfan.main.scheduler:scheduler",
+        "fanfan.presentation.scheduler.tasks",
       ]
 
 volumes:

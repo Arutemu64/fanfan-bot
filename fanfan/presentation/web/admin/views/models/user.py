@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import User, UserPermissions, UserSettings
+from fanfan.adapters.db.models import User, UserPermissions, UserSettings
 
 
 class UserView(ModelView, model=User):

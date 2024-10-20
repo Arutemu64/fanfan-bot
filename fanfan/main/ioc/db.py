@@ -9,8 +9,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from fanfan.infrastructure.config_reader import DatabaseConfig
-from fanfan.infrastructure.db.uow import UnitOfWork
+from fanfan.adapters.config_reader import DatabaseConfig
+from fanfan.adapters.db.uow import UnitOfWork
 
 
 class DbProvider(Provider):

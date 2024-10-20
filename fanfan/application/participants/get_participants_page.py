@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.page import Page, Pagination
 from fanfan.core.models.participant import FullParticipantModel
-from fanfan.infrastructure.db.repositories.participants import ParticipantsRepository
 
 
 @dataclass(frozen=True, slots=True)

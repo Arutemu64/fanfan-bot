@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from fanfan.infrastructure.config_reader import get_config
+from fanfan.adapters.config_reader import get_config
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
 from fanfan.presentation.web.webapp import setup_webapp_router

@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.quest import QuestRepository
+from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.services.access import AccessService
-from fanfan.infrastructure.db.repositories.quest import QuestRepository
-from fanfan.infrastructure.db.repositories.settings import SettingsRepository
 
 
 @dataclass(frozen=True, slots=True)

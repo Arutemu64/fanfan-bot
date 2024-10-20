@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import Nomination
+from fanfan.adapters.db.models import Nomination
 
 
 class NominationView(ModelView, model=Nomination):

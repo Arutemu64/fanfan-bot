@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.infrastructure.db.models import Participant
+from fanfan.adapters.db.models import Participant
 
 
 class ParticipantView(ModelView, model=Participant):

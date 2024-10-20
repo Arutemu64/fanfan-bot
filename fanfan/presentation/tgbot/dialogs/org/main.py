@@ -1,17 +1,17 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, Start, SwitchTo, Url
+from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Start, SwitchTo, Url
 from aiogram_dialog.widgets.text import Case, Const, Format
 from dishka import AsyncContainer
 
+from fanfan.adapters.auth.utils.token import JwtTokenProcessor
+from fanfan.adapters.config_reader import WebConfig
 from fanfan.application.settings.get_settings import GetSettings
 from fanfan.application.settings.update_settings import (
     UpdateSettings,
     UpdateSettingsDTO,
 )
 from fanfan.core.exceptions.base import AppException
-from fanfan.infrastructure.auth.utils.token import JwtTokenProcessor
-from fanfan.infrastructure.config_reader import WebConfig
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -57,39 +57,47 @@ async def toggle_voting_handler(
 
 org_main_window = Window(
     Title(Const(strings.titles.org_menu)),
-    Url(
-        text=Const("🌐 Перейти в панель организатора"),
-        url=Format("{web_panel_login_link}"),
-    ),
-    Url(
-        text=Const(strings.buttons.help_page),
-        url=Const("https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"),
-    ),
-    Start(
-        state=states.Mailing.main,
-        id="new_notification",
-        text=Const("✉️ Рассылки"),
-    ),
-    Start(
-        state=states.UserManager.manual_user_search,
-        id="user_search",
-        text=Const("🔍 Найти пользователя"),
-    ),
-    SwitchTo(
-        state=states.Org.add_ticket,
-        id="new_ticket",
-        text=Const("🎫 Добавить новый билет"),
-    ),
-    Button(
-        Case(
-            {
-                True: Const("🔴 Выключить голосование"),
-                False: Const("🟢 Включить голосование"),
-            },
-            selector="voting_enabled",
+    Group(
+        Url(
+            text=Const("🌐 Орг-панель"),
+            url=Format("{web_panel_login_link}"),
         ),
-        id=ID_TOGGLE_VOTING_BUTTON,
-        on_click=toggle_voting_handler,
+        Url(
+            text=Const(strings.buttons.help_page),
+            url=Const("https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"),
+        ),
+        Start(
+            state=states.Mailing.main,
+            id="new_notification",
+            text=Const("✉️ Рассылки"),
+        ),
+        Start(
+            state=states.UserManager.manual_user_search,
+            id="user_search",
+            text=Const("🔍 Поиск пользователей"),
+        ),
+        SwitchTo(
+            state=states.Org.add_ticket,
+            id="new_ticket",
+            text=Const("🎫 Новый билет"),
+        ),
+        Button(
+            Case(
+                {
+                    True: Const("🔴 Выключить голосование"),
+                    False: Const("🟢 Включить голосование"),
+                },
+                selector="voting_enabled",
+            ),
+            id=ID_TOGGLE_VOTING_BUTTON,
+            on_click=toggle_voting_handler,
+        ),
+        SwitchTo(
+            Const(strings.titles.tasks),
+            id="tasks",
+            state=states.Org.tasks,
+        ),
+        width=2,
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Org.main,

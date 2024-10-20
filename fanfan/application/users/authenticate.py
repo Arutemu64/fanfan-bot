@@ -1,13 +1,13 @@
 import logging
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.users import UsersRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import FullUserModel, UserId, UserModel
-from fanfan.infrastructure.db.repositories.users import UsersRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

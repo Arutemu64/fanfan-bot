@@ -3,13 +3,13 @@ from dataclasses import dataclass, replace
 
 from adaptix import Retort, name_mapping
 
+from fanfan.adapters.db.repositories.settings import SettingsRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.settings import SettingsNotFound
-from fanfan.infrastructure.db.repositories.settings import SettingsRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

@@ -3,6 +3,11 @@ from dataclasses import dataclass
 
 from sqlalchemy.exc import IntegrityError
 
+from fanfan.adapters.db.repositories.participants import (
+    ParticipantsRepository,
+)
+from fanfan.adapters.db.repositories.votes import VotesRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.participants import ParticipantNotFound
@@ -12,11 +17,6 @@ from fanfan.core.exceptions.votes import (
 from fanfan.core.models.participant import ParticipantId
 from fanfan.core.models.vote import VoteModel
 from fanfan.core.services.access import AccessService
-from fanfan.infrastructure.db.repositories.participants import (
-    ParticipantsRepository,
-)
-from fanfan.infrastructure.db.repositories.votes import VotesRepository
-from fanfan.infrastructure.db.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
 

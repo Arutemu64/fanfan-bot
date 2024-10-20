@@ -2,9 +2,9 @@ from dishka.integrations.faststream import setup_dishka
 from faststream import FastStream
 from faststream.nats import NatsBroker
 
-from fanfan.infrastructure.config_reader import get_config
+from fanfan.adapters.config_reader import get_config
 from fanfan.main.di import create_scheduler_container
-from fanfan.presentation.faststream.routes import setup_router
+from fanfan.presentation.stream.routes import setup_router
 
 
 def create_app() -> FastStream:
