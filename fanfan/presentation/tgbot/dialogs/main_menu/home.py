@@ -8,7 +8,7 @@ from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
 from fanfan.adapters.config_reader import Configuration
-from fanfan.application.get_random_quote import GetRandomQuote
+from fanfan.application.utils.get_random_quote import GetRandomQuote
 from fanfan.core.enums import BotMode, UserRole
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import FullUserModel

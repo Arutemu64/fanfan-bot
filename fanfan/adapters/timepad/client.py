@@ -2,7 +2,7 @@ from aiohttp import ClientSession
 from dataclass_rest import get
 from dataclass_rest.http.aiohttp import AiohttpClient
 
-from fanfan.adapters.timepad.schemas import RegistrationOrdersResponse
+from fanfan.adapters.timepad.dto.order import RegistrationOrdersResponse
 
 TIMEPAD_API_BASE_URL = "https://api.timepad.ru/"
 

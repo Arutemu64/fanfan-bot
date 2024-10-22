@@ -11,8 +11,8 @@ from fanfan.adapters.config_reader import Cosplay2Config
 from fanfan.adapters.cosplay2.aiohttp_client import (
     C2AiohttpClient,
 )
-from fanfan.adapters.cosplay2.schemas.requests import Request
-from fanfan.adapters.cosplay2.schemas.topics import Topic
+from fanfan.adapters.cosplay2.dto.requests import Request
+from fanfan.adapters.cosplay2.dto.topics import Topic
 
 logger = logging.getLogger(__name__)
 

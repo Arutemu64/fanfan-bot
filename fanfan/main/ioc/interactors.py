@@ -7,7 +7,6 @@ from fanfan.application.events.get_event_by_id import GetEventById
 from fanfan.application.events.get_page_number_by_event import GetPageNumberByEvent
 from fanfan.application.events.get_schedule_page import GetSchedulePage
 from fanfan.application.feedback.send_feedback import SendFeedback
-from fanfan.application.get_random_quote import GetRandomQuote
 from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
 from fanfan.application.mailing.delete_mailing import DeleteMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
@@ -48,8 +47,10 @@ from fanfan.application.users.get_user_by_username import GetUserByUsername
 from fanfan.application.users.update_user import UpdateUser
 from fanfan.application.users.update_user_commands import UpdateUserCommands
 from fanfan.application.users.update_user_settings import UpdateUserSettings
+from fanfan.application.utils.get_random_quote import GetRandomQuote
 from fanfan.application.utils.import_from_c2 import ImportFromC2
-from fanfan.application.utils.import_tickets import ImportTickets
+from fanfan.application.utils.import_orders import ImportOrders
+from fanfan.application.utils.proceed_order import ProceedOrder
 from fanfan.application.votes.add_vote import AddVote
 from fanfan.application.votes.cancel_vote import CancelVote
 
@@ -117,4 +118,5 @@ class InteractorsProvider(Provider):
     cancel_vote = provide(CancelVote)
 
     import_from_c2 = provide(ImportFromC2)
-    import_tickets = provide(ImportTickets)
+    import_tickets = provide(ImportOrders)
+    proceed_timepad_order = provide(ProceedOrder)

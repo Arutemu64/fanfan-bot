@@ -9,7 +9,6 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.exceptions.auth import NoAuthenticationRequired
 from fanfan.core.exceptions.tickets import TicketAlreadyExist
 from fanfan.core.models.ticket import TicketId, TicketModel
 
@@ -31,12 +30,9 @@ class CreateTicket(Interactor[CreateTicketDTO, TicketModel]):
         self.id_provider = id_provider
 
     async def __call__(self, data: CreateTicketDTO) -> TicketModel:
-        try:
-            user = await self.id_provider.get_current_user()
-            if user.role is not UserRole.ORG:
-                raise AccessDenied
-        except NoAuthenticationRequired:
-            user = None
+        user = await self.id_provider.get_current_user()
+        if user.role is not UserRole.ORG:
+            raise AccessDenied
         async with self.uow:
             try:
                 ticket = await self.tickets_repo.add_ticket(

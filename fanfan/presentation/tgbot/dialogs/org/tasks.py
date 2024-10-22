@@ -19,16 +19,16 @@ async def tasks_menu_getter(
     **kwargs,
 ) -> dict:
     task_manager: TaskManager = await container.get(TaskManager)
-    import_tickets_status = await task_manager.get_import_tickets_status()
+    import_orders_status = await task_manager.get_import_orders_status()
     import_from_c2_status = await task_manager.get_import_from_c2_status()
     config: Configuration = await container.get(Configuration)
 
-    if import_tickets_status.last_execution:
-        import_tickets_last_execution = import_tickets_status.last_execution.astimezone(
+    if import_orders_status.last_execution:
+        import_orders_last_execution = import_orders_status.last_execution.astimezone(
             tz=pytz.timezone(config.timezone)
         ).strftime("%H:%M %d.%m.%Y")
     else:
-        import_tickets_last_execution = None
+        import_orders_last_execution = None
 
     if import_from_c2_status.last_execution:
         import_from_c2_status_last_execution = (
@@ -41,15 +41,15 @@ async def tasks_menu_getter(
 
     return {
         # Import tickets
-        "import_tickets_running": import_tickets_status.running,
-        "import_tickets_last_execution": import_tickets_last_execution,
+        "import_orders_running": import_orders_status.running,
+        "import_orders_last_execution": import_orders_last_execution,
         # Import from C2
         "import_from_c2_running": import_from_c2_status.running,
         "import_from_c2_last_execution": import_from_c2_status_last_execution,
     }
 
 
-async def import_tickets_handler(
+async def import_orders_handler(
     callback: CallbackQuery,
     button: Button,
     manager: DialogManager,
@@ -58,7 +58,7 @@ async def import_tickets_handler(
     task_manager: TaskManager = await container.get(TaskManager)
 
     try:
-        await task_manager.import_tickets()
+        await task_manager.import_orders()
     except AppException as e:
         await callback.answer(e.message, show_alert=True)
         return
@@ -87,10 +87,10 @@ tasks_window = Window(
     Title(Const(strings.titles.tasks)),
     Const("<b>🎫 Импорт билетов</b>"),
     Jinja(
-        "<b>Состояние:</b> {% if import_tickets_running %}▶️ Выполняется"
+        "<b>Состояние:</b> {% if import_orders_running %}▶️ Выполняется"
         "{% else %}⏹️ Не выполняется{% endif %}"
     ),
-    Jinja("<b>Последнее успешное выполнение:</b> {{import_tickets_last_execution}}"),
+    Jinja("<b>Последнее успешное выполнение:</b> {{import_orders_last_execution}}"),
     Const(" "),
     Const("<b>👯‍♀️ Импорт с Cosplay2</b>"),
     Jinja(
@@ -100,8 +100,8 @@ tasks_window = Window(
     Jinja("<b>Последнее успешное выполнение:</b> {{import_from_c2_last_execution}}"),
     Button(
         Const("🎫 Импорт билетов"),
-        id="run_import_tickets",
-        on_click=import_tickets_handler,
+        id="run_import_orders",
+        on_click=import_orders_handler,
     ),
     Button(
         Const("👯‍♀️ Импорт с Cosplay2"),

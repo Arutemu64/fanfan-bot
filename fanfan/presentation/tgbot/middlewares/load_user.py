@@ -54,9 +54,7 @@ class LoadDataMiddleware(BaseMiddleware):
 
             # Update username in database
             if user.username != tg_user.username:
-                await update_user(
-                    UpdateUserDTO(id=UserId(tg_user.id), username=tg_user.username)
-                )
+                await update_user(UpdateUserDTO(id=user.id, username=tg_user.username))
                 user = await id_provider.get_current_user()
 
             # Update user commands

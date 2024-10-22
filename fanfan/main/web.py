@@ -15,6 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from fanfan.adapters.config_reader import get_config
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
+from fanfan.presentation.web.api import setup_api_router
 from fanfan.presentation.web.webapp import setup_webapp_router
 
 if TYPE_CHECKING:
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(setup_webapp_router())
+    app.include_router(setup_api_router())
 
     # Setup FastAPI middlewares
     app.add_middleware(

@@ -7,3 +7,7 @@ class TimepadException(AppException):
 
 class NoTimepadConfigProvided(TimepadException):
     message = "⚠️ Не предоставлены настройки TimePad"
+
+
+class TimepadOrderProcessFailed(TimepadException):
+    pass

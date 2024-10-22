@@ -1,8 +1,13 @@
 import enum
 from dataclasses import dataclass
 
+from fanfan.adapters.timepad.dto.ticket import TicketResponse
+
+# https://dev.timepad.ru/api/get-v1-events-event-id-orders/
+
 
 class OrderStatus(enum.StrEnum):
+    # https://dev.timepad.ru/api/hooks/#spisok-vozmozhnyh-statusov-biletov
     NOT_PAID = "notpaid"
     OK = "ok"
     PAID = "paid"
@@ -23,30 +28,26 @@ class OrderStatus(enum.StrEnum):
     RETURN_TP = "return_tp"
 
 
-@dataclass
-class TicketTypeResponse:
-    name: str
-
-
-@dataclass
-class TicketResponse:
-    number: str
-    ticket_type: TicketTypeResponse
-
-
-@dataclass
+@dataclass(slots=True, frozen=True)
 class OrderStatusResponse:
     name: OrderStatus
     title: str
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
+class OrderEventResponse:
+    id: int
+
+
+@dataclass(slots=True, frozen=True)
 class RegistrationOrderResponse:
+    id: int
     status: OrderStatusResponse
     tickets: list[TicketResponse]
+    event: OrderEventResponse | None = None
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class RegistrationOrdersResponse:
     total: int
     values: list[RegistrationOrderResponse]

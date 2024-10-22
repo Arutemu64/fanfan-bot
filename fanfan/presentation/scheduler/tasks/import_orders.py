@@ -6,9 +6,9 @@ from dishka.integrations.taskiq import inject
 from taskiq import Context, TaskiqDepends
 
 from fanfan.application.common.notifier import Notifier
-from fanfan.application.utils.import_tickets import (
-    ImportTickets,
-    ImportTicketsResult,
+from fanfan.application.utils.import_orders import (
+    ImportOrders,
+    ImportOrdersResult,
 )
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.notification import SendNotificationDTO, UserNotification
@@ -18,14 +18,14 @@ from fanfan.main.scheduler import broker
 logger = logging.getLogger(__name__)
 
 
-@broker.task(task_name="import_tickets")
+@broker.task(task_name="import_orders")
 @inject
-async def import_tickets(  # noqa: C901
+async def import_orders(
     context: Annotated[Context, TaskiqDepends()],
-    interactor: FromDishka[ImportTickets],
+    interactor: FromDishka[ImportOrders],
     notifier: FromDishka[Notifier],
     by_user_id: UserId | None = None,
-) -> ImportTicketsResult:
+) -> ImportOrdersResult:
     try:
         result = await interactor()
     except AppException as e:

@@ -10,13 +10,16 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.enums import UserRole
+from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.users import UserNotFound
+from fanfan.core.models.user import UserId
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
 class UpdateUserDTO:
+    id: UserId
     username: str | None = ""  # Cause Telegram username can be removed
     role: UserRole | None = None
 
@@ -31,9 +34,12 @@ class UpdateUser(Interactor[UpdateUserDTO, None]):
         self.retort = Retort(recipe=[name_mapping(omit_default=True)])
 
     async def __call__(self, data: UpdateUserDTO) -> None:
-        user = await self.id_provider.get_current_user()
+        user = await self.users_repo.get_user_by_id(data.id)
         if user is None:
             raise UserNotFound
+        current_user = await self.id_provider.get_current_user()
+        if (user.id != current_user.id) and (current_user.role != UserRole.ORG):
+            raise AccessDenied
         user = replace(user, **self.retort.dump(data))
         async with self.uow:
             await self.users_repo.update_user(user)

@@ -137,6 +137,7 @@ class TimepadConfig(BaseSettings):
 
     client_id: SecretStr | None = None
     event_id: int | None = None
+    secret: SecretStr | None = None
 
 
 class Cosplay2Config(BaseSettings):
