@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import sys
 from contextlib import asynccontextmanager, suppress
 from typing import TYPE_CHECKING
@@ -13,6 +12,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from fanfan.adapters.config_reader import get_config
+from fanfan.common.logging import setup_logging
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
 from fanfan.presentation.web.api import setup_api_router
@@ -69,10 +69,10 @@ def create_app() -> FastAPI:
 
 
 if __name__ == "__main__":
+    setup_logging()
+    config = get_config()
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    config = get_config()
-    logging.basicConfig(level=config.debug.logging_level)
     with suppress(KeyboardInterrupt):
         uvicorn.run(
             create_app(),

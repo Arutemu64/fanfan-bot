@@ -8,6 +8,7 @@ from taskiq.schedule_sources import LabelScheduleSource
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
 from fanfan.adapters.config_reader import get_config
+from fanfan.common.logging import setup_logging
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -28,6 +29,8 @@ broker = (
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup(state: TaskiqState) -> None:
+    setup_logging()
+
     from fanfan.main.di import create_scheduler_container
 
     container = create_scheduler_container()

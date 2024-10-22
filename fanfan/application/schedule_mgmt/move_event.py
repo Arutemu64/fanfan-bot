@@ -113,7 +113,7 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
                     data.event_id,
                     data.after_event_id,
                     self.id_provider.get_current_user_id(),
-                    extra={"event": event, "after_event": after_event},
+                    extra={"moved_event": event, "after_event": after_event},
                 )
                 return MoveEventResult(
                     event=event,

@@ -87,7 +87,7 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
                     "Event %s was skipped by user %s",
                     event_id,
                     self.id_provider.get_current_user_id(),
-                    extra={"event": event},
+                    extra={"skipped_event": event},
                 )
                 return SkipEventResult(
                     event=event,

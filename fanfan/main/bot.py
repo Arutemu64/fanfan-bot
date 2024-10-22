@@ -8,6 +8,7 @@ from aiogram import Bot, Dispatcher
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.config_reader import Configuration, get_config
+from fanfan.common.logging import setup_logging
 from fanfan.core.enums import BotMode
 from fanfan.core.utils.settings import setup_initial_settings
 from fanfan.main.di import create_bot_container
@@ -87,9 +88,7 @@ async def main() -> None:
 
 
 def run():
-    config = get_config()
-    logging.basicConfig(level=config.debug.logging_level)
-    logging.getLogger("aiogram_dialog").setLevel(config.debug.logging_level)
+    setup_logging()
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with contextlib.suppress(KeyboardInterrupt):

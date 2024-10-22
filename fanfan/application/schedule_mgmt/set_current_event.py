@@ -79,7 +79,7 @@ class SetCurrentEvent(Interactor[EventId | None, SetCurrentEventResult]):
                     "Event %s was set as current by user %s",
                     event_id,
                     self.id_provider.get_current_user_id(),
-                    extra={"event": event},
+                    extra={"current_event": event},
                 )
                 return SetCurrentEventResult(
                     current_event=event,
