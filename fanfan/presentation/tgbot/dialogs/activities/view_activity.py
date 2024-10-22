@@ -31,7 +31,6 @@ async def view_activity_getter(
     return {
         "title": activity.title,
         "description": activity.description,
-        "subtext": activity.subtext,
         "image_path": activity.image_path,
     }
 
@@ -39,7 +38,6 @@ async def view_activity_getter(
 view_activity_window = Window(
     Title(Format("{title}")),
     Format("{description}"),
-    Format("\n{subtext}", when=F["subtext"]),
     StaticMedia(path=Format("{image_path}"), when=F["image_path"]),
     StubScroll(id=ID_ACTIVITIES_SCROLL, pages="pages"),
     SwitchTo(

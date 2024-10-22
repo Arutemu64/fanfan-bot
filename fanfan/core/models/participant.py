@@ -12,10 +12,10 @@ class ParticipantModel:
     id: ParticipantId
     title: str
     nomination_id: NominationId | None
-    scoped_id: ParticipantScopedId
+    scoped_id: ParticipantScopedId | None = None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class FullParticipantModel(ParticipantModel):
     event: EventModel | None
     nomination: NominationModel | None

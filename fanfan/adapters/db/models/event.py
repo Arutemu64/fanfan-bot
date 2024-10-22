@@ -34,10 +34,12 @@ class Event(Base, OrderMixin):
 
     # Participant relation
     participant_id: Mapped[int | None] = mapped_column(
-        ForeignKey("participants.id", ondelete="CASCADE"),
+        ForeignKey("participants.id", ondelete="SET NULL"),
         nullable=True,
     )
-    participant: Mapped[Participant | None] = relationship(back_populates="event")
+    participant: Mapped[Participant | None] = relationship(
+        back_populates="event", single_parent=True
+    )
     nomination: Mapped[Nomination | None] = relationship(
         secondary="participants",
         viewonly=True,

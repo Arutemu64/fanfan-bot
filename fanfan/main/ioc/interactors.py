@@ -48,6 +48,8 @@ from fanfan.application.users.get_user_by_username import GetUserByUsername
 from fanfan.application.users.update_user import UpdateUser
 from fanfan.application.users.update_user_commands import UpdateUserCommands
 from fanfan.application.users.update_user_settings import UpdateUserSettings
+from fanfan.application.utils.import_from_c2 import ImportFromC2
+from fanfan.application.utils.import_tickets import ImportTickets
 from fanfan.application.votes.add_vote import AddVote
 from fanfan.application.votes.cancel_vote import CancelVote
 
@@ -113,3 +115,6 @@ class InteractorsProvider(Provider):
 
     add_vote = provide(AddVote)
     cancel_vote = provide(CancelVote)
+
+    import_from_c2 = provide(ImportFromC2)
+    import_tickets = provide(ImportTickets)

@@ -1,5 +1,6 @@
 import logging
 
+from dotenv import find_dotenv, load_dotenv
 from pydantic import (
     DirectoryPath,
     HttpUrl,
@@ -18,11 +19,11 @@ from pydantic_settings import (
 
 from fanfan.core.enums import BotMode
 
+load_dotenv(find_dotenv(".local-env"))  # For local testing
+
 
 class BotConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="BOT_", env_file=".local-env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="BOT_")
 
     token: SecretStr
     mode: BotMode = BotMode.POLLING
@@ -32,9 +33,7 @@ class BotConfig(BaseSettings):
 
 
 class DatabaseConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="POSTGRES_", env_file=".local-env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="POSTGRES_")
 
     username: str = Field(alias="POSTGRES_USER")
     password: SecretStr
@@ -59,9 +58,7 @@ class DatabaseConfig(BaseSettings):
 
 
 class RedisConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="REDIS_", env_file=".local-env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="REDIS_")
 
     username: str | None = None
     password: SecretStr | None = None
@@ -84,9 +81,7 @@ class RedisConfig(BaseSettings):
 
 
 class NatsConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="NATS_", env_file=".local-env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="NATS_")
 
     host: str = "nats"
     port: int = 4222
@@ -105,9 +100,7 @@ class NatsConfig(BaseSettings):
 
 
 class WebConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="WEB_", env_file=".local-env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="WEB_")
 
     host: str = "127.0.0.1"
     port: int = 8080
@@ -140,18 +133,28 @@ class WebConfig(BaseSettings):
 
 
 class TimepadConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="TIMEPAD_", env_file=".local-env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="TIMEPAD_")
 
     client_id: SecretStr | None = None
     event_id: int | None = None
 
 
+class Cosplay2Config(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="COSPLAY2_")
+
+    subdomain: str | None = None
+    login: str | None = None
+    password: SecretStr | None = None
+
+    def build_api_base_url(self) -> str:
+        url: HttpUrl = HttpUrl.build(
+            scheme="https", host=f"{self.subdomain}.cosplay2.ru", path="api/"
+        )
+        return url.unicode_string()
+
+
 class DebugConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="DEBUG_", env_file=".local-env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="DEBUG_")
 
     enabled: bool = True
     logging_level: int = logging.DEBUG
@@ -170,7 +173,6 @@ class DebugConfig(BaseSettings):
 
 class Configuration(BaseSettings):
     env: str = Field(alias="ENV_NAME")
-    model_config = SettingsConfigDict(env_file=".local-env", extra="ignore")
     timezone: TimeZoneName = "Europe/Moscow"
     media_root: DirectoryPath
 

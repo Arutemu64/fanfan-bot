@@ -1,64 +1,64 @@
-import datetime
 import logging
-
-from redis.asyncio import Redis
-from taskiq import ScheduledTask
 
 from fanfan.adapters.config_reader import Configuration
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.application.common.limiter import Limiter
+from fanfan.application.utils.import_from_c2 import IMPORT_FROM_C2_LIMIT_NAME
+from fanfan.application.utils.import_tickets import IMPORT_TICKETS_LIMIT_NAME
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.exceptions.tasks import (
-    TaskInProgress,
+from fanfan.core.exceptions.limiter import (
+    LimitLocked,
 )
 from fanfan.core.models.tasks import TaskStatus
-from fanfan.main.scheduler import redis_schedule
-from fanfan.presentation.scheduler.tasks.update_tickets import (
-    UPDATE_TICKETS_LOCK,
-    UPDATE_TICKETS_TIMESTAMP,
-    update_tickets,
+from fanfan.presentation.scheduler.tasks.import_from_c2 import import_from_c2
+from fanfan.presentation.scheduler.tasks.import_tickets import (
+    import_tickets,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class TaskManager:
-    def __init__(self, config: Configuration, redis: Redis, id_provider: IdProvider):
+    def __init__(
+        self, config: Configuration, limiter: Limiter, id_provider: IdProvider
+    ):
         self.config = config
-        self.redis = redis
+        self.limiter = limiter
         self.id_provider = id_provider
 
-    async def update_tickets(self) -> None:
+    async def import_tickets(self) -> None:
+        limiter = self.limiter(IMPORT_TICKETS_LIMIT_NAME)
         # Check permission
         user = await self.id_provider.get_current_user()
         if user.role != UserRole.ORG:
             raise AccessDenied
         # Check lock
-        if await self.redis.lock(UPDATE_TICKETS_LOCK).locked():
-            raise TaskInProgress
+        if await limiter.locked():
+            raise LimitLocked
         # Run
-        await update_tickets.kiq(by_user_id=user.id if user else None)
+        await import_tickets.kiq(by_user_id=user.id)
 
-    async def get_update_tickets_status(self) -> TaskStatus:
-        schedule = await redis_schedule.get_schedules()
-        running = await self.redis.lock(UPDATE_TICKETS_LOCK).locked()
-        timestamp = float(await self.redis.get(UPDATE_TICKETS_TIMESTAMP) or 0)
-        last_execution = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
-        cron = next((t.cron for t in schedule if t.task_name == "update_tickets"), None)
-        return TaskStatus(running=running, last_execution=last_execution, cron=cron)
+    async def import_from_c2(self) -> None:
+        limiter = self.limiter(IMPORT_FROM_C2_LIMIT_NAME)
+        # Check permission
+        user = await self.id_provider.get_current_user()
+        if user.role != UserRole.ORG:
+            raise AccessDenied
+        # Check lock
+        if await limiter.locked():
+            raise LimitLocked
+        # Run
+        await import_from_c2.kiq(by_user_id=user.id)
 
-    @staticmethod
-    async def set_task_cron(task_name: str, cron: str | None) -> None:
-        if cron:
-            await redis_schedule.add_schedule(
-                ScheduledTask(
-                    task_name=task_name,
-                    schedule_id=task_name,
-                    cron=cron,
-                    labels={},
-                    args=[],
-                    kwargs={},
-                )
-            )
-        else:
-            await redis_schedule.delete_schedule(task_name)
+    async def get_import_tickets_status(self) -> TaskStatus:
+        limiter = self.limiter(IMPORT_TICKETS_LIMIT_NAME)
+        running = await limiter.locked()
+        last_execution = await limiter.get_last_execution()
+        return TaskStatus(running=running, last_execution=last_execution)
+
+    async def get_import_from_c2_status(self) -> TaskStatus:
+        limiter = self.limiter(IMPORT_FROM_C2_LIMIT_NAME)
+        running = await limiter.locked()
+        last_execution = await limiter.get_last_execution()
+        return TaskStatus(running=running, last_execution=last_execution)

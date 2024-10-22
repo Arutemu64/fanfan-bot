@@ -11,9 +11,9 @@ TimepadSession = NewType("TimepadSession", ClientSession)
 
 
 class TimepadProvider(Provider):
-    scope = Scope.APP
+    scope = Scope.REQUEST
 
-    @provide(scope=Scope.REQUEST)
+    @provide
     async def get_timepad_session(
         self,
         config: TimepadConfig,
@@ -23,6 +23,6 @@ class TimepadProvider(Provider):
         ) as session:
             yield session
 
-    @provide(scope=Scope.REQUEST)
+    @provide
     async def get_timepad_client(self, session: TimepadSession) -> TimepadClient:
         return TimepadClient(session)

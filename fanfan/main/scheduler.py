@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from dishka.integrations.taskiq import setup_dishka
 from taskiq import SimpleRetryMiddleware, TaskiqEvents, TaskiqScheduler, TaskiqState
 from taskiq.schedule_sources import LabelScheduleSource
-from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend, RedisScheduleSource
+from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
 from fanfan.adapters.config_reader import get_config
 
@@ -23,9 +23,6 @@ broker = (
     .with_result_backend(redis_async_result)
     .with_middlewares(SimpleRetryMiddleware(default_retry_count=0))
     .with_id_generator(lambda: f"task:{uuid.uuid4().hex}")
-)
-redis_schedule = RedisScheduleSource(
-    url=get_config().redis.build_connection_str(),
 )
 
 
@@ -46,5 +43,5 @@ async def shutdown(state: TaskiqState) -> None:
 
 scheduler = TaskiqScheduler(
     broker=broker,
-    sources=[LabelScheduleSource(broker), redis_schedule],
+    sources=[LabelScheduleSource(broker)],
 )

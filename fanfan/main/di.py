@@ -8,6 +8,7 @@ from fanfan.main.ioc.auth import (
 )
 from fanfan.main.ioc.bot import BotProvider, DpProvider
 from fanfan.main.ioc.config import ConfigProvider
+from fanfan.main.ioc.cosplay2 import Cosplay2Provider
 from fanfan.main.ioc.db import DbProvider
 from fanfan.main.ioc.faststream import FastStreamProvider
 from fanfan.main.ioc.interactors import InteractorsProvider
@@ -34,6 +35,7 @@ def get_common_providers() -> list[Provider]:
         RepositoriesProvider(),
         UtilsProvider(),
         FastStreamProvider(),
+        Cosplay2Provider(),
     ]
 
 

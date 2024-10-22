@@ -18,7 +18,6 @@ class ActivityView(ModelView, model=Activity):
         Activity.order: "Порядок",
         Activity.title: "Название",
         Activity.description: "Описание",
-        Activity.subtext: "Подтекст",
         Activity.image: "Изображение",
         Activity.created_on: "Время создания",
         Activity.updated_on: "Время изменения",
@@ -27,6 +26,5 @@ class ActivityView(ModelView, model=Activity):
         Activity.order,
         Activity.title,
         Activity.description,
-        Activity.subtext,
         Activity.image,
     ]

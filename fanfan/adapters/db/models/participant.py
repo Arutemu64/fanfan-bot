@@ -26,7 +26,7 @@ class Participant(Base):
     title: Mapped[str] = mapped_column(unique=True, index=True)
 
     # Nomination relation
-    nomination_id: Mapped[str | None] = mapped_column(
+    nomination_id: Mapped[int | None] = mapped_column(
         ForeignKey("nominations.id", ondelete="SET NULL"),
         nullable=True,
     )
@@ -38,7 +38,9 @@ class Participant(Base):
     UniqueConstraint(nomination_id, scoped_id)
 
     # Relationships
-    event: Mapped[Event | None] = relationship(back_populates="participant")
+    event: Mapped[Event | None] = relationship(
+        back_populates="participant", single_parent=True
+    )
     user_vote: Mapped[Vote | None] = relationship(lazy="noload", viewonly=True)
     votes_count = column_property(
         select(func.count(Vote.id))

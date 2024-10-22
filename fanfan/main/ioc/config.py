@@ -3,6 +3,7 @@ from dishka import Provider, Scope, provide
 from fanfan.adapters.config_reader import (
     BotConfig,
     Configuration,
+    Cosplay2Config,
     DatabaseConfig,
     DebugConfig,
     NatsConfig,
@@ -38,6 +39,10 @@ class ConfigProvider(Provider):
     @provide
     def get_timepad_config(self) -> TimepadConfig:
         return TimepadConfig()
+
+    @provide()
+    def get_cosplay2_config(self) -> Cosplay2Config:
+        return Cosplay2Config()
 
     @provide
     def get_debug_config(self) -> DebugConfig:

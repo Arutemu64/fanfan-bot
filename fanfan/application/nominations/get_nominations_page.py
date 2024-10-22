@@ -13,12 +13,15 @@ class GetNominationsPage:
 
     async def __call__(
         self,
+        only_votable: bool,
         pagination: Pagination | None = None,
     ) -> Page[FullNominationModel]:
         nominations = await self.nominations_repo.list_nominations(
-            user_id=self.id_provider.get_current_user_id(), pagination=pagination
+            only_votable=only_votable,
+            user_id=self.id_provider.get_current_user_id(),
+            pagination=pagination,
         )
-        total = await self.nominations_repo.count_nominations()
+        total = await self.nominations_repo.count_nominations(only_votable=only_votable)
 
         return Page(
             items=nominations,

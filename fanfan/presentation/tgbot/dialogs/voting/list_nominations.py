@@ -17,7 +17,7 @@ from aiogram_dialog.widgets.kbd import (
     Select,
     StubScroll,
 )
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.nominations.get_nominations_page import GetNominationsPage
@@ -46,15 +46,14 @@ async def nominations_getter(
     get_nominations_page: GetNominationsPage = await container.get(GetNominationsPage)
 
     page = await get_nominations_page(
+        only_votable=True,
         pagination=Pagination(
             limit=user.settings.items_per_page,
             offset=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
             * user.settings.items_per_page,
         ),
     )
-    nominations_list = [
-        (n.id, f"{n.title} ✅" if n.user_vote else n.title) for n in page.items
-    ]
+    nominations_list = [(n.id, n) for n in page.items]
     return {
         "nominations_list": nominations_list,
         "pages": page.total // user.settings.items_per_page
@@ -66,7 +65,7 @@ async def select_nomination_handler(
     callback: CallbackQuery,
     widget: Any,
     dialog_manager: DialogManager,
-    item_id: str,
+    item_id: int,
 ) -> None:
     state: FSMContext = dialog_manager.middleware_data["state"]
 
@@ -85,11 +84,11 @@ nominations_window = Window(
     Const("Для голосования доступны следующие номинации"),
     Column(
         Select(
-            Format("{item[1]}"),
+            Jinja("{{item[1].title}} {% if item[1].user_vote %}✅{% endif %}"),
             id="nomination",
             item_id_getter=operator.itemgetter(0),
             items="nominations_list",
-            type_factory=str,
+            type_factory=int,
             on_click=select_nomination_handler,
         ),
     ),

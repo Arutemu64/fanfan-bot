@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from contextlib import asynccontextmanager, suppress
 from typing import TYPE_CHECKING
@@ -69,6 +70,7 @@ if __name__ == "__main__":
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     config = get_config()
+    logging.basicConfig(level=config.debug.logging_level)
     with suppress(KeyboardInterrupt):
         uvicorn.run(
             create_app(),

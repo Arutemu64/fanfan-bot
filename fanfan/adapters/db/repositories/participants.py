@@ -1,4 +1,5 @@
-from sqlalchemy import and_, func, or_, select
+from adaptix import Retort, name_mapping
+from sqlalchemy import Select, and_, case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, undefer
 
@@ -14,9 +15,51 @@ from fanfan.core.models.participant import (
 from fanfan.core.models.user import UserId
 
 
+def _filter_participants_query(
+    query: Select,
+    nomination_id: NominationId | None = None,
+    search_query: str | None = None,
+    only_votable: bool | None = None,
+) -> Select:
+    if nomination_id:
+        query = query.where(
+            Participant.nomination.has(Nomination.id == nomination_id),
+        )
+    if search_query:
+        query = query.where(
+            or_(
+                Participant.title.ilike(f"%{search_query}%"),
+                Participant.scoped_id == int(search_query)
+                if search_query.isnumeric()
+                else False,
+            )
+        )
+    if only_votable:
+        query = query.where(
+            and_(
+                case(
+                    (
+                        Participant.event.has(),
+                        Participant.event.has(Event.skip.isnot(True)),
+                    ),
+                    else_=True,
+                ),
+                Participant.nomination.has(Nomination.votable.is_(True)),
+            ),
+        )
+    return query
+
+
 class ParticipantsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
+        self.retort = Retort(recipe=[name_mapping(omit_default=True)])
+
+    async def merge_participant(self, model: ParticipantModel) -> ParticipantModel:
+        participant = Participant(**self.retort.dump(model))
+        await self.session.merge(participant)
+        await self.session.flush([participant])
+        return participant.to_model()
 
     async def get_participant_by_id(
         self, participant_id: ParticipantId
@@ -67,22 +110,6 @@ class ParticipantsRepository:
         )
         if pagination:
             query = query.limit(pagination.limit).offset(pagination.offset)
-
-        if nomination_id:
-            query = query.where(
-                Participant.nomination.has(Nomination.id == nomination_id),
-            )
-
-        if search_query:
-            query = query.where(
-                or_(
-                    Participant.title.ilike(f"%{search_query}%"),
-                    Participant.scoped_id == int(search_query)
-                    if search_query.isnumeric()
-                    else False,
-                )
-            )
-
         if user_id:
             query = query.options(contains_eager(Participant.user_vote)).outerjoin(
                 Vote,
@@ -92,8 +119,9 @@ class ParticipantsRepository:
                 ),
             )
 
-        if only_votable:
-            query = query.where(Participant.event.has(Event.skip.isnot(True)))
+        query = _filter_participants_query(
+            query, nomination_id, search_query, only_votable
+        )
 
         participants = await self.session.scalars(query)
 
@@ -107,22 +135,8 @@ class ParticipantsRepository:
     ) -> int:
         query = select(func.count(Participant.id))
 
-        if nomination_id:
-            query = query.where(
-                Participant.nomination.has(Nomination.id == nomination_id),
-            )
-
-        if search_query:
-            query = query.where(
-                or_(
-                    Participant.title.ilike(f"%{search_query}%"),
-                    Participant.scoped_id == int(search_query)
-                    if search_query.isnumeric()
-                    else False,
-                )
-            )
-
-        if only_votable:
-            query = query.where(Participant.event.has(Event.skip.isnot(True)))
+        query = _filter_participants_query(
+            query, nomination_id, search_query, only_votable
+        )
 
         return await self.session.scalar(query)

@@ -6,9 +6,8 @@ from openpyxl import load_workbook
 from sqladmin import BaseView, expose
 from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
-from fanfan.adapters.db.models import Event, Nomination, Participant
+from fanfan.adapters.db.models import Event, Participant
 from fanfan.adapters.db.models.block import Block
 
 if typing.TYPE_CHECKING:
@@ -28,7 +27,6 @@ async def proceed_plan(file: typing.BinaryIO, session: AsyncSession) -> None:
     # Get everything ready
     wb = load_workbook(file)
     ws = wb.worksheets[0]
-    current_nomination: Nomination | None = None
     order = 1.0
     for row in ws.iter_rows(min_row=4):
         if row[0].value and row[2].value:  # Block
@@ -37,51 +35,33 @@ async def proceed_plan(file: typing.BinaryIO, session: AsyncSession) -> None:
             session.add(block)
             await session.flush([block])
             logger.info("New block %s added", title)
-        elif row[2].value and (row[1].value is None):  # Nomination
-            title = str(row[2].value)
-            # Cut ID from next row
-            next_cell = ws.cell(column=row[2].column, row=row[2].row + 1)
-            participant_string = str(next_cell.value)
-            nomination_id = participant_string.split(" ")[0]
-            current_nomination = Nomination(id=nomination_id, title=title)
-            current_nomination = await session.merge(current_nomination)
-            await session.flush([current_nomination])
-            logger.info("New nomination %s added", nomination_id)
-        elif row[1].value:  # Participant
-            id_ = int(row[1].value)
+        elif row[1].value:  # Event
             data = str(row[2].value)
-            participant_title = data.split(", ", 1)[1]
+            id_ = int(row[1].value)
+            event_title = data.split(", ", 1)[1]
+            # Try to find a participant
             participant = await session.scalar(
-                select(Participant)
-                .where(Participant.title == participant_title)
-                .limit(1)
-                .options(joinedload(Participant.event)),
+                select(Participant).where(Participant.title.ilike(f"%{event_title}%"))
             )
             if participant:
-                if participant.event:
-                    events_to_delete.remove(participant.event)
-                    participant.event.id = id_
-                    participant.event.order = order
-                else:
-                    participant.event = Event(
-                        id=id_,
-                        order=order,
-                        title=participant.title,
-                    )
-                await session.flush([participant])
+                logger.info("Found a linked participant for %s", event_title)
             else:
-                participant = Participant(
-                    title=participant_title,
-                    nomination=current_nomination,
-                    event=Event(
-                        id=id_,
-                        order=order,
-                        title=participant_title,
-                    ),
+                logger.info(
+                    "Orphaned event, make sure event title %s"
+                    "matches participant title (if it exist)",
+                    event_title,
                 )
-                session.add(participant)
-                await session.flush([participant])
-                logger.info("New participant %s added", participant_title)
+            event = await session.merge(
+                Event(
+                    id=id_,
+                    title=event_title,
+                    order=order,
+                    participant_id=participant.id if participant else None,
+                )
+            )
+            for e in events_to_delete:
+                if e.id == event.id:
+                    events_to_delete.remove(e)
         order += 1.0
     for e in events_to_delete:
         await session.delete(e)
@@ -105,7 +85,7 @@ class PlanParseView(BaseView):
                 await session.commit()
             except Exception as e:
                 await container.close()
-                logger.exception("Error when parsing plan")
+                logger.exception("Error when parsing plan", exc_info=e)
                 return await self.templates.TemplateResponse(
                     request,
                     "plan_parse.html",

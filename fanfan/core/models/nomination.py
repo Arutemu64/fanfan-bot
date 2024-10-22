@@ -3,17 +3,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import NewType
 
-NominationId = NewType("NominationId", str)
+NominationId = NewType("NominationId", int)
+NominationCode = NewType("NominationCode", str)
 
 
 @dataclass(frozen=True, slots=True)
 class NominationModel:
     id: NominationId
+    code: NominationCode
     title: str
-    votable: bool
+    votable: bool = False
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class FullNominationModel(NominationModel):
     user_vote: VoteModel | None
 

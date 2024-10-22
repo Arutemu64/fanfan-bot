@@ -1,0 +1,1 @@
+ANNOUNCE_LIMIT_NAME = "announce"
