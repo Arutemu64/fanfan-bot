@@ -50,6 +50,26 @@ services:
       retries: 10
       start_period: 5s
 
+  pgbackup:
+    container_name: "fanfan-db-backup-${ENV_NAME}"
+    image: prodrigestivill/postgres-backup-local
+    restart: always
+    volumes:
+      - db-backups-data:/backups
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
+      - SCHEDULE=@every 6h00m00s
+      - BACKUP_ON_START=TRUE
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+
   redis:
     container_name: "fanfan-redis-${ENV_NAME}"
     build:
@@ -155,6 +175,8 @@ volumes:
   bot-data:
     driver: local
   db-data:
+    driver: local
+  db-backups-data:
     driver: local
   redis-data:
     driver: local
