@@ -11,6 +11,7 @@ from fanfan.core.models.participant import FullParticipantModel
 @dataclass(frozen=True, slots=True)
 class GetParticipantsPageDTO:
     nomination_id: NominationId
+    only_votable: bool
     pagination: Pagination | None = None
     search_query: str | None = None
 

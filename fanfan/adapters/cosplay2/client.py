@@ -53,10 +53,10 @@ class Cosplay2Client(C2AiohttpClient):
             )
             auth_ssid = login_response.cookies.get("auth_ssid").value
             logger.info("auth_ssid was renewed")
+            # And don't forget to update cached auth_ssid
+            await self.redis.set(COSPLAY2_AUTH_SSID_KEY, auth_ssid)
         # Update cookie jar
         self.session.cookie_jar.update_cookies(cookies={"auth_ssid": auth_ssid})
-        # And don't forget to update cached auth_ssid
-        await self.redis.set(COSPLAY2_AUTH_SSID_KEY, auth_ssid)
         # Now let's make a request!
         return await super().do_request(request)
 

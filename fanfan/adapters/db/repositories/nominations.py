@@ -1,4 +1,4 @@
-from sqlalchemy import and_, func, select
+from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
@@ -12,14 +12,18 @@ from fanfan.core.models.page import Pagination
 from fanfan.core.models.user import UserId
 
 
+def _filter_nominations(query: Select, only_votable: bool) -> Select:
+    if only_votable:
+        query = query.where(Nomination.votable.is_(True))
+    return query
+
+
 class NominationsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
     async def merge_nomination(self, model: NominationModel) -> NominationModel:
-        nomination = Nomination(
-            id=model.id, code=model.code, title=model.title, votable=model.votable
-        )
+        nomination = Nomination.from_model(model)
         await self.session.merge(nomination)
         await self.session.flush([nomination])
         return nomination.to_model()
@@ -43,14 +47,11 @@ class NominationsRepository:
 
     async def list_nominations(
         self,
-        only_votable: bool = False,
+        only_votable: bool,
         user_id: UserId | None = None,
         pagination: Pagination | None = None,
     ) -> list[FullNominationModel]:
         query = select(Nomination)
-
-        if only_votable:
-            query = query.where(Nomination.votable.is_(True))
 
         if pagination:
             query = query.limit(pagination.limit).offset(pagination.offset)
@@ -64,6 +65,8 @@ class NominationsRepository:
                 ),
             )
 
+        query = _filter_nominations(query, only_votable)
+
         nominations = await self.session.scalars(query)
 
         return [n.to_full_model() for n in nominations]
@@ -71,7 +74,6 @@ class NominationsRepository:
     async def count_nominations(self, only_votable: bool) -> int:
         query = select(func.count(Nomination.id))
 
-        if only_votable:
-            query = query.where(Nomination.votable.is_(True))
+        query = _filter_nominations(query, only_votable)
 
         return await self.session.scalar(query)

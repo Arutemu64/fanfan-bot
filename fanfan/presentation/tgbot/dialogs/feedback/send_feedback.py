@@ -2,7 +2,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Checkbox, ManagedCheckbox
-from aiogram_dialog.widgets.text import Const, Format, Multi
+from aiogram_dialog.widgets.text import Const, Jinja, Multi
 from dishka import AsyncContainer
 
 from fanfan.application.feedback.send_feedback import SendFeedback, SendFeedbackDTO
@@ -28,7 +28,7 @@ async def send_feedback_getter(
         "can_send": dialog_manager.dialog_data.get(DATA_FEEDBACK_TEXT),
         "asap_feedback_enabled": settings.asap_feedback_enabled,
         "feedback_text": dialog_manager.dialog_data.get(DATA_FEEDBACK_TEXT)
-        or "<i>отправь сообщение, чтобы ввести/изменить текст</i>",
+        or "отправь сообщение, чтобы ввести/изменить текст",
     }
 
 
@@ -74,7 +74,7 @@ send_feedback_window = Window(
         "Отправь их нам и мы обязательно учтём твоё мнение!",
     ),
     Const(" "),
-    Format("Текст: <blockquote>{feedback_text}</blockquote>"),
+    Jinja("Текст: <blockquote>{{ feedback_text|e }}</blockquote>"),
     Multi(
         Const(" "),
         Const(

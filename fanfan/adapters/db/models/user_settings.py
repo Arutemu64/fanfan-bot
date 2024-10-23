@@ -1,5 +1,6 @@
 import typing
 
+from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +23,11 @@ class UserSettings(Base):
         primary_key=True,
     )
     user: Mapped["User"] = relationship(back_populates="settings")
+
+    @classmethod
+    def from_model(cls, model: UserSettingsModel):
+        retort = Retort(recipe=[name_mapping(omit_default=True)])
+        return UserSettings(**retort.dump(model))
 
     def to_model(self) -> UserSettingsModel:
         return UserSettingsModel(

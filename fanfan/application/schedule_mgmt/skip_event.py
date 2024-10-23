@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.utils.limiter import Limiter
+from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.application.common.limiter import Limiter
-from fanfan.application.common.notifier import Notifier
 from fanfan.application.schedule_mgmt.common import ANNOUNCE_LIMIT_NAME
 from fanfan.core.exceptions.events import (
     AnnounceTooFast,
@@ -15,11 +16,12 @@ from fanfan.core.exceptions.events import (
 )
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.models.event import EventId, EventModel
-from fanfan.core.models.mailing import MailingData
+from fanfan.core.models.mailing import MailingId
 from fanfan.core.services.access import AccessService
-from fanfan.presentation.stream.routes.prepare_announcements import (
+from fanfan.presentation.stream.routes.notifications.send_announcements import (
     EventChangeDTO,
     EventChangeType,
+    SendAnnouncementsDTO,
 )
 
 logger = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SkipEventResult:
     event: EventModel
-    mailing_data: MailingData
+    mailing_id: MailingId
 
 
 class SkipEvent(Interactor[EventId, SkipEventResult]):
@@ -39,16 +41,18 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
         access: AccessService,
         uow: UnitOfWork,
         limiter: Limiter,
-        notifier: Notifier,
         id_provider: IdProvider,
+        stream_broker_adapter: StreamBrokerAdapter,
+        mailing_repo: MailingRepository,
     ) -> None:
         self.events_repo = events_repo
         self.settings_repo = settings_repo
         self.access = access
         self.uow = uow
         self.limiter = limiter
-        self.notifier = notifier
+        self.stream_broker_adapter = stream_broker_adapter
         self.id_provider = id_provider
+        self.mailing_repo = mailing_repo
 
     async def __call__(self, event_id: EventId) -> SkipEventResult:
         user = await self.id_provider.get_current_user()
@@ -78,10 +82,16 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
                 change_type = (
                     EventChangeType.SKIP if event.skip else EventChangeType.UNSKIP
                 )
-                mailing_data = await self.notifier.send_announcements(
-                    send_global_announcement=next_event_before.id
-                    != next_event_after.id,
-                    event_changes=[EventChangeDTO(event=event, type=change_type)],
+                mailing_id = await self.mailing_repo.create_new_mailing(
+                    by_user_id=self.id_provider.get_current_user_id()
+                )
+                await self.stream_broker_adapter.send_announcements(
+                    SendAnnouncementsDTO(
+                        send_global_announcement=next_event_before.id
+                        != next_event_after.id,
+                        event_changes=[EventChangeDTO(event=event, type=change_type)],
+                        mailing_id=mailing_id,
+                    )
                 )
                 logger.info(
                     "Event %s was skipped by user %s",
@@ -91,7 +101,7 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
                 )
                 return SkipEventResult(
                     event=event,
-                    mailing_data=mailing_data,
+                    mailing_id=mailing_id,
                 )
         except TooFast as e:
             raise AnnounceTooFast(

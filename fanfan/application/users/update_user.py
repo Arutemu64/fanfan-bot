@@ -16,11 +16,13 @@ from fanfan.core.models.user import UserId
 
 logger = logging.getLogger(__name__)
 
+UNSET_USERNAME = object()
+
 
 @dataclass(frozen=True, slots=True)
 class UpdateUserDTO:
     id: UserId
-    username: str | None = ""  # Cause Telegram username can be removed
+    username: str | None = UNSET_USERNAME
     role: UserRole | None = None
 
 

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True, slots=True)
 class CreateTicketDTO:
     id: TicketId
-    role: UserRole
+    role: UserRole = UserRole.VISITOR
 
 
 class CreateTicket(Interactor[CreateTicketDTO, TicketModel]):
@@ -39,7 +39,7 @@ class CreateTicket(Interactor[CreateTicketDTO, TicketModel]):
                     TicketModel(
                         id=data.id,
                         role=data.role,
-                        issued_by_id=user.id if user else None,
+                        issued_by_id=user.id,
                     )
                 )
                 await self.uow.commit()

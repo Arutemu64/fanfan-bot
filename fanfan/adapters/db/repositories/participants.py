@@ -1,4 +1,3 @@
-from adaptix import Retort, name_mapping
 from sqlalchemy import Select, and_, case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, undefer
@@ -53,10 +52,9 @@ def _filter_participants_query(
 class ParticipantsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
-        self.retort = Retort(recipe=[name_mapping(omit_default=True)])
 
     async def merge_participant(self, model: ParticipantModel) -> ParticipantModel:
-        participant = Participant(**self.retort.dump(model))
+        participant = Participant.from_model(model)
         await self.session.merge(participant)
         await self.session.flush([participant])
         return participant.to_model()
@@ -93,9 +91,9 @@ class ParticipantsRepository:
 
     async def list_participants(
         self,
+        only_votable: bool,
         nomination_id: NominationId | None = None,
         search_query: str | None = None,
-        only_votable: bool = False,
         user_id: UserId | None = None,
         pagination: Pagination | None = None,
     ) -> list[FullParticipantModel]:
@@ -129,9 +127,9 @@ class ParticipantsRepository:
 
     async def count_participants(
         self,
+        only_votable: bool,
         nomination_id: NominationId | None = None,
         search_query: str | None = None,
-        only_votable: bool = False,
     ) -> int:
         query = select(func.count(Participant.id))
 

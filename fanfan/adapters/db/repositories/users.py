@@ -1,4 +1,3 @@
-from adaptix import Retort
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, undefer
@@ -19,7 +18,7 @@ class UsersRepository:
         self.session = session
 
     async def add_user(self, model: UserModel) -> UserModel:
-        user = User(id=model.id, username=model.username, role=model.role)
+        user = User.from_model(model)
         self.session.add(user)
         await self.session.flush([user])
         return user.to_model()
@@ -83,14 +82,14 @@ class UsersRepository:
         return [u.to_model() for u in users]
 
     async def update_user(self, model: UserModel) -> None:
-        retort = Retort()
-        user = User(**retort.dump(model))
+        user = User.from_model(model)
         await self.session.merge(user)
+        await self.session.flush([user])
 
     async def update_user_settings(self, model: UserSettingsModel) -> None:
-        retort = Retort()
-        settings = UserSettings(**retort.dump(model))
+        settings = UserSettings.from_model(model)
         await self.session.merge(settings)
+        await self.session.flush([settings])
 
     async def add_points(self, user_id: UserId, points: int) -> None:
         await self.session.execute(

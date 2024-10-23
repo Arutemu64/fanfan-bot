@@ -63,6 +63,7 @@ async def participants_getter(
     )
     page = await get_participants_page(
         GetParticipantsPageDTO(
+            only_votable=True,
             pagination=Pagination(
                 limit=user.settings.items_per_page,
                 offset=await dialog_manager.find(ID_VOTING_SCROLL).get_page()
@@ -132,6 +133,10 @@ voting_window = Window(
     Title(Format("🎖️ Номинация {nomination_title}")),
     Jinja(voting_list),
     Const("👆 Чтобы проголосовать, нажми на номер участника", when=~F["voted"]),
+    SwitchInlineQueryCurrentChat(
+        text=Const(strings.buttons.search),
+        switch_inline_query=Const(""),
+    ),
     Row(
         StubScroll(ID_VOTING_SCROLL, pages="pages"),
         FirstPage(scroll=ID_VOTING_SCROLL, text=Const("⏪")),
@@ -144,25 +149,21 @@ voting_window = Window(
         LastPage(scroll=ID_VOTING_SCROLL, text=Const("⏭️")),
         when=F["pages"] > 1,
     ),
-    TextInput(
-        id="vote_id_input",
-        type_factory=str,
-        on_success=add_vote_handler,
-    ),
     Button(
         Const("🗑️ Отменить голос"),
         id="cancel_vote",
         when="voted",
         on_click=cancel_vote_handler,
     ),
-    SwitchInlineQueryCurrentChat(
-        text=Const(strings.buttons.search),
-        switch_inline_query=Const(""),
-    ),
     SwitchTo(
         text=Const(strings.buttons.back),
         state=states.Voting.list_nominations,
         id="nominations",
+    ),
+    TextInput(
+        id="vote_id_input",
+        type_factory=str,
+        on_success=add_vote_handler,
     ),
     state=states.Voting.add_vote,
     getter=participants_getter,

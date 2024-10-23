@@ -31,6 +31,10 @@ async def add_ticket_handler(
     create_ticket: CreateTicket = await container.get(CreateTicket)
     role_picker: ManagedRadio[UserRole] = dialog_manager.find(ID_TICKET_ROLE_PICKER)
 
+    if role_picker.get_checked() is None:
+        await message.answer("⚠️ Вы забыли указать роль билета")
+        return
+
     try:
         ticket = await create_ticket(
             CreateTicketDTO(
@@ -43,7 +47,7 @@ async def add_ticket_handler(
         return
 
     await message.answer(
-        f"""✅ Билет "{ticket.id}" с ролью {ticket.role} успешно добавлен!""",
+        f"""✅ Билет "{ticket.id}" с ролью {ticket.role.label} успешно добавлен!""",
     )
     await dialog_manager.switch_to(states.Org.main)
 

@@ -17,8 +17,8 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
 from fanfan.application.mailing.create_role_mailing import (
-    CreateMailingDTO,
     CreateRoleMailing,
+    CreateRoleMailingDTO,
 )
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.base import AppException
@@ -67,8 +67,8 @@ async def send_mailing_handler(
     create_mailing: CreateRoleMailing = await container.get(CreateRoleMailing)
 
     try:
-        mailing_data = await create_mailing(
-            CreateMailingDTO(
+        mailing_id = await create_mailing(
+            CreateRoleMailingDTO(
                 text=manager.dialog_data[DATA_TEXT],
                 roles=roles_picker.get_checked(),
                 image_id=manager.dialog_data.get(DATA_IMAGE_ID),
@@ -76,9 +76,9 @@ async def send_mailing_handler(
         )
         await callback.message.answer(
             "✅ Рассылка запущена!\n"
-            f"Уникальный ID рассылки: <code>{mailing_data.id}</code>",
+            f"Уникальный ID рассылки: <code>{mailing_id}</code>",
         )
-        await show_mailing_info(manager, mailing_data.id)
+        await show_mailing_info(manager, mailing_id)
     except AppException as e:
         await callback.answer(e.message)
         return

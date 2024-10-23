@@ -31,7 +31,7 @@ async def quest_main_getter(
     get_user_stats: GetUserQuestStats = await container.get(GetUserQuestStats)
     get_quest_conditions: GetQuestConditions = await container.get(GetQuestConditions)
 
-    achievements_progress = None
+    achievements_progress = 0
     user_stats = await get_user_stats(user.id)
     if user_stats.total_achievements > 0:
         achievements_progress = math.floor(

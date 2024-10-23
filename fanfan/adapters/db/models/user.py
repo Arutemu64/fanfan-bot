@@ -68,18 +68,22 @@ class User(Base):
     def __str__(self) -> str:
         return f"{self.username} ({self.id})"
 
+    @classmethod
+    def from_model(cls, model: UserModel):
+        return User(id=model.id, username=model.username, role=model.role)
+
     def to_model(self) -> UserModel:
         return UserModel(
             id=UserId(self.id),
             username=self.username,
-            role=self.role,
+            role=UserRole(self.role),
         )
 
     def to_full_model(self) -> FullUserModel:
         return FullUserModel(
             id=UserId(self.id),
             username=self.username,
-            role=self.role,
+            role=UserRole(self.role),
             permissions=self.permissions.to_model(),
             settings=self.settings.to_model(),
             ticket=self.ticket.to_model() if self.ticket else None,

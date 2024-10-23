@@ -48,6 +48,8 @@ async def link_ticket_cmd(
 ) -> None:
     if not user.ticket:
         await dialog_manager.start(states.Main.link_ticket)
+    else:
+        await dialog_manager.update(data={})
 
 
 @router.message(Command(ABOUT_CMD))
@@ -77,7 +79,7 @@ async def quest_cmd(
         await access.ensure_can_participate_in_quest(user)
         await dialog_manager.start(states.Quest.main)
     except AppException:
-        pass
+        await dialog_manager.update(data={})
 
 
 @router.message(Command(VOTING_CMD))
@@ -92,7 +94,7 @@ async def voting_cmd(
         await access.ensure_can_vote(user)
         await dialog_manager.start(states.Voting.list_nominations)
     except AppException:
-        pass
+        await dialog_manager.update(data={})
 
 
 @router.message(Command(HELPER_CMD), RoleFilter(UserRole.HELPER, UserRole.ORG))
@@ -116,7 +118,7 @@ async def feedback_cmd(
         await access.ensure_can_send_feedback(user)
         await dialog_manager.start(states.Feedback.send_feedback)
     except AppException:
-        pass
+        await dialog_manager.update(data={})
 
 
 @router.message(Command(SETTINGS_CMD))

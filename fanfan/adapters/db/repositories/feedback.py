@@ -9,7 +9,7 @@ class FeedbackRepository:
         self.session = session
 
     async def add_feedback(self, model: FeedbackModel) -> FeedbackModel:
-        feedback = Feedback(user_id=model.user_id, text=model.text, asap=model.asap)
+        feedback = Feedback.from_model(model)
         self.session.add(feedback)
         await self.session.flush([feedback])
         return feedback.to_model()

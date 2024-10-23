@@ -4,13 +4,12 @@ from dataclasses import dataclass
 from typing import NewType
 
 NominationId = NewType("NominationId", int)
-NominationCode = NewType("NominationCode", str)
 
 
 @dataclass(frozen=True, slots=True)
 class NominationModel:
     id: NominationId
-    code: NominationCode
+    code: str
     title: str
     votable: bool = False
 

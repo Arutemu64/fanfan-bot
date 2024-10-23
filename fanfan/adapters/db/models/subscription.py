@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typing
 
+from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -32,6 +33,11 @@ class Subscription(Base):
     event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id", ondelete="CASCADE"))
     event: Mapped[Event] = relationship()
     UniqueConstraint(event_id, user_id)
+
+    @classmethod
+    def from_model(cls, model: SubscriptionModel):
+        retort = Retort(recipe=[name_mapping(omit_default=True)])
+        return Subscription(**retort.dump(model))
 
     def to_model(self) -> SubscriptionModel:
         return SubscriptionModel(

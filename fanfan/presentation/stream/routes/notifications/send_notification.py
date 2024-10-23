@@ -1,4 +1,3 @@
-from aiogram import Bot
 from aiogram.exceptions import (
     TelegramBadRequest,
     TelegramForbiddenError,
@@ -7,13 +6,21 @@ from aiogram.exceptions import (
 from dishka import FromDishka
 from faststream import Logger, Path
 from faststream.nats import NatsMessage, NatsRouter, PullSub
+from pydantic import BaseModel
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.utils.notifier import Notifier
 from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import SendNotificationDTO
-from fanfan.presentation.stream.stream import stream
+from fanfan.core.models.notification import UserNotification
+from fanfan.core.models.user import UserId
+from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
+
+
+class SendNotificationDTO(BaseModel):
+    user_id: UserId
+    notification: UserNotification
 
 
 @router.subscriber(
@@ -35,25 +42,16 @@ router = NatsRouter()
 async def send_notification(
     data: SendNotificationDTO,
     msg: FromDishka[NatsMessage],
-    bot: FromDishka[Bot],
+    notifier: FromDishka[Notifier],
     mailing_repo: FromDishka[MailingRepository],
     logger: Logger,
     mailing_id: MailingId | None = Path(default=None),  # noqa: B008
 ) -> None:
     try:
-        if data.notification.image_id:
-            message = await bot.send_photo(
-                chat_id=data.user_id,
-                photo=str(data.notification.image_id),
-                caption=data.notification.render_message_text(),
-                reply_markup=data.notification.reply_markup,
-            )
-        else:
-            message = await bot.send_message(
-                chat_id=data.user_id,
-                text=data.notification.render_message_text(),
-                reply_markup=data.notification.reply_markup,
-            )
+        message = await notifier.send_notification(
+            user_id=data.user_id,
+            notification=data.notification,
+        )
     except TelegramRetryAfter as e:
         await msg.nack(delay=e.retry_after)
         logger.warning(
@@ -62,7 +60,8 @@ async def send_notification(
         return
     except (TelegramBadRequest, TelegramForbiddenError):
         await msg.reject()
-        await mailing_repo.add_to_processed(mailing_id, None)
+        if mailing_id:
+            await mailing_repo.add_to_processed(mailing_id, None)
         logger.info("Skipping sending message to %s", data.user_id)
         return
     else:

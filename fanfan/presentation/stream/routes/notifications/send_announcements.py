@@ -15,8 +15,11 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.core.models.event import EventModel
 from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import SendNotificationDTO, UserNotification
-from fanfan.presentation.stream.stream import stream
+from fanfan.core.models.notification import UserNotification
+from fanfan.presentation.stream.jstream import stream
+from fanfan.presentation.stream.routes.notifications.send_notification import (
+    SendNotificationDTO,
+)
 from fanfan.presentation.tgbot.keyboards.buttons import (
     OPEN_SUBSCRIPTIONS_BUTTON,
     PULL_DOWN_DIALOG,
@@ -37,20 +40,20 @@ class EventChangeDTO(BaseModel):
     type: EventChangeType
 
 
-class PrepareAnnouncementsDTO(BaseModel):
+class SendAnnouncementsDTO(BaseModel):
     send_global_announcement: bool
     event_changes: list[EventChangeDTO]
     mailing_id: MailingId
 
 
 @router.subscriber(
-    "prepare_announcements",
+    "send_announcements",
     stream=stream,
     pull_sub=PullSub(),
-    durable="prepare_announcements",
+    durable="send_announcements",
 )
 async def prepare_announcements(  # noqa: C901
-    data: PrepareAnnouncementsDTO,
+    data: SendAnnouncementsDTO,
     events: FromDishka[EventsRepository],
     users: FromDishka[UsersRepository],
     subscriptions: FromDishka[SubscriptionsRepository],

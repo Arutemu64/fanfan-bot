@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey, Sequence, UniqueConstraint, func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.vote import Vote
+from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.participant import (
     FullParticipantModel,
     ParticipantId,
@@ -53,11 +55,16 @@ class Participant(Base):
     def __str__(self) -> str:
         return self.title
 
+    @classmethod
+    def from_model(cls, model: ParticipantModel):
+        retort = Retort(recipe=[name_mapping(omit_default=True)])
+        return Participant(**retort.dump(model))
+
     def to_model(self) -> ParticipantModel:
         return ParticipantModel(
             id=ParticipantId(self.id),
             title=self.title,
-            nomination_id=self.nomination_id,
+            nomination_id=NominationId(self.nomination_id),
             scoped_id=ParticipantScopedId(self.scoped_id),
         )
 
@@ -65,7 +72,7 @@ class Participant(Base):
         return FullParticipantModel(
             id=ParticipantId(self.id),
             title=self.title,
-            nomination_id=self.nomination_id,
+            nomination_id=NominationId(self.nomination_id),
             scoped_id=ParticipantScopedId(self.scoped_id),
             event=self.event.to_model() if self.event else None,
             nomination=self.nomination.to_model() if self.nomination else None,

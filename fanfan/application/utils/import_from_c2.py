@@ -1,15 +1,17 @@
 import logging
+import time
 from dataclasses import dataclass
 from datetime import timedelta
 
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.adapters.cosplay2.client import Cosplay2Client
+from fanfan.adapters.cosplay2.dto.requests import Request
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.application.common.limiter import Limiter
-from fanfan.core.models.nomination import NominationCode, NominationId, NominationModel
+from fanfan.adapters.utils.limiter import Limiter
+from fanfan.core.models.nomination import NominationId, NominationModel
 from fanfan.core.models.participant import ParticipantId, ParticipantModel
 
 logger = logging.getLogger(__name__)
@@ -23,7 +25,8 @@ IMPORT_FROM_C2_TIMEOUT = timedelta(minutes=30).seconds
 class ImportFromC2Result:
     topics_merged: int
     requests_merged: int
-    requests_failed: int
+    failed_requests: list[Request]
+    elapsed_time: int
 
 
 class ImportFromC2:
@@ -48,7 +51,9 @@ class ImportFromC2:
             blocking=False,
             lock_timeout=timedelta(minutes=5).seconds,
         ):
-            topics_merged, requests_merged, requests_failed = 0, 0, 0
+            topics_merged, requests_merged = 0, 0
+            failed_request: list[Request] = []
+            start = time.time()
             # Import topics into nominations
             topics = await self.cosplay2.get_topics_list()
             for topic in topics:
@@ -56,7 +61,7 @@ class ImportFromC2:
                     await self.nominations_repo.merge_nomination(
                         NominationModel(
                             id=NominationId(topic.id),
-                            code=NominationCode(topic.card_code),
+                            code=topic.card_code,
                             title=topic.title,
                         )
                     )
@@ -82,18 +87,25 @@ class ImportFromC2:
                             )
                             await self.uow.commit()
                             requests_merged += 1
-                        except IntegrityError:
+                        except IntegrityError as e:
                             await self.uow.rollback()
                             logger.warning(
                                 "Failed to merge request %s",
                                 request.id,
+                                exc_info=e,
                                 extra={"request": request},
                             )
-                            requests_failed += 1
+                            failed_request.append(request)
                         else:
                             logger.info(
                                 "Request %s merged",
                                 participant.id,
                                 extra={"participant": participant},
                             )
-            return ImportFromC2Result(topics_merged, requests_merged, requests_failed)
+            end = time.time()
+            return ImportFromC2Result(
+                topics_merged=topics_merged,
+                requests_merged=requests_merged,
+                failed_requests=failed_request,
+                elapsed_time=int(end - start),
+            )

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from adaptix import Retort, name_mapping
 from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
@@ -9,7 +10,6 @@ from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.participant import Participant
 from fanfan.core.models.nomination import (
     FullNominationModel,
-    NominationCode,
     NominationId,
     NominationModel,
 )
@@ -43,19 +43,23 @@ class Nomination(Base):
     def __str__(self) -> str:
         return self.title
 
+    @classmethod
+    def from_model(cls, model: NominationModel):
+        retort = Retort(recipe=[name_mapping(omit_default=True)])
+        return Nomination(**retort.dump(model))
+
     def to_model(self) -> NominationModel:
         return NominationModel(
             id=NominationId(self.id),
-            code=NominationCode(self.code),
+            code=self.code,
             title=self.title,
             votable=self.votable,
         )
 
     def to_full_model(self) -> FullNominationModel:
-        self.user_vote: Vote
         return FullNominationModel(
             id=NominationId(self.id),
-            code=NominationCode(self.code),
+            code=self.code,
             title=self.title,
             votable=self.votable,
             user_vote=self.user_vote.to_model() if self.user_vote else None,

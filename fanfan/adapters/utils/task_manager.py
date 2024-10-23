@@ -1,8 +1,8 @@
 import logging
 
 from fanfan.adapters.config_reader import Configuration
+from fanfan.adapters.utils.limiter import Limiter
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.limiter import Limiter
 from fanfan.application.utils.import_from_c2 import IMPORT_FROM_C2_LIMIT_NAME
 from fanfan.application.utils.import_orders import IMPORT_ORDERS_LIMIT_NAME
 from fanfan.core.enums import UserRole

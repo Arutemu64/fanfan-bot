@@ -18,7 +18,7 @@ class TicketsRepository:
         self.session = session
 
     async def add_ticket(self, model: TicketModel) -> TicketModel:
-        ticket = Ticket(id=model.id, role=model.role)
+        ticket = Ticket.from_model(model)
         self.session.add(ticket)
         await self.session.flush([ticket])
         return ticket.to_model()

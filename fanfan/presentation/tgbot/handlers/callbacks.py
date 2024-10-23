@@ -5,7 +5,7 @@ from aiogram_dialog import DialogManager, ShowMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.application.common.notifier import Notifier
+from fanfan.adapters.utils.notifier import Notifier
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
 from fanfan.presentation.tgbot.filters.callbacks import (

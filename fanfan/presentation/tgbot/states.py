@@ -16,7 +16,6 @@ class Feedback(StatesGroup):
 
 class Helper(StatesGroup):
     main = State()
-    search_user = State()
 
 
 class Main(StatesGroup):

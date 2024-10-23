@@ -46,7 +46,7 @@ class MailingRepository:
         elif (info.processed < info.total) and (info.status != MailingStatus.PENDING):
             await self._set_mailing_status(mailing_id, MailingStatus.PENDING)
 
-    async def create_new_mailing(self, by_user_id: UserId) -> MailingData:
+    async def create_new_mailing(self, by_user_id: UserId) -> MailingId:
         mailing_id = MailingId(uuid.uuid4().hex)
         mailing_data = MailingData(
             id=mailing_id,
@@ -61,7 +61,7 @@ class MailingRepository:
             mapping=self.retort.dump(mailing_data),
         )
         await self.redis.expire(key, time=MAILING_TTL)
-        return mailing_data
+        return mailing_id
 
     async def get_mailing_info(self, mailing_id: MailingId) -> MailingData:
         key = f"mailing:{mailing_id}:info"

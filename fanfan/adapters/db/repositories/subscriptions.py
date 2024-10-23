@@ -18,9 +18,7 @@ class SubscriptionsRepository:
         self.session = session
 
     async def add_subscription(self, model: SubscriptionModel) -> SubscriptionModel:
-        subscription = Subscription(
-            user_id=model.user_id, event_id=model.event_id, counter=model.counter
-        )
+        subscription = Subscription.from_model(model)
         self.session.add(subscription)
         await self.session.flush([subscription])
         return subscription.to_model()

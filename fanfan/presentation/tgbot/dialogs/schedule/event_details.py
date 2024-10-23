@@ -63,9 +63,9 @@ async def set_as_current(
         data = await set_current_event(manager.start_data[DATA_SELECTED_EVENT_ID])
         await callback.message.answer(
             f"✅ Выступление <b>{data.current_event.title}</b> отмечено как текущее\n"
-            f"Уникальный ID рассылки: <code>{data.mailing_data.id}</code>",
+            f"Уникальный ID рассылки: <code>{data.mailing_id}</code>",
             reply_markup=InlineKeyboardBuilder(
-                [[show_mailing_info_button(data.mailing_data.id)]]
+                [[show_mailing_info_button(data.mailing_id)]]
             ).as_markup(),
         )
         manager.show_mode = ShowMode.DELETE_AND_SEND
@@ -103,17 +103,17 @@ async def skip_event_handler(
         if data.event.skip:
             text = (
                 f"🙈 Выступление <b>{data.event.title}</b> пропущено\n"
-                f"Уникальный ID рассылки: <code>{data.mailing_data.id}</code>"
+                f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
             )
         else:
             text = (
                 f"🙉 Выступление <b>{data.event.title}</b> возвращено\n"
-                f"Уникальный ID рассылки: <code>{data.mailing_data.id}</code>"
+                f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
             )
         await callback.message.answer(
             text,
             reply_markup=InlineKeyboardBuilder(
-                [[show_mailing_info_button(data.mailing_data.id)]]
+                [[show_mailing_info_button(data.mailing_id)]]
             ).as_markup(),
         )
         manager.show_mode = ShowMode.DELETE_AND_SEND

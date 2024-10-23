@@ -11,8 +11,8 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Depends, Request
 from starlette.responses import FileResponse, JSONResponse
 
+from fanfan.adapters.utils.notifier import Notifier
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.notifier import Notifier
 from fanfan.application.quest.receive_achievement_by_secret_id import (
     ReceiveAchievementBySecretId,
 )
@@ -21,7 +21,7 @@ from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import SecretId
-from fanfan.core.models.notification import SendNotificationDTO, UserNotification
+from fanfan.core.models.notification import UserNotification
 from fanfan.core.models.qr import QR, QRType
 from fanfan.core.utils.notifications import create_achievement_notification
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
@@ -58,14 +58,12 @@ async def proceed_qr_post(
         qr = Retort(strict_coercion=False).load(json.loads(data["qr_text"]), QR)
     except LoadError:
         await notifier.send_notification(
-            SendNotificationDTO(
-                user_id=id_provider.get_current_user_id(),
-                notification=UserNotification(
-                    title="⚠️ Ошибка",
-                    text="⚠️ Ошибка при валидации QR-кода, попробуйте ещё раз",
-                    reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
-                ),
-            )
+            user_id=id_provider.get_current_user_id(),
+            notification=UserNotification(
+                title="⚠️ Ошибка",
+                text="⚠️ Ошибка при валидации QR-кода, попробуйте ещё раз",
+                reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
+            ),
         )
         return JSONResponse({"ok": False})
 
@@ -73,8 +71,9 @@ async def proceed_qr_post(
         match qr.type:
             case QRType.ACHIEVEMENT:
                 achievement = await receive_achievement_by_secret_id(SecretId(qr.data))
-                await notifier.show_notification(
-                    create_achievement_notification(achievement)
+                await notifier.send_notification(
+                    user_id=id_provider.get_current_user_id(),
+                    notification=create_achievement_notification(achievement),
                 )
                 return JSONResponse({"ok": True})
             case QRType.USER:
@@ -91,14 +90,12 @@ async def proceed_qr_post(
                 raise AccessDenied
     except AppException as e:
         await notifier.send_notification(
-            SendNotificationDTO(
-                user_id=id_provider.get_current_user_id(),
-                notification=UserNotification(
-                    title="⚠️ Ошибка",
-                    text=e.message,
-                    reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
-                ),
-            )
+            user_id=id_provider.get_current_user_id(),
+            notification=UserNotification(
+                title="⚠️ Ошибка",
+                text=e.message,
+                reply_markup=InlineKeyboardBuilder().add(DELETE_BUTTON).as_markup(),
+            ),
         )
         return JSONResponse({"ok": False})
     return JSONResponse({"ok": True})

@@ -65,14 +65,17 @@ async def search_voting_participants(
             ),
             nomination_id=(await state.get_data())[DATA_SELECTED_NOMINATION_ID],
             search_query=inline_query.query,
+            only_votable=True,
         ),
     )
     results = [
         InlineQueryResultArticle(
-            id=str(p.id),
-            title=str(p.id),
+            id=str(p.scoped_id),
+            title=str(p.scoped_id),
             description=p.title,
-            input_message_content=InputTextMessageContent(message_text=f"/{p.id}"),
+            input_message_content=InputTextMessageContent(
+                message_text=f"/{p.scoped_id}"
+            ),
         )
         for p in page.items
     ]

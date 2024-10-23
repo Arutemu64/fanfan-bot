@@ -1,3 +1,4 @@
+from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +21,11 @@ class Feedback(Base):
         nullable=True,
     )
     user: Mapped[User] = relationship()
+
+    @classmethod
+    def from_model(cls, model: FeedbackModel):
+        retort = Retort(recipe=[name_mapping(omit_default=True)])
+        return Feedback(**retort.dump(model))
 
     def to_model(self) -> FeedbackModel:
         return FeedbackModel(

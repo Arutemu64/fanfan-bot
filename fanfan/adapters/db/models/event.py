@@ -109,9 +109,6 @@ class Event(Base, OrderMixin):
         )
 
     def to_full_model(self) -> FullEventModel:
-        self.nomination: Nomination
-        self.block: Block
-        self.user_subscription: Subscription
         return FullEventModel(
             id=EventId(self.id),
             title=self.title,

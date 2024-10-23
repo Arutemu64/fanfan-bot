@@ -6,19 +6,21 @@ from sqlalchemy.exc import IntegrityError
 from fanfan.adapters.db.repositories.achievements import AchievementsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.application.common.notifier import Notifier
 from fanfan.core.exceptions.achievements import (
     AchievementNotFound,
     UserAlreadyHasThisAchievement,
 )
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.achievement import AchievementId
-from fanfan.core.models.notification import SendNotificationDTO
 from fanfan.core.models.user import UserId
 from fanfan.core.services.access import AccessService
 from fanfan.core.utils.notifications import create_achievement_notification
+from fanfan.presentation.stream.routes.notifications.send_notification import (
+    SendNotificationDTO,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,14 +39,14 @@ class AddAchievement(Interactor[AddAchievementDTO, None]):
         access: AccessService,
         id_provider: IdProvider,
         uow: UnitOfWork,
-        notifier: Notifier,
+        stream_broker_adapter: StreamBrokerAdapter,
     ) -> None:
         self.achievements_repo = achievements_repo
         self.users_repo = users_repo
         self.access = access
         self.id_provider = id_provider
         self.uow = uow
-        self.notifier = notifier
+        self.stream_broker_adapter = stream_broker_adapter
 
     async def __call__(self, data: AddAchievementDTO) -> None:
         participant = await self.users_repo.get_user_by_id(data.to_user_id)
@@ -56,6 +58,7 @@ class AddAchievement(Interactor[AddAchievementDTO, None]):
         )
         if achievement is None:
             raise AchievementNotFound
+
         async with self.uow:
             try:
                 await self.achievements_repo.add_achievement_to_user(
@@ -67,7 +70,7 @@ class AddAchievement(Interactor[AddAchievementDTO, None]):
                 await self.uow.rollback()
                 raise UserAlreadyHasThisAchievement from e
             else:
-                await self.notifier.send_notification(
+                await self.stream_broker_adapter.send_notification(
                     SendNotificationDTO(
                         user_id=data.to_user_id,
                         notification=create_achievement_notification(achievement),

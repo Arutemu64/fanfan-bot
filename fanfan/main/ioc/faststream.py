@@ -7,6 +7,7 @@ from nats.aio.client import Client
 from nats.js import JetStreamContext
 
 from fanfan.adapters.config_reader import NatsConfig
+from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.presentation.stream.routes import setup_router
 
 NATS = NewType("NATS", Client)
@@ -21,6 +22,8 @@ class FastStreamProvider(Provider):
         broker.include_router(setup_router())
         await broker.connect()
         return broker
+
+    broker_adapter = provide(StreamBrokerAdapter)
 
     @provide
     async def get_nc(self, config: NatsConfig) -> NATS:

@@ -7,7 +7,7 @@ from nats.js import JetStreamContext
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.core.models.mailing import MailingId
-from fanfan.presentation.stream.stream import stream
+from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
 

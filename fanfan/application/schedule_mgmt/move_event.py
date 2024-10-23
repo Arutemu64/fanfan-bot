@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.utils.limiter import Limiter
+from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.application.common.limiter import Limiter
-from fanfan.application.common.notifier import Notifier
 from fanfan.application.schedule_mgmt.common import (
     ANNOUNCE_LIMIT_NAME,
 )
@@ -18,11 +19,12 @@ from fanfan.core.exceptions.events import (
 )
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.models.event import EventId, EventModel
-from fanfan.core.models.mailing import MailingData
+from fanfan.core.models.mailing import MailingId
 from fanfan.core.services.access import AccessService
-from fanfan.presentation.stream.routes.prepare_announcements import (
+from fanfan.presentation.stream.routes.notifications.send_announcements import (
     EventChangeDTO,
     EventChangeType,
+    SendAnnouncementsDTO,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,7 +40,7 @@ class MoveEventDTO:
 class MoveEventResult:
     event: EventModel
     after_event: EventModel
-    mailing_data: MailingData
+    mailing_id: MailingId
 
 
 class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
@@ -50,7 +52,8 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
         uow: UnitOfWork,
         id_provider: IdProvider,
         limiter: Limiter,
-        notifier: Notifier,
+        stream_broker_adapter: StreamBrokerAdapter,
+        mailing_repo: MailingRepository,
     ) -> None:
         self.events_repo = events_repo
         self.settings_repo = settings_repo
@@ -58,7 +61,8 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
         self.uow = uow
         self.id_provider = id_provider
         self.limiter = limiter
-        self.notifier = notifier
+        self.stream_broker_adapter = stream_broker_adapter
+        self.mailing_repo = mailing_repo
 
     async def __call__(self, data: MoveEventDTO) -> MoveEventResult:
         user = await self.id_provider.get_current_user()
@@ -101,12 +105,18 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
 
                 # Send announcements
                 next_event_after = await self.events_repo.get_next_event()
-                mailing_data = await self.notifier.send_announcements(
-                    send_global_announcement=next_event_before.id
-                    != next_event_after.id,
-                    event_changes=[
-                        EventChangeDTO(event=event, type=EventChangeType.MOVE)
-                    ],
+                mailing_id = await self.mailing_repo.create_new_mailing(
+                    by_user_id=self.id_provider.get_current_user_id()
+                )
+                await self.stream_broker_adapter.send_announcements(
+                    SendAnnouncementsDTO(
+                        send_global_announcement=next_event_before.id
+                        != next_event_after.id,
+                        event_changes=[
+                            EventChangeDTO(event=event, type=EventChangeType.MOVE)
+                        ],
+                        mailing_id=mailing_id,
+                    )
                 )
                 logger.info(
                     "Event %s was placed after event %s by user %s",
@@ -118,7 +128,7 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
                 return MoveEventResult(
                     event=event,
                     after_event=after_event,
-                    mailing_data=mailing_data,
+                    mailing_id=mailing_id,
                 )
         except TooFast as e:
             raise AnnounceTooFast(

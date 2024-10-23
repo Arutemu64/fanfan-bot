@@ -6,7 +6,7 @@ from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import AsyncContainer
 
 from fanfan.adapters.config_reader import Configuration
-from fanfan.application.common.task_manager import TaskManager
+from fanfan.adapters.utils.task_manager import TaskManager
 from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title

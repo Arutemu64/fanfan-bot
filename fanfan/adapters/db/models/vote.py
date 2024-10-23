@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -35,6 +36,11 @@ class Vote(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped[User] = relationship()
     UniqueConstraint(user_id, participant_id)  # User can vote once for participant
+
+    @classmethod
+    def from_model(cls, model: VoteModel):
+        retort = Retort(recipe=[name_mapping(omit_default=True)])
+        return Vote(**retort.dump(model))
 
     def to_model(self) -> VoteModel:
         return VoteModel(

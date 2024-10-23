@@ -8,7 +8,7 @@ from datetime import timedelta
 from fanfan.adapters.config_reader import TimepadConfig
 from fanfan.adapters.timepad.client import TimepadClient
 from fanfan.adapters.timepad.exceptions import NoTimepadConfigProvided
-from fanfan.application.common.limiter import Limiter
+from fanfan.adapters.utils.limiter import Limiter
 from fanfan.application.utils.proceed_order import (
     ProceedOrder,
 )

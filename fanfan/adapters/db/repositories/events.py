@@ -13,15 +13,17 @@ from fanfan.core.models.user import UserId
 
 def _filter_events(
     query: Select,
-    search_query: str,
+    search_query: str | None,
 ) -> Select:
-    return query.where(
-        or_(
-            Event.id == int(search_query) if search_query.isnumeric() else False,
-            Event.title.ilike(f"%{search_query}%"),
-            Event.nomination.has(Nomination.title.ilike(f"%{search_query}%")),
-        ),
-    )
+    if search_query:
+        query = query.where(
+            or_(
+                Event.id == int(search_query) if search_query.isnumeric() else False,
+                Event.title.ilike(f"%{search_query}%"),
+                Event.nomination.has(Nomination.title.ilike(f"%{search_query}%")),
+            ),
+        )
+    return query
 
 
 class EventsRepository:
@@ -60,7 +62,7 @@ class EventsRepository:
         )
         return event.to_full_model() if event else None
 
-    async def get_next_event(self) -> EventModel | None:
+    async def get_next_event(self) -> FullEventModel | None:
         current_event_order = (
             select(Event.order).where(Event.current.is_(True)).scalar_subquery()
         )
@@ -69,9 +71,10 @@ class EventsRepository:
             .order_by(Event.order)
             .where(and_(Event.order > current_event_order, Event.skip.is_not(True)))
             .limit(1)
+            .options(joinedload(Event.nomination), joinedload(Event.block))
         )
         event = await self.session.scalar(query)
-        return event.to_model() if event else None
+        return event.to_full_model() if event else None
 
     async def get_next_by_order(self, order: float) -> EventModel | None:
         query = select(Event).order_by(Event.order).where(Event.order > order).limit(1)

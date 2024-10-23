@@ -12,7 +12,7 @@ class UserRole(enum.StrEnum):
     HELPER = ("helper", "Волонтёр", "Волонтёры")
     ORG = ("org", "Организатор", "Организаторы")
 
-    def __new__(cls, value, label, label_plural):
+    def __new__(cls, value: str, label: str, label_plural: str):
         obj = str.__new__(cls, value)
         obj._value_ = value
         obj.label = label

@@ -12,7 +12,7 @@ class VotesRepository:
         self.session = session
 
     async def add_vote(self, model: VoteModel) -> VoteModel:
-        vote = Vote(user_id=model.user_id, participant_id=model.participant_id)
+        vote = Vote.from_model(model)
         self.session.add(vote)
         await self.session.flush([vote])
         return vote.to_model()

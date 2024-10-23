@@ -53,9 +53,9 @@ async def move_event_handler(
                 f"✅ Выступление <b>{data.event.title}</b> поставлено "
                 f"после <b>{data.after_event.title}</b>\n"
                 f"Уникальный ID рассылки: "
-                f"<code>{data.mailing_data.id}</code>",
+                f"<code>{data.mailing_id}</code>",
                 reply_markup=InlineKeyboardBuilder(
-                    [[show_mailing_info_button(data.mailing_data.id)]]
+                    [[show_mailing_info_button(data.mailing_id)]]
                 ).as_markup(),
             )
             await dialog_manager.switch_to(

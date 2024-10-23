@@ -60,9 +60,9 @@ async def set_next_event_handler(
         data = await set_next_event()
         await callback.message.answer(
             f"✅ Выступление <b>{data.current_event.title}</b> отмечено текущим\n"
-            f"Уникальный ID рассылки: <code>{data.mailing_data.id}</code>",
+            f"Уникальный ID рассылки: <code>{data.mailing_id}</code>",
             reply_markup=InlineKeyboardBuilder(
-                [[show_mailing_info_button(data.mailing_data.id)]]
+                [[show_mailing_info_button(data.mailing_id)]]
             ).as_markup(),
         )
         await show_event_page(manager, data.current_event.id)
