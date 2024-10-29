@@ -10,7 +10,7 @@ from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import ANNOUNCE_LIMIT_NAME
-from fanfan.core.exceptions.events import AnnounceTooFast
+from fanfan.core.exceptions.events import ScheduleEditTooFast
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.models.event import EventId, EventModel
 from fanfan.core.models.mailing import MailingId
@@ -24,10 +24,10 @@ from fanfan.presentation.stream.routes.notifications.send_announcements import (
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class SetCurrentEventResult:
-    current_event: EventModel
-    mailing_id: MailingId
+    current_event: EventModel | None
+    mailing_id: MailingId | None
 
 
 class SetCurrentEvent(Interactor[EventId | None, SetCurrentEventResult]):
@@ -67,23 +67,24 @@ class SetCurrentEvent(Interactor[EventId | None, SetCurrentEventResult]):
                 await self.uow.commit()
 
                 # Send announcements
-                mailing_id = await self.mailing_repo.create_new_mailing(
-                    by_user_id=self.id_provider.get_current_user_id()
-                )
-                await self.stream_broker_adapter.send_announcements(
-                    SendAnnouncementsDTO(
-                        send_global_announcement=True,
-                        event_changes=[
-                            EventChangeDTO(
-                                event=event,
-                                type=EventChangeType.SET_AS_CURRENT,
-                            )
-                            if event
-                            else None
-                        ],
-                        mailing_id=mailing_id,
+                if event:
+                    mailing_id = await self.mailing_repo.create_new_mailing(
+                        by_user_id=self.id_provider.get_current_user_id()
                     )
-                )
+                    await self.stream_broker_adapter.send_announcements(
+                        SendAnnouncementsDTO(
+                            send_global_announcement=True,
+                            event_changes=[
+                                EventChangeDTO(
+                                    event=event,
+                                    type=EventChangeType.SET_AS_CURRENT,
+                                )
+                            ],
+                            mailing_id=mailing_id,
+                        )
+                    )
+                else:
+                    mailing_id = None
 
                 logger.info(
                     "Event %s was set as current by user %s",
@@ -96,6 +97,6 @@ class SetCurrentEvent(Interactor[EventId | None, SetCurrentEventResult]):
                     mailing_id=mailing_id,
                 )
         except TooFast as e:
-            raise AnnounceTooFast(
+            raise ScheduleEditTooFast(
                 announcement_timeout=e.limit_timeout, old_timestamp=e.current_timestamp
             ) from e

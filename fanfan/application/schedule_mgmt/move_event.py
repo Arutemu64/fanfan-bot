@@ -13,9 +13,9 @@ from fanfan.application.schedule_mgmt.common import (
     ANNOUNCE_LIMIT_NAME,
 )
 from fanfan.core.exceptions.events import (
-    AnnounceTooFast,
     EventNotFound,
     SameEventsAreNotAllowed,
+    ScheduleEditTooFast,
 )
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.models.event import EventId, EventModel
@@ -80,14 +80,15 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
                 if data.event_id == data.after_event_id:
                     raise SameEventsAreNotAllowed
 
-                # Get event and after_event
+                # Get events
+                event = await self.events_repo.get_event_by_id(data.event_id)
+                if event is None:
+                    raise EventNotFound(event_id=data.event_id)
                 after_event = await self.events_repo.get_event_by_id(
                     data.after_event_id
                 )
                 if after_event is None:
                     raise EventNotFound(event_id=data.after_event_id)
-
-                # Get before_event
                 before_event = await self.events_repo.get_next_by_order(
                     after_event.order
                 )
@@ -103,15 +104,22 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
                 event = await self.events_repo.set_order(data.event_id, order)
                 await self.uow.commit()
 
-                # Send announcements
+                # Check if we should send global announcement
                 next_event_after = await self.events_repo.get_next_event()
+                if next_event_before and next_event_after:
+                    send_global_announcement = (
+                        next_event_before.id != next_event_after.id
+                    )
+                else:
+                    send_global_announcement = False
+
+                # Send mailing
                 mailing_id = await self.mailing_repo.create_new_mailing(
                     by_user_id=self.id_provider.get_current_user_id()
                 )
                 await self.stream_broker_adapter.send_announcements(
                     SendAnnouncementsDTO(
-                        send_global_announcement=next_event_before.id
-                        != next_event_after.id,
+                        send_global_announcement=send_global_announcement,
                         event_changes=[
                             EventChangeDTO(event=event, type=EventChangeType.MOVE)
                         ],
@@ -131,6 +139,6 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
                     mailing_id=mailing_id,
                 )
         except TooFast as e:
-            raise AnnounceTooFast(
+            raise ScheduleEditTooFast(
                 announcement_timeout=e.limit_timeout, old_timestamp=e.current_timestamp
             ) from e

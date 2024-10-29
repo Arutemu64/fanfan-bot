@@ -7,7 +7,7 @@
 выступлений
 {%- endif %}
 {% endmacro %}
-<blockquote><b>{{ selected_event.id }}.</b> {{ selected_event.title }}</blockquote>
+<blockquote>{% if selected_event.skip %}<s>{% endif %}<b>{{ selected_event.id }}.</b> {{ selected_event.title }}{% if selected_event.skip %}</s>{% endif %}</blockquote>
 
 {% if selected_event.block %}
 📆 Блок: <b>{{ selected_event.block.title }}</b>

@@ -24,11 +24,12 @@ class NoNextEvent(EventNotFound):
     message = "👏 Выступления закончились, спасибо за работу! Увидимся! 😉"
 
 
-class AnnounceTooFast(EventsException):
+class ScheduleEditTooFast(EventsException):
     def __init__(self, announcement_timeout: float, old_timestamp: float) -> None:
         time_left = int(old_timestamp + announcement_timeout - time.time())
         self.message = (
-            f"⚠️ С последнего анонса не прошло {int(announcement_timeout)} "
+            f"⚠️ С последнего изменения расписания "
+            f"не прошло {int(announcement_timeout)} "
             f"{pluralize(int(announcement_timeout), SECONDS_PLURALS)}!\n"
             f"Попробуйте ещё раз через "
             f"{time_left} {pluralize(time_left, SECONDS_PLURALS)}."

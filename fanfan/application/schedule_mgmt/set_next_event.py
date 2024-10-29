@@ -19,6 +19,6 @@ class SetNextEvent:
         next_event = await self.events_repo.get_next_event()
         if next_event is None:
             next_event = await self.events_repo.get_event_by_queue(1)
-            if next_event is None:
+            if (next_event is None) or next_event.current:
                 raise NoNextEvent
         return await self.set_current_event(next_event.id)

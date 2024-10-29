@@ -11,8 +11,8 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import ANNOUNCE_LIMIT_NAME
 from fanfan.core.exceptions.events import (
-    AnnounceTooFast,
     EventNotFound,
+    ScheduleEditTooFast,
 )
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.models.event import EventId, EventModel
@@ -27,7 +27,7 @@ from fanfan.presentation.stream.routes.notifications.send_announcements import (
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class SkipEventResult:
     event: EventModel
     mailing_id: MailingId
@@ -77,19 +77,30 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
                 event = await self.events_repo.set_skip(event_id, not event.skip)
                 await self.uow.commit()
 
-                # Send announcements
+                # Check if we should send global announcement
                 next_event_after = await self.events_repo.get_next_event()
-                change_type = (
-                    EventChangeType.SKIP if event.skip else EventChangeType.UNSKIP
-                )
+                if next_event_before and next_event_after:
+                    send_global_announcement = (
+                        next_event_before.id != next_event_after.id
+                    )
+                else:
+                    send_global_announcement = False
+
+                # Send mailing
                 mailing_id = await self.mailing_repo.create_new_mailing(
                     by_user_id=self.id_provider.get_current_user_id()
                 )
                 await self.stream_broker_adapter.send_announcements(
                     SendAnnouncementsDTO(
-                        send_global_announcement=next_event_before.id
-                        != next_event_after.id,
-                        event_changes=[EventChangeDTO(event=event, type=change_type)],
+                        send_global_announcement=send_global_announcement,
+                        event_changes=[
+                            EventChangeDTO(
+                                event=event,
+                                type=EventChangeType.SKIP
+                                if event.skip
+                                else EventChangeType.UNSKIP,
+                            )
+                        ],
                         mailing_id=mailing_id,
                     )
                 )
@@ -104,6 +115,6 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
                     mailing_id=mailing_id,
                 )
         except TooFast as e:
-            raise AnnounceTooFast(
+            raise ScheduleEditTooFast(
                 announcement_timeout=e.limit_timeout, old_timestamp=e.current_timestamp
             ) from e
