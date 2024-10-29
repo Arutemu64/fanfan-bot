@@ -33,26 +33,26 @@ class BotConfig(BaseSettings):
 
 
 class DatabaseConfig(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="POSTGRES_")
+    model_config = SettingsConfigDict(env_prefix="DB_")
 
-    username: str = Field(alias="POSTGRES_USER")
+    user: str
     password: SecretStr
     host: str = "db"
     port: int = 5432
-    database: str = Field(alias="POSTGRES_DB")
+    name: str = "fanfan"
 
-    driver: str = "psycopg"
     database_system: str = "postgresql"
+    driver: str = "psycopg"
     echo: bool = True
 
     def build_connection_str(self) -> str:
         dsn: PostgresDsn = PostgresDsn.build(
             scheme=f"{self.database_system}+{self.driver}",
-            username=self.username,
+            username=self.user,
             password=self.password.get_secret_value() if self.password else None,
             host=self.host,
             port=self.port,
-            path=self.database,
+            path=self.name,
         )
         return dsn.unicode_string()
 
@@ -159,10 +159,12 @@ class DebugConfig(BaseSettings):
 
     enabled: bool = True
     logging_level: int = logging.DEBUG
+    json_logs: bool = False
 
     sentry_enabled: bool = False
     sentry_dsn: HttpUrl | None = None
-    sentry_env: str | None = "local"
+
+    otlp_endpoint: HttpUrl | None = None
 
     @model_validator(mode="before")
     def check_if_sentry_dsn_set(cls, data: dict) -> dict:

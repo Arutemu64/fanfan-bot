@@ -9,6 +9,7 @@ from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
 from fanfan.adapters.config_reader import get_config
 from fanfan.common.logging import setup_logging
+from fanfan.common.telemetry import setup_telemetry
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -29,7 +30,12 @@ broker = (
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup(state: TaskiqState) -> None:
-    setup_logging()
+    config = get_config()
+    setup_logging(
+        level=config.debug.logging_level,
+        json_logs=config.debug.json_logs,
+    )
+    setup_telemetry(service_name="taskiq", config=config)
 
     from fanfan.main.di import create_scheduler_container
 

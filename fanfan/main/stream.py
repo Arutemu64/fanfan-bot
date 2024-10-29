@@ -1,24 +1,38 @@
+import uvicorn
 from dishka.integrations.faststream import setup_dishka
-from faststream import FastStream
-from faststream.nats import NatsBroker
+from faststream.asgi import AsgiFastStream
+from prometheus_client import CollectorRegistry, make_asgi_app
 
 from fanfan.adapters.config_reader import get_config
+from fanfan.common.telemetry import setup_telemetry
 from fanfan.main.di import create_scheduler_container
-from fanfan.presentation.stream.routes import setup_router
+from fanfan.presentation.stream.broker import create_broker
 
 
-def create_app() -> FastStream:
+def create_app() -> AsgiFastStream:
     config = get_config()
 
-    # Create broker, attach routers
-    broker = NatsBroker(config.nats.build_connection_str())
-    broker.include_router(setup_router())
+    tracer_provider = setup_telemetry(service_name="faststream", config=config)
+    registry = CollectorRegistry()
+
+    broker = create_broker(
+        config=config.nats, tracer_provider=tracer_provider, registry=registry
+    )
 
     # Create app
-    app = FastStream(broker)
+    app = AsgiFastStream(
+        broker,
+        asgi_routes=[
+            ("/metrics", make_asgi_app(registry)),
+        ],
+    )
 
     # Setup Dishka
     container = create_scheduler_container()
     setup_dishka(container, app, auto_inject=True)
 
     return app
+
+
+if __name__ == "__main__":
+    uvicorn.run(create_app(), host="0.0.0.0", port=8000)  # noqa: S104

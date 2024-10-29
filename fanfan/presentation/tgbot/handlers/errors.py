@@ -46,7 +46,9 @@ async def on_dialog_error(event: ErrorEvent, dialog_manager: DialogManager) -> N
 
 async def on_unknown_error(event: ErrorEvent) -> None:
     capture_exception(event.exception)
-    logger.critical("Critical error caused by %s", event.exception, exc_info=True)
+    logger.critical(
+        "Critical error caused by %s", type(event.exception).__name__, exc_info=True
+    )
     if c := event.update.callback_query:
         await c.message.answer(
             UnhandledException(

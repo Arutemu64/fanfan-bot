@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 import sentry_sdk
 from aiogram import BaseMiddleware
 from dishka.integrations.aiogram import CONTAINER_NAME
+from opentelemetry import trace
 
 from fanfan.adapters.config_reader import DebugConfig
 from fanfan.application.common.id_provider import IdProvider
@@ -19,6 +20,8 @@ if TYPE_CHECKING:
     from aiogram.types import TelegramObject, User
     from dishka import AsyncContainer
 
+tracer = trace.get_tracer(__name__)
+
 
 class LoadDataMiddleware(BaseMiddleware):
     async def __call__(
@@ -27,41 +30,44 @@ class LoadDataMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        if data.get("event_from_user"):
-            tg_user: User = data["event_from_user"]
-            container: AsyncContainer = data[CONTAINER_NAME]
-            id_provider: IdProvider = await container.get(IdProvider)
-            authenticate: Authenticate = await container.get(Authenticate)
-            update_user: UpdateUser = await container.get(UpdateUser)
-            update_user_commands: UpdateUserCommands = await container.get(
-                UpdateUserCommands
-            )
-
-            # Setup Sentry logging
-            debug_config: DebugConfig = await container.get(DebugConfig)
-            if debug_config.sentry_enabled:
-                sentry_sdk.set_user(
-                    {
-                        "id": tg_user.id,
-                        "username": tg_user.username,
-                    },
+        with tracer.start_as_current_span("user action"):
+            if data.get("event_from_user"):
+                tg_user: User = data["event_from_user"]
+                container: AsyncContainer = data[CONTAINER_NAME]
+                id_provider: IdProvider = await container.get(IdProvider)
+                authenticate: Authenticate = await container.get(Authenticate)
+                update_user: UpdateUser = await container.get(UpdateUser)
+                update_user_commands: UpdateUserCommands = await container.get(
+                    UpdateUserCommands
                 )
 
-            # Authenticate
-            user = await authenticate(
-                AuthenticateDTO(id=UserId(tg_user.id), username=tg_user.username)
-            )
+                # Setup Sentry logging
+                debug_config: DebugConfig = await container.get(DebugConfig)
+                if debug_config.sentry_enabled:
+                    sentry_sdk.set_user(
+                        {
+                            "id": tg_user.id,
+                            "username": tg_user.username,
+                        },
+                    )
 
-            # Update username in database
-            if user.username != tg_user.username:
-                await update_user(UpdateUserDTO(id=user.id, username=tg_user.username))
-                user = await id_provider.get_current_user()
+                # Authenticate
+                user = await authenticate(
+                    AuthenticateDTO(id=UserId(tg_user.id), username=tg_user.username)
+                )
 
-            # Update user commands
-            await update_user_commands()
+                # Update username in database
+                if user.username != tg_user.username:
+                    await update_user(
+                        UpdateUserDTO(id=user.id, username=tg_user.username)
+                    )
+                    user = await id_provider.get_current_user()
 
-            # DI
-            data["user"] = user
-            data["container"] = container
+                # Update user commands
+                await update_user_commands()
 
-        return await handler(event, data)
+                # DI
+                data["user"] = user
+                data["container"] = container
+
+            return await handler(event, data)

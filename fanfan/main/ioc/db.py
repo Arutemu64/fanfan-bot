@@ -1,7 +1,7 @@
 from collections.abc import AsyncIterable
 
-import sentry_sdk
 from dishka import Provider, Scope, provide
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -21,6 +21,7 @@ class DbProvider(Provider):
             echo=config.echo,
             pool_pre_ping=True,
         )
+        SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
         yield engine
         await engine.dispose()
 
@@ -36,9 +37,7 @@ class DbProvider(Provider):
         self,
         pool: async_sessionmaker,
     ) -> AsyncIterable[AsyncSession]:
-        sentry_transaction = sentry_sdk.start_transaction(name="DBTransaction")
         async with pool() as session:
             yield session
-        sentry_transaction.finish()
 
     uow = provide(UnitOfWork, scope=Scope.REQUEST)

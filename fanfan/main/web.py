@@ -3,16 +3,16 @@ import sys
 from contextlib import asynccontextmanager, suppress
 from typing import TYPE_CHECKING
 
-import sentry_sdk
 import uvicorn
 from dishka.integrations.fastapi import setup_dishka
 from fastapi import FastAPI
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from fanfan.adapters.config_reader import get_config
-from fanfan.common.logging import setup_logging
+from fanfan.common.telemetry import setup_telemetry
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
 from fanfan.presentation.web.api import setup_api_router
@@ -34,17 +34,11 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    config = get_config()
-
-    # Setup Sentry logging
-    if config.debug.sentry_enabled:
-        sentry_sdk.init(
-            dsn=config.debug.sentry_dsn,
-            environment=config.debug.sentry_env,
-        )
-
     # Setup FastAPI app
     app = FastAPI(lifespan=lifespan, debug=config.debug.enabled)
+
+    # OTPL
+    FastAPIInstrumentor.instrument_app(app)
 
     # Setup DI
     setup_dishka(container=create_web_container(), app=app)
@@ -69,8 +63,11 @@ def create_app() -> FastAPI:
 
 
 if __name__ == "__main__":
-    setup_logging()
     config = get_config()
+    setup_telemetry(
+        service_name="web",
+        config=config,
+    )
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with suppress(KeyboardInterrupt):

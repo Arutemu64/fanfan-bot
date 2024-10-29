@@ -2,10 +2,7 @@ services:
 
   bot:
     container_name: "fanfan-bot-${ENV_NAME}"
-    image: bot_image
-    build:
-      context: .
-      dockerfile: buildfiles/BotDockerfile
+    build: .
     env_file:
       - .env
     restart: unless-stopped
@@ -21,7 +18,7 @@ services:
 
   migration:
     container_name: "fanfan-migration-${ENV_NAME}"
-    image: bot_image
+    build: .
     restart: on-failure
     env_file:
       - .env
@@ -39,6 +36,10 @@ services:
     restart: on-failure
     env_file:
       - .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
@@ -55,14 +56,14 @@ services:
     image: prodrigestivill/postgres-backup-local
     restart: always
     volumes:
-      - db-backups-data:/backups
+      - pgbackup-data:/backups
     depends_on:
       - db
     environment:
       - POSTGRES_HOST=db
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
       - SCHEDULE=@every 6h00m00s
       - BACKUP_ON_START=TRUE
@@ -71,15 +72,15 @@ services:
       - BACKUP_KEEP_MONTHS=6
 
   redis:
+    image: redis:7-alpine
     container_name: "fanfan-redis-${ENV_NAME}"
-    build:
-      context: buildfiles
-      dockerfile: RedisDockerfile
+    command: "redis-server /usr/local/etc/redis/redis.conf --requirepass $REDIS_PASSWORD"
     env_file:
       - .env
     restart: on-failure
     volumes:
       - redis-data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
     healthcheck:
@@ -101,8 +102,9 @@ services:
     command: "--js --sd=/data --user ${NATS_USER} --pass ${NATS_PASSWORD}"
 
   web:
+    profiles: ["web"]
     container_name: "fanfan-web-${ENV_NAME}"
-    image: bot_image
+    build: .
     env_file:
       - .env
     restart: unless-stopped
@@ -121,7 +123,7 @@ services:
 
   faststream:
     container_name: "fanfan-faststream-${ENV_NAME}"
-    image: bot_image
+    build: .
     restart: unless-stopped
     env_file:
       - .env
@@ -131,11 +133,11 @@ services:
       - nats
       - migration
       - redis
-    command: ["faststream", "run", "--factory", "fanfan.main.stream:create_app"]
+    command: ["python", "-m", "fanfan.main.stream"]
 
   taskiq:
     container_name: "fanfan-taskiq-${ENV_NAME}"
-    image: bot_image
+    build: .
     restart: unless-stopped
     env_file:
       - .env
@@ -154,8 +156,9 @@ services:
       ]
 
   scheduler:
+    profiles: ["scheduler"]
     container_name: "fanfan-scheduler-${ENV_NAME}"
-    image: bot_image
+    build: .
     depends_on:
       - redis
     restart: unless-stopped
@@ -171,14 +174,60 @@ services:
         "fanfan.presentation.scheduler.tasks",
       ]
 
+
+  grafana:
+    profiles: [ "grafana" ]
+    image: grafana/grafana:latest
+    container_name: "fanfan-grafana-${ENV_NAME}"
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana:rw
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:rw
+      - ./config/grafana/dashboards:/etc/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DATABASE_WAL=true
+      - VIRTUAL_HOST=grafana
+      - NETWORK_ACCESS=internal
+      - VIRTUAL_PORT=3000
+
+  tempo:
+    profiles: [ "grafana" ]
+    image: grafana/tempo:latest
+    container_name: "fanfan-tempo-${ENV_NAME}"
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - tempo-data:/var/tempo
+      - ./config/tempo/tempo.yaml:/etc/tempo.yaml
+    restart: unless-stopped
+    ports:
+      - "14250:14250"
+      - "4317:4317"
+      - "3200:3200"
+
+  prometheus:
+    profiles: [ "grafana" ]
+    image: prom/prometheus:latest
+    container_name: "fanfan-prometheus-${ENV_NAME}"
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+    volumes:
+      - ./config/prometheus/prometheus.yaml:/etc/prometheus.yaml
+    ports:
+      - "9090:9090"
+
 volumes:
-  bot-data:
-    driver: local
-  db-data:
-    driver: local
-  db-backups-data:
-    driver: local
-  redis-data:
-    driver: local
-  nats-data:
-    driver: local
+  bot-data: {}
+  db-data: {}
+  pgbackup-data: {}
+  redis-data: {}
+  nats-data: {}
+  grafana-data: {}
+  tempo-data: {}
+  loki-data: {}

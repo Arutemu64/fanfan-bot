@@ -3,12 +3,12 @@ import contextlib
 import logging
 import sys
 
-import sentry_sdk
 from aiogram import Bot, Dispatcher
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.config_reader import Configuration, get_config
 from fanfan.common.logging import setup_logging
+from fanfan.common.telemetry import setup_telemetry
 from fanfan.core.enums import BotMode
 from fanfan.core.utils.settings import setup_initial_settings
 from fanfan.main.di import create_bot_container
@@ -53,15 +53,6 @@ async def run_webhook(bot: Bot, dp: Dispatcher, config: Configuration) -> None:
 async def main() -> None:
     config = get_config()
 
-    # Setup Sentry logging
-    if config.debug.sentry_enabled:
-        sentry_sdk.init(
-            dsn=config.debug.sentry_dsn,
-            environment=config.env,
-            traces_sample_rate=1.0,
-            profiles_sample_rate=1.0,
-        )
-
     # Get dependencies ready
     container = create_bot_container()
     bot: Bot = await container.get(Bot)
@@ -88,7 +79,15 @@ async def main() -> None:
 
 
 def run():
-    setup_logging()
+    config = get_config()
+    setup_logging(
+        level=config.debug.logging_level,
+        json_logs=config.debug.json_logs,
+    )
+    setup_telemetry(
+        service_name="bot",
+        config=config,
+    )
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with contextlib.suppress(KeyboardInterrupt):

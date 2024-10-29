@@ -3,13 +3,13 @@ import sys
 
 import structlog
 
-from fanfan.adapters.config_reader import get_config
 
-
-def setup_logging():
-    config = get_config()
-
-    renderer = structlog.dev.ConsoleRenderer()
+def setup_logging(level: int, json_logs: bool):
+    renderer = (
+        structlog.processors.JSONRenderer()
+        if json_logs
+        else structlog.dev.ConsoleRenderer()
+    )
 
     processors = [
         structlog.stdlib.add_log_level,
@@ -17,6 +17,7 @@ def setup_logging():
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.ExtraAdder(),
         structlog.dev.set_exc_info,
+        structlog.processors.ExceptionPrettyPrinter(),
         structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S.%f", utc=True),
         structlog.processors.dict_tracebacks,
     ]
@@ -33,12 +34,12 @@ def setup_logging():
 
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.set_name("default")
-    handler.setLevel(config.debug.logging_level)
+    handler.setLevel(level)
     handler.setFormatter(formatter)
 
     root_logger = logging.getLogger()
     root_logger.addHandler(handler)
-    root_logger.setLevel(config.debug.logging_level)
+    root_logger.setLevel(level)
 
     # Silence aiogram
     aiogram_event_logger = logging.getLogger("aiogram.event")
