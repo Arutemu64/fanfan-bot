@@ -6,7 +6,7 @@ from typing import NewType
 ActivityId = NewType("ActivityId", int)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class ActivityModel:
     id: ActivityId
     title: str

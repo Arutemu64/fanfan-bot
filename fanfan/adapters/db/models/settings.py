@@ -19,6 +19,16 @@ class Settings(Base):
     # Announcements
     announcement_timeout: Mapped[int] = mapped_column(server_default="10")
 
+    @classmethod
+    def from_model(cls, model: SettingsModel):
+        return Settings(
+            id=1,
+            announcement_timeout=model.announcement_timeout,
+            voting_enabled=model.voting_enabled,
+            quest_registration_enabled=model.quest_registration_enabled,
+            quest_registrations_limit=model.quest_registrations_limit,
+        )
+
     def to_model(self) -> SettingsModel:
         return SettingsModel(
             announcement_timeout=self.announcement_timeout,

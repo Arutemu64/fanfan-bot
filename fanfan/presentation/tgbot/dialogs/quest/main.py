@@ -12,8 +12,8 @@ from fanfan.application.quest.get_quest_conditions import GetQuestConditions
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.application.quest.register_to_quest import RegisterToQuest
 from fanfan.common import QR_CODES_TEMP_DIR
+from fanfan.core.dto.qr import QR, QRType
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.models.qr import QR, QRType
 from fanfan.core.models.user import FullUserModel
 from fanfan.core.utils.qr import generate_img
 from fanfan.presentation.tgbot import states

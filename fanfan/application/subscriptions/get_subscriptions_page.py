@@ -3,7 +3,7 @@ from fanfan.adapters.db.repositories.subscriptions import (
 )
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.models.page import Page, Pagination
+from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.subscription import FullSubscriptionModel
 
 

@@ -52,7 +52,7 @@ change_role_window = Window(
             id="user_role_picker",
             item_id_getter=operator.itemgetter(0),
             items="roles",
-            type_factory=UserRole,
+            type_factory=lambda x: UserRole(int(x)),
             on_click=change_role_handler,
         ),
     ),

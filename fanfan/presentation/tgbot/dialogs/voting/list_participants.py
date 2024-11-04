@@ -27,9 +27,9 @@ from fanfan.application.participants.get_participants_page import (
 )
 from fanfan.application.votes.add_vote import AddVote
 from fanfan.application.votes.cancel_vote import CancelVote
+from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.votes import VoteNotFound
-from fanfan.core.models.page import Pagination
 from fanfan.core.models.participant import ParticipantScopedId
 from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states

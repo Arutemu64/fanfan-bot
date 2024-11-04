@@ -2,8 +2,8 @@ from fanfan.adapters.db.repositories.achievements import (
     AchievementsRepository,
 )
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.achievement import FullAchievementModel
-from fanfan.core.models.page import Page, Pagination
 from fanfan.core.models.user import UserId
 
 

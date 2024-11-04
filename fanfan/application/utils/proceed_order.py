@@ -52,6 +52,7 @@ class ProceedOrder:
                                 role=UserRole.PARTICIPANT
                                 if ticket.ticket_type.name in PARTICIPANT_NOMINATIONS
                                 else UserRole.VISITOR,
+                                used_by_id=None,
                                 issued_by_id=None,
                             )
                         )

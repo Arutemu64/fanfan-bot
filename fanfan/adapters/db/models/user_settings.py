@@ -1,6 +1,5 @@
 import typing
 
-from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,8 +32,11 @@ class UserSettings(Base):
 
     @classmethod
     def from_model(cls, model: UserSettingsModel):
-        retort = Retort(recipe=[name_mapping(omit_default=True)])
-        return UserSettings(**retort.dump(model))
+        return UserSettings(
+            user_id=model.user_id,
+            items_per_page=model.items_per_page,
+            receive_all_announcements=model.receive_all_announcements,
+        )
 
     def to_model(self) -> UserSettingsModel:
         return UserSettingsModel(

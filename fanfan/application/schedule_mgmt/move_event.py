@@ -12,6 +12,7 @@ from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import (
     ANNOUNCE_LIMIT_NAME,
 )
+from fanfan.core.dto.mailing import MailingId
 from fanfan.core.exceptions.events import (
     EventNotFound,
     SameEventsAreNotAllowed,
@@ -19,7 +20,6 @@ from fanfan.core.exceptions.events import (
 )
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.models.event import EventId, EventModel
-from fanfan.core.models.mailing import MailingId
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.stream.routes.notifications.send_announcements import (
     EventChangeDTO,
@@ -98,11 +98,14 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
 
                 # Update event order
                 if before_event:
-                    order = (after_event.order + before_event.order) / 2
+                    event.order = (after_event.order + before_event.order) / 2
                 else:
-                    order = after_event.order + 1
-                event = await self.events_repo.set_order(data.event_id, order)
+                    event.order = after_event.order + 1
+                await self.events_repo.save_event(event)
                 await self.uow.commit()
+
+                # Update event after commit
+                event = await self.events_repo.get_event_by_id(event.id)
 
                 # Check if we should send global announcement
                 next_event_after = await self.events_repo.get_next_event()

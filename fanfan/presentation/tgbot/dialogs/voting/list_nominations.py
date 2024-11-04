@@ -21,7 +21,7 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.nominations.get_nominations_page import GetNominationsPage
-from fanfan.core.models.page import Pagination
+from fanfan.core.dto.page import Pagination
 from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title

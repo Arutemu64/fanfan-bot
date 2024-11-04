@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -39,8 +38,11 @@ class Vote(Base):
 
     @classmethod
     def from_model(cls, model: VoteModel):
-        retort = Retort(recipe=[name_mapping(omit_default=True)])
-        return Vote(**retort.dump(model))
+        return Vote(
+            id=model.id,
+            user_id=model.user_id,
+            participant_id=model.participant_id,
+        )
 
     def to_model(self) -> VoteModel:
         return VoteModel(

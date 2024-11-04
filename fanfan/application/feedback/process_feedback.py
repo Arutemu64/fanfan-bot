@@ -8,7 +8,11 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.exceptions.feedback import FeedbackException
+from fanfan.core.exceptions.feedback import (
+    FeedbackAlreadyProcessed,
+    FeedbackException,
+    FeedbackNotFound,
+)
 from fanfan.core.models.feedback import FeedbackId, FullFeedbackModel
 from fanfan.presentation.stream.routes.notifications.send_feedback_notifications import (  # noqa: E501
     SendFeedbackNotificationsDTO,
@@ -40,10 +44,16 @@ class ProcessFeedback:
     async def __call__(self, data: ProcessFeedbackDTO) -> FullFeedbackModel:
         async with self.uow:
             try:
-                feedback = await self.feedback_repo.process_feedback(
-                    feedback_id=data.feedback_id,
-                    user_id=self.id_provider.get_current_user_id(),
+                feedback = await self.feedback_repo.get_feedback_by_id(
+                    feedback_id=data.feedback_id, lock=True
                 )
+                if feedback is None:
+                    raise FeedbackNotFound
+                if feedback.processed_by_id:
+                    raise FeedbackAlreadyProcessed
+
+                feedback.processed_by_id = self.id_provider.get_current_user_id()
+                await self.feedback_repo.save_feedback(feedback)
                 await self.uow.commit()
             except IntegrityError as e:
                 raise FeedbackException from e

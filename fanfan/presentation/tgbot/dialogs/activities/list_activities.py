@@ -19,7 +19,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from dishka import AsyncContainer
 
 from fanfan.application.activities.get_activities_page import GetActivitiesPage
-from fanfan.core.models.page import Pagination
+from fanfan.core.dto.page import Pagination
 from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.activities.common import (

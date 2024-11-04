@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -46,12 +45,17 @@ class Ticket(Base):
 
     @classmethod
     def from_model(cls, model: TicketModel):
-        retort = Retort(recipe=[name_mapping(omit_default=True)])
-        return Ticket(**retort.dump(model))
+        return Ticket(
+            id=model.id,
+            role=model.role,
+            used_by_id=model.used_by_id,
+            issued_by_id=model.issued_by_id,
+        )
 
     def to_model(self) -> TicketModel:
         return TicketModel(
             id=TicketId(self.id),
             role=UserRole(self.role),
+            used_by_id=UserId(self.used_by_id),
             issued_by_id=UserId(self.issued_by_id),
         )

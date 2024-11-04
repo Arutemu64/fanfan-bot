@@ -1,16 +1,8 @@
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
-from fanfan.adapters.db.models import Ticket, User
-from fanfan.core.exceptions.tickets import (
-    TicketAlreadyUsed,
-    TicketNotFound,
-    UserAlreadyHasTicketLinked,
-)
-from fanfan.core.exceptions.users import UserNotFound
+from fanfan.adapters.db.models import Ticket
 from fanfan.core.models.ticket import TicketId, TicketModel
-from fanfan.core.models.user import UserId
 
 
 class TicketsRepository:
@@ -27,22 +19,10 @@ class TicketsRepository:
         ticket = await self.session.get(Ticket, ticket_id)
         return ticket.to_model() if ticket else None
 
-    async def link_ticket_to_user(self, ticket_id: TicketId, user_id: UserId) -> None:
-        ticket = await self.session.get(Ticket, ticket_id)
-        if ticket is None:
-            raise TicketNotFound
-        if ticket.used_by_id:
-            raise TicketAlreadyUsed
-
-        user = await self.session.get(User, user_id, options=[joinedload(User.ticket)])
-        if user is None:
-            raise UserNotFound
-        if user.ticket:
-            raise UserAlreadyHasTicketLinked
-
-        user.ticket = ticket
-        user.role = ticket.role
-        await self.session.flush([user])
+    async def save_ticket(self, model: TicketModel) -> TicketModel:
+        ticket = await self.session.merge(Ticket.from_model(model))
+        await self.session.flush([ticket])
+        return ticket.to_model()
 
     async def delete_ticket(self, ticket_id: TicketId) -> None:
         await self.session.execute(delete(Ticket).where(Ticket.id == ticket_id))

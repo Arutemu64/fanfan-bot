@@ -1,7 +1,7 @@
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.nomination import FullNominationModel
-from fanfan.core.models.page import Page, Pagination
 
 
 class GetNominationsPage:

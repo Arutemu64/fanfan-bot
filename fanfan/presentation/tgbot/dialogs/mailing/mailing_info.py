@@ -7,7 +7,7 @@ from dishka import AsyncContainer
 from fanfan.application.mailing.delete_mailing import DeleteMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
 from fanfan.application.users.get_user_by_id import GetUserById
-from fanfan.core.models.mailing import MailingId
+from fanfan.core.dto.mailing import MailingId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.mailing.common import DATA_MAILING_ID

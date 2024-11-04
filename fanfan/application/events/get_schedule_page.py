@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
+from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.event import FullEventModel
-from fanfan.core.models.page import Page, Pagination
 
 
 @dataclass(frozen=True, slots=True)

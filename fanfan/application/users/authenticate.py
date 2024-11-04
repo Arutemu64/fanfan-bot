@@ -34,7 +34,7 @@ class Authenticate(Interactor[AuthenticateDTO, FullUserModel]):
                 user = UserModel(
                     id=data.id, username=data.username, role=UserRole.VISITOR
                 )
-                await self.users_repo.add_user(user)
+                await self.users_repo.save_user(user)
                 await self.uow.commit()
                 logger.info("New user %s has registered", data.id, extra={"user": user})
                 return await self.id_provider.get_current_user()

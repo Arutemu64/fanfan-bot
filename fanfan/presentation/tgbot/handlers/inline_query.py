@@ -13,7 +13,7 @@ from fanfan.application.participants.get_participants_page import (
     GetParticipantsPage,
     GetParticipantsPageDTO,
 )
-from fanfan.core.models.page import Pagination
+from fanfan.core.dto.page import Pagination
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.voting.common import DATA_SELECTED_NOMINATION_ID
 
@@ -63,7 +63,7 @@ async def search_voting_participants(
                 limit=50,
                 offset=offset,
             ),
-            nomination_id=(await state.get_data())[DATA_SELECTED_NOMINATION_ID],
+            nomination_id=await state.get_value(DATA_SELECTED_NOMINATION_ID),
             search_query=inline_query.query,
             only_votable=True,
         ),

@@ -54,7 +54,7 @@ async def open_subscriptions_menu(
 
 @router.callback_query(PullDialogDownCallback.filter())
 async def pull_down_menu(query: CallbackQuery, dialog_manager: DialogManager) -> None:
-    await dialog_manager.update(data={}, show_mode=ShowMode.DELETE_AND_SEND)
+    await dialog_manager.update(data={}, show_mode=ShowMode.SEND)
 
 
 @router.callback_query(ProcessFeedbackCallback.filter())

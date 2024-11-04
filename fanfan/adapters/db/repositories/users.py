@@ -1,12 +1,12 @@
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import Select, and_, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, undefer
 
 from fanfan.adapters.db.models import User, UserSettings
 from fanfan.core.enums import UserRole
-from fanfan.core.models.quest import QuestParticipantDTO
 from fanfan.core.models.user import (
     FullUserModel,
+    QuestParticipant,
     UserId,
     UserModel,
 )
@@ -17,9 +17,16 @@ class UsersRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add_user(self, model: UserModel) -> UserModel:
-        user = User.from_model(model)
-        self.session.add(user)
+    @staticmethod
+    def _load_full(query: Select) -> Select:
+        return query.options(
+            joinedload(User.ticket),
+            joinedload(User.settings),
+            joinedload(User.permissions),
+        )
+
+    async def save_user(self, model: UserModel) -> UserModel:
+        user = await self.session.merge(User.from_model(model))
         await self.session.flush([user])
         return user.to_model()
 
@@ -27,19 +34,12 @@ class UsersRepository:
         self,
         user_id: UserId,
     ) -> FullUserModel | None:
-        user = await self.session.get(
-            User,
-            user_id,
-            options=[
-                joinedload(User.ticket),
-                joinedload(User.settings),
-                joinedload(User.permissions),
-            ],
-            # populate_existing=True,  #noqa: ERA001
-        )
+        query = select(User).where(User.id == user_id)
+        query = self._load_full(query)
+        user = await self.session.scalar(query)
         return user.to_full_model() if user else None
 
-    async def get_user_for_quest(self, user_id: UserId) -> QuestParticipantDTO | None:
+    async def get_user_for_quest(self, user_id: UserId) -> QuestParticipant | None:
         query = (
             select(User)
             .where(User.id == user_id)
@@ -52,8 +52,10 @@ class UsersRepository:
         )
         user = await self.session.scalar(query)
         return (
-            QuestParticipantDTO(
+            QuestParticipant(
                 id=UserId(user.id),
+                username=user.username,
+                role=user.role,
                 points=user.points,
                 achievements_count=user.achievements_count,
                 quest_registration=bool(user.quest_registration),
@@ -94,15 +96,9 @@ class UsersRepository:
         )
         return [o.to_model() for o in orgs]
 
-    async def update_user(self, model: UserModel) -> None:
-        user = User.from_model(model)
-        await self.session.merge(user)
-        await self.session.flush([user])
-
     async def update_user_settings(self, model: UserSettingsModel) -> None:
-        settings = UserSettings.from_model(model)
-        await self.session.merge(settings)
-        await self.session.flush([settings])
+        user_settings = await self.session.merge(UserSettings.from_model(model))
+        await self.session.flush([user_settings])
 
     async def get_org_settings(self, user_id: UserId) -> OrgSettingsModel | None:
         org_settings = await self.session.get(UserSettings, user_id)

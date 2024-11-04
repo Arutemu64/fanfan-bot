@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 class UpdateSettingsDTO:
     announcement_timeout: int | None = None
     voting_enabled: bool | None = None
-    asap_feedback_enabled: bool | None = None
     quest_registration_enabled: bool | None = None
     quest_registrations_limit: int | None = None
 
@@ -44,7 +43,7 @@ class UpdateSettings(Interactor[UpdateSettingsDTO, None]):
             raise SettingsNotFound
         settings = replace(settings, **self.retort.dump(data))
         async with self.uow:
-            await self.repo.update_settings(settings)
+            await self.repo.save_settings(settings)
             await self.uow.commit()
             logger.info(
                 "Global settings were updated by user %s",

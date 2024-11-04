@@ -3,7 +3,7 @@ import logging
 from aiogram import Bot
 from aiogram.types import Message
 
-from fanfan.core.models.notification import UserNotification
+from fanfan.core.dto.notification import UserNotification
 from fanfan.core.models.user import UserId
 
 logger = logging.getLogger(__name__)

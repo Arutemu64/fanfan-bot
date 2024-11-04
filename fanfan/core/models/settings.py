@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class SettingsModel:
     announcement_timeout: int
     voting_enabled: bool

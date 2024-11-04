@@ -4,7 +4,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.core.models.user import UserId, UserPermissionsModel
+from fanfan.core.models.permissions import UserPermissionsModel
+from fanfan.core.models.user import UserId
 
 if typing.TYPE_CHECKING:
     from fanfan.adapters.db.models import User

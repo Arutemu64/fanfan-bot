@@ -8,18 +8,18 @@ from fanfan.core.models.block import BlockModel
 EventId = NewType("EventId", int)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class EventModel:
     id: EventId
     title: str
     current: bool | None
     skip: bool
     order: float
-    queue: int | None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class FullEventModel(EventModel):
+    queue: int | None
     nomination: NominationModel | None
     block: BlockModel | None
     user_subscription: SubscriptionModel | None

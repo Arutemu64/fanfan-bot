@@ -6,7 +6,7 @@ from typing import NewType
 NominationId = NewType("NominationId", int)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class NominationModel:
     id: NominationId
     code: str
@@ -14,7 +14,7 @@ class NominationModel:
     votable: bool = False
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(slots=True, kw_only=True)
 class FullNominationModel(NominationModel):
     user_vote: VoteModel | None
 

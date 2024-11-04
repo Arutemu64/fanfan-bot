@@ -2,41 +2,39 @@ import math
 
 from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, joinedload, undefer
 
 from fanfan.adapters.db.models import Event, Nomination, Subscription
-from fanfan.core.exceptions.events import CurrentEventNotAllowed, EventNotFound
+from fanfan.core.dto.page import Pagination
 from fanfan.core.models.event import EventId, EventModel, FullEventModel
-from fanfan.core.models.page import Pagination
 from fanfan.core.models.user import UserId
-
-
-def _filter_events(
-    query: Select,
-    search_query: str | None,
-) -> Select:
-    if search_query:
-        query = query.where(
-            or_(
-                Event.id == int(search_query) if search_query.isnumeric() else False,
-                Event.title.ilike(f"%{search_query}%"),
-                Event.nomination.has(Nomination.title.ilike(f"%{search_query}%")),
-            ),
-        )
-    return query
 
 
 class EventsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_event_by_id(
-        self, event_id: EventId, user_id: UserId | None = None
-    ) -> FullEventModel | None:
-        query = (
-            select(Event)
-            .where(Event.id == event_id)
-            .options(joinedload(Event.nomination), joinedload(Event.block))
+    @staticmethod
+    def _filter_events(
+        query: Select,
+        search_query: str | None,
+    ) -> Select:
+        if search_query:
+            query = query.where(
+                or_(
+                    Event.id == int(search_query)
+                    if search_query.isnumeric()
+                    else False,
+                    Event.title.ilike(f"%{search_query}%"),
+                    Event.nomination.has(Nomination.title.ilike(f"%{search_query}%")),
+                ),
+            )
+        return query
+
+    @staticmethod
+    def _load_full(query: Select, user_id: UserId | None = None) -> Select:
+        query = query.options(
+            undefer(Event.queue), joinedload(Event.nomination), joinedload(Event.block)
         )
         if user_id:
             query = query.options(contains_eager(Event.user_subscription)).outerjoin(
@@ -46,6 +44,13 @@ class EventsRepository:
                     Subscription.user_id == user_id,
                 ),
             )
+        return query
+
+    async def get_event_by_id(
+        self, event_id: EventId, user_id: UserId | None = None
+    ) -> FullEventModel | None:
+        query = select(Event).where(Event.id == event_id)
+        query = self._load_full(query, user_id)
         event = await self.session.scalar(query)
         return event.to_full_model() if event else None
 
@@ -55,11 +60,9 @@ class EventsRepository:
         return event.to_model() if event else None
 
     async def get_current_event(self) -> FullEventModel | None:
-        event = await self.session.scalar(
-            select(Event)
-            .where(Event.current.is_(True))
-            .options(joinedload(Event.nomination), joinedload(Event.block))
-        )
+        query = select(Event).where(Event.current.is_(True))
+        query = self._load_full(query)
+        event = await self.session.scalar(query)
         return event.to_full_model() if event else None
 
     async def get_next_event(self) -> FullEventModel | None:
@@ -71,8 +74,8 @@ class EventsRepository:
             .order_by(Event.order)
             .where(and_(Event.order > current_event_order, Event.skip.is_not(True)))
             .limit(1)
-            .options(joinedload(Event.nomination), joinedload(Event.block))
         )
+        query = self._load_full(query)
         event = await self.session.scalar(query)
         return event.to_full_model() if event else None
 
@@ -97,26 +100,15 @@ class EventsRepository:
         pagination: Pagination | None = None,
         user_id: UserId | None = None,
     ) -> list[FullEventModel]:
-        query = (
-            select(Event)
-            .order_by(Event.order)
-            .options(joinedload(Event.nomination), joinedload(Event.block))
-        )
+        query = select(Event).order_by(Event.order)
+        query = self._load_full(query, user_id)
+
         if pagination:
             query = query.limit(pagination.limit).offset(pagination.offset)
         if search_query:
-            query = _filter_events(query, search_query)
-        if user_id:
-            query = query.options(contains_eager(Event.user_subscription)).outerjoin(
-                Subscription,
-                and_(
-                    Subscription.event_id == Event.id,
-                    Subscription.user_id == user_id,
-                ),
-            )
+            query = self._filter_events(query, search_query)
 
         events = await self.session.scalars(query)
-
         return [e.to_full_model() for e in events]
 
     async def count_events(
@@ -125,42 +117,10 @@ class EventsRepository:
     ) -> int:
         query = select(func.count(Event.id))
         if search_query:
-            query = _filter_events(query, search_query)
+            query = self._filter_events(query, search_query)
         return await self.session.scalar(query)
 
-    async def set_as_current(self, event_id: EventId | None) -> EventModel | None:
-        current_event = await self.session.scalar(
-            select(Event).where(Event.current.is_(True))
-        )
-        if current_event:
-            current_event.current = None
-            await self.session.flush([current_event])
-        if isinstance(event_id, int):
-            event = await self.session.get(Event, event_id)
-            if event is None:
-                raise EventNotFound
-            event.current = True
-            await self.session.flush([event])
-            await self.session.refresh(event, ["queue"])
-            return event.to_model() if event else None
-        return None
-
-    async def set_skip(self, event_id: EventId, skip: bool) -> EventModel:
-        event = await self.session.get(Event, event_id)
-        if event is None:
-            raise EventNotFound
-        if event.current is True and skip is True:
-            raise CurrentEventNotAllowed
-        event.skip = skip
+    async def save_event(self, model: EventModel) -> EventModel:
+        event = await self.session.merge(Event.from_model(model))
         await self.session.flush([event])
-        await self.session.refresh(event, ["queue"])
-        return event.to_model()
-
-    async def set_order(self, event_id: EventId, order: float) -> EventModel:
-        event = await self.session.get(Event, event_id)
-        if event is None:
-            raise EventNotFound
-        event.order = order
-        await self.session.flush([event])
-        await self.session.refresh(event, ["queue"])
         return event.to_model()

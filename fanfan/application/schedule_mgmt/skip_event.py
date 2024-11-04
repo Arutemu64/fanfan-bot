@@ -10,13 +10,14 @@ from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import ANNOUNCE_LIMIT_NAME
+from fanfan.core.dto.mailing import MailingId
 from fanfan.core.exceptions.events import (
+    CurrentEventNotAllowed,
     EventNotFound,
     ScheduleEditTooFast,
 )
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.models.event import EventId, EventModel
-from fanfan.core.models.mailing import MailingId
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.stream.routes.notifications.send_announcements import (
     EventChangeDTO,
@@ -69,13 +70,19 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
                 event = await self.events_repo.get_event_by_id(event_id)
                 if event is None:
                     raise EventNotFound(event_id=event_id)
+                if event.current is True:
+                    raise CurrentEventNotAllowed
 
                 # Get next event at this point
                 next_event_before = await self.events_repo.get_next_event()
 
                 # Toggle event skip
-                event = await self.events_repo.set_skip(event_id, not event.skip)
+                event.skip = not event.skip
+                await self.events_repo.save_event(event)
                 await self.uow.commit()
+
+                # Update event after commit
+                event = await self.events_repo.get_event_by_id(event_id)
 
                 # Check if we should send global announcement
                 next_event_after = await self.events_repo.get_next_event()

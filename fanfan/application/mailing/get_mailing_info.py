@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.models.mailing import MailingData, MailingId
+from fanfan.core.dto.mailing import MailingData, MailingId
 
 
 @dataclass(slots=True, frozen=True)

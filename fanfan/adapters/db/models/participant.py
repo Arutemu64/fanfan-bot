@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey, Sequence, UniqueConstraint, func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
@@ -57,8 +56,12 @@ class Participant(Base):
 
     @classmethod
     def from_model(cls, model: ParticipantModel):
-        retort = Retort(recipe=[name_mapping(omit_default=True)])
-        return Participant(**retort.dump(model))
+        return Participant(
+            id=model.id,
+            title=model.title,
+            nomination_id=model.nomination_id,
+            scoped_id=model.scoped_id,
+        )
 
     def to_model(self) -> ParticipantModel:
         return ParticipantModel(

@@ -11,8 +11,8 @@ from pydantic import BaseModel
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.notifier import Notifier
-from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import UserNotification
+from fanfan.core.dto.mailing import MailingId
+from fanfan.core.dto.notification import UserNotification
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()

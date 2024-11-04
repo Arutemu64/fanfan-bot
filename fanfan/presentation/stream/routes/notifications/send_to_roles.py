@@ -4,9 +4,9 @@ from pydantic import BaseModel
 
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.core.dto.mailing import MailingId
+from fanfan.core.dto.notification import UserNotification
 from fanfan.core.enums import UserRole
-from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import UserNotification
 from fanfan.presentation.stream.jstream import stream
 from fanfan.presentation.stream.routes.notifications.send_notification import (
     SendNotificationDTO,

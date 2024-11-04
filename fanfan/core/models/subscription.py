@@ -8,7 +8,7 @@ from fanfan.core.models.user import UserId
 SubscriptionId = NewType("SubscriptionId", int)
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(slots=True)
 class SubscriptionModel:
     user_id: UserId
     event_id: EventId
@@ -16,7 +16,7 @@ class SubscriptionModel:
     id: SubscriptionId | None = None
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(slots=True, kw_only=True)
 class FullSubscriptionModel(SubscriptionModel):
     event: FullEventModel
 

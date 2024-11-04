@@ -39,6 +39,7 @@ class CreateTicket(Interactor[CreateTicketDTO, TicketModel]):
                     TicketModel(
                         id=data.id,
                         role=data.role,
+                        used_by_id=None,
                         issued_by_id=user.id,
                     )
                 )

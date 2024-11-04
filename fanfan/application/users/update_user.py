@@ -44,6 +44,6 @@ class UpdateUser(Interactor[UpdateUserDTO, None]):
             raise AccessDenied
         user = replace(user, **self.retort.dump(data))
         async with self.uow:
-            await self.users_repo.update_user(user)
+            await self.users_repo.save_user(user)
             await self.uow.commit()
             logger.info("User %s was updated", user.id, extra={"user": user})

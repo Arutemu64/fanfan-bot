@@ -10,10 +10,10 @@ from fanfan.application.events.get_schedule_page import (
     GetSchedulePage,
     GetSchedulePageDTO,
 )
+from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.events import NoCurrentEvent
 from fanfan.core.models.event import EventId
-from fanfan.core.models.page import Pagination
 from fanfan.core.models.user import FullUserModel
 from fanfan.core.services.access import AccessService
 

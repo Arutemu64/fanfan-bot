@@ -1,7 +1,7 @@
 from fanfan.adapters.db.repositories.activities import ActivitiesRepository
 from fanfan.application.common.interactor import Interactor
+from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.activity import ActivityModel
-from fanfan.core.models.page import Page, Pagination
 
 
 class GetActivitiesPage(Interactor[Pagination, Page[ActivityModel]]):

@@ -93,10 +93,21 @@ class Event(Base, OrderMixin):
             .where(cls.id == queue_subquery.c.id)
             .scalar_subquery(),
             expire_on_flush=True,
+            deferred=True,
         )
 
     def __str__(self) -> str:
         return self.title
+
+    @classmethod
+    def from_model(cls, model: EventModel):
+        return Event(
+            id=model.id,
+            title=model.title,
+            current=model.current,
+            skip=model.skip,
+            order=model.order,
+        )
 
     def to_model(self) -> EventModel:
         return EventModel(
@@ -105,7 +116,6 @@ class Event(Base, OrderMixin):
             current=self.current,
             skip=self.skip,
             order=self.order,
-            queue=self.queue,
         )
 
     def to_full_model(self) -> FullEventModel:

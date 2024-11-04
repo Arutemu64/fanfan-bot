@@ -22,10 +22,10 @@ from fanfan.application.quest.add_achievement import (
 )
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.users.get_user_by_id import GetUserById
+from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.users import TicketNotLinked
 from fanfan.core.models.achievement import AchievementId
-from fanfan.core.models.page import Pagination
 from fanfan.core.models.user import FullUserModel, UserId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title

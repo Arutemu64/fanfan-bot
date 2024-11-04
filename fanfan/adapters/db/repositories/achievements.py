@@ -1,21 +1,33 @@
-from sqlalchemy import and_, func, select
+from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
 from fanfan.adapters.db.models import Achievement, ReceivedAchievement
+from fanfan.core.dto.page import Pagination
 from fanfan.core.models.achievement import (
     AchievementId,
     AchievementModel,
     FullAchievementModel,
     SecretId,
 )
-from fanfan.core.models.page import Pagination
 from fanfan.core.models.user import UserId
 
 
 class AchievementsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
+
+    @staticmethod
+    def _load_full(query: Select, user_id: UserId | None = None) -> Select:
+        if user_id:
+            query = query.options(contains_eager(Achievement.user_received)).outerjoin(
+                ReceivedAchievement,
+                and_(
+                    ReceivedAchievement.achievement_id == Achievement.id,
+                    ReceivedAchievement.user_id == user_id,
+                ),
+            )
+        return query
 
     async def get_achievement_by_id(
         self, achievement_id: AchievementId
@@ -35,20 +47,12 @@ class AchievementsRepository:
         self, user_id: UserId | None = None, pagination: Pagination | None = None
     ) -> list[FullAchievementModel]:
         query = select(Achievement).order_by(Achievement.order)
+        query = self._load_full(query, user_id)
+
         if pagination:
             query = query.limit(pagination.limit).offset(pagination.offset)
 
-        if user_id:
-            query = query.options(contains_eager(Achievement.user_received)).outerjoin(
-                ReceivedAchievement,
-                and_(
-                    ReceivedAchievement.achievement_id == Achievement.id,
-                    ReceivedAchievement.user_id == user_id,
-                ),
-            )
-
         achievements = await self.session.scalars(query)
-
         return [a.to_full_model() for a in achievements]
 
     async def count_achievements(self) -> int:

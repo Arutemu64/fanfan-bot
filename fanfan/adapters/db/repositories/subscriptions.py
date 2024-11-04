@@ -1,10 +1,10 @@
-from sqlalchemy import and_, delete, func, select
+from sqlalchemy import Select, and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, undefer
 
 from fanfan.adapters.db.models import Event, Subscription
+from fanfan.core.dto.page import Pagination
 from fanfan.core.models.event import EventId
-from fanfan.core.models.page import Pagination
 from fanfan.core.models.subscription import (
     FullSubscriptionModel,
     SubscriptionId,
@@ -17,6 +17,16 @@ class SubscriptionsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    @staticmethod
+    def _load_full(query: Select) -> Select:
+        return query.options(
+            joinedload(Subscription.event).options(
+                undefer(Event.queue),
+                joinedload(Event.nomination),
+                joinedload(Event.block),
+            ),
+        )
+
     async def add_subscription(self, model: SubscriptionModel) -> SubscriptionModel:
         subscription = Subscription.from_model(model)
         self.session.add(subscription)
@@ -26,35 +36,22 @@ class SubscriptionsRepository:
     async def get_subscription_by_id(
         self, subscription_id: SubscriptionId
     ) -> FullSubscriptionModel | None:
-        subscription = await self.session.get(
-            Subscription,
-            subscription_id,
-            options=[
-                joinedload(Subscription.event).joinedload(Event.nomination),
-                joinedload(Subscription.event).joinedload(Event.block),
-            ],
-            populate_existing=True,
-        )
+        query = select(Subscription).where(Subscription.id == subscription_id)
+        query = self._load_full(query)
+        subscription = await self.session.scalar(query)
         return subscription.to_full_model() if subscription else None
 
     async def get_user_subscription_by_event(
         self, user_id: UserId, event_id: EventId
     ) -> FullSubscriptionModel | None:
-        query = (
-            select(Subscription)
-            .where(
-                and_(
-                    Subscription.user_id == user_id,
-                    Subscription.event_id == event_id,
-                )
-            )
-            .options(
-                joinedload(Subscription.event).joinedload(Event.nomination),
-                joinedload(Subscription.event).joinedload(Event.block),
+        query = select(Subscription).where(
+            and_(
+                Subscription.user_id == user_id,
+                Subscription.event_id == event_id,
             )
         )
+        query = self._load_full(query)
         subscription = await self.session.scalar(query)
-
         return subscription.to_full_model() if subscription else None
 
     async def list_subscriptions(
@@ -64,17 +61,13 @@ class SubscriptionsRepository:
             select(Subscription)
             .where(Subscription.user_id == user_id)
             .order_by(Subscription.event_id)
-            .options(
-                joinedload(Subscription.event).joinedload(Event.nomination),
-                joinedload(Subscription.event).joinedload(Event.block),
-            )
         )
+        query = self._load_full(query)
 
         if pagination:
             query = query.limit(pagination.limit).offset(pagination.offset)
 
         subscriptions = (await self.session.scalars(query)).all()
-
         return [s.to_full_model() for s in subscriptions]
 
     async def count_subscriptions(self, user_id: UserId) -> int:
@@ -86,25 +79,18 @@ class SubscriptionsRepository:
         event_position = (
             select(Event.queue).where(Event.current.is_(True)).scalar_subquery()
         )
-        query = (
-            select(Subscription)
-            .where(
-                Subscription.event.has(
-                    and_(
-                        Event.skip.isnot(True),
-                        Subscription.counter >= (Event.queue - event_position),
-                        (Event.queue - event_position) >= 0,
-                    ),
+        query = select(Subscription).where(
+            Subscription.event.has(
+                and_(
+                    Event.skip.isnot(True),
+                    Subscription.counter >= (Event.queue - event_position),
+                    (Event.queue - event_position) >= 0,
                 ),
-            )
-            .options(
-                joinedload(Subscription.event).joinedload(Event.block),
-                joinedload(Subscription.event).joinedload(Event.nomination),
-            )
+            ),
         )
+        query = self._load_full(query)
 
         subscriptions = await self.session.scalars(query)
-
         return [s.to_full_model() for s in subscriptions]
 
     async def delete_subscription(self, subscription_id: SubscriptionId) -> None:

@@ -58,7 +58,7 @@ class ImportFromC2:
             topics = await self.cosplay2.get_topics_list()
             for topic in topics:
                 async with self.uow:
-                    await self.nominations_repo.merge_nomination(
+                    await self.nominations_repo.save_nomination(
                         NominationModel(
                             id=NominationId(topic.id),
                             code=topic.card_code,
@@ -76,13 +76,11 @@ class ImportFromC2:
                     )
                     async with self.uow:
                         try:
-                            participant = (
-                                await self.participants_repo.merge_participant(
-                                    ParticipantModel(
-                                        id=ParticipantId(request.id),
-                                        title=request.voting_title,
-                                        nomination_id=NominationId(request.topic_id),
-                                    )
+                            participant = await self.participants_repo.save_participant(
+                                ParticipantModel(
+                                    id=ParticipantId(request.id),
+                                    title=request.voting_title,
+                                    nomination_id=NominationId(request.topic_id),
                                 )
                             )
                             await self.uow.commit()

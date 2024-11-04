@@ -1,11 +1,10 @@
-from adaptix import Retort, name_mapping
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.user import User
+from fanfan.core.dto.mailing import MailingId
 from fanfan.core.models.feedback import FeedbackId, FeedbackModel, FullFeedbackModel
-from fanfan.core.models.mailing import MailingId
 from fanfan.core.models.user import UserId
 
 
@@ -33,8 +32,13 @@ class Feedback(Base):
 
     @classmethod
     def from_model(cls, model: FeedbackModel):
-        retort = Retort(recipe=[name_mapping(omit_default=True)])
-        return Feedback(**retort.dump(model))
+        return Feedback(
+            id=model.id,
+            text=model.text,
+            user_id=model.user_id,
+            processed_by_id=model.processed_by_id,
+            mailing_id=model.mailing_id,
+        )
 
     def to_model(self) -> FeedbackModel:
         return FeedbackModel(

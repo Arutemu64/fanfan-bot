@@ -6,7 +6,7 @@ from faststream.nats import NatsRouter, PullSub
 from nats.js import JetStreamContext
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.core.models.mailing import MailingId
+from fanfan.core.dto.mailing import MailingId
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()

@@ -61,7 +61,7 @@ add_ticket_window = Window(
             id=ID_TICKET_ROLE_PICKER,
             item_id_getter=operator.itemgetter(0),
             items="roles",
-            type_factory=UserRole,
+            type_factory=lambda x: UserRole(int(x)),
         ),
     ),
     TextInput(id="ticket_id", type_factory=TicketId, on_success=add_ticket_handler),

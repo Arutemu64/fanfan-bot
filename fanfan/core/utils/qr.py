@@ -8,7 +8,7 @@ from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 from qrcode.main import QRCode
 
 from fanfan.common import COMMON_STATIC_DIR
-from fanfan.core.models.qr import QR
+from fanfan.core.dto.qr import QR
 
 
 def generate_img(qr_data: QR) -> PilImage:

@@ -10,10 +10,10 @@ from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import ANNOUNCE_LIMIT_NAME
-from fanfan.core.exceptions.events import ScheduleEditTooFast
+from fanfan.core.dto.mailing import MailingId
+from fanfan.core.exceptions.events import EventNotFound, ScheduleEditTooFast
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.models.event import EventId, EventModel
-from fanfan.core.models.mailing import MailingId
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.stream.routes.notifications.send_announcements import (
     EventChangeDTO,
@@ -62,8 +62,21 @@ class SetCurrentEvent(Interactor[EventId | None, SetCurrentEventResult]):
                     ANNOUNCE_LIMIT_NAME, limit_timeout=settings.announcement_timeout
                 ),
             ):
-                # Set as current
-                event = await self.events_repo.set_as_current(event_id)
+                # Unset current event
+                if current_event := await self.events_repo.get_current_event():
+                    current_event.current = None
+                    await self.events_repo.save_event(current_event)
+
+                # Get event and set as current
+                if event_id is not None:
+                    event = await self.events_repo.get_event_by_id(event_id)
+                    if event is None:
+                        raise EventNotFound(event_id)
+                    event.current = True
+                    await self.events_repo.save_event(event)
+                else:
+                    event = None
+
                 await self.uow.commit()
 
                 # Send announcements

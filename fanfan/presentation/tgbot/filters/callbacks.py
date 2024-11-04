@@ -1,7 +1,7 @@
 from aiogram.filters.callback_data import CallbackData
 
+from fanfan.core.dto.mailing import MailingId
 from fanfan.core.models.feedback import FeedbackId
-from fanfan.core.models.mailing import MailingId
 
 
 class DeleteMessageCallback(CallbackData, prefix="delete_message"):

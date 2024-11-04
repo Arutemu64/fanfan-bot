@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from adaptix import Retort, name_mapping
 from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
@@ -45,8 +44,9 @@ class Nomination(Base):
 
     @classmethod
     def from_model(cls, model: NominationModel):
-        retort = Retort(recipe=[name_mapping(omit_default=True)])
-        return Nomination(**retort.dump(model))
+        return Nomination(
+            id=model.id, code=model.code, title=model.title, votable=model.votable
+        )
 
     def to_model(self) -> NominationModel:
         return NominationModel(

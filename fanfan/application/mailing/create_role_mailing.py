@@ -5,10 +5,10 @@ from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
+from fanfan.core.dto.mailing import MailingData, MailingId
+from fanfan.core.dto.notification import UserNotification
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.models.mailing import MailingData, MailingId
-from fanfan.core.models.notification import UserNotification
 from fanfan.presentation.stream.routes.notifications.send_to_roles import (
     SendNotificationToRolesDTO,
 )

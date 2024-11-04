@@ -8,7 +8,7 @@ from fanfan.core.models.user import UserId
 VoteId = NewType("VoteId", int)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class VoteModel:
     user_id: UserId
     participant_id: ParticipantId

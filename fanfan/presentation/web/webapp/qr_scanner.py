@@ -17,12 +17,12 @@ from fanfan.application.quest.receive_achievement_by_secret_id import (
     ReceiveAchievementBySecretId,
 )
 from fanfan.application.users.get_user_by_id import GetUserById
+from fanfan.core.dto.notification import UserNotification
+from fanfan.core.dto.qr import QR, QRType
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import SecretId
-from fanfan.core.models.notification import UserNotification
-from fanfan.core.models.qr import QR, QRType
 from fanfan.core.utils.notifications import create_achievement_notification
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
 from fanfan.presentation.tgbot.keyboards.buttons import DELETE_BUTTON

@@ -2,9 +2,9 @@ import html
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from fanfan.core.dto.notification import DEFAULT_REPLY_MARKUP, UserNotification
 from fanfan.core.models.achievement import AchievementModel
 from fanfan.core.models.feedback import FullFeedbackModel
-from fanfan.core.models.notification import DEFAULT_REPLY_MARKUP, UserNotification
 from fanfan.presentation.tgbot.keyboards.buttons import (
     PULL_DOWN_DIALOG,
     process_feedback_button,

@@ -8,10 +8,11 @@ from fanfan.core.enums import UserRole
 TicketId = NewType("TicketId", str)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class TicketModel:
     id: TicketId
     role: UserRole
+    used_by_id: UserId | None
     issued_by_id: UserId | None
 
 

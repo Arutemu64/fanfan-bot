@@ -7,7 +7,7 @@ ParticipantId = NewType("ParticipantId", int)
 ParticipantScopedId = NewType("ParticipantScopedId", int)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class ParticipantModel:
     id: ParticipantId
     title: str
@@ -15,7 +15,7 @@ class ParticipantModel:
     scoped_id: ParticipantScopedId | None = None
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(slots=True, kw_only=True)
 class FullParticipantModel(ParticipantModel):
     event: EventModel | None
     nomination: NominationModel | None

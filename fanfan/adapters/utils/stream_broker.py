@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from faststream.nats import NatsBroker  # noqa: TCH002
 
-from fanfan.core.models.mailing import MailingId
+from fanfan.core.dto.mailing import MailingId
 from fanfan.presentation.stream.routes.notifications.edit_notification import (
     EditNotificationDTO,
 )
@@ -18,9 +18,6 @@ from fanfan.presentation.stream.routes.notifications.send_notification import (
 from fanfan.presentation.stream.routes.notifications.send_to_roles import (
     SendNotificationToRolesDTO,
 )
-
-if TYPE_CHECKING:
-    from faststream.nats import NatsBroker
 
 
 class StreamBrokerAdapter:

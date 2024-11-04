@@ -7,8 +7,8 @@ from adaptix.load_error import LoadError
 from aiogram.types import Message
 from redis.asyncio import Redis
 
+from fanfan.core.dto.mailing import MailingData, MailingId, MailingStatus
 from fanfan.core.exceptions.mailing import MailingNotFound
-from fanfan.core.models.mailing import MailingData, MailingId, MailingStatus
 from fanfan.core.models.user import UserId
 
 logger = logging.getLogger(__name__)

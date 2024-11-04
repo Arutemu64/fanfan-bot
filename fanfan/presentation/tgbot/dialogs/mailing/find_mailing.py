@@ -7,8 +7,8 @@ from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
 
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
+from fanfan.core.dto.mailing import MailingId
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.models.mailing import MailingId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
 from fanfan.presentation.tgbot.ui import strings
