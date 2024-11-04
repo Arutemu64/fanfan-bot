@@ -1,4 +1,4 @@
-from sqlalchemy import func, select, update
+from sqlalchemy import and_, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, undefer
 
@@ -9,8 +9,8 @@ from fanfan.core.models.user import (
     FullUserModel,
     UserId,
     UserModel,
-    UserSettingsModel,
 )
+from fanfan.core.models.user_settings import OrgSettingsModel, UserSettingsModel
 
 
 class UsersRepository:
@@ -81,6 +81,19 @@ class UsersRepository:
         )
         return [u.to_model() for u in users]
 
+    async def get_orgs_for_feedback_notification(self) -> list[UserModel]:
+        orgs = await self.session.scalars(
+            select(User).where(
+                and_(
+                    User.role == UserRole.ORG,
+                    User.settings.has(
+                        UserSettings.org_receive_feedback_notifications.is_(True)
+                    ),
+                )
+            )
+        )
+        return [o.to_model() for o in orgs]
+
     async def update_user(self, model: UserModel) -> None:
         user = User.from_model(model)
         await self.session.merge(user)
@@ -90,6 +103,27 @@ class UsersRepository:
         settings = UserSettings.from_model(model)
         await self.session.merge(settings)
         await self.session.flush([settings])
+
+    async def get_org_settings(self, user_id: UserId) -> OrgSettingsModel | None:
+        org_settings = await self.session.get(UserSettings, user_id)
+        return (
+            OrgSettingsModel(
+                user_id=UserId(org_settings.user_id),
+                receive_feedback_notifications=bool(
+                    org_settings.org_receive_feedback_notifications
+                ),
+            )
+            if org_settings
+            else None
+        )
+
+    async def update_org_settings(self, model: OrgSettingsModel) -> None:
+        org_settings = UserSettings(
+            user_id=model.user_id,
+            org_receive_feedback_notifications=model.receive_feedback_notifications,
+        )
+        await self.session.merge(org_settings)
+        await self.session.flush([org_settings])
 
     async def add_points(self, user_id: UserId, points: int) -> None:
         await self.session.execute(

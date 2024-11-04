@@ -8,11 +8,14 @@ class FeedbackView(ModelView, model=Feedback):
     icon = "fa-solid fa-comments"
     can_create = False
     column_list = [
-        Feedback.user,
+        Feedback.id,
         Feedback.text,
+        Feedback.user,
+        Feedback.processed_by,
     ]
     column_labels = {
-        Feedback.user: "Пользователь",
+        Feedback.id: "ID",
         Feedback.text: "Текст",
-        Feedback.asap: "Срочно",
+        Feedback.user: "Пользователь",
+        Feedback.processed_by: "Обработано",
     }

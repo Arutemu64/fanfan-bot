@@ -5,7 +5,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.core.models.user import UserId, UserSettingsModel
+from fanfan.core.models.user import UserId
+from fanfan.core.models.user_settings import UserSettingsModel
 
 if typing.TYPE_CHECKING:
     from fanfan.adapters.db.models import User
@@ -14,8 +15,14 @@ if typing.TYPE_CHECKING:
 class UserSettings(Base):
     __tablename__ = "user_settings"
 
+    # General settings
     items_per_page: Mapped[int] = mapped_column(server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="True")
+
+    # Org settings
+    org_receive_feedback_notifications: Mapped[bool] = mapped_column(
+        server_default="True"
+    )
 
     # User relation
     user_id: Mapped[int] = mapped_column(

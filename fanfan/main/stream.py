@@ -1,3 +1,6 @@
+import asyncio
+import sys
+
 import uvicorn
 from dishka.integrations.faststream import setup_dishka
 from faststream.asgi import AsgiFastStream
@@ -35,4 +38,6 @@ def create_app() -> AsgiFastStream:
 
 
 if __name__ == "__main__":
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     uvicorn.run(create_app(), host="0.0.0.0", port=8000)  # noqa: S104

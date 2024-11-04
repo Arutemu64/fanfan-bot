@@ -16,3 +16,7 @@ class UserAlreadyExist(UsersException):
 
 class TicketNotLinked(AccessDenied):
     message = "⚠️ Привяжите билет для доступа к этой функции"
+
+
+class OrgSettingsNotFound(UsersException):
+    pass

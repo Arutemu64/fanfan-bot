@@ -30,3 +30,22 @@ class Notifier:
                 reply_markup=notification.reply_markup,
             )
         return message
+
+    async def edit_notification(
+        self, message: Message, notification: UserNotification
+    ) -> Message:
+        if message.caption:
+            edited_message = await self.bot.edit_message_caption(
+                caption=notification.render_message_text(),
+                chat_id=message.chat.id,
+                message_id=message.message_id,
+                reply_markup=notification.reply_markup,
+            )
+        else:
+            edited_message = await self.bot.edit_message_text(
+                text=notification.render_message_text(),
+                chat_id=message.chat.id,
+                message_id=message.message_id,
+                reply_markup=notification.reply_markup,
+            )
+        return edited_message

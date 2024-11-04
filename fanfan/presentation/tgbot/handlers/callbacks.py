@@ -5,12 +5,17 @@ from aiogram_dialog import DialogManager, ShowMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.adapters.utils.notifier import Notifier
+from fanfan.application.feedback.process_feedback import (
+    ProcessFeedback,
+    ProcessFeedbackDTO,
+)
+from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
 from fanfan.presentation.tgbot.filters.callbacks import (
     DeleteMessageCallback,
     OpenSubscriptionsCallback,
+    ProcessFeedbackCallback,
     PullDialogDownCallback,
     ShowMailingInfoCallback,
 )
@@ -32,7 +37,6 @@ async def show_mailing_info_callback(
     query: CallbackQuery,
     callback_data: ShowMailingInfoCallback,
     dialog_manager: DialogManager,
-    notifier: FromDishka[Notifier],
 ) -> None:
     await show_mailing_info(dialog_manager, callback_data.mailing_id)
 
@@ -51,3 +55,27 @@ async def open_subscriptions_menu(
 @router.callback_query(PullDialogDownCallback.filter())
 async def pull_down_menu(query: CallbackQuery, dialog_manager: DialogManager) -> None:
     await dialog_manager.update(data={}, show_mode=ShowMode.DELETE_AND_SEND)
+
+
+@router.callback_query(ProcessFeedbackCallback.filter())
+@inject
+async def process_feedback(
+    query: CallbackQuery,
+    callback_data: ProcessFeedbackCallback,
+    interactor: FromDishka[ProcessFeedback],
+    dialog_manager: DialogManager,
+):
+    dialog_manager.show_mode = ShowMode.NO_UPDATE
+    try:
+        feedback = await interactor(
+            ProcessFeedbackDTO(feedback_id=callback_data.feedback_id)
+        )
+        await query.answer(
+            "✅ Вы взяли обработку отзыва на себя. "
+            f"Теперь можете связаться с @{feedback.user.username} "
+            f"в ЛС для уточнения деталей. "
+            "Другие организаторы увидят, что вы взяли отзыв в работу.",
+            show_alert=True,
+        )
+    except AppException as e:
+        await query.answer(e.message, show_alert=True)

@@ -1,6 +1,7 @@
-import html
 import logging
 from dataclasses import dataclass
+
+from sqlalchemy.exc import IntegrityError
 
 from fanfan.adapters.db.repositories.feedback import FeedbackRepository
 from fanfan.adapters.db.uow import UnitOfWork
@@ -8,12 +9,11 @@ from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.enums import UserRole
+from fanfan.core.exceptions.feedback import FeedbackException
 from fanfan.core.models.feedback import FeedbackModel
-from fanfan.core.models.notification import UserNotification
 from fanfan.core.services.access import AccessService
-from fanfan.presentation.stream.routes.notifications.send_to_roles import (
-    SendNotificationToRolesDTO,
+from fanfan.presentation.stream.routes.notifications.send_feedback_notifications import (  # noqa: E501
+    SendFeedbackNotificationsDTO,
 )
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True, slots=True)
 class SendFeedbackDTO:
     text: str
-    asap: bool
 
 
 class SendFeedback(Interactor[SendFeedbackDTO, None]):
@@ -45,34 +44,28 @@ class SendFeedback(Interactor[SendFeedbackDTO, None]):
     async def __call__(self, data: SendFeedbackDTO) -> None:
         user = await self.id_provider.get_current_user()
         await self.access.ensure_can_send_feedback(user)
+        mailing_id = await self.mailing_repo.create_new_mailing(
+            by_user_id=self.id_provider.get_current_user_id()
+        )
         async with self.uow:
-            feedback = await self.feedback_repo.add_feedback(
-                FeedbackModel(
-                    user_id=user.id,
-                    text=data.text,
-                    asap=data.asap,
-                )
-            )
-            await self.uow.commit()
-            logger.info(
-                "New feedback sent by user %s", user.id, extra={"feedback": feedback}
-            )
-            if feedback.asap:
-                mailing_id = await self.mailing_repo.create_new_mailing(
-                    by_user_id=user.id,
-                )
-                await self.stream_broker_adapter.send_to_roles(
-                    SendNotificationToRolesDTO(
-                        notification=UserNotification(
-                            title="💬 ОБРАТНАЯ СВЯЗЬ",
-                            text=f"Поступила срочная обратная связь "
-                            f"от @{user.username} ({user.id}):\n\n"
-                            f"<i>{html.escape(feedback.text)}</i>",
-                            bottom_text="ограничить доступ пользователя к "
-                            "обратной связи можно отключив "
-                            "у него право can_send_feedback",
-                        ),
-                        roles=[UserRole.ORG],
+            try:
+                feedback = await self.feedback_repo.add_feedback(
+                    FeedbackModel(
+                        user_id=user.id,
+                        text=data.text,
+                        processed_by_id=None,
                         mailing_id=mailing_id,
-                    ),
+                    )
+                )
+                await self.uow.commit()
+            except IntegrityError as e:
+                raise FeedbackException from e
+            else:
+                logger.info(
+                    "New feedback sent by user %s",
+                    user.id,
+                    extra={"feedback": feedback},
+                )
+                await self.stream_broker_adapter.send_feedback_notifications(
+                    SendFeedbackNotificationsDTO(feedback_id=feedback.id)
                 )

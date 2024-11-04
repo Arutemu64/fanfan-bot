@@ -5,16 +5,18 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from fanfan.presentation.tgbot.keyboards.buttons import PULL_DOWN_DIALOG
 
+DEFAULT_REPLY_MARKUP = InlineKeyboardBuilder(
+    [[PULL_DOWN_DIALOG]],
+).as_markup()
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(slots=True, frozen=True)
 class UserNotification:
     text: str
     title: str = "📢 УВЕДОМЛЕНИЕ"
     bottom_text: str | None = None
     image_id: str | None = None
-    reply_markup: InlineKeyboardMarkup = InlineKeyboardBuilder(
-        [[PULL_DOWN_DIALOG]],
-    ).as_markup()
+    reply_markup: InlineKeyboardMarkup = DEFAULT_REPLY_MARKUP
 
     def render_message_text(self) -> str:
         title = f"<b>{self.title.upper()}</b>"

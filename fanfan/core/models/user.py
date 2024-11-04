@@ -15,13 +15,6 @@ class UserPermissionsModel:
 
 
 @dataclass(frozen=True, slots=True)
-class UserSettingsModel:
-    user_id: UserId
-    items_per_page: int
-    receive_all_announcements: bool
-
-
-@dataclass(frozen=True, slots=True)
 class UserModel:
     id: UserId
     username: str | None
@@ -36,3 +29,4 @@ class FullUserModel(UserModel):
 
 
 from fanfan.core.models.ticket import TicketModel  # noqa: E402
+from fanfan.core.models.user_settings import UserSettingsModel  # noqa: E402

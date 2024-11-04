@@ -13,7 +13,7 @@ from fanfan.core.models.user import UserId
 
 logger = logging.getLogger(__name__)
 
-MAILING_TTL = timedelta(hours=2).seconds
+MAILING_TTL = timedelta(days=2)  # Telegram message can be modified for 2 days
 
 
 class MailingRepository:
