@@ -28,7 +28,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: [ "alembic", "upgrade", "head" ]
+    command: ["sh", "-c", "alembic upgrade head && python -m fanfan.main.migration"]
 
   db:
     container_name: "fanfan-db-${ENV_NAME}"

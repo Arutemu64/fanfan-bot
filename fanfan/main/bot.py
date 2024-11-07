@@ -4,13 +4,11 @@ import logging
 import sys
 
 from aiogram import Bot, Dispatcher
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.config_reader import Configuration, get_config
 from fanfan.common.logging import setup_logging
 from fanfan.common.telemetry import setup_telemetry
 from fanfan.core.enums import BotMode
-from fanfan.core.utils.settings import setup_initial_settings
 from fanfan.main.di import create_bot_container
 
 logger = logging.getLogger(__name__)
@@ -60,11 +58,6 @@ async def main() -> None:
 
     # Register startup hook
     dp.startup.register(on_startup)
-
-    # Setup initial settings
-    async with container() as container:
-        session = await container.get(AsyncSession)
-        await setup_initial_settings(session)
 
     # Run bot
     try:
