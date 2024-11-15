@@ -33,8 +33,8 @@ class ImportOrdersResult:
 class ImportOrders:
     def __init__(
         self,
-        config: TimepadConfig,
-        client: TimepadClient,
+        config: TimepadConfig | None,
+        client: TimepadClient | None,
         limiter: Limiter,
         proceed_order: ProceedOrder,
     ):
@@ -50,7 +50,7 @@ class ImportOrders:
             blocking=False,
             lock_timeout=timedelta(minutes=10).seconds,
         ):
-            if not (self.config.client_id or self.config.event_id):
+            if self.client is None:
                 raise NoTimepadConfigProvided
             added_tickets, deleted_tickets, step = 0, 0, 0
             init = await self.client.get_orders(self.config.event_id)

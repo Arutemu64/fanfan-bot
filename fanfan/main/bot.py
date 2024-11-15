@@ -43,14 +43,12 @@ async def run_webhook(bot: Bot, dp: Dispatcher, config: Configuration) -> None:
         await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
     runner = AppRunner(app)
     await runner.setup()
-    site = TCPSite(runner, host=config.bot.webhook_host, port=config.bot.webhook_port)
+    site = TCPSite(runner, host=config.bot.webhook.host, port=config.bot.webhook.port)
     await site.start()
     await asyncio.Event().wait()
 
 
-async def main() -> None:
-    config = get_config()
-
+async def main(config: Configuration) -> None:
     # Get dependencies ready
     container = create_bot_container()
     bot: Bot = await container.get(Bot)
@@ -71,7 +69,7 @@ async def main() -> None:
         await container.close()
 
 
-def run():
+if __name__ == "__main__":
     config = get_config()
     setup_logging(
         level=config.debug.logging_level,
@@ -84,8 +82,4 @@ def run():
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with contextlib.suppress(KeyboardInterrupt):
-        asyncio.run(main())
-
-
-if __name__ == "__main__":
-    run()
+        asyncio.run(main(config=config))

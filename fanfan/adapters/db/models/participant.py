@@ -9,6 +9,7 @@ from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.vote import Vote
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.participant import (
+    UNSET_SCOPED_ID,
     FullParticipantModel,
     ParticipantId,
     ParticipantModel,
@@ -56,12 +57,14 @@ class Participant(Base):
 
     @classmethod
     def from_model(cls, model: ParticipantModel):
-        return Participant(
-            id=model.id,
-            title=model.title,
-            nomination_id=model.nomination_id,
-            scoped_id=model.scoped_id,
-        )
+        data = {
+            "id": model.id,
+            "title": model.title,
+            "nomination_id": model.nomination_id,
+        }
+        if model.scoped_id is not UNSET_SCOPED_ID:
+            data.update(scoped_id=model.scoped_id)
+        return Participant(**data)
 
     def to_model(self) -> ParticipantModel:
         return ParticipantModel(

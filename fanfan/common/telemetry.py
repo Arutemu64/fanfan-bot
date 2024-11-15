@@ -18,7 +18,7 @@ def setup_telemetry(service_name: str, config: Configuration) -> TracerProvider:
     if config.debug.sentry_enabled:
         sentry_sdk.init(
             dsn=config.debug.sentry_dsn,
-            environment=config.env,
+            environment=config.env_name,
             traces_sample_rate=1.0,
             profiles_sample_rate=1.0,
             instrumenter="otel",

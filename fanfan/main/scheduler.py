@@ -7,7 +7,7 @@ from taskiq import SimpleRetryMiddleware, TaskiqEvents, TaskiqScheduler, TaskiqS
 from taskiq.schedule_sources import LabelScheduleSource
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
-from fanfan.adapters.config_reader import get_config
+from fanfan.adapters.config_reader import Configuration, get_config
 from fanfan.common.logging import setup_logging
 from fanfan.common.telemetry import setup_telemetry
 
@@ -30,16 +30,17 @@ broker = (
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup(state: TaskiqState) -> None:
-    config = get_config()
+    from fanfan.main.di import create_scheduler_container
+
+    container = create_scheduler_container()
+    config: Configuration = await container.get(Configuration)
+
     setup_logging(
         level=config.debug.logging_level,
         json_logs=config.debug.json_logs,
     )
     setup_telemetry(service_name="taskiq", config=config)
 
-    from fanfan.main.di import create_scheduler_container
-
-    container = create_scheduler_container()
     setup_dishka(container, broker)
     state.container = container
 

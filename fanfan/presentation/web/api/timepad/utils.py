@@ -12,7 +12,7 @@ from fanfan.adapters.config_reader import TimepadConfig
 @inject
 async def verify_timepad_signature(
     request: Request,
-    config: FromDishka[TimepadConfig],
+    config: FromDishka[TimepadConfig | None],
     x_hub_signature: Annotated[str, Header()],
 ) -> None:
     expected_signature = hmac.new(

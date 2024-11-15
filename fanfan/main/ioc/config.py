@@ -10,6 +10,7 @@ from fanfan.adapters.config_reader import (
     RedisConfig,
     TimepadConfig,
     WebConfig,
+    get_config,
 )
 
 
@@ -17,37 +18,37 @@ class ConfigProvider(Provider):
     scope = Scope.APP
 
     @provide
-    def get_db_config(self) -> DatabaseConfig:
-        return DatabaseConfig()
-
-    @provide
-    def get_redis_config(self) -> RedisConfig:
-        return RedisConfig()
-
-    @provide()
-    def get_nats_config(self) -> NatsConfig:
-        return NatsConfig()
-
-    @provide
-    def get_bot_config(self) -> BotConfig:
-        return BotConfig()
-
-    @provide
-    def get_web_config(self) -> WebConfig:
-        return WebConfig()
-
-    @provide
-    def get_timepad_config(self) -> TimepadConfig:
-        return TimepadConfig()
-
-    @provide()
-    def get_cosplay2_config(self) -> Cosplay2Config:
-        return Cosplay2Config()
-
-    @provide
-    def get_debug_config(self) -> DebugConfig:
-        return DebugConfig()
-
-    @provide
     def get_config(self) -> Configuration:
-        return Configuration()
+        return get_config()
+
+    @provide
+    def get_bot_config(self, config: Configuration) -> BotConfig:
+        return config.bot
+
+    @provide
+    def get_web_config(self, config: Configuration) -> WebConfig:
+        return config.web
+
+    @provide
+    def get_db_config(self, config: Configuration) -> DatabaseConfig:
+        return config.db
+
+    @provide
+    def get_redis_config(self, config: Configuration) -> RedisConfig:
+        return config.redis
+
+    @provide()
+    def get_nats_config(self, config: Configuration) -> NatsConfig:
+        return config.nats
+
+    @provide
+    def get_debug_config(self, config: Configuration) -> DebugConfig:
+        return config.debug
+
+    @provide
+    def get_timepad_config(self, config: Configuration) -> TimepadConfig | None:
+        return config.timepad
+
+    @provide()
+    def get_cosplay2_config(self, config: Configuration) -> Cosplay2Config | None:
+        return config.cosplay2

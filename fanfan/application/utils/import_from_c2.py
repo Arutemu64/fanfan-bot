@@ -7,6 +7,9 @@ from sqlalchemy.exc import IntegrityError
 
 from fanfan.adapters.cosplay2.client import Cosplay2Client
 from fanfan.adapters.cosplay2.dto.requests import Request
+from fanfan.adapters.cosplay2.exceptions import (
+    NoCosplay2ConfigProvided,
+)
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.db.uow import UnitOfWork
@@ -32,7 +35,7 @@ class ImportFromC2Result:
 class ImportFromC2:
     def __init__(
         self,
-        cosplay2: Cosplay2Client,
+        cosplay2: Cosplay2Client | None,
         participants_repo: ParticipantsRepository,
         nominations_repo: NominationsRepository,
         uow: UnitOfWork,
@@ -51,6 +54,8 @@ class ImportFromC2:
             blocking=False,
             lock_timeout=timedelta(minutes=5).seconds,
         ):
+            if self.cosplay2 is None:
+                raise NoCosplay2ConfigProvided
             topics_merged, requests_merged = 0, 0
             failed_request: list[Request] = []
             start = time.time()

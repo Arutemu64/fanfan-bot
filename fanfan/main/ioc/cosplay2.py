@@ -21,6 +21,8 @@ class Cosplay2Provider(Provider):
 
     @provide
     async def get_cosplay2_client(
-        self, session: Cosplay2Session, config: Cosplay2Config, redis: Redis
-    ) -> Cosplay2Client:
-        return Cosplay2Client(session, config, redis)
+        self, session: Cosplay2Session, config: Cosplay2Config | None, redis: Redis
+    ) -> Cosplay2Client | None:
+        if config:
+            return Cosplay2Client(session, config, redis)
+        return None

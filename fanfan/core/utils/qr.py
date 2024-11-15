@@ -7,7 +7,7 @@ from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 from qrcode.main import QRCode
 
-from fanfan.common import COMMON_STATIC_DIR
+from fanfan.common.paths import COMMON_STATIC_DIR
 from fanfan.core.dto.qr import QR
 
 

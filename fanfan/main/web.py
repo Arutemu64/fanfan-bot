@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from fanfan.adapters.config_reader import get_config
+from fanfan.adapters.config_reader import Configuration, get_config
 from fanfan.common.telemetry import setup_telemetry
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     await app.state.dishka_container.close()
 
 
-def create_app() -> FastAPI:
+def create_app(config: Configuration) -> FastAPI:
     # Setup FastAPI app
     app = FastAPI(lifespan=lifespan, debug=config.debug.enabled)
 
@@ -45,7 +45,7 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(setup_webapp_router())
-    app.include_router(setup_api_router())
+    app.include_router(setup_api_router(config=config))
 
     # Setup FastAPI middlewares
     app.add_middleware(
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with suppress(KeyboardInterrupt):
         uvicorn.run(
-            create_app(),
+            create_app(config=config),
             host=config.web.host,
             port=config.web.port,
             root_path="/web",

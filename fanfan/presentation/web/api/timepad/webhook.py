@@ -21,7 +21,7 @@ timepad_webhook_router = APIRouter()
 async def order_change(
     data: RegistrationOrderResponse,
     interactor: FromDishka[ProceedOrder],
-    config: FromDishka[TimepadConfig],
+    config: FromDishka[TimepadConfig | None],
 ) -> ProceedOrderResult | None:
     if data.event.id == config.event_id:
         return await interactor(data)

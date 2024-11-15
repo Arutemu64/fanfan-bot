@@ -9,12 +9,32 @@ services:
     volumes:
       - bot-data:/media/bot-data
     ports:
-      - "${BOT_WEBHOOK_PORT}:${BOT_WEBHOOK_PORT}"
+      - "127.0.0.1:${WEBHOOK_PORT}:${WEBHOOK_PORT}"
     depends_on:
       - migration
       - redis
       - nats
     command: ["python", "-m", "fanfan.main.bot"]
+
+  web:
+    profiles: [ "web" ]
+    container_name: "fanfan-web-${ENV_NAME}"
+    build: .
+    env_file:
+      - .env
+    restart: unless-stopped
+    stop_signal: SIGINT
+    volumes:
+      - bot-data:/media/bot-data
+    ports:
+      - "127.0.0.1:${WEB_PORT}:${WEB_PORT}"
+    depends_on:
+      - migration
+    command: [
+      "python",
+      "-m",
+      "fanfan.main.web",
+    ]
 
   migration:
     container_name: "fanfan-migration-${ENV_NAME}"
@@ -43,7 +63,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${DB_PORT}:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
       interval: 2s
@@ -82,7 +102,7 @@ services:
       - redis-data:/data
       - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
     ports:
-      - "6379:6379"
+      - "127.0.0.1:${REDIS_PORT}:6379"
     healthcheck:
       test: [ "CMD", "redis-cli","ping" ]
       interval: 5s
@@ -96,30 +116,10 @@ services:
     env_file:
       - .env
     ports:
-      - "4222:4222"
+      - "127.0.0.1:${NATS_PORT}:4222"
     volumes:
       - nats-data:/data
     command: "--js --sd=/data --user ${NATS_USER} --pass ${NATS_PASSWORD}"
-
-  web:
-    profiles: ["web"]
-    container_name: "fanfan-web-${ENV_NAME}"
-    build: .
-    env_file:
-      - .env
-    restart: unless-stopped
-    stop_signal: SIGINT
-    volumes:
-      - bot-data:/media/bot-data
-    ports:
-      - "${WEB_PORT}:${WEB_PORT}"
-    depends_on:
-      - migration
-    command: [
-        "python",
-        "-m",
-        "fanfan.main.web",
-      ]
 
   faststream:
     container_name: "fanfan-faststream-${ENV_NAME}"

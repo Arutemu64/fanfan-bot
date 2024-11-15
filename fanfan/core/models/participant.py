@@ -6,13 +6,15 @@ from typing import NewType
 ParticipantId = NewType("ParticipantId", int)
 ParticipantScopedId = NewType("ParticipantScopedId", int)
 
+UNSET_SCOPED_ID = object()
+
 
 @dataclass(slots=True)
 class ParticipantModel:
     id: ParticipantId
     title: str
     nomination_id: NominationId | None
-    scoped_id: ParticipantScopedId | None = None
+    scoped_id: ParticipantScopedId | None = UNSET_SCOPED_ID
 
 
 @dataclass(slots=True, kw_only=True)

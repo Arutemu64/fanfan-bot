@@ -241,4 +241,4 @@ cython_debug/
 .idea/
 
 /.ruff_cache/
-/.local-env
+/config/*config.toml

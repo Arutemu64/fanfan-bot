@@ -1,10 +1,14 @@
 from fastapi import APIRouter
 
+from fanfan.adapters.config_reader import Configuration
 
-def setup_api_router() -> APIRouter:
+
+def setup_api_router(config: Configuration) -> APIRouter:
     from .timepad import setup_timepad_router
 
     router = APIRouter(prefix="/api")
-    router.include_router(setup_timepad_router())
+
+    if config.timepad:
+        router.include_router(setup_timepad_router())
 
     return router
