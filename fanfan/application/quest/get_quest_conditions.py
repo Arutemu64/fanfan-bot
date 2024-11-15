@@ -32,6 +32,7 @@ class GetQuestConditions:
             is_registration_open = True
         except AppException:
             is_registration_open = False
+
         try:
             user = await self.id_provider.get_current_user()
             await self.access.ensure_can_participate_in_quest(user)

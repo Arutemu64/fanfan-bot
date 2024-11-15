@@ -19,7 +19,6 @@ from fanfan.application.participants.get_participant_by_scoped_id import (
 from fanfan.application.participants.get_participants_page import GetParticipantsPage
 from fanfan.application.quest.add_achievement import AddAchievement
 from fanfan.application.quest.add_points import AddPoints
-from fanfan.application.quest.cancel_registration import CancelRegistration
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.quest.get_quest_conditions import GetQuestConditions
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
@@ -117,7 +116,6 @@ class InteractorsProvider(Provider):
     get_quest_conditions = provide(GetQuestConditions)
     get_user_quest_details = provide(GetUserQuestStats)
     register_to_quest = provide(RegisterToQuest)
-    cancel_registration = provide(CancelRegistration)
     add_points = provide(AddPoints)
 
     add_vote = provide(AddVote)

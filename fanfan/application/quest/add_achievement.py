@@ -49,10 +49,10 @@ class AddAchievement(Interactor[AddAchievementDTO, None]):
         self.stream_broker_adapter = stream_broker_adapter
 
     async def __call__(self, data: AddAchievementDTO) -> None:
-        participant = await self.users_repo.get_user_by_id(data.to_user_id)
-        if participant is None:
+        user = await self.users_repo.get_user_by_id(data.to_user_id)
+        if user is None:
             raise UserNotFound
-        await self.access.ensure_can_participate_in_quest(participant)
+        await self.access.ensure_can_participate_in_quest(user)
         achievement = await self.achievements_repo.get_achievement_by_id(
             data.achievement_id
         )
@@ -63,23 +63,23 @@ class AddAchievement(Interactor[AddAchievementDTO, None]):
             try:
                 await self.achievements_repo.add_achievement_to_user(
                     achievement_id=data.achievement_id,
-                    user_id=participant.id,
+                    user_id=user.id,
                 )
                 await self.uow.commit()
             except IntegrityError as e:
                 await self.uow.rollback()
                 raise UserAlreadyHasThisAchievement from e
             else:
-                await self.stream_broker_adapter.send_notification(
-                    SendNotificationDTO(
-                        user_id=data.to_user_id,
-                        notification=create_achievement_notification(achievement),
-                    )
-                )
                 logger.info(
                     "User %s received achievement %s from user %s",
                     data.to_user_id,
                     data.achievement_id,
                     self.id_provider.get_current_user_id(),
                     extra={"achievement": achievement},
+                )
+                await self.stream_broker_adapter.send_notification(
+                    SendNotificationDTO(
+                        user_id=data.to_user_id,
+                        notification=create_achievement_notification(achievement),
+                    )
                 )

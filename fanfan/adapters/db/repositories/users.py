@@ -1,12 +1,11 @@
 from sqlalchemy import Select, and_, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, undefer
+from sqlalchemy.orm import joinedload
 
 from fanfan.adapters.db.models import User, UserSettings
 from fanfan.core.enums import UserRole
 from fanfan.core.models.user import (
     FullUserModel,
-    QuestParticipant,
     UserId,
     UserModel,
 )
@@ -34,36 +33,14 @@ class UsersRepository:
         self,
         user_id: UserId,
     ) -> FullUserModel | None:
-        query = select(User).where(User.id == user_id)
-        query = self._load_full(query)
-        user = await self.session.scalar(query)
-        return user.to_full_model() if user else None
-
-    async def get_user_for_quest(self, user_id: UserId) -> QuestParticipant | None:
         query = (
             select(User)
             .where(User.id == user_id)
-            .options(
-                joinedload(User.ticket),
-                joinedload(User.quest_registration),
-                undefer(User.achievements_count),
-                undefer(User.points),
-            )
+            .execution_options(populate_existing=True)
         )
+        query = self._load_full(query)
         user = await self.session.scalar(query)
-        return (
-            QuestParticipant(
-                id=UserId(user.id),
-                username=user.username,
-                role=user.role,
-                points=user.points,
-                achievements_count=user.achievements_count,
-                quest_registration=bool(user.quest_registration),
-                ticket=user.ticket.to_model() if user.ticket else None,
-            )
-            if user
-            else None
-        )
+        return user.to_full_model() if user else None
 
     async def get_user_by_username(self, username: str) -> UserModel | None:
         user = await self.session.scalar(

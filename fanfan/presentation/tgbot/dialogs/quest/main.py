@@ -3,7 +3,7 @@ import math
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, Group, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Cancel, Group
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format, Multi, Progress
 from dishka import AsyncContainer
@@ -121,12 +121,6 @@ main_quest_window = Window(
             id="register_to_quest",
             on_click=register_to_quest_handler,
             when=~F["quest_registration"] & F["is_registration_open"],
-        ),
-        SwitchTo(
-            text=Const("🗑️ Отменить регистрацию"),
-            id="unregister_from_quest",
-            state=states.Quest.cancel_registration,
-            when=F["quest_registration"],
         ),
         Button(
             text=Const("🏆 Мои достижения"),

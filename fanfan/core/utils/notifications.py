@@ -5,6 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from fanfan.core.dto.notification import DEFAULT_REPLY_MARKUP, UserNotification
 from fanfan.core.models.achievement import AchievementModel
 from fanfan.core.models.feedback import FullFeedbackModel
+from fanfan.core.utils.pluralize import Plurals, pluralize
 from fanfan.presentation.tgbot.keyboards.buttons import (
     PULL_DOWN_DIALOG,
     process_feedback_button,
@@ -19,8 +20,10 @@ def create_achievement_notification(achievement: AchievementModel) -> UserNotifi
 
 
 def create_points_notification(points: int) -> UserNotification:
+    points_pluralized = pluralize(points, Plurals("очко", "очка", "очков"))
     return UserNotification(
-        title="🤑 Денежки пришли", text=f"Ты заработал <b>{points} очков</b>"
+        title="🤑 Денежки пришли",
+        text=f"Ты заработал <b>{points} {points_pluralized}</b>",
     )
 
 

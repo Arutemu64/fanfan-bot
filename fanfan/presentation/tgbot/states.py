@@ -72,7 +72,6 @@ class Voting(StatesGroup):
 
 class Quest(StatesGroup):
     main = State()
-    cancel_registration = State()
 
 
 class InlineQuerySearch(StatesGroup):

@@ -30,16 +30,16 @@ class GetUserQuestStats:
         self.achievements = achievements
 
     async def __call__(self, user_id: UserId) -> QuestStats:
-        user = await self.users_repo.get_user_for_quest(user_id)
-        if user is None:
+        participant = await self.quest_repo.get_quest_participant(user_id=user_id)
+        if participant is None:
             raise UserNotFound
 
         total = await self.achievements.count_achievements()
 
         return QuestStats(
-            user_id=user.id,
-            points=user.points,
-            achievements_count=user.achievements_count,
+            user_id=participant.id,
+            points=participant.points,
+            achievements_count=participant.achievements_count,
             total_achievements=total,
-            quest_registration=bool(user.quest_registration),
+            quest_registration=participant.quest_registration,
         )
