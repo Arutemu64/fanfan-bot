@@ -6,7 +6,7 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import Header, HTTPException, Request
 
-from fanfan.adapters.config_reader import TimepadConfig
+from fanfan.adapters.config.models import TimepadConfig
 
 
 @inject

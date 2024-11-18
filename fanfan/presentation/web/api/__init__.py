@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from fanfan.adapters.config_reader import Configuration
+from fanfan.adapters.config.models import Configuration
 
 
 def setup_api_router(config: Configuration) -> APIRouter:

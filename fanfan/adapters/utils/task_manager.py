@@ -1,7 +1,7 @@
 import logging
 
-from fanfan.adapters.config_reader import Configuration
-from fanfan.adapters.utils.limiter import Limiter
+from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.utils.import_from_c2 import IMPORT_FROM_C2_LIMIT_NAME
 from fanfan.application.utils.import_orders import IMPORT_ORDERS_LIMIT_NAME
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class TaskManager:
     def __init__(
-        self, config: Configuration, limiter: Limiter, id_provider: IdProvider
+        self, config: Configuration, limiter: LimitFactory, id_provider: IdProvider
     ):
         self.config = config
         self.limiter = limiter

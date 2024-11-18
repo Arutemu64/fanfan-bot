@@ -5,10 +5,10 @@ import time
 from dataclasses import dataclass
 from datetime import timedelta
 
-from fanfan.adapters.config_reader import TimepadConfig
+from fanfan.adapters.config.models import TimepadConfig
 from fanfan.adapters.timepad.client import TimepadClient
 from fanfan.adapters.timepad.exceptions import NoTimepadConfigProvided
-from fanfan.adapters.utils.limiter import Limiter
+from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.application.utils.proceed_order import (
     ProceedOrder,
 )
@@ -35,7 +35,7 @@ class ImportOrders:
         self,
         config: TimepadConfig | None,
         client: TimepadClient | None,
-        limiter: Limiter,
+        limiter: LimitFactory,
         proceed_order: ProceedOrder,
     ):
         self.config = config

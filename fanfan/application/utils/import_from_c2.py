@@ -13,7 +13,7 @@ from fanfan.adapters.cosplay2.exceptions import (
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.utils.limiter import Limiter
+from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.core.models.nomination import NominationId, NominationModel
 from fanfan.core.models.participant import ParticipantId, ParticipantModel
 
@@ -39,7 +39,7 @@ class ImportFromC2:
         participants_repo: ParticipantsRepository,
         nominations_repo: NominationsRepository,
         uow: UnitOfWork,
-        limiter: Limiter,
+        limiter: LimitFactory,
     ):
         self.cosplay2 = cosplay2
         self.participants_repo = participants_repo

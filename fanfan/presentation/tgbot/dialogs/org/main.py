@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.text import Case, Const, Format
 from dishka import AsyncContainer
 
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
-from fanfan.adapters.config_reader import WebConfig
+from fanfan.adapters.config.models import Configuration
 from fanfan.application.settings.get_settings import GetSettings
 from fanfan.application.settings.update_settings import (
     UpdateSettings,
@@ -24,15 +24,18 @@ async def org_main_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    web_config: WebConfig = await container.get(WebConfig)
+    config: Configuration = await container.get(Configuration)
     token_processor: JwtTokenProcessor = await container.get(JwtTokenProcessor)
     get_settings: GetSettings = await container.get(GetSettings)
 
     settings = await get_settings()
     jwt_token = token_processor.create_access_token(dialog_manager.event.from_user.id)
     return {
-        "web_panel_login_link": web_config.build_admin_auth_url(jwt_token),
+        "admin_auth_url": config.web.build_admin_auth_url(jwt_token)
+        if config.web
+        else None,
         "voting_enabled": settings.voting_enabled,
+        "docs_link": config.docs_link,
     }
 
 
@@ -60,11 +63,13 @@ org_main_window = Window(
     Group(
         Url(
             text=Const("🌐 Орг-панель"),
-            url=Format("{web_panel_login_link}"),
+            url=Format("{admin_auth_url}"),
+            when="admin_auth_url",
         ),
         Url(
             text=Const(strings.buttons.help_page),
-            url=Const("https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"),
+            url=Format("{docs_link}"),
+            when="docs_link",
         ),
         Start(
             state=states.Mailing.main,

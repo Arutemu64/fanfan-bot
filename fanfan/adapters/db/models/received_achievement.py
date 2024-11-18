@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 class ReceivedAchievement(Base):
     __tablename__ = "received_achievements"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     # Achievement relation
     achievement_id: Mapped[int] = mapped_column(
@@ -26,4 +26,6 @@ class ReceivedAchievement(Base):
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped[User] = relationship(viewonly=True)
+
+    # Constraint
     UniqueConstraint(user_id, achievement_id)

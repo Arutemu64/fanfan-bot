@@ -20,10 +20,10 @@ if TYPE_CHECKING:
 class Nomination(Base):
     __tablename__ = "nominations"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(unique=True)
     title: Mapped[str] = mapped_column(unique=True)
-    votable: Mapped[bool] = mapped_column(server_default="False")
+    is_votable: Mapped[bool] = mapped_column(server_default="False")
 
     # Relationships
     user_vote: Mapped[Vote | None] = relationship(
@@ -45,7 +45,7 @@ class Nomination(Base):
     @classmethod
     def from_model(cls, model: NominationModel):
         return Nomination(
-            id=model.id, code=model.code, title=model.title, votable=model.votable
+            id=model.id, code=model.code, title=model.title, is_votable=model.is_votable
         )
 
     def to_model(self) -> NominationModel:
@@ -53,7 +53,7 @@ class Nomination(Base):
             id=NominationId(self.id),
             code=self.code,
             title=self.title,
-            votable=self.votable,
+            is_votable=self.is_votable,
         )
 
     def to_full_model(self) -> FullNominationModel:
@@ -61,6 +61,6 @@ class Nomination(Base):
             id=NominationId(self.id),
             code=self.code,
             title=self.title,
-            votable=self.votable,
+            is_votable=self.is_votable,
             user_vote=self.user_vote.to_model() if self.user_vote else None,
         )

@@ -8,7 +8,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from fanfan.adapters.config_reader import get_config
+from fanfan.adapters.config.parsers import get_config
 from fanfan.adapters.db.models import Base
 
 # this is the Alembic Config object, which provides

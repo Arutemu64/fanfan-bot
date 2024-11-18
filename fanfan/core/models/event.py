@@ -12,9 +12,9 @@ EventId = NewType("EventId", int)
 class EventModel:
     id: EventId
     title: str
-    current: bool | None
-    skip: bool
     order: float
+    is_current: bool | None
+    is_skipped: bool
 
 
 @dataclass(slots=True)

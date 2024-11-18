@@ -7,7 +7,8 @@ from taskiq import SimpleRetryMiddleware, TaskiqEvents, TaskiqScheduler, TaskiqS
 from taskiq.schedule_sources import LabelScheduleSource
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
-from fanfan.adapters.config_reader import Configuration, get_config
+from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.parsers import get_config
 from fanfan.common.logging import setup_logging
 from fanfan.common.telemetry import setup_telemetry
 

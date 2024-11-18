@@ -1,7 +1,5 @@
 import logging
-import os
-import tomllib
-from pathlib import Path
+from typing import Self
 
 from pydantic import (
     BaseModel,
@@ -15,15 +13,23 @@ from pydantic import (
 )
 from pydantic_extra_types.timezone_name import TimeZoneName
 
-from fanfan.common.paths import ROOT_DIR
 from fanfan.core.enums import BotMode
-
-DEFAULT_CONFIG_PATH = ROOT_DIR.joinpath("config/config.toml")
 
 
 class WebhookConfig(BaseModel):
     host: str
     port: int
+
+    base_url: HttpUrl
+    path: str = "/webhook"
+
+    def build_webhook_url(self) -> str:
+        url: HttpUrl = HttpUrl.build(
+            scheme=self.base_url.scheme,
+            host=self.base_url.host,
+            path=self.path.lstrip("/"),
+        )
+        return url.unicode_string()
 
 
 class BotConfig(BaseModel):
@@ -32,33 +38,27 @@ class BotConfig(BaseModel):
 
     webhook: WebhookConfig | None = None
 
-    @model_validator(mode="before")
-    def check_if_webhook_config_set(cls, data: dict) -> dict:
-        if data.get("webhook") and data.get("mode") is BotMode.WEBHOOK:
+    @model_validator(mode="after")
+    def check_if_webhook_config_set(self) -> Self:
+        if self.mode is BotMode.WEBHOOK and self.webhook is None:
             msg = "Webhook config is not set!"
             raise AssertionError(msg)
-        return data
+        return self
 
 
 class WebConfig(BaseModel):
     host: str
     port: int
-    base_url: HttpUrl
-    secret_key: SecretStr
 
-    def build_webhook_url(self) -> str:
-        url: HttpUrl = HttpUrl.build(
-            scheme=self.base_url.scheme,
-            host=self.base_url.host,
-            path="webhook",
-        )
-        return url.unicode_string()
+    base_url: HttpUrl
+    path: str = "/web"
+    secret_key: SecretStr
 
     def build_admin_auth_url(self, token: str) -> str:
         url: HttpUrl = HttpUrl.build(
             scheme=self.base_url.scheme,
             host=self.base_url.host,
-            path=f"web/admin/auth?token={token}",
+            path=f"{self.path.lstrip("/")}/admin/auth?token={token}",
         )
         return url.unicode_string()
 
@@ -66,7 +66,7 @@ class WebConfig(BaseModel):
         url: HttpUrl = HttpUrl.build(
             scheme=self.base_url.scheme,
             host=self.base_url.host,
-            path="web/qr_scanner",
+            path=f"{self.path.lstrip("/")}/qr_scanner",
         )
         return url.unicode_string()
 
@@ -86,7 +86,7 @@ class DatabaseConfig(BaseModel):
         dsn: PostgresDsn = PostgresDsn.build(
             scheme=f"{self.database_system}+{self.driver}",
             username=self.user,
-            password=self.password.get_secret_value() if self.password else None,
+            password=self.password.get_secret_value(),
             host=self.host,
             port=self.port,
             path=self.name,
@@ -119,7 +119,7 @@ class NatsConfig(BaseModel):
     host: str
     port: int
     user: str
-    password: str
+    password: SecretStr
 
     def build_connection_str(self) -> str:
         dsn: NatsDsn = NatsDsn.build(
@@ -127,9 +127,13 @@ class NatsConfig(BaseModel):
             host=self.host,
             port=self.port,
             username=self.user,
-            password=self.password,
+            password=self.password.get_secret_value(),
         )
         return dsn.unicode_string()
+
+
+class LimitsConfig(BaseModel):
+    announcement_timeout: int = 10
 
 
 class TimepadConfig(BaseModel):
@@ -144,10 +148,7 @@ class Cosplay2Config(BaseModel):
     password: SecretStr
 
     def build_api_base_url(self) -> str:
-        url: HttpUrl = HttpUrl.build(
-            scheme="https", host=f"{self.subdomain}.cosplay2.ru", path="api/"
-        )
-        return url.unicode_string()
+        return f"https://{self.subdomain}.cosplay2.ru/api/"
 
 
 class DebugConfig(BaseModel):
@@ -160,18 +161,19 @@ class DebugConfig(BaseModel):
 
     otlp_endpoint: HttpUrl | None = None
 
-    @model_validator(mode="before")
-    def check_if_sentry_dsn_set(cls, data: dict) -> dict:
-        if data.get("sentry_enabled") and data.get("sentry_dsn") is None:
+    @model_validator(mode="after")
+    def check_if_sentry_dsn_set(self) -> Self:
+        if self.sentry_enabled and self.sentry_dsn is None:
             msg = "Sentry DSN is not set!"
             raise AssertionError(msg)
-        return data
+        return self
 
 
 class Configuration(BaseModel):
     env_name: str
     timezone: TimeZoneName = "Europe/Moscow"
     media_root: DirectoryPath
+    docs_link: HttpUrl | None = None
 
     bot: BotConfig
     web: WebConfig | None = None
@@ -180,21 +182,8 @@ class Configuration(BaseModel):
     redis: RedisConfig
     nats: NatsConfig
 
-    debug: DebugConfig
+    limits: LimitsConfig = LimitsConfig()
+    debug: DebugConfig = DebugConfig()
 
     timepad: TimepadConfig | None = None
     cosplay2: Cosplay2Config | None = None
-
-
-def get_config() -> Configuration:
-    # Pick config path
-    if config_path := os.getenv("CONFIG_PATH"):
-        path = Path(config_path)
-    else:
-        path = DEFAULT_CONFIG_PATH
-    # Load config
-    with path.open("rb") as cfg:
-        cfg_dict = tomllib.load(cfg)
-    # Read additional parameters from env
-    cfg_dict.update(env_name=os.getenv("ENV_NAME", default="dev"))
-    return Configuration.model_validate(cfg_dict)

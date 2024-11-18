@@ -2,7 +2,7 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Depends
 
-from fanfan.adapters.config_reader import TimepadConfig
+from fanfan.adapters.config.models import TimepadConfig
 from fanfan.adapters.timepad.dto.order import RegistrationOrderResponse
 from fanfan.application.utils.proceed_order import (
     ProceedOrder,

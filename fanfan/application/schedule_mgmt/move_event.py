@@ -1,11 +1,11 @@
 import logging
 from dataclasses import dataclass
 
+from fanfan.adapters.config.models import LimitsConfig
 from fanfan.adapters.db.repositories.events import EventsRepository
-from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.limiter import Limiter
+from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
@@ -47,16 +47,16 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
     def __init__(
         self,
         events_repo: EventsRepository,
-        settings_repo: SettingsRepository,
+        limits: LimitsConfig,
         access: AccessService,
         uow: UnitOfWork,
         id_provider: IdProvider,
-        limiter: Limiter,
+        limiter: LimitFactory,
         stream_broker_adapter: StreamBrokerAdapter,
         mailing_repo: MailingRepository,
     ) -> None:
         self.events_repo = events_repo
-        self.settings_repo = settings_repo
+        self.limits = limits
         self.access = access
         self.uow = uow
         self.id_provider = id_provider
@@ -67,13 +67,12 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
     async def __call__(self, data: MoveEventDTO) -> MoveEventResult:
         user = await self.id_provider.get_current_user()
         await self.access.ensure_can_edit_schedule(user)
-        settings = await self.settings_repo.get_settings()
         try:
             async with (
                 self.uow,
                 self.limiter(
                     ANNOUNCE_LIMIT_NAME,
-                    limit_timeout=settings.announcement_timeout,
+                    limit_timeout=self.limits.announcement_timeout,
                 ),
             ):
                 # Check event

@@ -1,10 +1,24 @@
-from aiogram_dialog import Window
+from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Cancel, Start, Url
-from aiogram_dialog.widgets.text import Const
+from aiogram_dialog.widgets.text import Const, Format
+from dishka import AsyncContainer
 
+from fanfan.adapters.config.models import Configuration
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
+
+
+async def helper_main_getter(
+    dialog_manager: DialogManager,
+    container: AsyncContainer,
+    **kwargs,
+):
+    config: Configuration = await container.get(Configuration)
+    return {
+        "docs_link": config.docs_link,
+    }
+
 
 helper_main_window = Window(
     Title(Const(strings.titles.helper_menu)),
@@ -27,8 +41,10 @@ helper_main_window = Window(
     ),
     Url(
         text=Const(strings.buttons.help_page),
-        url=Const("https://fan-fan.notion.site/7234cca8ae1943b18a5bc4435342fffe"),
+        url=Format("{docs_link}"),
+        when="docs_link",
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Helper.main,
+    getter=helper_main_getter,
 )

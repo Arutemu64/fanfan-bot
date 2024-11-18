@@ -1,17 +1,18 @@
 from dishka import Provider, Scope, provide
 
-from fanfan.adapters.config_reader import (
+from fanfan.adapters.config.models import (
     BotConfig,
     Configuration,
     Cosplay2Config,
     DatabaseConfig,
     DebugConfig,
+    LimitsConfig,
     NatsConfig,
     RedisConfig,
     TimepadConfig,
     WebConfig,
-    get_config,
 )
+from fanfan.adapters.config.parsers import get_config
 
 
 class ConfigProvider(Provider):
@@ -26,7 +27,7 @@ class ConfigProvider(Provider):
         return config.bot
 
     @provide
-    def get_web_config(self, config: Configuration) -> WebConfig:
+    def get_web_config(self, config: Configuration) -> WebConfig | None:
         return config.web
 
     @provide
@@ -40,6 +41,10 @@ class ConfigProvider(Provider):
     @provide()
     def get_nats_config(self, config: Configuration) -> NatsConfig:
         return config.nats
+
+    @provide()
+    def get_limits(self, config: Configuration) -> LimitsConfig:
+        return config.limits
 
     @provide
     def get_debug_config(self, config: Configuration) -> DebugConfig:

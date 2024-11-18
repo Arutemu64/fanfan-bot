@@ -8,7 +8,7 @@ from jinja2 import Environment
 from pydantic import BaseModel
 from pytz import timezone
 
-from fanfan.adapters.config_reader import Configuration
+from fanfan.adapters.config.models import Configuration
 from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository

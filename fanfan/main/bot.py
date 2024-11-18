@@ -5,7 +5,8 @@ import sys
 
 from aiogram import Bot, Dispatcher
 
-from fanfan.adapters.config_reader import Configuration, get_config
+from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.parsers import get_config
 from fanfan.common.logging import setup_logging
 from fanfan.common.telemetry import setup_telemetry
 from fanfan.core.enums import BotMode
@@ -38,7 +39,7 @@ async def run_webhook(bot: Bot, dp: Dispatcher, config: Configuration) -> None:
     )
     webhook_requests_handler.register(app, path="/webhook")
     setup_application(app, dp, bot=bot)
-    webhook_url = config.web.build_webhook_url()
+    webhook_url = config.bot.webhook.build_webhook_url()
     if (await bot.get_webhook_info()).url != webhook_url:
         await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
     runner = AppRunner(app)

@@ -19,8 +19,8 @@ class ActivityView(ModelView, model=Activity):
         Activity.title: "Название",
         Activity.description: "Описание",
         Activity.image: "Изображение",
-        Activity.created_on: "Время создания",
-        Activity.updated_on: "Время изменения",
+        Activity.created_at: "Время создания",
+        Activity.updated_at: "Время изменения",
     }
     form_columns = [
         Activity.order,

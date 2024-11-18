@@ -5,7 +5,7 @@ from faststream.nats.prometheus import NatsPrometheusMiddleware
 from opentelemetry.trace import TracerProvider
 from prometheus_client import CollectorRegistry
 
-from fanfan.adapters.config_reader import NatsConfig
+from fanfan.adapters.config.models import NatsConfig
 from fanfan.presentation.stream.routes import setup_router
 
 

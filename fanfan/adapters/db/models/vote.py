@@ -19,7 +19,11 @@ if TYPE_CHECKING:
 class Vote(Base):
     __tablename__ = "votes"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    # User relation
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user: Mapped[User] = relationship()
 
     # Participant relation
     participant_id: Mapped[int] = mapped_column(
@@ -31,10 +35,8 @@ class Vote(Base):
         viewonly=True,
     )
 
-    # User relation
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    user: Mapped[User] = relationship()
-    UniqueConstraint(user_id, participant_id)  # User can vote once for participant
+    # User can vote once for participant
+    UniqueConstraint(user_id, participant_id)
 
     @classmethod
     def from_model(cls, model: VoteModel):

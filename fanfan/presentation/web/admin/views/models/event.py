@@ -16,8 +16,8 @@ class EventView(ModelView, model=Event):
         Event.order,
         Event.queue,
         Event.title,
-        Event.current,
-        Event.skip,
+        Event.is_current,
+        Event.is_skipped,
     ]
     column_details_exclude_list = [Event.user_subscription]
     form_excluded_columns = [Event.user_subscription, Event.queue, Event.nomination]
@@ -27,10 +27,10 @@ class EventView(ModelView, model=Event):
         Event.order: "Сортировка",
         Event.queue: "Позиция",
         Event.title: "Название",
-        Event.current: "Текущее",
-        Event.skip: "Пропущено",
+        Event.is_current: "Текущее",
+        Event.is_skipped: "Пропущено",
         Event.nomination: "Номинация",
         Event.participant: "Участник",
-        Event.created_on: "Время создания",
-        Event.updated_on: "Время изменения",
+        Event.created_at: "Время создания",
+        Event.updated_at: "Время изменения",
     }

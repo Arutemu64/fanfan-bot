@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Sequence, UniqueConstraint, func, select
+from sqlalchemy import ForeignKey, Identity, UniqueConstraint, func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
@@ -24,19 +24,17 @@ if TYPE_CHECKING:
 class Participant(Base):
     __tablename__ = "participants"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(unique=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(index=True)
 
     # Nomination relation
     nomination_id: Mapped[int | None] = mapped_column(
         ForeignKey("nominations.id", ondelete="SET NULL"),
-        nullable=True,
     )
     nomination: Mapped[Nomination | None] = relationship()
-    order_sequence = Sequence("participants_scoped_id_seq", start=1)
-    scoped_id: Mapped[int] = mapped_column(
-        server_default=order_sequence.next_value(),
-    )  # ID inside nomination
+
+    # Nomination scoped id
+    scoped_id: Mapped[int] = mapped_column(Identity(start=1))
     UniqueConstraint(nomination_id, scoped_id)
 
     # Relationships

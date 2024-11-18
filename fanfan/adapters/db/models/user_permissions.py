@@ -14,6 +14,7 @@ if typing.TYPE_CHECKING:
 class UserPermissions(Base):
     __tablename__ = "user_permissions"
 
+    # Feedback
     can_send_feedback: Mapped[bool] = mapped_column(server_default="True")
 
     # User relation

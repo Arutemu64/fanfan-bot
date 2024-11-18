@@ -3,13 +3,13 @@ import datetime
 import jwt
 from jwt import InvalidSignatureError
 
-from fanfan.adapters.config_reader import WebConfig
+from fanfan.adapters.config.models import WebConfig
 from fanfan.core.exceptions.auth import AuthenticationError
 from fanfan.core.models.user import UserId
 
 
 class JwtTokenProcessor:
-    def __init__(self, config: WebConfig):
+    def __init__(self, config: WebConfig | None):
         self.config = config
 
     def create_access_token(self, user_id: int) -> str:

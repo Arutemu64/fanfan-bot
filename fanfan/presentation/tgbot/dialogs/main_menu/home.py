@@ -1,15 +1,14 @@
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Group, Start, WebApp
+from aiogram_dialog.widgets.kbd import Button, Group, Start
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
-from fanfan.adapters.config_reader import Configuration
 from fanfan.application.utils.get_random_quote import GetRandomQuote
-from fanfan.core.enums import BotMode, UserRole
+from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import FullUserModel
 from fanfan.core.services.access import AccessService
@@ -33,7 +32,6 @@ async def main_menu_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    config: Configuration = await container.get(Configuration)
     get_random_quote: GetRandomQuote = await container.get(GetRandomQuote)
     access: AccessService = await container.get(AccessService)
 
@@ -51,9 +49,6 @@ async def main_menu_getter(
     return {
         # Info
         "first_name": dialog_manager.middleware_data["event_from_user"].first_name,
-        # WebApp
-        "webapp_allowed": config.bot.mode is BotMode.WEBHOOK and user.ticket,
-        "webapp_link": config.web.build_qr_scanner_url(),
         # Access
         "can_vote": can_vote,
         "can_participate_in_quest": can_participate_in_quest,
@@ -158,11 +153,6 @@ main_window = Window(
             ),
             id="open_quest",
             on_click=open_quest_handler,
-        ),
-        WebApp(
-            Const(strings.titles.qr_scanner),
-            url=Format("{webapp_link}"),
-            when="webapp_allowed",
         ),
         Button(
             text=Case(

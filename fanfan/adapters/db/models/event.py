@@ -25,17 +25,16 @@ if TYPE_CHECKING:
 class Event(Base, OrderMixin):
     __tablename__ = "schedule"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(index=True)
 
     # Event status
-    current: Mapped[bool | None] = mapped_column(nullable=True, unique=True)
-    skip: Mapped[bool] = mapped_column(server_default="False")
+    is_current: Mapped[bool | None] = mapped_column(unique=True)
+    is_skipped: Mapped[bool] = mapped_column(server_default="False")
 
     # Participant relation
     participant_id: Mapped[int | None] = mapped_column(
         ForeignKey("participants.id", ondelete="SET NULL"),
-        nullable=True,
     )
     participant: Mapped[Participant | None] = relationship(
         back_populates="event", single_parent=True
@@ -57,8 +56,8 @@ class Event(Base, OrderMixin):
         subquery = select(
             cls.id,
             select(Block.id)
-            .where(cls.order >= Block.start_order)
             .order_by(Block.start_order.desc())
+            .where(cls.order >= Block.start_order)
             .limit(1)
             .label("block_id"),
         ).subquery()
@@ -77,21 +76,20 @@ class Event(Base, OrderMixin):
         queue_subquery = select(
             cls.id,
             func.row_number()
-            .over(order_by=cls.order, partition_by=cls.skip)
+            .over(order_by=cls.order, partition_by=cls.is_skipped)
             .label("queue"),
         ).subquery()
-        return column_property(
-            select(
-                case(
-                    (
-                        cls.skip.isnot(True),
-                        queue_subquery.c.queue,
-                    ),
-                    else_=None,
-                )
+        query = select(
+            case(
+                (
+                    cls.is_skipped.isnot(True),
+                    queue_subquery.c.queue,
+                ),
+                else_=None,
             )
-            .where(cls.id == queue_subquery.c.id)
-            .scalar_subquery(),
+        ).where(cls.id == queue_subquery.c.id)
+        return column_property(
+            query.scalar_subquery(),
             expire_on_flush=True,
             deferred=True,
         )
@@ -104,8 +102,8 @@ class Event(Base, OrderMixin):
         return Event(
             id=model.id,
             title=model.title,
-            current=model.current,
-            skip=model.skip,
+            is_current=model.is_current,
+            is_skipped=model.is_skipped,
             order=model.order,
         )
 
@@ -113,8 +111,8 @@ class Event(Base, OrderMixin):
         return EventModel(
             id=EventId(self.id),
             title=self.title,
-            current=self.current,
-            skip=self.skip,
+            is_current=self.is_current,
+            is_skipped=self.is_skipped,
             order=self.order,
         )
 
@@ -122,8 +120,8 @@ class Event(Base, OrderMixin):
         return FullEventModel(
             id=EventId(self.id),
             title=self.title,
-            current=self.current,
-            skip=self.skip,
+            is_current=self.is_current,
+            is_skipped=self.is_skipped,
             order=self.order,
             queue=self.queue,
             nomination=self.nomination.to_model() if self.nomination else None,

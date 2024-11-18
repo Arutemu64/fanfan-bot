@@ -44,11 +44,11 @@ class ParticipantsRepository:
                     case(
                         (
                             Participant.event.has(),
-                            Participant.event.has(Event.skip.isnot(True)),
+                            Participant.event.has(Event.is_skipped.isnot(True)),
                         ),
                         else_=True,
                     ),
-                    Participant.nomination.has(Nomination.votable.is_(True)),
+                    Participant.nomination.has(Nomination.is_votable.is_(True)),
                 ),
             )
         return query

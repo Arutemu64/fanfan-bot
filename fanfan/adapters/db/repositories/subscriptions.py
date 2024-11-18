@@ -77,12 +77,12 @@ class SubscriptionsRepository:
 
     async def get_upcoming_subscriptions(self) -> list[FullSubscriptionModel]:
         event_position = (
-            select(Event.queue).where(Event.current.is_(True)).scalar_subquery()
+            select(Event.queue).where(Event.is_current.is_(True)).scalar_subquery()
         )
         query = select(Subscription).where(
             Subscription.event.has(
                 and_(
-                    Event.skip.isnot(True),
+                    Event.is_skipped.isnot(True),
                     Subscription.counter >= (Event.queue - event_position),
                     (Event.queue - event_position) >= 0,
                 ),

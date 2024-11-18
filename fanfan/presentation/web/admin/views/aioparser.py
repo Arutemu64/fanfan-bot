@@ -25,7 +25,7 @@ async def parse(file: BinaryIO, session: AsyncSession) -> None:
         converters={
             "id": str,
             "title": str,
-            "votable": bool,
+            "is_votable": bool,
         },
     )
     for _index, row in nominations_df.iterrows():
@@ -35,7 +35,7 @@ async def parse(file: BinaryIO, session: AsyncSession) -> None:
                     Nomination(
                         id=row["id"],
                         title=row["title"],
-                        votable=row["votable"],
+                        is_votable=row["is_votable"],
                     ),
                 )
         except IntegrityError:

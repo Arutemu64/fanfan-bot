@@ -108,6 +108,7 @@ async def org_cmd(message: Message, dialog_manager: DialogManager) -> None:
 
 
 @router.message(Command(FEEDBACK_CMD))
+@inject
 async def feedback_cmd(
     message: Message,
     dialog_manager: DialogManager,

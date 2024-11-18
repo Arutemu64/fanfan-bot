@@ -15,8 +15,10 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
     Url,
 )
-from aiogram_dialog.widgets.text import Const, Jinja
+from aiogram_dialog.widgets.text import Const, Format, Jinja
+from dishka import AsyncContainer
 
+from fanfan.adapters.config.models import Configuration
 from fanfan.application.schedule_mgmt.set_next_event import SetNextEvent
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.events import EventNotFound
@@ -43,9 +45,19 @@ from fanfan.presentation.tgbot.ui import strings
 
 if typing.TYPE_CHECKING:
     from aiogram_dialog.widgets.common import ManagedScroll
-    from dishka import AsyncContainer
 
 ID_TOGGLE_HELPER_TOOLS = "toggle_helper_tools"
+
+
+async def view_schedule_getter(
+    dialog_manager: DialogManager,
+    container: AsyncContainer,
+    **kwargs,
+):
+    config: Configuration = await container.get(Configuration)
+    return {
+        "docs_link": config.docs_link,
+    }
 
 
 async def set_next_event_handler(
@@ -110,9 +122,8 @@ schedule_main_window = Window(
             ),
             Url(
                 text=Const("❓ Справка"),
-                url=Const(
-                    "https://fan-fan.notion.site/0781a7598cf34348866226315372c49e",
-                ),
+                url=Format("{docs_link}"),
+                when="docs_link",
             ),
             when=F["middleware_data"]["dialog_manager"]
             .find(ID_TOGGLE_HELPER_TOOLS)
@@ -138,6 +149,6 @@ schedule_main_window = Window(
     ),
     SCHEDULE_SCROLL,
     Cancel(text=Const(strings.buttons.back)),
-    getter=[schedule_getter, current_event_getter],
+    getter=[schedule_getter, current_event_getter, view_schedule_getter],
     state=states.Schedule.main,
 )

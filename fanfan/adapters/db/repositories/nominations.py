@@ -19,7 +19,7 @@ class NominationsRepository:
     @staticmethod
     def _filter_nominations(query: Select, only_votable: bool) -> Select:
         if only_votable:
-            query = query.where(Nomination.votable.is_(True))
+            query = query.where(Nomination.is_votable.is_(True))
         return query
 
     @staticmethod

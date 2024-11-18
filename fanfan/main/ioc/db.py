@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from fanfan.adapters.config_reader import DatabaseConfig
+from fanfan.adapters.config.models import DatabaseConfig
 from fanfan.adapters.db.uow import UnitOfWork
 
 

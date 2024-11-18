@@ -7,7 +7,7 @@ from dataclass_rest import get
 from dataclass_rest.http_request import HttpRequest
 from redis.asyncio import Redis
 
-from fanfan.adapters.config_reader import Cosplay2Config
+from fanfan.adapters.config.models import Cosplay2Config
 from fanfan.adapters.cosplay2.aiohttp_client import (
     C2AiohttpClient,
 )

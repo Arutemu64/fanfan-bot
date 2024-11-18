@@ -15,18 +15,17 @@ class Feedback(Base):
     text: Mapped[str] = mapped_column()
 
     # Mailing to orgs
-    mailing_id: Mapped[str | None] = mapped_column(nullable=True)
+    mailing_id: Mapped[str | None] = mapped_column()
 
     # User
     user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
-        nullable=True,
     )
     user: Mapped[User | None] = relationship(foreign_keys=user_id)
 
     # Processed
     processed_by_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        ForeignKey("users.id", ondelete="SET NULL")
     )
     processed_by: Mapped[User | None] = relationship(foreign_keys=processed_by_id)
 

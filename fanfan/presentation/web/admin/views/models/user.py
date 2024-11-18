@@ -18,7 +18,6 @@ class UserView(ModelView, model=User):
         User.achievements_count,
         User.points,
     ]
-    column_details_exclude_list = [User.received_achievements]
     form_columns = [
         User.role,
         User.ticket,
@@ -41,8 +40,8 @@ class UserView(ModelView, model=User):
         User.settings: "Настройки пользователя",
         User.permissions: "Права пользователя",
         User.ticket: "Билет",
-        User.created_on: "Время создания",
-        User.updated_on: "Время изменения",
+        User.created_at: "Время создания",
+        User.updated_at: "Время изменения",
     }
 
 

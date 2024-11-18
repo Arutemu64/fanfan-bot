@@ -1,9 +1,8 @@
 from fastapi_storages import FileSystemStorage, StorageImage
 from fastapi_storages.integrations.sqlalchemy import ImageType
-from sqlalchemy import Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from fanfan.adapters.config_reader import get_config
+from fanfan.adapters.config.parsers import get_config
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.mixins.order import OrderMixin
 from fanfan.core.models.activity import ActivityId, ActivityModel
@@ -12,16 +11,15 @@ from fanfan.core.models.activity import ActivityId, ActivityModel
 class Activity(Base, OrderMixin):
     __tablename__ = "activities"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column()
-    description: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column()
     image: Mapped[StorageImage | None] = mapped_column(
         ImageType(
             storage=FileSystemStorage(
                 get_config().media_root.joinpath("activity_images"),
             ),
         ),
-        nullable=True,
     )
 
     def to_model(self) -> ActivityModel:

@@ -100,7 +100,7 @@ async def skip_event_handler(
 
     try:
         data = await skip_event(manager.start_data[DATA_SELECTED_EVENT_ID])
-        if data.event.skip:
+        if data.event.is_skipped:
             text = (
                 f"🙈 Выступление <b>{data.event.title}</b> пропущено\n"
                 f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
@@ -165,13 +165,13 @@ selected_event_window = Window(
             text=Const("🎬 Отметить текущим"),
             id="set_as_current",
             on_click=set_as_current,
-            when=~F[SELECTED_EVENT].current & ~F[SELECTED_EVENT].skip,
+            when=~F[SELECTED_EVENT].is_current & ~F[SELECTED_EVENT].is_skipped,
         ),
         Button(
             text=Const("⛔ Снять отметку Текущее"),
             id="unset_current",
             on_click=unset_current,
-            when=F[SELECTED_EVENT].current,
+            when=F[SELECTED_EVENT].is_current,
         ),
         SwitchTo(
             text=Const("🔀 Переместить"),
@@ -181,11 +181,11 @@ selected_event_window = Window(
         Button(
             text=Case(
                 texts={False: Const("🙈 Пропустить"), True: Const("🙉 Вернуть")},
-                selector=F[SELECTED_EVENT].skip,
+                selector=F[SELECTED_EVENT].is_skipped,
             ),
             id="skip_event",
             on_click=skip_event_handler,
-            when=~F[SELECTED_EVENT].current,
+            when=~F[SELECTED_EVENT].is_current,
         ),
         when=is_helper,
     ),

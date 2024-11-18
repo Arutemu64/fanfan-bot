@@ -12,11 +12,11 @@
 <b>➡️ {{event.nomination.title}}</b>
             {% endif %}
         {% endif %}
-        {% if event.skip %}<s>{% endif %}
-        {% if event.current %}<b>{% endif %}
+        {% if event.is_skipped %}<s>{% endif %}
+        {% if event.is_current %}<b>{% endif %}
 <b>/{{event.id}}</b> {{event.title}}
-        {%- if event.current %} 👈</b>{% endif %}
+        {%- if event.is_current %} 👈</b>{% endif %}
         {%- if event.user_subscription %} 🔔{% endif %}
-        {%- if event.skip %}</s>{% endif +%}
+        {%- if event.is_skipped %}</s>{% endif +%}
     {% endfor %}
 {% endif %}

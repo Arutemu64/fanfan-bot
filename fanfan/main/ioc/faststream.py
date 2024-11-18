@@ -6,7 +6,7 @@ from faststream.nats import NatsBroker
 from nats.aio.client import Client
 from nats.js import JetStreamContext
 
-from fanfan.adapters.config_reader import NatsConfig
+from fanfan.adapters.config.models import NatsConfig
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.presentation.stream.broker import create_broker
 

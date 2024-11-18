@@ -49,7 +49,7 @@ class AddVote(Interactor[ParticipantId, VoteModel]):
         participant = await self.participants_repo.get_participant_by_id(participant_id)
         if not participant:
             raise ParticipantNotFound
-        if participant.event and participant.event.skip:
+        if participant.event and participant.event.is_skipped:
             raise ParticipantNotFound
 
         # Checking user

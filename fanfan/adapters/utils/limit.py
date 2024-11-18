@@ -48,7 +48,7 @@ class Limit:
         return None
 
 
-class Limiter:
+class LimitFactory:
     def __init__(self, redis: Redis):
         self.redis = redis
 

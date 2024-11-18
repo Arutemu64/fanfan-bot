@@ -18,7 +18,7 @@ class UserSettings(Base):
     items_per_page: Mapped[int] = mapped_column(server_default="5")
     receive_all_announcements: Mapped[bool] = mapped_column(server_default="True")
 
-    # Org settings
+    # Org-only settings
     org_receive_feedback_notifications: Mapped[bool] = mapped_column(
         server_default="True"
     )

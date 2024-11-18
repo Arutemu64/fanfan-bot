@@ -5,7 +5,7 @@ from aiogram.fsm.storage.redis import RedisEventIsolation, RedisStorage
 from dishka import AnyOf, Provider, Scope, provide
 from redis.asyncio import Redis
 
-from fanfan.adapters.config_reader import RedisConfig
+from fanfan.adapters.config.models import RedisConfig
 
 
 class RedisProvider(Provider):

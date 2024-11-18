@@ -6,7 +6,7 @@ from dishka.integrations.faststream import setup_dishka
 from faststream.asgi import AsgiFastStream
 from prometheus_client import CollectorRegistry, make_asgi_app
 
-from fanfan.adapters.config_reader import get_config
+from fanfan.adapters.config.parsers import get_config
 from fanfan.common.telemetry import setup_telemetry
 from fanfan.main.di import create_scheduler_container
 from fanfan.presentation.stream.broker import create_broker

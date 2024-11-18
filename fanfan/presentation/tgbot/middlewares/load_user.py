@@ -1,23 +1,18 @@
-from __future__ import annotations
-
+from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 import sentry_sdk
 from aiogram import BaseMiddleware
+from aiogram.types import TelegramObject
 from dishka.integrations.aiogram import CONTAINER_NAME
 from opentelemetry import trace
 
-from fanfan.adapters.config_reader import DebugConfig
-from fanfan.application.common.id_provider import IdProvider
+from fanfan.adapters.config.models import DebugConfig
 from fanfan.application.users.authenticate import Authenticate, AuthenticateDTO
-from fanfan.application.users.update_user import UpdateUser, UpdateUserDTO
 from fanfan.application.users.update_user_commands import UpdateUserCommands
-from fanfan.core.models.user import UserId
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-    from aiogram.types import TelegramObject, User
+    from aiogram.types import User
     from dishka import AsyncContainer
 
 tracer = trace.get_tracer(__name__)
@@ -34,9 +29,7 @@ class LoadDataMiddleware(BaseMiddleware):
             if data.get("event_from_user"):
                 tg_user: User = data["event_from_user"]
                 container: AsyncContainer = data[CONTAINER_NAME]
-                id_provider: IdProvider = await container.get(IdProvider)
                 authenticate: Authenticate = await container.get(Authenticate)
-                update_user: UpdateUser = await container.get(UpdateUser)
                 update_user_commands: UpdateUserCommands = await container.get(
                     UpdateUserCommands
                 )
@@ -52,16 +45,7 @@ class LoadDataMiddleware(BaseMiddleware):
                     )
 
                 # Authenticate
-                user = await authenticate(
-                    AuthenticateDTO(id=UserId(tg_user.id), username=tg_user.username)
-                )
-
-                # Update username in database
-                if user.username != tg_user.username:
-                    await update_user(
-                        UpdateUserDTO(id=user.id, username=tg_user.username)
-                    )
-                    user = await id_provider.get_current_user()
+                user = await authenticate(AuthenticateDTO.from_aiogram(tg_user))
 
                 # Update user commands
                 await update_user_commands()

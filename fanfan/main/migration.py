@@ -5,7 +5,7 @@ import sys
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.config_reader import get_config
+from fanfan.adapters.config.parsers import get_config
 from fanfan.common.logging import setup_logging
 from fanfan.core.utils.settings import setup_initial_settings
 from fanfan.main.di import create_scheduler_container

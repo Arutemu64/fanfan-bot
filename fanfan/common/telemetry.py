@@ -7,7 +7,7 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-from fanfan.adapters.config_reader import Configuration
+from fanfan.adapters.config.models import Configuration
 
 AioHttpClientInstrumentor().instrument()
 RedisInstrumentor().instrument()
@@ -28,9 +28,7 @@ def setup_telemetry(service_name: str, config: Configuration) -> TracerProvider:
     resource = Resource.create(attributes={"service.name": service_name})
     tracer_provider = TracerProvider(resource=resource)
     if config.debug.otlp_endpoint:
-        exporter = OTLPSpanExporter(
-            endpoint=config.debug.otlp_endpoint.unicode_string()
-        )
+        exporter = OTLPSpanExporter(config.debug.otlp_endpoint.unicode_string())
         processor = BatchSpanProcessor(exporter)
         tracer_provider.add_span_processor(processor)
     trace.set_tracer_provider(tracer_provider)

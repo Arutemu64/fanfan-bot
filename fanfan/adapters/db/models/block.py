@@ -7,7 +7,7 @@ from fanfan.core.models.block import BlockId, BlockModel
 class Block(Base):
     __tablename__ = "blocks"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column()
     start_order: Mapped[int] = mapped_column(unique=True)
 

@@ -7,7 +7,7 @@ from .nomination import Nomination
 from .participant import Participant
 from .quote import Quote
 from .received_achievement import ReceivedAchievement
-from .settings import Settings
+from .settings import GlobalSettings
 from .subscription import Subscription
 from .ticket import Ticket
 from .user import User
@@ -22,7 +22,7 @@ __all__ = [
     "Nomination",
     "Participant",
     "ReceivedAchievement",
-    "Settings",
+    "GlobalSettings",
     "Subscription",
     "Ticket",
     "User",

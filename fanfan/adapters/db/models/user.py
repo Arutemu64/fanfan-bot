@@ -6,7 +6,6 @@ from sqlalchemy import BigInteger, func, select
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import (
     Mapped,
-    WriteOnlyMapped,
     column_property,
     mapped_column,
     relationship,
@@ -21,7 +20,6 @@ from fanfan.core.enums import UserRole
 from fanfan.core.models.user import FullUserModel, UserId, UserModel
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models import Achievement
     from fanfan.adapters.db.models.ticket import Ticket
 
 
@@ -29,11 +27,11 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
-    username: Mapped[str | None] = mapped_column(
-        index=True,
-        unique=False,
-        nullable=True,
-    )
+    username: Mapped[str | None] = mapped_column(index=True, unique=True)
+
+    first_name: Mapped[str | None] = mapped_column()
+    last_name: Mapped[str | None] = mapped_column()
+
     role: Mapped[UserRole] = mapped_column(
         postgresql.ENUM(UserRole),
         default=UserRole.VISITOR,
@@ -48,10 +46,6 @@ class User(Base):
     # Quest
     quest_registration: Mapped[QuestRegistration | None] = relationship()
     points: Mapped[int] = mapped_column(server_default="0", deferred=True)
-    received_achievements: WriteOnlyMapped[Achievement] = relationship(
-        secondary="received_achievements",
-        passive_deletes=True,
-    )
     achievements_count = column_property(
         select(func.count(ReceivedAchievement.id))
         .where(ReceivedAchievement.user_id == id)
@@ -70,12 +64,20 @@ class User(Base):
 
     @classmethod
     def from_model(cls, model: UserModel):
-        return User(id=model.id, username=model.username, role=model.role)
+        return User(
+            id=model.id,
+            username=model.username,
+            first_name=model.first_name,
+            last_name=model.last_name,
+            role=model.role,
+        )
 
     def to_model(self) -> UserModel:
         return UserModel(
             id=UserId(self.id),
             username=self.username,
+            first_name=self.first_name,
+            last_name=self.last_name,
             role=UserRole(self.role),
         )
 
@@ -83,6 +85,8 @@ class User(Base):
         return FullUserModel(
             id=UserId(self.id),
             username=self.username,
+            first_name=self.first_name,
+            last_name=self.last_name,
             role=UserRole(self.role),
             permissions=self.permissions.to_model(),
             settings=self.settings.to_model(),

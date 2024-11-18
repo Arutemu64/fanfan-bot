@@ -11,7 +11,7 @@ class NominationModel:
     id: NominationId
     code: str
     title: str
-    votable: bool = False
+    is_votable: bool = False
 
 
 @dataclass(slots=True, kw_only=True)

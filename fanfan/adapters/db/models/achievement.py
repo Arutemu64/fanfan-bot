@@ -19,10 +19,11 @@ if TYPE_CHECKING:
 class Achievement(Base, OrderMixin):
     __tablename__ = "achievements"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column()
-    description: Mapped[str | None] = mapped_column(nullable=True)
-    secret_id: Mapped[str] = mapped_column(unique=True)  # Secret ID for quest
+    description: Mapped[str | None] = mapped_column()
+    # Secret ID for quest
+    secret_id: Mapped[str | None] = mapped_column(unique=True)
 
     # Relationships
     user_received: Mapped[ReceivedAchievement | None] = relationship(

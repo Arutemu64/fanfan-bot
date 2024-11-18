@@ -16,6 +16,6 @@ class TicketView(ModelView, model=Ticket):
         Ticket.role: "Роль",
         Ticket.used_by: "Использовал",
         Ticket.issued_by: "Выпустил",
-        Ticket.created_on: "Время создания",
-        Ticket.updated_on: "Время изменения",
+        Ticket.created_at: "Время создания",
+        Ticket.updated_at: "Время изменения",
     }

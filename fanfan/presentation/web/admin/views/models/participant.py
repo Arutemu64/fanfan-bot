@@ -23,6 +23,6 @@ class ParticipantView(ModelView, model=Participant):
         Participant.title: "Название",
         Participant.nomination: "Номинация",
         Participant.votes_count: "Количество голосов",
-        Participant.created_on: "Время создания",
-        Participant.updated_on: "Время изменения",
+        Participant.created_at: "Время создания",
+        Participant.updated_at: "Время изменения",
     }

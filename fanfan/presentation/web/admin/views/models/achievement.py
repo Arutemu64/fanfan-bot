@@ -3,7 +3,7 @@ from starlette.requests import Request
 from starlette.responses import FileResponse
 
 from fanfan.adapters.db.models import Achievement
-from fanfan.common import QR_CODES_TEMP_DIR
+from fanfan.common.paths import QR_CODES_TEMP_DIR
 from fanfan.core.dto.qr import QR, QRType
 from fanfan.core.utils.qr import generate_img
 
@@ -28,8 +28,8 @@ class AchievementView(ModelView, model=Achievement):
         Achievement.secret_id: "Секретный ID",
         Achievement.title: "Название",
         Achievement.description: "Описание",
-        Achievement.created_on: "Время создания",
-        Achievement.updated_on: "Время изменения",
+        Achievement.created_at: "Время создания",
+        Achievement.updated_at: "Время изменения",
     }
 
     @action(

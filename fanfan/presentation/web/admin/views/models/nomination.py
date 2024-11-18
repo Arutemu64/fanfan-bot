@@ -11,17 +11,17 @@ class NominationView(ModelView, model=Nomination):
     column_list = [
         Nomination.id,
         Nomination.title,
-        Nomination.votable,
+        Nomination.is_votable,
     ]
     form_include_pk = True
-    form_columns = [Nomination.id, Nomination.title, Nomination.votable]
+    form_columns = [Nomination.id, Nomination.title, Nomination.is_votable]
     column_details_exclude_list = [Nomination.user_vote]
 
     column_labels = {
         Nomination.id: "ID",
         Nomination.title: "Название",
-        Nomination.votable: "Голосование",
+        Nomination.is_votable: "Голосование",
         Nomination.participants_count: "Количество участников",
-        Nomination.created_on: "Время создания",
-        Nomination.updated_on: "Время изменения",
+        Nomination.created_at: "Время создания",
+        Nomination.updated_at: "Время изменения",
     }

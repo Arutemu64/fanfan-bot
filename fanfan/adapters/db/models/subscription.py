@@ -21,8 +21,8 @@ if typing.TYPE_CHECKING:
 class Subscription(Base):
     __tablename__ = "subscriptions"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    counter: Mapped[int] = mapped_column(server_default="5")
+    id: Mapped[int] = mapped_column(primary_key=True)
+    counter: Mapped[int] = mapped_column()
 
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
@@ -31,6 +31,8 @@ class Subscription(Base):
     # Event relation
     event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id", ondelete="CASCADE"))
     event: Mapped[Event] = relationship()
+
+    # Constraint
     UniqueConstraint(event_id, user_id)
 
     @classmethod

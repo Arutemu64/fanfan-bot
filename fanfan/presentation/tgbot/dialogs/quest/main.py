@@ -3,11 +3,12 @@ import math
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, Group
+from aiogram_dialog.widgets.kbd import Button, Cancel, Group, WebApp
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format, Multi, Progress
 from dishka import AsyncContainer
 
+from fanfan.adapters.config.models import Configuration
 from fanfan.application.quest.get_quest_conditions import GetQuestConditions
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.application.quest.register_to_quest import RegisterToQuest
@@ -30,6 +31,7 @@ async def quest_main_getter(
 ) -> dict:
     get_user_stats: GetUserQuestStats = await container.get(GetUserQuestStats)
     get_quest_conditions: GetQuestConditions = await container.get(GetQuestConditions)
+    config: Configuration = await container.get(Configuration)
 
     achievements_progress = 0
     user_stats = await get_user_stats(user.id)
@@ -57,6 +59,7 @@ async def quest_main_getter(
         "quest_registration": user_stats.quest_registration,
         # QR
         "qr_file_path": qr_file_path,
+        "qr_scanner_url": config.web.build_qr_scanner_url() if config.web else None,
     }
 
 
@@ -121,6 +124,11 @@ main_quest_window = Window(
             id="register_to_quest",
             on_click=register_to_quest_handler,
             when=~F["quest_registration"] & F["is_registration_open"],
+        ),
+        WebApp(
+            Const(strings.titles.qr_scanner),
+            url=Format("{qr_scanner_url}"),
+            when="qr_scanner_url",
         ),
         Button(
             text=Const("🏆 Мои достижения"),

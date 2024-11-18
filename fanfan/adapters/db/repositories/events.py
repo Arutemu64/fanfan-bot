@@ -60,19 +60,21 @@ class EventsRepository:
         return event.to_model() if event else None
 
     async def get_current_event(self) -> FullEventModel | None:
-        query = select(Event).where(Event.current.is_(True))
+        query = select(Event).where(Event.is_current.is_(True))
         query = self._load_full(query)
         event = await self.session.scalar(query)
         return event.to_full_model() if event else None
 
     async def get_next_event(self) -> FullEventModel | None:
         current_event_order = (
-            select(Event.order).where(Event.current.is_(True)).scalar_subquery()
+            select(Event.order).where(Event.is_current.is_(True)).scalar_subquery()
         )
         query = (
             select(Event)
             .order_by(Event.order)
-            .where(and_(Event.order > current_event_order, Event.skip.is_not(True)))
+            .where(
+                and_(Event.order > current_event_order, Event.is_skipped.is_not(True))
+            )
             .limit(1)
         )
         query = self._load_full(query)

@@ -1,11 +1,11 @@
 import logging
 from dataclasses import dataclass
 
+from fanfan.adapters.config.models import LimitsConfig
 from fanfan.adapters.db.repositories.events import EventsRepository
-from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.limiter import Limiter
+from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
@@ -38,16 +38,16 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
     def __init__(
         self,
         events_repo: EventsRepository,
-        settings_repo: SettingsRepository,
+        limits: LimitsConfig,
         access: AccessService,
         uow: UnitOfWork,
-        limiter: Limiter,
+        limiter: LimitFactory,
         id_provider: IdProvider,
         stream_broker_adapter: StreamBrokerAdapter,
         mailing_repo: MailingRepository,
     ) -> None:
         self.events_repo = events_repo
-        self.settings_repo = settings_repo
+        self.limits = limits
         self.access = access
         self.uow = uow
         self.limiter = limiter
@@ -58,26 +58,25 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
     async def __call__(self, event_id: EventId) -> SkipEventResult:
         user = await self.id_provider.get_current_user()
         await self.access.ensure_can_edit_schedule(user)
-        settings = await self.settings_repo.get_settings()
         try:
             async with (
                 self.uow,
                 self.limiter(
-                    ANNOUNCE_LIMIT_NAME, limit_timeout=settings.announcement_timeout
+                    ANNOUNCE_LIMIT_NAME, limit_timeout=self.limits.announcement_timeout
                 ),
             ):
                 # Get event
                 event = await self.events_repo.get_event_by_id(event_id)
                 if event is None:
                     raise EventNotFound(event_id=event_id)
-                if event.current is True:
+                if event.is_current is True:
                     raise CurrentEventNotAllowed
 
                 # Get next event at this point
                 next_event_before = await self.events_repo.get_next_event()
 
                 # Toggle event skip
-                event.skip = not event.skip
+                event.is_skipped = not event.is_skipped
                 await self.events_repo.save_event(event)
                 await self.uow.commit()
 
@@ -104,7 +103,7 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
                             EventChangeDTO(
                                 event=event,
                                 type=EventChangeType.SKIP
-                                if event.skip
+                                if event.is_skipped
                                 else EventChangeType.UNSKIP,
                             )
                         ],

@@ -12,6 +12,8 @@ UserId = NewType("UserId", int)
 class UserModel:
     id: UserId
     username: str | None
+    first_name: str | None
+    last_name: str | None
     role: UserRole
 
 

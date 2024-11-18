@@ -11,7 +11,7 @@ from dishka import Provider, Scope, provide
 from dishka.integrations.aiogram import setup_dishka
 from sulguk import AiogramSulgukMiddleware
 
-from fanfan.adapters.config_reader import BotConfig
+from fanfan.adapters.config.models import BotConfig
 from fanfan.presentation.tgbot import dialogs, handlers
 from fanfan.presentation.tgbot.handlers.errors import register_error_handlers
 from fanfan.presentation.tgbot.middlewares import (
@@ -56,7 +56,7 @@ class DpProvider(Provider):
         from fanfan.main.di import create_bot_container
 
         container = create_bot_container()
-        setup_dishka(container, dp)
+        setup_dishka(container, dp, auto_inject=True)
 
         # Setup dialogs
         dp["bgm_factory"] = setup_dialogs(
