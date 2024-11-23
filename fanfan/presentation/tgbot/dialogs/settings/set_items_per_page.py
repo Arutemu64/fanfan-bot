@@ -10,7 +10,6 @@ from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
     UpdateUserSettingsDTO,
 )
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.settings.common import ID_ITEMS_PER_PAGE_INPUT
@@ -29,17 +28,13 @@ async def items_per_page_handler(
     get_user_by_id: GetUserById = await container.get(GetUserById)
     user: FullUserModel = manager.middleware_data["user"]
 
-    try:
-        await update_user_settings(
-            UpdateUserSettingsDTO(
-                user_id=user.id,
-                items_per_page=manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value(),
-            )
+    await update_user_settings(
+        UpdateUserSettingsDTO(
+            user_id=user.id,
+            items_per_page=manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value(),
         )
-        manager.middleware_data["user"] = await get_user_by_id(user.id)
-    except AppException as e:
-        await callback.answer(e.message)
-        return
+    )
+    manager.middleware_data["user"] = await get_user_by_id(user.id)
     await callback.answer("✅ Успешно!")
     await manager.switch_to(state=states.Settings.main)
 

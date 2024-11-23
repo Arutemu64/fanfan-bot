@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import uvicorn
 from dishka.integrations.fastapi import setup_dishka
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
@@ -49,12 +49,9 @@ def create_app(config: Configuration) -> FastAPI:
     setup_dishka(container=create_web_container(), app=app)
 
     # Include routers
-    main_router = APIRouter(prefix=config.web.path)
-    main_router.include_router(setup_webapp_router())
-    main_router.include_router(setup_api_router(config=config))
-    main_router.include_router(admin_auth_router)
-
-    app.include_router(main_router)
+    app.include_router(setup_webapp_router())
+    app.include_router(setup_api_router(config=config))
+    app.include_router(admin_auth_router)
 
     # Setup FastAPI middlewares
     app.add_middleware(
@@ -84,5 +81,6 @@ if __name__ == "__main__":
             create_app(config=config),
             host=config.web.host,
             port=config.web.port,
+            root_path=config.web.path,
             log_level=config.debug.logging_level,
         )

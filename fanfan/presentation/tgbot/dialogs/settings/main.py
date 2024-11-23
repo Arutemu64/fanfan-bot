@@ -10,7 +10,6 @@ from fanfan.application.users.update_org_settings import (
     UpdateOrgSettingsDTO,
 )
 from fanfan.core.enums import UserRole
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_org
@@ -63,17 +62,15 @@ async def toggle_org_receive_feedback_notifications(
     container: AsyncContainer = manager.middleware_data["container"]
     get_org_settings: GetOrgSettings = await container.get(GetOrgSettings)
     update_org_settings: UpdateOrgSettings = await container.get(UpdateOrgSettings)
-    try:
-        org_settings = await get_org_settings()
-        await update_org_settings(
-            UpdateOrgSettingsDTO(
-                user_id=user.id,
-                receive_feedback_notifications=not org_settings.receive_feedback_notifications,  # noqa: E501
-            )
+
+    org_settings = await get_org_settings()
+    await update_org_settings(
+        UpdateOrgSettingsDTO(
+            user_id=user.id,
+            receive_feedback_notifications=not org_settings.receive_feedback_notifications,  # noqa: E501
         )
-        await callback.answer("✅ Успешно!")
-    except AppException as e:
-        await callback.answer(e.message)
+    )
+    await callback.answer("✅ Успешно!")
 
 
 settings_main_window = Window(

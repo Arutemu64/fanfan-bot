@@ -14,7 +14,6 @@ def setup_admin(
     admin = Admin(
         app=app,
         session_maker=session_pool,
-        base_url=f"{config.web.path}/admin",
         title="FF-Bot",
         authentication_backend=AdminAuth(
             secret_key=config.web.secret_key.get_secret_value(),

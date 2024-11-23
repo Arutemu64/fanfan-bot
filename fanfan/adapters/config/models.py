@@ -12,6 +12,7 @@ from pydantic import (
     model_validator,
 )
 from pydantic_extra_types.timezone_name import TimeZoneName
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from fanfan.core.enums import BotMode
 
@@ -153,6 +154,8 @@ class Cosplay2Config(BaseModel):
 
 class DebugConfig(BaseModel):
     enabled: bool = True
+    test_mode: bool = False
+
     logging_level: int = logging.DEBUG
     json_logs: bool = False
 
@@ -169,7 +172,9 @@ class DebugConfig(BaseModel):
         return self
 
 
-class Configuration(BaseModel):
+class Configuration(BaseSettings):
+    model_config = SettingsConfigDict(env_nested_delimiter="__")
+
     env_name: str
     timezone: TimeZoneName = "Europe/Moscow"
     media_root: DirectoryPath

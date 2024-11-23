@@ -9,7 +9,6 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from fanfan.application.tickets.create_ticket import CreateTicket, CreateTicketDTO
 from fanfan.core.enums import UserRole
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.ticket import TicketId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
@@ -35,19 +34,12 @@ async def add_ticket_handler(
         await message.answer("⚠️ Вы забыли указать роль билета")
         return
 
-    try:
-        ticket = await create_ticket(
-            CreateTicketDTO(
-                id=data,
-                role=role_picker.get_checked(),
-            ),
-        )
-    except AppException as e:
-        await message.answer(e.message)
-        return
-
+    ticket = await create_ticket(
+        CreateTicketDTO(id=data, role=role_picker.get_checked())
+    )
     await message.answer(
-        f"""✅ Билет "{ticket.id}" с ролью {ticket.role.label} успешно добавлен!""",
+        f"✅ Билет <code>{ticket.id}</code> с "
+        f"ролью {ticket.role.label} успешно добавлен!"
     )
     await dialog_manager.switch_to(states.Org.main)
 

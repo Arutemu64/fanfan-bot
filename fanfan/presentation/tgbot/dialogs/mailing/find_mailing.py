@@ -8,7 +8,6 @@ from aiogram_dialog.widgets.text import Const
 
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
 from fanfan.core.dto.mailing import MailingId
-from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
 from fanfan.presentation.tgbot.ui import strings
@@ -25,13 +24,8 @@ async def find_mailing_handler(
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
     get_mailing_info: GetMailingInfo = await container.get(GetMailingInfo)
-
-    try:
-        await get_mailing_info(data)
-        await show_mailing_info(dialog_manager, data)
-    except AppException as e:
-        await message.reply(e.message)
-        return
+    await get_mailing_info(data)
+    await show_mailing_info(dialog_manager, data)
 
 
 find_mailing_window = Window(

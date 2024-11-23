@@ -59,19 +59,15 @@ async def set_as_current(
     container: AsyncContainer = manager.middleware_data["container"]
     set_current_event: SetCurrentEvent = await container.get(SetCurrentEvent)
 
-    try:
-        data = await set_current_event(manager.start_data[DATA_SELECTED_EVENT_ID])
-        await callback.message.answer(
-            f"✅ Выступление <b>{data.current_event.title}</b> отмечено как текущее\n"
-            f"Уникальный ID рассылки: <code>{data.mailing_id}</code>",
-            reply_markup=InlineKeyboardBuilder(
-                [[show_mailing_info_button(data.mailing_id)]]
-            ).as_markup(),
-        )
-        manager.show_mode = ShowMode.DELETE_AND_SEND
-    except AppException as e:
-        await callback.answer(e.message)
-        return
+    data = await set_current_event(manager.start_data[DATA_SELECTED_EVENT_ID])
+    await callback.message.answer(
+        f"✅ Выступление <b>{data.current_event.title}</b> отмечено как текущее\n"
+        f"Уникальный ID рассылки: <code>{data.mailing_id}</code>",
+        reply_markup=InlineKeyboardBuilder(
+            [[show_mailing_info_button(data.mailing_id)]]
+        ).as_markup(),
+    )
+    manager.show_mode = ShowMode.DELETE_AND_SEND
 
 
 async def unset_current(
@@ -82,12 +78,8 @@ async def unset_current(
     container: AsyncContainer = manager.middleware_data["container"]
     set_current_event: SetCurrentEvent = await container.get(SetCurrentEvent)
 
-    try:
-        await set_current_event(None)
-        await callback.answer("⛔ С выступления снята отметка Текущее")
-    except AppException as e:
-        await callback.answer(e.message)
-        return
+    await set_current_event(None)
+    await callback.answer("⛔ С выступления снята отметка Текущее")
 
 
 async def skip_event_handler(
@@ -98,28 +90,24 @@ async def skip_event_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     skip_event: SkipEvent = await container.get(SkipEvent)
 
-    try:
-        data = await skip_event(manager.start_data[DATA_SELECTED_EVENT_ID])
-        if data.event.is_skipped:
-            text = (
-                f"🙈 Выступление <b>{data.event.title}</b> пропущено\n"
-                f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
-            )
-        else:
-            text = (
-                f"🙉 Выступление <b>{data.event.title}</b> возвращено\n"
-                f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
-            )
-        await callback.message.answer(
-            text,
-            reply_markup=InlineKeyboardBuilder(
-                [[show_mailing_info_button(data.mailing_id)]]
-            ).as_markup(),
+    data = await skip_event(manager.start_data[DATA_SELECTED_EVENT_ID])
+    if data.event.is_skipped:
+        text = (
+            f"🙈 Выступление <b>{data.event.title}</b> пропущено\n"
+            f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
         )
-        manager.show_mode = ShowMode.DELETE_AND_SEND
-    except AppException as e:
-        await callback.answer(e.message)
-        return
+    else:
+        text = (
+            f"🙉 Выступление <b>{data.event.title}</b> возвращено\n"
+            f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
+        )
+    await callback.message.answer(
+        text,
+        reply_markup=InlineKeyboardBuilder(
+            [[show_mailing_info_button(data.mailing_id)]]
+        ).as_markup(),
+    )
+    manager.show_mode = ShowMode.DELETE_AND_SEND
 
 
 async def unsubscribe_button_handler(

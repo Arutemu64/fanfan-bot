@@ -6,7 +6,6 @@ from aiogram_dialog.widgets.kbd import Button, Counter, ManagedCounter, SwitchTo
 from aiogram_dialog.widgets.text import Const
 
 from fanfan.application.quest.add_points import AddPoints, AddPointsDTO
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.users import TicketNotLinked
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.user_manager.common import DATA_USER_ID
@@ -37,9 +36,6 @@ async def add_points_handler(
         await manager.switch_to(states.UserManager.user_info)
     except TicketNotLinked:
         await callback.answer("⚠️ У участника не привязан билет", show_alert=True)
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
-        return
 
 
 add_points_window = Window(

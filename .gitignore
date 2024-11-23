@@ -201,7 +201,7 @@ celerybeat.pid
 
 # Environments
 .env
-.local-env
+.*env
 .venv
 env/
 venv/
@@ -241,4 +241,3 @@ cython_debug/
 .idea/
 
 /.ruff_cache/
-/config/*config.toml

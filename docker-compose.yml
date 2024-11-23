@@ -9,7 +9,7 @@ services:
     volumes:
       - bot-data:/media/bot-data
     ports:
-      - "127.0.0.1:${WEBHOOK_PORT}:${WEBHOOK_PORT}"
+      - "127.0.0.1:${BOT__WEBHOOK__PORT}:${BOT__WEBHOOK__PORT}"
     depends_on:
       - migration
       - redis
@@ -27,7 +27,7 @@ services:
     volumes:
       - bot-data:/media/bot-data
     ports:
-      - "127.0.0.1:${WEB_PORT}:${WEB_PORT}"
+      - "127.0.0.1:${WEB__PORT}:${WEB__PORT}"
     depends_on:
       - migration
     command: [
@@ -57,13 +57,13 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB__USER}
+      - POSTGRES_PASSWORD=${DB__PASSWORD}
+      - POSTGRES_DB=${DB__NAME}
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:${DB_PORT}:5432"
+      - "127.0.0.1:${DB__EXPOSED_PORT}:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
       interval: 2s
@@ -81,9 +81,9 @@ services:
       - db
     environment:
       - POSTGRES_HOST=db
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB__NAME}
+      - POSTGRES_USER=${DB__USER}
+      - POSTGRES_PASSWORD=${DB__PASSWORD}
       - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
       - SCHEDULE=@every 6h00m00s
       - BACKUP_ON_START=TRUE
@@ -94,7 +94,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: "fanfan-redis-${ENV_NAME}"
-    command: "redis-server /usr/local/etc/redis/redis.conf --requirepass $REDIS_PASSWORD"
+    command: "redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS__PASSWORD}"
     env_file:
       - .env
     restart: on-failure
@@ -102,7 +102,7 @@ services:
       - redis-data:/data
       - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
     ports:
-      - "127.0.0.1:${REDIS_PORT}:6379"
+      - "127.0.0.1:${REDIS__EXPOSED_PORT}:6379"
     healthcheck:
       test: [ "CMD", "redis-cli","ping" ]
       interval: 5s
@@ -116,10 +116,10 @@ services:
     env_file:
       - .env
     ports:
-      - "127.0.0.1:${NATS_PORT}:4222"
+      - "127.0.0.1:${NATS__EXPOSED_PORT}:4222"
     volumes:
       - nats-data:/data
-    command: "--js --sd=/data --user ${NATS_USER} --pass ${NATS_PASSWORD}"
+    command: "--js --sd=/data --user ${NATS__USER} --pass ${NATS__PASSWORD}"
 
   faststream:
     container_name: "fanfan-faststream-${ENV_NAME}"

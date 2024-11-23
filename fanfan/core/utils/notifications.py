@@ -7,6 +7,7 @@ from fanfan.core.models.achievement import AchievementModel
 from fanfan.core.models.feedback import FullFeedbackModel
 from fanfan.core.utils.pluralize import Plurals, pluralize
 from fanfan.presentation.tgbot.keyboards.buttons import (
+    DELETE_BUTTON,
     PULL_DOWN_DIALOG,
     process_feedback_button,
 )
@@ -51,4 +52,15 @@ def create_feedback_notification(feedback: FullFeedbackModel) -> UserNotificatio
         f"<blockquote>{html.escape(feedback.text)}</blockquote>",
         bottom_text=bottom_text,
         reply_markup=reply_markup,
+    )
+
+
+def create_error_notification(exception: Exception) -> UserNotification:
+    return UserNotification(
+        title="⚠️ НЕИЗВЕСТНАЯ ОШИБКА",
+        text=f"Возникла необработанная ошибка ({type(exception).__name__}). "
+        f"Мы постараемся исправить проблему в ближайшее время, а пока "
+        f"можешь попробовать перезапустить бота командой /start "
+        f"и попробовать ещё раз",
+        reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
     )

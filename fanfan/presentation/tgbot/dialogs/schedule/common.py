@@ -44,12 +44,14 @@ async def schedule_getter(
         page.total // user.settings.items_per_page
         + bool(page.total % user.settings.items_per_page)
     )
+
     try:
         await access.ensure_can_edit_schedule(user)
     except AppException:
         can_edit_schedule = False
     else:
         can_edit_schedule = True
+
     return {
         "events": page.items,
         "page_number": await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page() + 1,

@@ -9,7 +9,6 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from fanfan.application.users.update_user import UpdateUser, UpdateUserDTO
 from fanfan.core.enums import UserRole
-from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
 from fanfan.presentation.tgbot.ui import strings
@@ -29,17 +28,7 @@ async def change_role_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     update_user: UpdateUser = await container.get(UpdateUser)
 
-    try:
-        await update_user(
-            UpdateUserDTO(
-                id=manager.start_data[DATA_USER_ID],
-                role=data,
-            ),
-        )
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
-        return
-
+    await update_user(UpdateUserDTO(id=manager.start_data[DATA_USER_ID], role=data))
     await callback.answer(strings.common.success)
     await manager.switch_to(states.UserManager.user_info)
 

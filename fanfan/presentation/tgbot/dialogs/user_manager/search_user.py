@@ -8,7 +8,6 @@ from aiogram_dialog.widgets.text import Const
 
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.get_user_by_username import GetUserByUsername
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import UserId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.user_manager import (
@@ -30,18 +29,14 @@ async def manual_user_search_handler(
     get_user_by_id: GetUserById = await container.get(GetUserById)
     get_user_by_username: GetUserByUsername = await container.get(GetUserByUsername)
 
-    try:
-        if data.isnumeric():
-            user = await get_user_by_id(UserId(int(data)))
-        else:
-            user = await get_user_by_username(data)
-        await dialog_manager.start(
-            state=states.UserManager.user_info,
-            data={DATA_USER_ID: user.id},
-        )
-    except AppException as e:
-        await message.answer(e.message)
-        return
+    if data.isnumeric():
+        user = await get_user_by_id(UserId(int(data)))
+    else:
+        user = await get_user_by_username(data)
+    await dialog_manager.start(
+        state=states.UserManager.user_info,
+        data={DATA_USER_ID: user.id},
+    )
 
 
 manual_user_search_window = Window(

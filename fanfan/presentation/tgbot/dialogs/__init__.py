@@ -12,6 +12,7 @@ from fanfan.presentation.tgbot.dialogs import (
     quest,
     schedule,
     settings,
+    test_mode,
     user_manager,
     voting,
 )
@@ -29,6 +30,7 @@ def setup_router() -> Router:
         feedback.dialog,
         activities.dialog,
         quest.dialog,
+        test_mode.dialog,
     )
 
     helper_router = Router(name="helper_dialog_router")

@@ -7,6 +7,7 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
+from fanfan.adapters.config.models import Configuration
 from fanfan.application.utils.get_random_quote import GetRandomQuote
 from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.base import AppException
@@ -34,6 +35,7 @@ async def main_menu_getter(
 ):
     get_random_quote: GetRandomQuote = await container.get(GetRandomQuote)
     access: AccessService = await container.get(AccessService)
+    config: Configuration = await container.get(Configuration)
 
     try:
         await access.ensure_can_vote(user)
@@ -52,6 +54,9 @@ async def main_menu_getter(
         # Access
         "can_vote": can_vote,
         "can_participate_in_quest": can_participate_in_quest,
+        # Test mode:
+        "can_access_test_mode": config.debug.test_mode
+        and (user.role >= UserRole.HELPER),
         # Most important thing ever
         "random_quote": await get_random_quote(),
     }
@@ -65,16 +70,14 @@ async def open_voting_handler(
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 
+    # Backdoor for orgs
     user: FullUserModel = manager.middleware_data["user"]
     if user.role is UserRole.ORG:
         await manager.start(states.Voting.list_nominations)
         return
 
-    try:
-        await access.ensure_can_vote(user)
-        await manager.start(states.Voting.list_nominations)
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
+    await access.ensure_can_vote(user)
+    await manager.start(states.Voting.list_nominations)
 
 
 async def open_feedback_handler(
@@ -86,12 +89,8 @@ async def open_feedback_handler(
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 
-    try:
-        await access.ensure_can_send_feedback(user)
-        await manager.start(states.Feedback.send_feedback)
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
-        return
+    await access.ensure_can_send_feedback(user)
+    await manager.start(states.Feedback.send_feedback)
 
 
 async def open_quest_handler(
@@ -103,12 +102,8 @@ async def open_quest_handler(
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 
-    try:
-        await access.ensure_can_participate_in_quest(user)
-        await manager.start(states.Quest.main)
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
-        return
+    await access.ensure_can_participate_in_quest(user)
+    await manager.start(states.Quest.main)
 
 
 main_window = Window(
@@ -192,6 +187,12 @@ main_window = Window(
             text=Const(strings.titles.settings),
             id="open_settings",
             state=states.Settings.main,
+        ),
+        Start(
+            text=Const(strings.titles.test_mode),
+            id="open_test_mode",
+            state=states.TestMode.main,
+            when="can_access_test_mode",
         ),
         width=2,
     ),

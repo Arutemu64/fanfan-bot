@@ -14,7 +14,6 @@ from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.application.quest.register_to_quest import RegisterToQuest
 from fanfan.common.paths import QR_CODES_TEMP_DIR
 from fanfan.core.dto.qr import QR, QRType
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import FullUserModel
 from fanfan.core.utils.qr import generate_img
 from fanfan.presentation.tgbot import states
@@ -80,11 +79,8 @@ async def register_to_quest_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     register: RegisterToQuest = await container.get(RegisterToQuest)
 
-    try:
-        await register()
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
-        return
+    await register()
+    await callback.answer("✅ Вы зарегистрировались на квест, удачи!")
 
 
 main_quest_window = Window(

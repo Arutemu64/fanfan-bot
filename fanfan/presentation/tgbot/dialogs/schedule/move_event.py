@@ -8,7 +8,6 @@ from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 
 from fanfan.application.schedule_mgmt.move_event import MoveEvent, MoveEventDTO
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.event import EventId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
@@ -42,30 +41,25 @@ async def move_event_handler(
     move_event: MoveEvent = await container.get(MoveEvent)
 
     if "/" in data and data.replace("/", "").isnumeric():
-        try:
-            data = await move_event(
-                MoveEventDTO(
-                    event_id=EventId(dialog_manager.start_data[DATA_SELECTED_EVENT_ID]),
-                    after_event_id=EventId(int(data.replace("/", ""))),
-                )
+        data = await move_event(
+            MoveEventDTO(
+                event_id=EventId(dialog_manager.start_data[DATA_SELECTED_EVENT_ID]),
+                after_event_id=EventId(int(data.replace("/", ""))),
             )
-            await message.reply(
-                f"✅ Выступление <b>{data.event.title}</b> поставлено "
-                f"после <b>{data.after_event.title}</b>\n"
-                f"Уникальный ID рассылки: "
-                f"<code>{data.mailing_id}</code>",
-                reply_markup=InlineKeyboardBuilder(
-                    [[show_mailing_info_button(data.mailing_id)]]
-                ).as_markup(),
-            )
-            await dialog_manager.switch_to(
-                states.Schedule.event_details,
-                show_mode=ShowMode.DELETE_AND_SEND,
-            )
-        except AppException as e:
-            await message.answer(e.message)
-            dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
-            return
+        )
+        await message.reply(
+            f"✅ Выступление <b>{data.event.title}</b> поставлено "
+            f"после <b>{data.after_event.title}</b>\n"
+            f"Уникальный ID рассылки: "
+            f"<code>{data.mailing_id}</code>",
+            reply_markup=InlineKeyboardBuilder(
+                [[show_mailing_info_button(data.mailing_id)]]
+            ).as_markup(),
+        )
+        await dialog_manager.switch_to(
+            states.Schedule.event_details,
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
     elif data.isnumeric():
         await show_event_page(dialog_manager, EventId(int(data)))
 

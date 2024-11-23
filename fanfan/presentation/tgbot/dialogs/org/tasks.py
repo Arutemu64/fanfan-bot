@@ -7,7 +7,6 @@ from dishka import AsyncContainer
 
 from fanfan.adapters.config.models import Configuration
 from fanfan.adapters.utils.task_manager import TaskManager
-from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -57,13 +56,8 @@ async def import_orders_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     task_manager: TaskManager = await container.get(TaskManager)
 
-    try:
-        await task_manager.import_orders()
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
-        return
-    else:
-        await callback.answer("✅ Задача поставлена в очередь")
+    await task_manager.import_orders()
+    await callback.answer("✅ Задача поставлена в очередь")
 
 
 async def import_from_c2_handler(
@@ -74,13 +68,8 @@ async def import_from_c2_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     task_manager: TaskManager = await container.get(TaskManager)
 
-    try:
-        await task_manager.import_from_c2()
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
-        return
-    else:
-        await callback.answer("✅ Задача поставлена в очередь")
+    await task_manager.import_from_c2()
+    await callback.answer("✅ Задача поставлена в очередь")
 
 
 tasks_window = Window(

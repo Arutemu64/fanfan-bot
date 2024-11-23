@@ -21,7 +21,6 @@ from fanfan.application.mailing.create_role_mailing import (
     CreateRoleMailingDTO,
 )
 from fanfan.core.enums import UserRole
-from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -66,22 +65,17 @@ async def send_mailing_handler(
     roles_picker: ManagedMultiselect[UserRole] = manager.find(ID_ROLES_PICKER)
     create_mailing: CreateRoleMailing = await container.get(CreateRoleMailing)
 
-    try:
-        mailing_id = await create_mailing(
-            CreateRoleMailingDTO(
-                text=manager.dialog_data[DATA_TEXT],
-                roles=roles_picker.get_checked(),
-                image_id=manager.dialog_data.get(DATA_IMAGE_ID),
-            )
+    mailing_id = await create_mailing(
+        CreateRoleMailingDTO(
+            text=manager.dialog_data[DATA_TEXT],
+            roles=roles_picker.get_checked(),
+            image_id=manager.dialog_data.get(DATA_IMAGE_ID),
         )
-        await callback.message.answer(
-            "✅ Рассылка запущена!\n"
-            f"Уникальный ID рассылки: <code>{mailing_id}</code>",
-        )
-        await show_mailing_info(manager, mailing_id)
-    except AppException as e:
-        await callback.answer(e.message)
-        return
+    )
+    await callback.message.answer(
+        f"✅ Рассылка запущена!\nУникальный ID рассылки: <code>{mailing_id}</code>",
+    )
+    await show_mailing_info(manager, mailing_id)
 
 
 async def message_handler(

@@ -1,4 +1,4 @@
-from sqlalchemy import Select, and_, func, select
+from sqlalchemy import Select, and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
@@ -64,3 +64,8 @@ class AchievementsRepository:
         received = ReceivedAchievement(achievement_id=achievement_id, user_id=user_id)
         self.session.add(received)
         await self.session.flush([received])
+
+    async def delete_all_user_received_achievements(self, user_id: UserId) -> None:
+        await self.session.execute(
+            delete(ReceivedAchievement).where(ReceivedAchievement.user_id == user_id)
+        )

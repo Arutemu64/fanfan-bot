@@ -20,8 +20,6 @@ from dishka import AsyncContainer
 
 from fanfan.adapters.config.models import Configuration
 from fanfan.application.schedule_mgmt.set_next_event import SetNextEvent
-from fanfan.core.exceptions.base import AppException
-from fanfan.core.exceptions.events import EventNotFound
 from fanfan.core.models.event import EventId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
@@ -68,19 +66,16 @@ async def set_next_event_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     set_next_event: SetNextEvent = await container.get(SetNextEvent)
 
-    try:
-        data = await set_next_event()
-        await callback.message.answer(
-            f"✅ Выступление <b>{data.current_event.title}</b> отмечено текущим\n"
-            f"Уникальный ID рассылки: <code>{data.mailing_id}</code>",
-            reply_markup=InlineKeyboardBuilder(
-                [[show_mailing_info_button(data.mailing_id)]]
-            ).as_markup(),
-        )
-        await show_event_page(manager, data.current_event.id)
-        manager.show_mode = ShowMode.DELETE_AND_SEND
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
+    data = await set_next_event()
+    await callback.message.answer(
+        f"✅ Выступление <b>{data.current_event.title}</b> отмечено текущим\n"
+        f"Уникальный ID рассылки: <code>{data.mailing_id}</code>",
+        reply_markup=InlineKeyboardBuilder(
+            [[show_mailing_info_button(data.mailing_id)]]
+        ).as_markup(),
+    )
+    await show_event_page(manager, data.current_event.id)
+    manager.show_mode = ShowMode.DELETE_AND_SEND
 
 
 async def schedule_text_input_handler(
@@ -92,11 +87,7 @@ async def schedule_text_input_handler(
     schedule_scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
     if "/" in data and data.replace("/", "").isnumeric():
         event_id = EventId(int(data.replace("/", "")))
-        try:
-            await show_event_details(dialog_manager, event_id)
-        except EventNotFound as e:
-            await message.answer(e.message)
-            return
+        await show_event_details(dialog_manager, event_id)
     elif (
         data.isnumeric()
         and 1 <= int(data) <= dialog_manager.dialog_data[DATA_TOTAL_PAGES]

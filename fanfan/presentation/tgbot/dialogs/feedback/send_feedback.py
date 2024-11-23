@@ -6,7 +6,6 @@ from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.feedback.send_feedback import SendFeedback, SendFeedbackDTO
-from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -48,16 +47,9 @@ async def send_feedback_handler(
     if text_input.get_value() is None:
         await callback.answer("⚠️ Сообщение не может быть пустым")
         return
-    try:
-        await send_feedback(
-            SendFeedbackDTO(
-                text=text_input.get_value(),
-            ),
-        )
-        await callback.message.answer("✅ Твоё мнение учтено, спасибо!")
-        await manager.done()
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
+    await send_feedback(SendFeedbackDTO(text=text_input.get_value()))
+    await callback.message.answer("✅ Твоё мнение учтено, спасибо!")
+    await manager.done()
 
 
 send_feedback_window = Window(

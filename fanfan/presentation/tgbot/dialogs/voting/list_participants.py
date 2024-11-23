@@ -28,7 +28,6 @@ from fanfan.application.participants.get_participants_page import (
 from fanfan.application.votes.add_vote import AddVote
 from fanfan.application.votes.cancel_vote import CancelVote
 from fanfan.core.dto.page import Pagination
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.votes import VoteNotFound
 from fanfan.core.models.participant import ParticipantScopedId
 from fanfan.core.models.user import FullUserModel
@@ -97,19 +96,13 @@ async def add_vote_handler(
     )
 
     if "/" in data and data.replace("/", "").isnumeric():
-        try:
-            participant = await get_participant_by_scoped_id(
-                GetScopedParticipantDTO(
-                    nomination_id=dialog_manager.dialog_data[
-                        DATA_SELECTED_NOMINATION_ID
-                    ],
-                    scoped_id=ParticipantScopedId(int(data.replace("/", ""))),
-                )
+        participant = await get_participant_by_scoped_id(
+            GetScopedParticipantDTO(
+                nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
+                scoped_id=ParticipantScopedId(int(data.replace("/", ""))),
             )
-            await add_vote(participant.id)
-        except AppException as e:
-            await message.reply(e.message)
-            return
+        )
+        await add_vote(participant.id)
 
 
 async def cancel_vote_handler(
@@ -123,9 +116,6 @@ async def cancel_vote_handler(
     try:
         await cancel_vote(manager.dialog_data[DATA_USER_VOTE_ID])
     except VoteNotFound:
-        return
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
         return
 
 

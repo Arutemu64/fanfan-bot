@@ -23,7 +23,7 @@ from fanfan.application.quest.add_achievement import (
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.core.dto.page import Pagination
-from fanfan.core.exceptions.base import AppException
+from fanfan.core.exceptions.achievements import UserAlreadyHasThisAchievement
 from fanfan.core.exceptions.users import TicketNotLinked
 from fanfan.core.models.achievement import AchievementId
 from fanfan.core.models.user import FullUserModel, UserId
@@ -75,7 +75,7 @@ async def list_achievements_getter(
     }
 
 
-async def add_achievement_handler(
+async def add_achievement_to_user_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
@@ -99,8 +99,8 @@ async def add_achievement_handler(
         except TicketNotLinked:
             await message.answer("⚠️ У участника не привязан билет")
             return
-        except AppException as e:
-            await message.answer(e.message)
+        except UserAlreadyHasThisAchievement:
+            await message.answer("⚠️ У участника уже есть это достижение")
             return
 
 
@@ -130,7 +130,7 @@ list_achievements_window = Window(
     TextInput(
         id=ID_ADD_ACHIEVEMENT_INPUT,
         type_factory=str,
-        on_success=add_achievement_handler,
+        on_success=add_achievement_to_user_handler,
     ),
     Cancel(text=Const(strings.buttons.back)),
     state=states.Achievements.list_achievements,

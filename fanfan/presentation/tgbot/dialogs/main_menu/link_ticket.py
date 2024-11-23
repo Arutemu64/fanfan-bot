@@ -9,7 +9,6 @@ from aiogram_dialog.widgets.text import Const
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.application.users.update_user_commands import UpdateUserCommands
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.ticket import TicketId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -30,18 +29,14 @@ async def link_ticket_handler(
     id_provider: IdProvider = await container.get(IdProvider)
     update_user_commands: UpdateUserCommands = await container.get(UpdateUserCommands)
 
-    try:
-        await link_ticket(data)
-        await update_user_commands()
-    except AppException as e:
-        await message.reply(e.message)
-        return
-
-    # Refresh user
-    dialog_manager.middleware_data["user"] = await id_provider.get_current_user()
+    await link_ticket(data)
+    await update_user_commands()
     await message.answer(
         "✅ Билет успешно привязан! Теперь тебе доступны все функции бота!",
     )
+
+    # Refresh user
+    dialog_manager.middleware_data["user"] = await id_provider.get_current_user()
     await dialog_manager.start(states.Main.home, mode=StartMode.RESET_STACK)
 
 

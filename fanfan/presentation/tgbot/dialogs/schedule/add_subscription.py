@@ -10,7 +10,6 @@ from fanfan.application.subscriptions.create_subscription import (
     CreateSubscription,
     CreateSubscriptionDTO,
 )
-from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.schedule.common import DATA_SELECTED_EVENT_ID
 from fanfan.presentation.tgbot.ui import strings
@@ -27,17 +26,12 @@ async def set_counter_handler(
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
     create_subscription: CreateSubscription = await container.get(CreateSubscription)
-    try:
-        subscription = await create_subscription(
-            CreateSubscriptionDTO(
-                event_id=dialog_manager.start_data[DATA_SELECTED_EVENT_ID],
-                counter=data,
-            ),
-        )
-    except AppException as e:
-        await message.answer(e.message)
-        return
 
+    subscription = await create_subscription(
+        CreateSubscriptionDTO(
+            event_id=dialog_manager.start_data[DATA_SELECTED_EVENT_ID], counter=data
+        )
+    )
     await message.reply(
         f"✅ Подписка на выступление "
         f"<b>{subscription.event.title}</b> "

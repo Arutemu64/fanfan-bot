@@ -11,7 +11,6 @@ from fanfan.application.settings.update_settings import (
     UpdateSettings,
     UpdateSettingsDTO,
 )
-from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
@@ -48,14 +47,10 @@ async def toggle_voting_handler(
     get_settings: GetSettings = await container.get(GetSettings)
     update_settings: UpdateSettings = await container.get(UpdateSettings)
 
-    try:
-        settings = await get_settings()
-        await update_settings(
-            UpdateSettingsDTO(voting_enabled=not settings.voting_enabled),
-        )
-    except AppException as e:
-        await callback.answer(e.message)
-        return
+    settings = await get_settings()
+    await update_settings(
+        UpdateSettingsDTO(voting_enabled=not settings.voting_enabled),
+    )
 
 
 org_main_window = Window(

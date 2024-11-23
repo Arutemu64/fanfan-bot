@@ -77,3 +77,7 @@ class Quest(StatesGroup):
 class InlineQuerySearch(StatesGroup):
     events = State()
     voting_participants = State()
+
+
+class TestMode(StatesGroup):
+    main = State()

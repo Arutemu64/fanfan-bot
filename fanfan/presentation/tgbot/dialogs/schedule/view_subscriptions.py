@@ -23,8 +23,6 @@ from fanfan.application.users.update_user_settings import (
     UpdateUserSettingsDTO,
 )
 from fanfan.core.dto.page import Pagination
-from fanfan.core.exceptions.base import AppException
-from fanfan.core.exceptions.events import EventNotFound
 from fanfan.core.models.event import EventId
 from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
@@ -76,11 +74,7 @@ async def subscriptions_text_input_handler(
 ) -> None:
     if "/" in data and data.replace("/", "").isnumeric():
         event_id = EventId(int(data.replace("/", "")))
-        try:
-            await show_event_details(dialog_manager, event_id)
-        except EventNotFound as e:
-            await message.answer(e.message)
-            return
+        await show_event_details(dialog_manager, event_id)
 
 
 async def toggle_all_notifications_handler(
@@ -93,16 +87,13 @@ async def toggle_all_notifications_handler(
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 
     user: FullUserModel = manager.middleware_data["user"]
-    try:
-        await update_user_settings(
-            UpdateUserSettingsDTO(
-                user_id=user.id,
-                receive_all_announcements=not user.settings.receive_all_announcements,
-            ),
+    await update_user_settings(
+        UpdateUserSettingsDTO(
+            user_id=user.id,
+            receive_all_announcements=not user.settings.receive_all_announcements,
         )
-        manager.middleware_data["user"] = await get_user_by_id(user.id)
-    except AppException as e:
-        await callback.answer(e.message)
+    )
+    manager.middleware_data["user"] = await get_user_by_id(user.id)
 
 
 subscriptions_main_window = Window(
