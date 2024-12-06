@@ -6,6 +6,7 @@ from .nomination import NominationView
 from .participant import ParticipantView
 from .quote import QuoteView
 from .ticket import TicketView
+from .transaction import TransactionView
 from .user import UserPermissionsView, UserSettingsView, UserView
 from .vote import VoteView
 
@@ -22,4 +23,5 @@ model_views = [
     UserSettingsView,
     VoteView,
     FeedbackView,
+    TransactionView,
 ]

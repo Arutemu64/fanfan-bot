@@ -11,3 +11,6 @@ class QuestRegistration(Base):
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), unique=True
     )
+
+    def __str__(self):
+        return str(self.id)

@@ -20,7 +20,12 @@ class EventView(ModelView, model=Event):
         Event.is_skipped,
     ]
     column_details_exclude_list = [Event.user_subscription]
-    form_excluded_columns = [Event.user_subscription, Event.queue, Event.nomination]
+    form_excluded_columns = [
+        Event.user_subscription,
+        Event.queue,
+        Event.nomination,
+        Event.block,
+    ]
 
     column_labels = {
         Event.id: "ID",

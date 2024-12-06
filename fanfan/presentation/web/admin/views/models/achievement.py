@@ -10,6 +10,7 @@ from fanfan.core.utils.qr import generate_img
 
 class AchievementView(ModelView, model=Achievement):
     name_plural = "Достижения"
+    category = "Квест"
     icon = "fa-solid fa-trophy"
     column_default_sort = [(Achievement.order, False)]
 
