@@ -17,7 +17,6 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.subscriptions.get_subscriptions_page import GetSubscriptionsPage
-from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
     UpdateUserSettingsDTO,
@@ -26,10 +25,6 @@ from fanfan.core.dto.page import Pagination
 from fanfan.core.models.event import EventId
 from fanfan.core.models.user import FullUserModel
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.common.getters import (
-    CURRENT_USER,
-    current_user_getter,
-)
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
     current_event_getter,
@@ -63,6 +58,7 @@ async def subscriptions_getter(
         "subscriptions": page.items,
         "pages": page.total // user.settings.items_per_page
         + bool(page.total % user.settings.items_per_page),
+        "receive_all_announcements": user.settings.receive_all_announcements,
     }
 
 
@@ -83,7 +79,6 @@ async def toggle_all_notifications_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_user_by_id: GetUserById = await container.get(GetUserById)
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 
     user: FullUserModel = manager.middleware_data["user"]
@@ -93,7 +88,7 @@ async def toggle_all_notifications_handler(
             receive_all_announcements=not user.settings.receive_all_announcements,
         )
     )
-    manager.middleware_data["user"] = await get_user_by_id(user.id)
+    await manager.bg().update(data={})
 
 
 subscriptions_main_window = Window(
@@ -114,7 +109,7 @@ subscriptions_main_window = Window(
                 True: Const("🔔 Получать все уведомления: ✅"),
                 False: Const("🔔 Получать все уведомления: ❌"),
             },
-            selector=F[CURRENT_USER].settings.receive_all_announcements,
+            selector="receive_all_announcements",
         ),
         id=ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX,
         on_click=toggle_all_notifications_handler,
@@ -136,6 +131,6 @@ subscriptions_main_window = Window(
         id="back",
         state=states.Schedule.main,
     ),
-    getter=[subscriptions_getter, current_event_getter, current_user_getter],
+    getter=[subscriptions_getter, current_event_getter],
     state=states.Schedule.subscriptions,
 )

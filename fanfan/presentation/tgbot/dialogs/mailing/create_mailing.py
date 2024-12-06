@@ -14,7 +14,7 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
 )
 from aiogram_dialog.widgets.media import DynamicMedia
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from fanfan.application.mailing.create_role_mailing import (
     CreateRoleMailing,
@@ -40,7 +40,7 @@ DATA_ROLE_IDS = "data_role_ids"
 
 async def create_mailing_getter(dialog_manager: DialogManager, **kwargs):
     roles_picker: ManagedMultiselect[UserRole] = dialog_manager.find(ID_ROLES_PICKER)
-    mailing_text = dialog_manager.dialog_data.get(DATA_TEXT) or "не задан"
+    mailing_text = dialog_manager.dialog_data.get(DATA_TEXT)
     if dialog_manager.dialog_data.get(DATA_IMAGE_ID):
         image = MediaAttachment(
             type=ContentType.PHOTO,
@@ -51,8 +51,7 @@ async def create_mailing_getter(dialog_manager: DialogManager, **kwargs):
     return {
         "mailing_text": mailing_text,
         "image": image,
-        "sending_allowed": dialog_manager.dialog_data.get(DATA_TEXT)
-        and len(roles_picker.get_checked()) > 0,
+        "sending_allowed": mailing_text and len(roles_picker.get_checked()) > 0,
     }
 
 
@@ -99,7 +98,7 @@ async def delete_image_handler(
 
 create_mailing_window = Window(
     Title(Const("✉️ Создание рассылки")),
-    Format("Текст: <blockquote>{mailing_text}</blockquote>\n"),
+    Jinja("Текст: <blockquote>{{ mailing_text or 'не задан' }}</blockquote>\n"),
     Const("<i>⌨️ Отправьте текст/фото, чтобы добавить его в сообщение.</i>"),
     DynamicMedia(
         selector="image",
@@ -122,7 +121,7 @@ create_mailing_window = Window(
             id=ID_ROLES_PICKER,
             item_id_getter=operator.itemgetter(0),
             items="roles",
-            type_factory=UserRole,
+            type_factory=lambda x: UserRole(int(x)),
         ),
         width=2,
     ),
