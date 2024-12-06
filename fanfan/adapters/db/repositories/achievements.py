@@ -59,9 +59,14 @@ class AchievementsRepository:
         return await self.session.scalar(select(func.count(Achievement.id)))
 
     async def add_achievement_to_user(
-        self, achievement_id: AchievementId, user_id: UserId
+        self,
+        achievement_id: AchievementId,
+        user_id: UserId,
+        from_user_id: UserId | None = None,
     ) -> None:
-        received = ReceivedAchievement(achievement_id=achievement_id, user_id=user_id)
+        received = ReceivedAchievement(
+            achievement_id=achievement_id, user_id=user_id, from_user_id=from_user_id
+        )
         self.session.add(received)
         await self.session.flush([received])
 

@@ -64,6 +64,7 @@ class AddAchievement(Interactor[AddAchievementDTO, None]):
                 await self.achievements_repo.add_achievement_to_user(
                     achievement_id=data.achievement_id,
                     user_id=user.id,
+                    from_user_id=self.id_provider.get_current_user_id(),
                 )
                 await self.uow.commit()
             except IntegrityError as e:

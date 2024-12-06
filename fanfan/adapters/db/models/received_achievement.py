@@ -25,7 +25,13 @@ class ReceivedAchievement(Base):
 
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    user: Mapped[User] = relationship(viewonly=True)
+    user: Mapped[User] = relationship(foreign_keys=user_id)
+
+    # From user relation
+    from_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
+    from_user: Mapped[User | None] = relationship(foreign_keys=from_user_id)
 
     # Constraint
     UniqueConstraint(user_id, achievement_id)

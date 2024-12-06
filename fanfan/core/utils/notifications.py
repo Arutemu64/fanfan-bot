@@ -20,11 +20,14 @@ def create_achievement_notification(achievement: AchievementModel) -> UserNotifi
     )
 
 
-def create_points_notification(points: int) -> UserNotification:
+def create_points_notification(points: int, comment: str | None) -> UserNotification:
     points_pluralized = pluralize(points, Plurals("очко", "очка", "очков"))
+    text = f"Ты заработал <b>{points} {points_pluralized}</b>"
+    if comment:
+        text += f"\n\n<blockquote>{comment}</blockquote>"
     return UserNotification(
         title="🤑 Денежки пришли",
-        text=f"Ты заработал <b>{points} {points_pluralized}</b>",
+        text=text,
     )
 
 

@@ -2,12 +2,14 @@ import logging
 from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.quest import QuestRepository
+from fanfan.adapters.db.repositories.transactions import TransactionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.users import UserNotFound
+from fanfan.core.models.transaction import TransactionModel
 from fanfan.core.models.user import UserId
 from fanfan.core.services.access import AccessService
 from fanfan.core.utils.notifications import create_points_notification
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
 class AddPointsDTO:
     user_id: UserId
     points: int
+    comment: str | None
 
 
 class AddPoints(Interactor[AddPointsDTO, None]):
@@ -29,6 +32,7 @@ class AddPoints(Interactor[AddPointsDTO, None]):
         self,
         users_repo: UsersRepository,
         quest_repo: QuestRepository,
+        transactions_repo: TransactionsRepository,
         uow: UnitOfWork,
         access: AccessService,
         id_provider: IdProvider,
@@ -36,6 +40,7 @@ class AddPoints(Interactor[AddPointsDTO, None]):
     ) -> None:
         self.users_repo = users_repo
         self.quest_repo = quest_repo
+        self.transactions_repo = transactions_repo
         self.access = access
         self.uow = uow
         self.id_provider = id_provider
@@ -51,8 +56,17 @@ class AddPoints(Interactor[AddPointsDTO, None]):
                 user_id=user.id, lock_points=True
             )
             participant.add_points(data.points)
+            transaction = TransactionModel(
+                points=data.points,
+                comment=data.comment,
+                to_user_id=participant.id,
+                from_user_id=self.id_provider.get_current_user_id(),
+            )
+
             await self.quest_repo.save_quest_participant(participant)
+            await self.transactions_repo.add_transaction(transaction)
             await self.uow.commit()
+
             logger.info(
                 "User %s received %s points from user %s",
                 data.user_id,
@@ -62,6 +76,8 @@ class AddPoints(Interactor[AddPointsDTO, None]):
             await self.stream_broker_adapter.send_notification(
                 SendNotificationDTO(
                     user_id=data.user_id,
-                    notification=create_points_notification(data.points),
+                    notification=create_points_notification(
+                        points=data.points, comment=data.comment
+                    ),
                 )
             )

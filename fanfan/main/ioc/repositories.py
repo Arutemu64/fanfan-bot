@@ -18,6 +18,7 @@ from fanfan.adapters.db.repositories.subscriptions import (
     SubscriptionsRepository,
 )
 from fanfan.adapters.db.repositories.tickets import TicketsRepository
+from fanfan.adapters.db.repositories.transactions import TransactionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
@@ -39,6 +40,7 @@ class RepositoriesProvider(Provider):
     tickets = provide(TicketsRepository)
     users = provide(UsersRepository)
     votes = provide(VotesRepository)
+    transactions = provide(TransactionsRepository)
 
     # Redis
     mailing = provide(MailingRepository)

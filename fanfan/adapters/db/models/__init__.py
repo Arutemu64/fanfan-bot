@@ -10,6 +10,7 @@ from .received_achievement import ReceivedAchievement
 from .settings import GlobalSettings
 from .subscription import Subscription
 from .ticket import Ticket
+from .transaction import Transaction
 from .user import User
 from .user_permissions import UserPermissions
 from .user_settings import UserSettings
@@ -32,4 +33,5 @@ __all__ = [
     "Activity",
     "Quote",
     "Feedback",
+    "Transaction",
 ]
