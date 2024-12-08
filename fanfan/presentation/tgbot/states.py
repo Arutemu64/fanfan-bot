@@ -62,7 +62,11 @@ class UserManager(StatesGroup):
     user_info = State()
     manual_user_search = State()
     change_role = State()
-    add_points = State()
+
+    # Adding points
+    set_points = State()
+    set_comment = State()
+    preview_add_points = State()
 
 
 class Voting(StatesGroup):

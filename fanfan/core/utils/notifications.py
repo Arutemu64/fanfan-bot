@@ -26,7 +26,7 @@ def create_points_notification(points: int, comment: str | None) -> UserNotifica
     if comment:
         text += f"\n\n<blockquote>{comment}</blockquote>"
     return UserNotification(
-        title="🤑 Денежки пришли",
+        title="💰 Ты заработал очки",
         text=text,
     )
 

@@ -7,14 +7,13 @@ from aiogram_dialog.widgets.text import Const, Jinja, Progress
 from dishka import AsyncContainer
 
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
-from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_org
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
 
-from .common import DATA_USER_ID
+from .common import DATA_USER_ID, managed_user_getter
 
 
 async def user_info_getter(
@@ -22,20 +21,16 @@ async def user_info_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    get_user_by_id: GetUserById = await container.get(GetUserById)
+    managed_user_id = dialog_manager.start_data[DATA_USER_ID]
     get_user_quest_details: GetUserQuestStats = await container.get(GetUserQuestStats)
 
-    managed_user = await get_user_by_id(
-        dialog_manager.start_data[DATA_USER_ID],
-    )
-    user_stats = await get_user_quest_details(managed_user.id)
+    user_stats = await get_user_quest_details(managed_user_id)
     achievements_progress = 0
     if user_stats.total_achievements > 0:
         achievements_progress = math.floor(
             user_stats.achievements_count * 100 / user_stats.total_achievements,
         )
     return {
-        "managed_user": managed_user,
         "points": user_stats.points,
         "achievements_count": user_stats.achievements_count,
         "achievements_progress": achievements_progress,
@@ -77,7 +72,7 @@ user_info_window = Window(
     SwitchTo(
         Const("💰 Добавить очков"),
         id="open_add_points",
-        state=states.UserManager.add_points,
+        state=states.UserManager.set_points,
     ),
     SwitchTo(
         text=Const("✏️ Изменить роль"),
@@ -87,5 +82,5 @@ user_info_window = Window(
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.UserManager.user_info,
-    getter=user_info_getter,
+    getter=[user_info_getter, managed_user_getter],
 )

@@ -8,6 +8,7 @@ class Plurals(NamedTuple):
 
 
 SECONDS_PLURALS = Plurals("секунду", "секунды", "секунд")
+POINTS_PLURALS = Plurals("очко", "очка", "очков")
 NOTIFICATIONS_PLURALS = Plurals("уведомление", "уведомления", "уведомлений")
 
 

@@ -2,7 +2,7 @@ from aiogram_dialog import BaseDialogManager, Dialog, DialogManager
 
 from fanfan.presentation.tgbot import states
 
-from .add_points import add_points_window
+from .add_points import preview_add_points_window, set_comment_window, set_points_window
 from .change_role import change_role_window
 from .common import DATA_USER_ID
 from .search_user import manual_user_search_window
@@ -21,5 +21,7 @@ dialog = Dialog(
     user_info_window,
     manual_user_search_window,
     change_role_window,
-    add_points_window,
+    set_points_window,
+    set_comment_window,
+    preview_add_points_window,
 )
