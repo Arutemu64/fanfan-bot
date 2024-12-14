@@ -10,6 +10,7 @@ from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import FullUser, UserRole
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.main_menu.home import SLAY_MODE
 from fanfan.presentation.tgbot.filters import RoleFilter
 from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,
@@ -122,3 +123,11 @@ async def feedback_cmd(
 @router.message(Command(SETTINGS_CMD))
 async def settings_cmd(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(states.Settings.main)
+
+
+@router.message(Command("brat"))
+async def enable_slay_mode(
+    message: Message, state: FSMContext, dialog_manager: DialogManager
+) -> None:
+    await state.update_data({SLAY_MODE: True})
+    await dialog_manager.update({})

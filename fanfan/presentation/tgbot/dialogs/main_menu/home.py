@@ -1,4 +1,5 @@
 from aiogram import F
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Group, Start
@@ -25,13 +26,14 @@ from fanfan.presentation.tgbot.dialogs.common.predicates import (
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
 
-F[CURRENT_USER]: FullUser
+SLAY_MODE = "slay_mode"
 
 
 async def main_menu_getter(
     dialog_manager: DialogManager,
     user: FullUser,
     container: AsyncContainer,
+    state: FSMContext,
     **kwargs,
 ):
     get_random_quote: GetRandomQuote = await container.get(GetRandomQuote)
@@ -49,6 +51,11 @@ async def main_menu_getter(
     except AppException:
         can_participate_in_quest = False
 
+    if await state.get_value(SLAY_MODE):
+        image_path = UI_IMAGES_DIR.joinpath("brat.png")
+    else:
+        image_path = UI_IMAGES_DIR.joinpath("main_menu.png")
+
     return {
         # Info
         "first_name": user.first_name,
@@ -58,7 +65,8 @@ async def main_menu_getter(
         # Test mode:
         "can_access_test_mode": config.debug.test_mode
         and user.role in [UserRole.HELPER, UserRole.ORG],
-        # Most important thing ever
+        # Customization
+        "image_path": image_path,
         "random_quote": await get_random_quote(),
     }
 
@@ -121,7 +129,7 @@ main_window = Window(
         when=~F[CURRENT_USER].ticket,
     ),
     Format("<i>{random_quote}</i>", when=F["random_quote"]),
-    StaticMedia(path=Const(UI_IMAGES_DIR.joinpath("main_menu.png"))),
+    StaticMedia(path=Format("{image_path}")),
     Start(
         Const(strings.titles.link_ticket),
         id="link_ticket",
