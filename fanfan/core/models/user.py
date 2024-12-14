@@ -1,15 +1,31 @@
 from __future__ import annotations
 
+import enum
 from dataclasses import dataclass
 from typing import NewType
-
-from fanfan.core.enums import UserRole
 
 UserId = NewType("UserId", int)
 
 
-@dataclass(slots=True)
-class UserModel:
+class UserRole(enum.StrEnum):
+    VISITOR = (enum.auto(), "Зритель", "Зрители")
+    PARTICIPANT = (enum.auto(), "Участник", "Участники")
+    HELPER = (enum.auto(), "Волонтёр", "Волонтёры")
+    ORG = (enum.auto(), "Организатор", "Организаторы")
+
+    def __new__(cls, value, label, label_plural):
+        obj = str.__new__(cls, value)
+        obj._value_ = value
+        obj.label = label
+        obj.label_plural = label_plural
+        return obj
+
+    def __str__(self):
+        return self.label
+
+
+@dataclass(slots=True, kw_only=True)
+class User:
     id: UserId
     username: str | None
     first_name: str | None
@@ -17,13 +33,13 @@ class UserModel:
     role: UserRole
 
 
-@dataclass(slots=True)
-class FullUserModel(UserModel):
-    permissions: UserPermissionsModel
-    settings: UserSettingsModel
-    ticket: TicketModel | None
+@dataclass(slots=True, kw_only=True)
+class FullUser(User):
+    permissions: UserPermissions
+    settings: UserSettings
+    ticket: Ticket | None
 
 
-from fanfan.core.models.permissions import UserPermissionsModel  # noqa: E402
-from fanfan.core.models.ticket import TicketModel  # noqa: E402
-from fanfan.core.models.user_settings import UserSettingsModel  # noqa: E402
+from fanfan.core.models.permissions import UserPermissions  # noqa: E402
+from fanfan.core.models.ticket import Ticket  # noqa: E402
+from fanfan.core.models.user_settings import UserSettings  # noqa: E402

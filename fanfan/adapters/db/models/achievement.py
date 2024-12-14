@@ -7,16 +7,16 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.mixins.order import OrderMixin
 from fanfan.core.models.achievement import (
+    Achievement,
     AchievementId,
-    AchievementModel,
-    FullAchievementModel,
+    FullAchievement,
 )
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.received_achievement import ReceivedAchievement
+    from fanfan.adapters.db.models.received_achievement import DBReceivedAchievement
 
 
-class Achievement(Base, OrderMixin):
+class DBAchievement(Base, OrderMixin):
     __tablename__ = "achievements"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -26,7 +26,7 @@ class Achievement(Base, OrderMixin):
     secret_id: Mapped[str | None] = mapped_column(unique=True)
 
     # Relationships
-    user_received: Mapped[ReceivedAchievement | None] = relationship(
+    user_received: Mapped[DBReceivedAchievement | None] = relationship(
         lazy="raise",
         viewonly=True,
     )
@@ -34,13 +34,13 @@ class Achievement(Base, OrderMixin):
     def __str__(self) -> str:
         return self.title
 
-    def to_model(self) -> AchievementModel:
-        return AchievementModel(
+    def to_model(self) -> Achievement:
+        return Achievement(
             id=AchievementId(self.id), title=self.title, description=self.description
         )
 
-    def to_full_model(self) -> FullAchievementModel:
-        return FullAchievementModel(
+    def to_full_model(self) -> FullAchievement:
+        return FullAchievement(
             id=AchievementId(self.id),
             title=self.title,
             description=self.description,

@@ -14,8 +14,8 @@ from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.limit import LimitFactory
-from fanfan.core.models.nomination import NominationId, NominationModel
-from fanfan.core.models.participant import ParticipantId, ParticipantModel
+from fanfan.core.models.nomination import Nomination, NominationId
+from fanfan.core.models.participant import Participant, ParticipantId
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ class ImportFromC2:
             for topic in topics:
                 async with self.uow:
                     await self.nominations_repo.save_nomination(
-                        NominationModel(
+                        Nomination(
                             id=NominationId(topic.id),
                             code=topic.card_code,
                             title=topic.title,
@@ -82,7 +82,7 @@ class ImportFromC2:
                     async with self.uow:
                         try:
                             participant = await self.participants_repo.save_participant(
-                                ParticipantModel(
+                                Participant(
                                     id=ParticipantId(request.id),
                                     title=request.voting_title,
                                     nomination_id=NominationId(request.topic_id),

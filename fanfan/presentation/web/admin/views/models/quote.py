@@ -1,17 +1,17 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import Quote
+from fanfan.adapters.db.models import DBQuote
 
 
-class QuoteView(ModelView, model=Quote):
+class QuoteView(ModelView, model=DBQuote):
     name = "Подписи"
     icon = "fa-solid fa-pen"
     column_list = [
-        Quote.text,
+        DBQuote.text,
     ]
     column_labels = {
-        Quote.text: "Название",
+        DBQuote.text: "Название",
     }
     form_columns = [
-        Quote.text,
+        DBQuote.text,
     ]

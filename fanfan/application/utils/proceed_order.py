@@ -7,8 +7,8 @@ from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.timepad.dto.order import OrderStatus, RegistrationOrderResponse
 from fanfan.adapters.timepad.exceptions import TimepadOrderProcessFailed
-from fanfan.core.enums import UserRole
-from fanfan.core.models.ticket import TicketId, TicketModel
+from fanfan.core.models.ticket import Ticket, TicketId
+from fanfan.core.models.user import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class ProceedOrder:
                         existing_ticket is None
                     ):
                         await self.tickets_repo.add_ticket(
-                            TicketModel(
+                            Ticket(
                                 id=TicketId(ticket.number),
                                 role=UserRole.PARTICIPANT
                                 if ticket.ticket_type.name in PARTICIPANT_NOMINATIONS

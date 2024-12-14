@@ -14,7 +14,7 @@ from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.events import NoCurrentEvent
 from fanfan.core.models.event import EventId
-from fanfan.core.models.user import FullUserModel
+from fanfan.core.models.user import FullUser
 from fanfan.core.services.access import AccessService
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
@@ -25,7 +25,7 @@ DATA_TOTAL_PAGES = "total_pages"
 async def schedule_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: FullUserModel,
+    user: FullUser,
     **kwargs,
 ):
     get_schedule_page: GetSchedulePage = await container.get(GetSchedulePage)
@@ -65,7 +65,7 @@ async def show_event_page(manager: DialogManager, event_id: EventId) -> None:
     get_page_number_by_event: GetPageNumberByEvent = await container.get(
         GetPageNumberByEvent
     )
-    user: FullUserModel = manager.middleware_data["user"]
+    user: FullUser = manager.middleware_data["user"]
 
     page_number = await get_page_number_by_event(
         GetPageNumberByEventDTO(

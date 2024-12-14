@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton
 
-from fanfan.core.dto.mailing import MailingId
 from fanfan.core.models.feedback import FeedbackId
+from fanfan.core.models.mailing import MailingId
 from fanfan.presentation.tgbot.filters.callbacks import (
     DeleteMessageCallback,
     OpenSubscriptionsCallback,

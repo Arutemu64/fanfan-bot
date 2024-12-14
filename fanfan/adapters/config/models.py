@@ -1,3 +1,4 @@
+import enum
 import logging
 from typing import Self
 
@@ -14,7 +15,10 @@ from pydantic import (
 from pydantic_extra_types.timezone_name import TimeZoneName
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from fanfan.core.enums import BotMode
+
+class BotMode(enum.StrEnum):
+    POLLING = enum.auto()
+    WEBHOOK = enum.auto()
 
 
 class WebhookConfig(BaseModel):
@@ -181,7 +185,7 @@ class Configuration(BaseSettings):
     docs_link: HttpUrl | None = None
 
     bot: BotConfig
-    web: WebConfig | None = None
+    web: WebConfig
 
     db: DatabaseConfig
     redis: RedisConfig

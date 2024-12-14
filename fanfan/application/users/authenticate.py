@@ -7,9 +7,8 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.core.models.user import FullUserModel, UserId, UserModel
+from fanfan.core.models.user import FullUser, User, UserId, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +30,7 @@ class AuthenticateDTO:
         )
 
 
-class Authenticate(Interactor[AuthenticateDTO, FullUserModel]):
+class Authenticate(Interactor[AuthenticateDTO, FullUser]):
     def __init__(
         self, id_provider: IdProvider, users_repo: UsersRepository, uow: UnitOfWork
     ):
@@ -39,12 +38,12 @@ class Authenticate(Interactor[AuthenticateDTO, FullUserModel]):
         self.users_repo = users_repo
         self.uow = uow
 
-    async def __call__(self, data: AuthenticateDTO) -> FullUserModel:
+    async def __call__(self, data: AuthenticateDTO) -> FullUser:
         try:
             user = await self.id_provider.get_current_user()
         except UserNotFound:
             async with self.uow:
-                user = UserModel(
+                user = User(
                     id=data.id,
                     username=data.username,
                     first_name=data.first_name,

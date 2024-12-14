@@ -20,7 +20,7 @@ from fanfan.application.mailing.create_role_mailing import (
     CreateRoleMailing,
     CreateRoleMailingDTO,
 )
-from fanfan.core.enums import UserRole
+from fanfan.core.models.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -72,7 +72,7 @@ async def send_mailing_handler(
         )
     )
     await callback.message.answer(
-        f"✅ Рассылка запущена!\nУникальный ID рассылки: <code>{mailing_id}</code>",
+        f"✅ Рассылка запущена!\nУникальный ID рассылки: <code>{mailing_id}</code>"
     )
     await show_mailing_info(manager, mailing_id)
 
@@ -121,7 +121,7 @@ create_mailing_window = Window(
             id=ID_ROLES_PICKER,
             item_id_getter=operator.itemgetter(0),
             items="roles",
-            type_factory=lambda x: UserRole(int(x)),
+            type_factory=UserRole,
         ),
         width=2,
     ),

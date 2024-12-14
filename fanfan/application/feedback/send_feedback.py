@@ -10,7 +10,7 @@ from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.feedback import FeedbackException
-from fanfan.core.models.feedback import FeedbackModel
+from fanfan.core.models.feedback import Feedback
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.stream.routes.notifications.send_feedback_notifications import (  # noqa: E501
     SendFeedbackNotificationsDTO,
@@ -50,7 +50,7 @@ class SendFeedback(Interactor[SendFeedbackDTO, None]):
         async with self.uow:
             try:
                 feedback = await self.feedback_repo.add_feedback(
-                    FeedbackModel(
+                    Feedback(
                         user_id=user.id,
                         text=data.text,
                         processed_by_id=None,

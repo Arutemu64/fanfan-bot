@@ -14,8 +14,8 @@ from fanfan.core.exceptions.events import EventNotFound
 from fanfan.core.exceptions.subscriptions import SubscriptionAlreadyExist
 from fanfan.core.models.event import EventId
 from fanfan.core.models.subscription import (
-    FullSubscriptionModel,
-    SubscriptionModel,
+    FullSubscription,
+    Subscription,
 )
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class CreateSubscriptionDTO:
     counter: int
 
 
-class CreateSubscription(Interactor[CreateSubscriptionDTO, FullSubscriptionModel]):
+class CreateSubscription(Interactor[CreateSubscriptionDTO, FullSubscription]):
     def __init__(
         self,
         subscriptions_repo: SubscriptionsRepository,
@@ -43,11 +43,11 @@ class CreateSubscription(Interactor[CreateSubscriptionDTO, FullSubscriptionModel
     async def __call__(
         self,
         data: CreateSubscriptionDTO,
-    ) -> FullSubscriptionModel:
+    ) -> FullSubscription:
         async with self.uow:
             try:
                 subscription = await self.subscriptions_repo.add_subscription(
-                    SubscriptionModel(
+                    Subscription(
                         user_id=self.id_provider.get_current_user_id(),
                         event_id=data.event_id,
                         counter=data.counter,

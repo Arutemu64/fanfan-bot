@@ -6,18 +6,18 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.participant import Participant
+from fanfan.adapters.db.models.participant import DBParticipant
 from fanfan.core.models.nomination import (
-    FullNominationModel,
+    FullNomination,
+    Nomination,
     NominationId,
-    NominationModel,
 )
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.vote import Vote
+    from fanfan.adapters.db.models.vote import DBVote
 
 
-class Nomination(Base):
+class DBNomination(Base):
     __tablename__ = "nominations"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -26,15 +26,15 @@ class Nomination(Base):
     is_votable: Mapped[bool] = mapped_column(server_default="False")
 
     # Relationships
-    user_vote: Mapped[Vote | None] = relationship(
+    user_vote: Mapped[DBVote | None] = relationship(
         secondary="participants",
         viewonly=True,
         lazy="noload",
     )
     participants_count = column_property(
-        select(func.count(Participant.id))
-        .where(Participant.nomination_id == id)
-        .correlate_except(Participant)
+        select(func.count(DBParticipant.id))
+        .where(DBParticipant.nomination_id == id)
+        .correlate_except(DBParticipant)
         .scalar_subquery(),
         deferred=True,
     )
@@ -43,21 +43,21 @@ class Nomination(Base):
         return self.title
 
     @classmethod
-    def from_model(cls, model: NominationModel):
-        return Nomination(
+    def from_model(cls, model: Nomination):
+        return DBNomination(
             id=model.id, code=model.code, title=model.title, is_votable=model.is_votable
         )
 
-    def to_model(self) -> NominationModel:
-        return NominationModel(
+    def to_model(self) -> Nomination:
+        return Nomination(
             id=NominationId(self.id),
             code=self.code,
             title=self.title,
             is_votable=self.is_votable,
         )
 
-    def to_full_model(self) -> FullNominationModel:
-        return FullNominationModel(
+    def to_full_model(self) -> FullNomination:
+        return FullNomination(
             id=NominationId(self.id),
             code=self.code,
             title=self.title,

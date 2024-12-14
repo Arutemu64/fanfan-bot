@@ -8,17 +8,17 @@ from fanfan.core.models.user import UserId
 SubscriptionId = NewType("SubscriptionId", int)
 
 
-@dataclass(slots=True)
-class SubscriptionModel:
+@dataclass(slots=True, kw_only=True)
+class Subscription:
+    id: SubscriptionId | None = None
     user_id: UserId
     event_id: EventId
     counter: int
-    id: SubscriptionId | None = None
 
 
 @dataclass(slots=True, kw_only=True)
-class FullSubscriptionModel(SubscriptionModel):
-    event: FullEventModel
+class FullSubscription(Subscription):
+    event: FullEvent
 
 
-from fanfan.core.models.event import EventId, FullEventModel  # noqa: E402
+from fanfan.core.models.event import EventId, FullEvent  # noqa: E402

@@ -3,11 +3,11 @@ from dataclasses import dataclass
 
 
 class QRType(enum.StrEnum):
-    ACHIEVEMENT = "achievement"
-    USER = "user"
+    ACHIEVEMENT = enum.auto()
+    USER = enum.auto()
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True, kw_only=True, frozen=True)
 class QR:
     type: QRType
     data: str

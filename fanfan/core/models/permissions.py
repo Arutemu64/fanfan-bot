@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-@dataclass(slots=True)
-class UserPermissionsModel:
+@dataclass(slots=True, kw_only=True)
+class UserPermissions:
     user_id: UserId
     can_send_feedback: bool
 

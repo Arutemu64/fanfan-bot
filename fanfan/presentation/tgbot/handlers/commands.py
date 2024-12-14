@@ -6,9 +6,8 @@ from aiogram_dialog import DialogManager, ShowMode, StartMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.models.user import FullUserModel
+from fanfan.core.models.user import FullUser, UserRole
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.filters import RoleFilter
@@ -44,12 +43,10 @@ async def start_cmd(
 async def link_ticket_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: FullUserModel,
+    user: FullUser,
 ) -> None:
     if not user.ticket:
         await dialog_manager.start(states.Main.link_ticket)
-    else:
-        await dialog_manager.update(data={})
 
 
 @router.message(Command(ABOUT_CMD))
@@ -72,7 +69,7 @@ async def notifications_cmd(message: Message, dialog_manager: DialogManager) -> 
 async def quest_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: FullUserModel,
+    user: FullUser,
     access: FromDishka[AccessService],
 ) -> None:
     try:
@@ -87,7 +84,7 @@ async def quest_cmd(
 async def voting_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: FullUserModel,
+    user: FullUser,
     access: FromDishka[AccessService],
 ) -> None:
     try:
@@ -112,7 +109,7 @@ async def org_cmd(message: Message, dialog_manager: DialogManager) -> None:
 async def feedback_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: FullUserModel,
+    user: FullUser,
     access: FromDishka[AccessService],
 ) -> None:
     try:

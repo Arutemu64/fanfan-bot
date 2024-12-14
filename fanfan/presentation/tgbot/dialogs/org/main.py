@@ -30,9 +30,7 @@ async def org_main_getter(
     settings = await get_settings()
     jwt_token = token_processor.create_access_token(dialog_manager.event.from_user.id)
     return {
-        "admin_auth_url": config.web.build_admin_auth_url(jwt_token)
-        if config.web
-        else None,
+        "admin_auth_url": config.web.build_admin_auth_url(jwt_token),
         "voting_enabled": settings.voting_enabled,
         "docs_link": config.docs_link,
     }

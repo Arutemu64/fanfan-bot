@@ -6,8 +6,8 @@ from typing import NewType
 NominationId = NewType("NominationId", int)
 
 
-@dataclass(slots=True)
-class NominationModel:
+@dataclass(slots=True, kw_only=True)
+class Nomination:
     id: NominationId
     code: str
     title: str
@@ -15,8 +15,8 @@ class NominationModel:
 
 
 @dataclass(slots=True, kw_only=True)
-class FullNominationModel(NominationModel):
-    user_vote: VoteModel | None
+class FullNomination(Nomination):
+    user_vote: Vote | None
 
 
-from fanfan.core.models.vote import VoteModel  # noqa: E402
+from fanfan.core.models.vote import Vote  # noqa: E402

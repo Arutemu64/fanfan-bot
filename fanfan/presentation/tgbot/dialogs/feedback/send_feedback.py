@@ -21,8 +21,7 @@ async def send_feedback_getter(
 ):
     return {
         "can_send": dialog_manager.dialog_data.get(DATA_FEEDBACK_TEXT),
-        "feedback_text": dialog_manager.dialog_data.get(DATA_FEEDBACK_TEXT)
-        or "отправь сообщение, чтобы ввести/изменить текст",
+        "feedback_text": dialog_manager.dialog_data.get(DATA_FEEDBACK_TEXT),
     }
 
 
@@ -59,7 +58,10 @@ send_feedback_window = Window(
         "Отправь нам своё мнение и мы обязательно его учтём!",
     ),
     Const(" "),
-    Jinja("Текст сообщения: <blockquote>{{ feedback_text|e }}</blockquote>"),
+    Jinja(
+        "Текст сообщения: <blockquote>{{ (feedback_text "
+        "or 'отправь сообщение, чтобы ввести/изменить текст')|e }}</blockquote>"
+    ),
     Const(" "),
     Const(
         "<i>Организаторы могут связаться с вами для уточнения подробностей. "

@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Mapped, mapped_column
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.core.models.block import BlockId, BlockModel
+from fanfan.core.models.block import Block, BlockId
 
 
-class Block(Base):
+class DBBlock(Base):
     __tablename__ = "blocks"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -14,8 +14,8 @@ class Block(Base):
     def __str__(self):
         return self.title
 
-    def to_model(self) -> BlockModel:
-        return BlockModel(
+    def to_model(self) -> Block:
+        return Block(
             id=BlockId(self.id),
             title=self.title,
         )

@@ -12,14 +12,14 @@ from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import (
     ANNOUNCE_LIMIT_NAME,
 )
-from fanfan.core.dto.mailing import MailingId
 from fanfan.core.exceptions.events import (
     EventNotFound,
     SameEventsAreNotAllowed,
     ScheduleEditTooFast,
 )
 from fanfan.core.exceptions.limiter import TooFast
-from fanfan.core.models.event import EventId, EventModel
+from fanfan.core.models.event import Event, EventId
+from fanfan.core.models.mailing import MailingId
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.stream.routes.notifications.send_announcements import (
     EventChangeDTO,
@@ -38,8 +38,8 @@ class MoveEventDTO:
 
 @dataclass(frozen=True, slots=True)
 class MoveEventResult:
-    event: EventModel
-    after_event: EventModel
+    event: Event
+    after_event: Event
     mailing_id: MailingId
 
 

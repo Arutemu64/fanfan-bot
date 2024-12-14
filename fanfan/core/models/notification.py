@@ -10,7 +10,7 @@ DEFAULT_REPLY_MARKUP = InlineKeyboardBuilder(
 ).as_markup()
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(slots=True, frozen=True, kw_only=True)
 class UserNotification:
     text: str
     title: str = "📢 УВЕДОМЛЕНИЕ"

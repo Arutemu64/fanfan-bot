@@ -7,9 +7,9 @@ from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.settings import SettingsNotFound
+from fanfan.core.models.user import UserRole
 
 logger = logging.getLogger(__name__)
 

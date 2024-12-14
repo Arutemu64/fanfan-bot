@@ -1,7 +1,7 @@
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.dto.page import Page, Pagination
-from fanfan.core.models.nomination import FullNominationModel
+from fanfan.core.models.nomination import FullNomination
 
 
 class GetNominationsPage:
@@ -15,7 +15,7 @@ class GetNominationsPage:
         self,
         only_votable: bool,
         pagination: Pagination | None = None,
-    ) -> Page[FullNominationModel]:
+    ) -> Page[FullNomination]:
         nominations = await self.nominations_repo.list_nominations(
             only_votable=only_votable,
             user_id=self.id_provider.get_current_user_id(),

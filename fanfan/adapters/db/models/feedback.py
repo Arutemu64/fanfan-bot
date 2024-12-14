@@ -2,13 +2,13 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.user import User
-from fanfan.core.dto.mailing import MailingId
-from fanfan.core.models.feedback import FeedbackId, FeedbackModel, FullFeedbackModel
+from fanfan.adapters.db.models.user import DBUser
+from fanfan.core.models.feedback import Feedback, FeedbackId, FullFeedback
+from fanfan.core.models.mailing import MailingId
 from fanfan.core.models.user import UserId
 
 
-class Feedback(Base):
+class DBFeedback(Base):
     __tablename__ = "feedback"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -21,17 +21,17 @@ class Feedback(Base):
     user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
     )
-    user: Mapped[User | None] = relationship(foreign_keys=user_id)
+    user: Mapped[DBUser | None] = relationship(foreign_keys=user_id)
 
     # Processed
     processed_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
-    processed_by: Mapped[User | None] = relationship(foreign_keys=processed_by_id)
+    processed_by: Mapped[DBUser | None] = relationship(foreign_keys=processed_by_id)
 
     @classmethod
-    def from_model(cls, model: FeedbackModel):
-        return Feedback(
+    def from_model(cls, model: Feedback):
+        return DBFeedback(
             id=model.id,
             text=model.text,
             user_id=model.user_id,
@@ -39,8 +39,8 @@ class Feedback(Base):
             mailing_id=model.mailing_id,
         )
 
-    def to_model(self) -> FeedbackModel:
-        return FeedbackModel(
+    def to_model(self) -> Feedback:
+        return Feedback(
             id=FeedbackId(self.id),
             text=self.text,
             user_id=UserId(self.user_id),
@@ -48,8 +48,8 @@ class Feedback(Base):
             mailing_id=MailingId(self.mailing_id),
         )
 
-    def to_full_model(self) -> FullFeedbackModel:
-        return FullFeedbackModel(
+    def to_full_model(self) -> FullFeedback:
+        return FullFeedback(
             id=FeedbackId(self.id),
             text=self.text,
             user_id=UserId(self.user_id),

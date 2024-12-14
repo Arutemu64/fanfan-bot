@@ -6,11 +6,11 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.utils.import_from_c2 import IMPORT_FROM_C2_LIMIT_NAME
 from fanfan.application.utils.import_orders import IMPORT_ORDERS_LIMIT_NAME
 from fanfan.core.dto.tasks import TaskStatus
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.limiter import (
     LimitLocked,
 )
+from fanfan.core.models.user import UserRole
 from fanfan.presentation.scheduler.tasks.import_from_c2 import import_from_c2
 from fanfan.presentation.scheduler.tasks.import_orders import (
     import_orders,

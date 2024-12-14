@@ -4,7 +4,7 @@ from typing import NewType
 BlockId = NewType("BlockId", int)
 
 
-@dataclass(slots=True)
-class BlockModel:
+@dataclass(slots=True, kw_only=True)
+class Block:
     id: BlockId
     title: str

@@ -8,17 +8,17 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.event import EventId
 from fanfan.core.models.subscription import (
-    FullSubscriptionModel,
+    FullSubscription,
+    Subscription,
     SubscriptionId,
-    SubscriptionModel,
 )
 from fanfan.core.models.user import UserId
 
 if typing.TYPE_CHECKING:
-    from fanfan.adapters.db.models import Event, User
+    from fanfan.adapters.db.models import DBEvent, DBUser
 
 
-class Subscription(Base):
+class DBSubscription(Base):
     __tablename__ = "subscriptions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -26,34 +26,34 @@ class Subscription(Base):
 
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    user: Mapped[User] = relationship()
+    user: Mapped[DBUser] = relationship()
 
     # Event relation
     event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id", ondelete="CASCADE"))
-    event: Mapped[Event] = relationship()
+    event: Mapped[DBEvent] = relationship()
 
     # Constraint
     UniqueConstraint(event_id, user_id)
 
     @classmethod
-    def from_model(cls, model: SubscriptionModel):
-        return Subscription(
+    def from_model(cls, model: Subscription):
+        return DBSubscription(
             id=model.id,
             user_id=model.user_id,
             event_id=model.event_id,
             counter=model.counter,
         )
 
-    def to_model(self) -> SubscriptionModel:
-        return SubscriptionModel(
+    def to_model(self) -> Subscription:
+        return Subscription(
             id=SubscriptionId(self.id),
             user_id=UserId(self.user_id),
             event_id=EventId(self.event_id),
             counter=self.counter,
         )
 
-    def to_full_model(self) -> FullSubscriptionModel:
-        return FullSubscriptionModel(
+    def to_full_model(self) -> FullSubscription:
+        return FullSubscription(
             id=SubscriptionId(self.id),
             user_id=UserId(self.user_id),
             event_id=EventId(self.event_id),

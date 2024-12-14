@@ -1,41 +1,41 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import Event
+from fanfan.adapters.db.models import DBEvent
 
 
-class EventView(ModelView, model=Event):
+class EventView(ModelView, model=DBEvent):
     name_plural = "Расписание"
     icon = "fa-solid fa-calendar-days"
-    column_default_sort = [(Event.order, False)]
-    column_sortable_list = [Event.order, Event.queue]
+    column_default_sort = [(DBEvent.order, False)]
+    column_sortable_list = [DBEvent.order, DBEvent.queue]
     can_create = False
     can_delete = False
 
     column_list = [
-        Event.id,
-        Event.order,
-        Event.queue,
-        Event.title,
-        Event.is_current,
-        Event.is_skipped,
+        DBEvent.id,
+        DBEvent.order,
+        DBEvent.queue,
+        DBEvent.title,
+        DBEvent.is_current,
+        DBEvent.is_skipped,
     ]
-    column_details_exclude_list = [Event.user_subscription]
+    column_details_exclude_list = [DBEvent.user_subscription]
     form_excluded_columns = [
-        Event.user_subscription,
-        Event.queue,
-        Event.nomination,
-        Event.block,
+        DBEvent.user_subscription,
+        DBEvent.queue,
+        DBEvent.nomination,
+        DBEvent.block,
     ]
 
     column_labels = {
-        Event.id: "ID",
-        Event.order: "Сортировка",
-        Event.queue: "Позиция",
-        Event.title: "Название",
-        Event.is_current: "Текущее",
-        Event.is_skipped: "Пропущено",
-        Event.nomination: "Номинация",
-        Event.participant: "Участник",
-        Event.created_at: "Время создания",
-        Event.updated_at: "Время изменения",
+        DBEvent.id: "ID",
+        DBEvent.order: "Сортировка",
+        DBEvent.queue: "Позиция",
+        DBEvent.title: "Название",
+        DBEvent.is_current: "Текущее",
+        DBEvent.is_skipped: "Пропущено",
+        DBEvent.nomination: "Номинация",
+        DBEvent.participant: "Участник",
+        DBEvent.created_at: "Время создания",
+        DBEvent.updated_at: "Время изменения",
     }

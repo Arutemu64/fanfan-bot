@@ -27,7 +27,7 @@ class ConfigProvider(Provider):
         return config.bot
 
     @provide
-    def get_web_config(self, config: Configuration) -> WebConfig | None:
+    def get_web_config(self, config: Configuration) -> WebConfig:
         return config.web
 
     @provide

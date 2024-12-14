@@ -5,13 +5,13 @@ AchievementId = NewType("AchievementId", int)
 SecretId = NewType("SecretId", str)
 
 
-@dataclass(slots=True)
-class AchievementModel:
+@dataclass(slots=True, kw_only=True)
+class Achievement:
     id: AchievementId
     title: str
     description: str | None
 
 
-@dataclass(slots=True)
-class FullAchievementModel(AchievementModel):
+@dataclass(slots=True, kw_only=True)
+class FullAchievement(Achievement):
     received: bool

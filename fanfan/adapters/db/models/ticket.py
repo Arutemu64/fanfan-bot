@@ -7,15 +7,14 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.core.enums import UserRole
-from fanfan.core.models.ticket import TicketId, TicketModel
-from fanfan.core.models.user import UserId
+from fanfan.core.models.ticket import Ticket, TicketId
+from fanfan.core.models.user import UserId, UserRole
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.user import User
+    from fanfan.adapters.db.models.user import DBUser
 
 
-class Ticket(Base):
+class DBTicket(Base):
     __tablename__ = "tickets"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -26,7 +25,7 @@ class Ticket(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
     )
-    used_by: Mapped[User | None] = relationship(
+    used_by: Mapped[DBUser | None] = relationship(
         foreign_keys=used_by_id,
         back_populates="ticket",
     )
@@ -34,22 +33,22 @@ class Ticket(Base):
     issued_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
     )
-    issued_by: Mapped[User | None] = relationship(foreign_keys=issued_by_id)
+    issued_by: Mapped[DBUser | None] = relationship(foreign_keys=issued_by_id)
 
     def __str__(self) -> str:
         return self.id
 
     @classmethod
-    def from_model(cls, model: TicketModel):
-        return Ticket(
+    def from_model(cls, model: Ticket):
+        return DBTicket(
             id=model.id,
             role=model.role,
             used_by_id=model.used_by_id,
             issued_by_id=model.issued_by_id,
         )
 
-    def to_model(self) -> TicketModel:
-        return TicketModel(
+    def to_model(self) -> Ticket:
+        return Ticket(
             id=TicketId(self.id),
             role=UserRole(self.role),
             used_by_id=UserId(self.used_by_id),

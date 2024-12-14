@@ -11,18 +11,18 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Depends, Request
 from starlette.responses import FileResponse, JSONResponse
 
-from fanfan.adapters.utils.notifier import Notifier
+from fanfan.adapters.utils.notifier import BotNotifier
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.quest.receive_achievement_by_secret_id import (
     ReceiveAchievementBySecretId,
 )
 from fanfan.application.users.get_user_by_id import GetUserById
-from fanfan.core.dto.notification import UserNotification
-from fanfan.core.dto.qr import QR, QRType
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import SecretId
+from fanfan.core.models.notification import UserNotification
+from fanfan.core.models.qr import QR, QRType
+from fanfan.core.models.user import UserRole
 from fanfan.core.utils.notifications import create_achievement_notification
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
 from fanfan.presentation.tgbot.keyboards.buttons import DELETE_BUTTON
@@ -46,7 +46,7 @@ async def open_qr_scanner() -> FileResponse:
 async def proceed_qr_post(
     request: Request,
     bot: FromDishka[Bot],
-    notifier: FromDishka[Notifier],
+    notifier: FromDishka[BotNotifier],
     id_provider: FromDishka[IdProvider],
     receive_achievement_by_secret_id: FromDishka[ReceiveAchievementBySecretId],
     get_user_id_by: FromDishka[GetUserById],

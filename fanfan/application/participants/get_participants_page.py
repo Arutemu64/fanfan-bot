@@ -5,7 +5,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.nomination import NominationId
-from fanfan.core.models.participant import FullParticipantModel
+from fanfan.core.models.participant import FullParticipant
 
 
 @dataclass(frozen=True, slots=True)
@@ -16,9 +16,7 @@ class GetParticipantsPageDTO:
     search_query: str | None = None
 
 
-class GetParticipantsPage(
-    Interactor[GetParticipantsPageDTO, Page[FullParticipantModel]]
-):
+class GetParticipantsPage(Interactor[GetParticipantsPageDTO, Page[FullParticipant]]):
     def __init__(
         self, participants_repo: ParticipantsRepository, id_provider: IdProvider
     ) -> None:
@@ -28,7 +26,7 @@ class GetParticipantsPage(
     async def __call__(
         self,
         data: GetParticipantsPageDTO,
-    ) -> Page[FullParticipantModel]:
+    ) -> Page[FullParticipant]:
         user_id = self.id_provider.get_current_user_id()
         participants = await self.participants_repo.list_participants(
             nomination_id=data.nomination_id,

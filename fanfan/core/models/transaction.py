@@ -7,7 +7,7 @@ TransactionId = NewType("TransactionId", int)
 
 
 @dataclass(slots=True, kw_only=True)
-class TransactionModel:
+class Transaction:
     id: TransactionId | None = None
     points: int
     comment: str

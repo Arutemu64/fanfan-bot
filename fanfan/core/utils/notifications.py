@@ -2,9 +2,9 @@ import html
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from fanfan.core.dto.notification import DEFAULT_REPLY_MARKUP, UserNotification
-from fanfan.core.models.achievement import AchievementModel
-from fanfan.core.models.feedback import FullFeedbackModel
+from fanfan.core.models.achievement import Achievement
+from fanfan.core.models.feedback import FullFeedback
+from fanfan.core.models.notification import DEFAULT_REPLY_MARKUP, UserNotification
 from fanfan.core.utils.pluralize import Plurals, pluralize
 from fanfan.presentation.tgbot.keyboards.buttons import (
     DELETE_BUTTON,
@@ -13,7 +13,7 @@ from fanfan.presentation.tgbot.keyboards.buttons import (
 )
 
 
-def create_achievement_notification(achievement: AchievementModel) -> UserNotification:
+def create_achievement_notification(achievement: Achievement) -> UserNotification:
     return UserNotification(
         title="🏆 Новое достижение",
         text=f"Ты получил новое достижение <b>{achievement.title}</b>",
@@ -31,7 +31,7 @@ def create_points_notification(points: int, comment: str | None) -> UserNotifica
     )
 
 
-def create_feedback_notification(feedback: FullFeedbackModel) -> UserNotification:
+def create_feedback_notification(feedback: FullFeedback) -> UserNotification:
     if feedback.processed_by is None:
         bottom_text = (
             "🙋 Нажмите кнопку, если готовы взять обработку отзыва на себя\n"

@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from fanfan.core.enums import UserRole
+from fanfan.core.models.user import UserRole
 from fanfan.presentation.tgbot.dialogs import (
     achievements,
     activities,

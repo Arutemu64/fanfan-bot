@@ -26,7 +26,7 @@ from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.achievements import UserAlreadyHasThisAchievement
 from fanfan.core.exceptions.users import TicketNotLinked
 from fanfan.core.models.achievement import AchievementId
-from fanfan.core.models.user import FullUserModel, UserId
+from fanfan.core.models.user import FullUser, UserId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static.templates import achievements_list
@@ -40,7 +40,7 @@ DATA_USER_ID = "user_id"
 async def list_achievements_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: FullUserModel,
+    user: FullUser,
     **kwargs,
 ) -> dict:
     get_achievements_page: GetAchievementsPage = await container.get(

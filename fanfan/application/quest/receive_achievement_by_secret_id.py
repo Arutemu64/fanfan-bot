@@ -10,13 +10,13 @@ from fanfan.core.exceptions.achievements import (
     AchievementNotFound,
     UserAlreadyHasThisAchievement,
 )
-from fanfan.core.models.achievement import AchievementModel, SecretId
+from fanfan.core.models.achievement import Achievement, SecretId
 from fanfan.core.services.access import AccessService
 
 logger = logging.getLogger(__name__)
 
 
-class ReceiveAchievementBySecretId(Interactor[SecretId, AchievementModel]):
+class ReceiveAchievementBySecretId(Interactor[SecretId, Achievement]):
     def __init__(
         self,
         achievements_repo: AchievementsRepository,
@@ -29,7 +29,7 @@ class ReceiveAchievementBySecretId(Interactor[SecretId, AchievementModel]):
         self.id_provider = id_provider
         self.uow = uow
 
-    async def __call__(self, secret_id: SecretId) -> AchievementModel:
+    async def __call__(self, secret_id: SecretId) -> Achievement:
         user = await self.id_provider.get_current_user()
         await self.access.ensure_can_participate_in_quest(user)
         achievement = await self.achievements_repo.get_achievement_by_secret_id(

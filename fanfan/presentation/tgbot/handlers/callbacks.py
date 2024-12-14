@@ -9,7 +9,6 @@ from fanfan.application.feedback.process_feedback import (
     ProcessFeedback,
     ProcessFeedbackDTO,
 )
-from fanfan.core.exceptions.base import AppException
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
 from fanfan.presentation.tgbot.filters.callbacks import (
@@ -65,17 +64,13 @@ async def process_feedback(
     interactor: FromDishka[ProcessFeedback],
     dialog_manager: DialogManager,
 ):
-    dialog_manager.show_mode = ShowMode.NO_UPDATE
-    try:
-        feedback = await interactor(
-            ProcessFeedbackDTO(feedback_id=callback_data.feedback_id)
-        )
-        await query.answer(
-            "✅ Вы взяли обработку отзыва на себя. "
-            f"Теперь можете связаться с @{feedback.user.username} "
-            f"в ЛС для уточнения деталей. "
-            "Другие организаторы увидят, что вы взяли отзыв в работу.",
-            show_alert=True,
-        )
-    except AppException as e:
-        await query.answer(e.message, show_alert=True)
+    feedback = await interactor(
+        ProcessFeedbackDTO(feedback_id=callback_data.feedback_id)
+    )
+    await query.answer(
+        "✅ Вы взяли обработку отзыва на себя. "
+        f"Теперь можете связаться с @{feedback.user.username} "
+        f"в ЛС для уточнения деталей. "
+        "Другие организаторы увидят, что вы взяли отзыв в работу.",
+        show_alert=True,
+    )

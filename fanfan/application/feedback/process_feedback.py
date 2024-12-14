@@ -13,7 +13,7 @@ from fanfan.core.exceptions.feedback import (
     FeedbackException,
     FeedbackNotFound,
 )
-from fanfan.core.models.feedback import FeedbackId, FullFeedbackModel
+from fanfan.core.models.feedback import FeedbackId, FullFeedback
 from fanfan.presentation.stream.routes.notifications.send_feedback_notifications import (  # noqa: E501
     SendFeedbackNotificationsDTO,
 )
@@ -41,7 +41,7 @@ class ProcessFeedback:
         self.id_provider = id_provider
         self.stream_broker = stream_broker
 
-    async def __call__(self, data: ProcessFeedbackDTO) -> FullFeedbackModel:
+    async def __call__(self, data: ProcessFeedbackDTO) -> FullFeedback:
         async with self.uow:
             try:
                 feedback = await self.feedback_repo.get_feedback_by_id(

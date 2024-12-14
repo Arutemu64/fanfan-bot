@@ -2,35 +2,35 @@ from sqladmin import ModelView, action
 from starlette.requests import Request
 from starlette.responses import FileResponse
 
-from fanfan.adapters.db.models import Achievement
+from fanfan.adapters.db.models import DBAchievement
 from fanfan.common.paths import QR_CODES_TEMP_DIR
-from fanfan.core.dto.qr import QR, QRType
+from fanfan.core.models.qr import QR, QRType
 from fanfan.core.utils.qr import generate_img
 
 
-class AchievementView(ModelView, model=Achievement):
+class AchievementView(ModelView, model=DBAchievement):
     name_plural = "Достижения"
     category = "Квест"
     icon = "fa-solid fa-trophy"
-    column_default_sort = [(Achievement.order, False)]
+    column_default_sort = [(DBAchievement.order, False)]
 
-    column_list = [Achievement.order, Achievement.title, Achievement.description]
-    column_details_exclude_list = [Achievement.user_received]
+    column_list = [DBAchievement.order, DBAchievement.title, DBAchievement.description]
+    column_details_exclude_list = [DBAchievement.user_received]
     form_columns = [
-        Achievement.order,
-        Achievement.title,
-        Achievement.description,
-        Achievement.secret_id,
+        DBAchievement.order,
+        DBAchievement.title,
+        DBAchievement.description,
+        DBAchievement.secret_id,
     ]
 
     column_labels = {
-        Achievement.id: "ID",
-        Achievement.order: "Порядок",
-        Achievement.secret_id: "Секретный ID",
-        Achievement.title: "Название",
-        Achievement.description: "Описание",
-        Achievement.created_at: "Время создания",
-        Achievement.updated_at: "Время изменения",
+        DBAchievement.id: "ID",
+        DBAchievement.order: "Порядок",
+        DBAchievement.secret_id: "Секретный ID",
+        DBAchievement.title: "Название",
+        DBAchievement.description: "Описание",
+        DBAchievement.created_at: "Время создания",
+        DBAchievement.updated_at: "Время изменения",
     }
 
     @action(

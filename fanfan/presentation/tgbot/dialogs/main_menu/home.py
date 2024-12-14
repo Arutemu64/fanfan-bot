@@ -9,9 +9,8 @@ from dishka.integrations.aiogram import CONTAINER_NAME
 
 from fanfan.adapters.config.models import Configuration
 from fanfan.application.utils.get_random_quote import GetRandomQuote
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.models.user import FullUserModel
+from fanfan.core.models.user import FullUser, UserRole
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
@@ -26,10 +25,12 @@ from fanfan.presentation.tgbot.dialogs.common.predicates import (
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.ui import strings
 
+F[CURRENT_USER]: FullUser
+
 
 async def main_menu_getter(
     dialog_manager: DialogManager,
-    user: FullUserModel,
+    user: FullUser,
     container: AsyncContainer,
     **kwargs,
 ):
@@ -50,13 +51,13 @@ async def main_menu_getter(
 
     return {
         # Info
-        "first_name": dialog_manager.middleware_data["event_from_user"].first_name,
+        "first_name": user.first_name,
         # Access
         "can_vote": can_vote,
         "can_participate_in_quest": can_participate_in_quest,
         # Test mode:
         "can_access_test_mode": config.debug.test_mode
-        and (user.role >= UserRole.HELPER),
+        and user.role in [UserRole.HELPER, UserRole.ORG],
         # Most important thing ever
         "random_quote": await get_random_quote(),
     }
@@ -71,7 +72,7 @@ async def open_voting_handler(
     access: AccessService = await container.get(AccessService)
 
     # Backdoor for orgs
-    user: FullUserModel = manager.middleware_data["user"]
+    user: FullUser = manager.middleware_data["user"]
     if user.role is UserRole.ORG:
         await manager.start(states.Voting.list_nominations)
         return
@@ -85,7 +86,7 @@ async def open_feedback_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUserModel = manager.middleware_data["user"]
+    user: FullUser = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 
@@ -98,7 +99,7 @@ async def open_quest_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUserModel = manager.middleware_data["user"]
+    user: FullUser = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 

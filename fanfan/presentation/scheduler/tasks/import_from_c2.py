@@ -6,8 +6,8 @@ from taskiq import Context, TaskiqDepends
 
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.utils.import_from_c2 import ImportFromC2, ImportFromC2Result
-from fanfan.core.dto.notification import UserNotification
 from fanfan.core.exceptions.base import AppException
+from fanfan.core.models.notification import UserNotification
 from fanfan.core.models.user import UserId
 from fanfan.main.scheduler import broker
 from fanfan.presentation.stream.routes.notifications.send_notification import (

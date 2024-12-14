@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Mapped, mapped_column
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.core.models.settings import GlobalSettingsModel
+from fanfan.core.models.settings import GlobalSettings
 
 
-class GlobalSettings(Base):
+class DBGlobalSettings(Base):
     __tablename__ = "settings"
 
     id: Mapped[int] = mapped_column(primary_key=True, server_default="1")
@@ -17,16 +17,16 @@ class GlobalSettings(Base):
     quest_registrations_limit: Mapped[int] = mapped_column(server_default="10")
 
     @classmethod
-    def from_model(cls, model: GlobalSettingsModel):
-        return GlobalSettings(
+    def from_model(cls, model: GlobalSettings):
+        return DBGlobalSettings(
             id=1,
             voting_enabled=model.voting_enabled,
             quest_registration_enabled=model.quest_registration_enabled,
             quest_registrations_limit=model.quest_registrations_limit,
         )
 
-    def to_model(self) -> GlobalSettingsModel:
-        return GlobalSettingsModel(
+    def to_model(self) -> GlobalSettings:
+        return GlobalSettings(
             voting_enabled=self.voting_enabled,
             quest_registration_enabled=self.quest_registration_enabled,
             quest_registrations_limit=self.quest_registrations_limit,

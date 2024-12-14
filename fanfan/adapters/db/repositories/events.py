@@ -4,9 +4,9 @@ from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, undefer
 
-from fanfan.adapters.db.models import Event, Nomination, Subscription
+from fanfan.adapters.db.models import DBEvent, DBNomination, DBSubscription
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.event import EventId, EventModel, FullEventModel
+from fanfan.core.models.event import Event, EventId, FullEvent
 from fanfan.core.models.user import UserId
 
 
@@ -22,11 +22,13 @@ class EventsRepository:
         if search_query:
             query = query.where(
                 or_(
-                    Event.id == int(search_query)
+                    DBEvent.id == int(search_query)
                     if search_query.isnumeric()
                     else False,
-                    Event.title.ilike(f"%{search_query}%"),
-                    Event.nomination.has(Nomination.title.ilike(f"%{search_query}%")),
+                    DBEvent.title.ilike(f"%{search_query}%"),
+                    DBEvent.nomination.has(
+                        DBNomination.title.ilike(f"%{search_query}%")
+                    ),
                 ),
             )
         return query
@@ -34,46 +36,50 @@ class EventsRepository:
     @staticmethod
     def _load_full(query: Select, user_id: UserId | None = None) -> Select:
         query = query.options(
-            undefer(Event.queue), joinedload(Event.nomination), joinedload(Event.block)
+            undefer(DBEvent.queue),
+            joinedload(DBEvent.nomination),
+            joinedload(DBEvent.block),
         )
         if user_id:
-            query = query.options(contains_eager(Event.user_subscription)).outerjoin(
-                Subscription,
+            query = query.options(contains_eager(DBEvent.user_subscription)).outerjoin(
+                DBSubscription,
                 and_(
-                    Subscription.event_id == Event.id,
-                    Subscription.user_id == user_id,
+                    DBSubscription.event_id == DBEvent.id,
+                    DBSubscription.user_id == user_id,
                 ),
             )
         return query
 
     async def get_event_by_id(
         self, event_id: EventId, user_id: UserId | None = None
-    ) -> FullEventModel | None:
-        query = select(Event).where(Event.id == event_id)
+    ) -> FullEvent | None:
+        query = select(DBEvent).where(DBEvent.id == event_id)
         query = self._load_full(query, user_id)
         event = await self.session.scalar(query)
         return event.to_full_model() if event else None
 
-    async def get_event_by_queue(self, queue: int) -> EventModel | None:
-        query = select(Event).where(Event.queue == queue).limit(1)
+    async def get_event_by_queue(self, queue: int) -> Event | None:
+        query = select(DBEvent).where(DBEvent.queue == queue).limit(1)
         event = await self.session.scalar(query)
         return event.to_model() if event else None
 
-    async def get_current_event(self) -> FullEventModel | None:
-        query = select(Event).where(Event.is_current.is_(True))
+    async def get_current_event(self) -> FullEvent | None:
+        query = select(DBEvent).where(DBEvent.is_current.is_(True))
         query = self._load_full(query)
         event = await self.session.scalar(query)
         return event.to_full_model() if event else None
 
-    async def get_next_event(self) -> FullEventModel | None:
+    async def get_next_event(self) -> FullEvent | None:
         current_event_order = (
-            select(Event.order).where(Event.is_current.is_(True)).scalar_subquery()
+            select(DBEvent.order).where(DBEvent.is_current.is_(True)).scalar_subquery()
         )
         query = (
-            select(Event)
-            .order_by(Event.order)
+            select(DBEvent)
+            .order_by(DBEvent.order)
             .where(
-                and_(Event.order > current_event_order, Event.is_skipped.is_not(True))
+                and_(
+                    DBEvent.order > current_event_order, DBEvent.is_skipped.is_not(True)
+                )
             )
             .limit(1)
         )
@@ -81,16 +87,25 @@ class EventsRepository:
         event = await self.session.scalar(query)
         return event.to_full_model() if event else None
 
-    async def get_next_by_order(self, order: float) -> EventModel | None:
-        query = select(Event).order_by(Event.order).where(Event.order > order).limit(1)
+    async def get_next_by_order(self, order: float) -> Event | None:
+        query = (
+            select(DBEvent)
+            .order_by(DBEvent.order)
+            .where(DBEvent.order > order)
+            .limit(1)
+        )
         event = await self.session.scalar(query)
         return event.to_model() if event else None
 
     async def get_page_number_by_event(
         self, event_id: EventId, events_per_page: int
     ) -> int | None:
-        order_query = select(Event.order).where(Event.id == event_id).scalar_subquery()
-        position_query = select(func.count(Event.id)).where(Event.order <= order_query)
+        order_query = (
+            select(DBEvent.order).where(DBEvent.id == event_id).scalar_subquery()
+        )
+        position_query = select(func.count(DBEvent.id)).where(
+            DBEvent.order <= order_query
+        )
         event_position = await self.session.scalar(position_query)
         if event_position > 0:
             return math.floor((event_position - 1) / events_per_page)
@@ -101,8 +116,8 @@ class EventsRepository:
         search_query: str | None = None,
         pagination: Pagination | None = None,
         user_id: UserId | None = None,
-    ) -> list[FullEventModel]:
-        query = select(Event).order_by(Event.order)
+    ) -> list[FullEvent]:
+        query = select(DBEvent).order_by(DBEvent.order)
         query = self._load_full(query, user_id)
 
         if pagination:
@@ -117,12 +132,12 @@ class EventsRepository:
         self,
         search_query: str | None = None,
     ) -> int:
-        query = select(func.count(Event.id))
+        query = select(func.count(DBEvent.id))
         if search_query:
             query = self._filter_events(query, search_query)
         return await self.session.scalar(query)
 
-    async def save_event(self, model: EventModel) -> EventModel:
-        event = await self.session.merge(Event.from_model(model))
+    async def save_event(self, model: Event) -> Event:
+        event = await self.session.merge(DBEvent.from_model(model))
         await self.session.flush([event])
         return event.to_model()

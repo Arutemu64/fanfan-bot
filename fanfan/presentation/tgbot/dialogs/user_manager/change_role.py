@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.kbd import Column, Select, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
 from fanfan.application.users.update_user import UpdateUser, UpdateUserDTO
-from fanfan.core.enums import UserRole
+from fanfan.core.models.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
 from fanfan.presentation.tgbot.ui import strings
@@ -41,7 +41,7 @@ change_role_window = Window(
             id="user_role_picker",
             item_id_getter=operator.itemgetter(0),
             items="roles",
-            type_factory=lambda x: UserRole(int(x)),
+            type_factory=UserRole,
             on_click=change_role_handler,
         ),
     ),

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi_storages import FileSystemStorage, StorageImage
 from fastapi_storages.integrations.sqlalchemy import ImageType
 from sqlalchemy.orm import Mapped, mapped_column
@@ -5,10 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column
 from fanfan.adapters.config.parsers import get_config
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.mixins.order import OrderMixin
-from fanfan.core.models.activity import ActivityId, ActivityModel
+from fanfan.core.models.activity import Activity, ActivityId
 
 
-class Activity(Base, OrderMixin):
+class DBActivity(Base, OrderMixin):
     __tablename__ = "activities"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -22,10 +24,10 @@ class Activity(Base, OrderMixin):
         ),
     )
 
-    def to_model(self) -> ActivityModel:
-        return ActivityModel(
+    def to_model(self) -> Activity:
+        return Activity(
             id=ActivityId(self.id),
             title=self.title,
             description=self.description,
-            image_path=self.image.path if self.image else None,
+            image_path=Path(self.image.path) if self.image else None,
         )

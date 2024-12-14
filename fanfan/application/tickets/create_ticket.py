@@ -7,10 +7,10 @@ from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.tickets import TicketAlreadyExist
-from fanfan.core.models.ticket import TicketId, TicketModel
+from fanfan.core.models.ticket import Ticket, TicketId
+from fanfan.core.models.user import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class CreateTicketDTO:
     role: UserRole = UserRole.VISITOR
 
 
-class CreateTicket(Interactor[CreateTicketDTO, TicketModel]):
+class CreateTicket(Interactor[CreateTicketDTO, Ticket]):
     def __init__(
         self, tickets_repo: TicketsRepository, uow: UnitOfWork, id_provider: IdProvider
     ) -> None:
@@ -29,14 +29,14 @@ class CreateTicket(Interactor[CreateTicketDTO, TicketModel]):
         self.uow = uow
         self.id_provider = id_provider
 
-    async def __call__(self, data: CreateTicketDTO) -> TicketModel:
+    async def __call__(self, data: CreateTicketDTO) -> Ticket:
         user = await self.id_provider.get_current_user()
         if user.role is not UserRole.ORG:
             raise AccessDenied
         async with self.uow:
             try:
                 ticket = await self.tickets_repo.add_ticket(
-                    TicketModel(
+                    Ticket(
                         id=data.id,
                         role=data.role,
                         used_by_id=None,

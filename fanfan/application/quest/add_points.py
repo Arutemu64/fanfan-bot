@@ -9,7 +9,7 @@ from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.core.models.transaction import TransactionModel
+from fanfan.core.models.transaction import Transaction
 from fanfan.core.models.user import UserId
 from fanfan.core.services.access import AccessService
 from fanfan.core.utils.notifications import create_points_notification
@@ -56,7 +56,7 @@ class AddPoints(Interactor[AddPointsDTO, None]):
                 user_id=user.id, lock_points=True
             )
             participant.add_points(data.points)
-            transaction = TransactionModel(
+            transaction = Transaction(
                 points=data.points,
                 comment=data.comment,
                 to_user_id=participant.id,

@@ -3,7 +3,7 @@ from datetime import datetime
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from dishka import FromDishka
-from faststream.nats import NatsBroker, NatsRouter, PullSub
+from faststream.nats import NatsRouter, PullSub
 from jinja2 import Environment
 from pydantic import BaseModel
 from pytz import timezone
@@ -13,9 +13,10 @@ from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.core.dto.mailing import MailingId
-from fanfan.core.dto.notification import UserNotification
-from fanfan.core.models.event import EventModel
+from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.core.models.event import Event
+from fanfan.core.models.mailing import MailingId
+from fanfan.core.models.notification import UserNotification
 from fanfan.presentation.stream.jstream import stream
 from fanfan.presentation.stream.routes.notifications.send_notification import (
     SendNotificationDTO,
@@ -29,14 +30,14 @@ router = NatsRouter()
 
 
 class EventChangeType(enum.StrEnum):
-    SET_AS_CURRENT = "set_as_current"
-    MOVE = "move"
-    SKIP = "skip"
-    UNSKIP = "unskip"
+    SET_AS_CURRENT = enum.auto()
+    MOVE = enum.auto()
+    SKIP = enum.auto()
+    UNSKIP = enum.auto()
 
 
 class EventChangeDTO(BaseModel):
-    event: EventModel
+    event: Event
     type: EventChangeType
 
 
@@ -54,13 +55,13 @@ class SendAnnouncementsDTO(BaseModel):
 )
 async def prepare_announcements(  # noqa: C901
     data: SendAnnouncementsDTO,
-    events: FromDishka[EventsRepository],
-    users: FromDishka[UsersRepository],
-    subscriptions: FromDishka[SubscriptionsRepository],
-    mailing: FromDishka[MailingRepository],
+    events_repo: FromDishka[EventsRepository],
+    users_repo: FromDishka[UsersRepository],
+    subscriptions_repo: FromDishka[SubscriptionsRepository],
+    mailing_repo: FromDishka[MailingRepository],
     config: FromDishka[Configuration],
     jinja: FromDishka[Environment],
-    broker: FromDishka[NatsBroker],
+    broker_adapter: FromDishka[StreamBrokerAdapter],
 ) -> None:
     time = datetime.now(tz=timezone(config.timezone)).strftime("%H:%M")
     counter = 0
@@ -74,13 +75,13 @@ async def prepare_announcements(  # noqa: C901
     )
 
     # Get current and next event
-    current_event = await events.get_current_event()
+    current_event = await events_repo.get_current_event()
     if not current_event:
         return
 
     # Send global announcement
     if data.send_global_announcement:
-        next_event = await events.get_next_event()
+        next_event = await events_repo.get_next_event()
         text = await global_announcement_template.render_async(
             {
                 "current_event": current_event,
@@ -94,16 +95,17 @@ async def prepare_announcements(  # noqa: C901
                 [[OPEN_SUBSCRIPTIONS_BUTTON], [PULL_DOWN_DIALOG]],
             ).as_markup(),
         )
-        for u in await users.get_users_by_receive_all_announcements():
-            await broker.publish(
+        for u in await users_repo.get_users_by_receive_all_announcements():
+            await broker_adapter.send_notification(
                 SendNotificationDTO(user_id=u.id, notification=notification),
-                subject=f"mailing.{data.mailing_id}",
-                stream="stream",
+                mailing_id=data.mailing_id,
             )
             counter += 1
 
     # Checking subscriptions
-    for subscription in await subscriptions.get_upcoming_subscriptions():
+    for subscription in await subscriptions_repo.get_upcoming_subscriptions(
+        queue=current_event.queue
+    ):
         reason: str | None = None
         notify = False
         for e in data.event_changes:
@@ -123,7 +125,7 @@ async def prepare_announcements(  # noqa: C901
                     "current_event": current_event,
                 },
             )
-            await broker.publish(
+            await broker_adapter.send_notification(
                 SendNotificationDTO(
                     user_id=subscription.user_id,
                     notification=UserNotification(
@@ -135,9 +137,8 @@ async def prepare_announcements(  # noqa: C901
                         ).as_markup(),
                     ),
                 ),
-                subject=f"mailing.{data.mailing_id}",
-                stream="stream",
+                mailing_id=data.mailing_id,
             )
             counter += 1
-    await mailing.update_total(data.mailing_id, counter)
+    await mailing_repo.update_total(data.mailing_id, counter)
     return

@@ -2,7 +2,7 @@ import typing
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Counter
+from aiogram_dialog.widgets.kbd import Button, Counter, SwitchTo
 from aiogram_dialog.widgets.text import Const
 
 from fanfan.application.users.get_user_by_id import GetUserById
@@ -10,9 +10,10 @@ from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
     UpdateUserSettingsDTO,
 )
-from fanfan.core.models.user import FullUserModel
+from fanfan.core.models.user import FullUser
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.settings.common import ID_ITEMS_PER_PAGE_INPUT
+from fanfan.presentation.tgbot.ui import strings
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -26,7 +27,7 @@ async def items_per_page_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
     get_user_by_id: GetUserById = await container.get(GetUserById)
-    user: FullUserModel = manager.middleware_data["user"]
+    user: FullUser = manager.middleware_data["user"]
 
     await update_user_settings(
         UpdateUserSettingsDTO(
@@ -55,6 +56,11 @@ items_per_page_window = Window(
         text=Const("💾 Сохранить"),
         id="save_items_per_page",
         on_click=items_per_page_handler,
+    ),
+    SwitchTo(
+        text=Const(strings.buttons.back),
+        id="back",
+        state=states.Settings.main,
     ),
     state=states.Settings.set_items_per_page,
 )

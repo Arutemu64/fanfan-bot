@@ -1,9 +1,9 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import Transaction
+from fanfan.adapters.db.models import DBTransaction
 
 
-class TransactionView(ModelView, model=Transaction):
+class TransactionView(ModelView, model=DBTransaction):
     name_plural = "Транзакции"
     category = "Квест"
     icon = "fa-solid fa-money-bill"
@@ -13,18 +13,18 @@ class TransactionView(ModelView, model=Transaction):
     can_create = False
 
     column_list = [
-        Transaction.id,
-        Transaction.points,
-        Transaction.to_user,
-        Transaction.from_user,
-        Transaction.comment,
+        DBTransaction.id,
+        DBTransaction.points,
+        DBTransaction.to_user,
+        DBTransaction.from_user,
+        DBTransaction.comment,
     ]
     form_include_pk = True
-    column_searchable_list = [Transaction.to_user, Transaction.from_user]
+    column_searchable_list = [DBTransaction.to_user, DBTransaction.from_user]
     column_labels = {
-        Transaction.id: "ID",
-        Transaction.points: "Очки",
-        Transaction.to_user: "Пользователю",
-        Transaction.from_user: "От пользователя",
-        Transaction.comment: "Комментарий",
+        DBTransaction.id: "ID",
+        DBTransaction.points: "Очки",
+        DBTransaction.to_user: "Пользователю",
+        DBTransaction.from_user: "От пользователя",
+        DBTransaction.comment: "Комментарий",
     }

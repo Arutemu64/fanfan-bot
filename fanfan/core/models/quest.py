@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from fanfan.core.models.user import UserId
 
 
-@dataclass(slots=True)
-class QuestParticipantModel:
+@dataclass(slots=True, kw_only=True)
+class QuestParticipant:
     id: UserId
     points: int
 
@@ -12,7 +12,7 @@ class QuestParticipantModel:
         self.points += points
 
 
-@dataclass(slots=True)
-class FullQuestParticipantModel(QuestParticipantModel):
+@dataclass(slots=True, kw_only=True)
+class FullQuestParticipant(QuestParticipant):
     achievements_count: int
     quest_registration: bool

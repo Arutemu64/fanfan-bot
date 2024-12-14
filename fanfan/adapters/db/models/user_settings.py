@@ -5,13 +5,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.user import UserId
-from fanfan.core.models.user_settings import UserSettingsModel
+from fanfan.core.models.user_settings import UserSettings
 
 if typing.TYPE_CHECKING:
-    from fanfan.adapters.db.models import User
+    from fanfan.adapters.db.models import DBUser
 
 
-class UserSettings(Base):
+class DBUserSettings(Base):
     __tablename__ = "user_settings"
 
     # General settings
@@ -28,19 +28,21 @@ class UserSettings(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    user: Mapped["User"] = relationship(back_populates="settings")
+    user: Mapped["DBUser"] = relationship(back_populates="settings")
 
     @classmethod
-    def from_model(cls, model: UserSettingsModel):
-        return UserSettings(
+    def from_model(cls, model: UserSettings):
+        return DBUserSettings(
             user_id=model.user_id,
             items_per_page=model.items_per_page,
             receive_all_announcements=model.receive_all_announcements,
+            org_receive_feedback_notifications=model.org_receive_feedback_notifications,
         )
 
-    def to_model(self) -> UserSettingsModel:
-        return UserSettingsModel(
+    def to_model(self) -> UserSettings:
+        return UserSettings(
             user_id=UserId(self.user_id),
             items_per_page=self.items_per_page,
             receive_all_announcements=self.receive_all_announcements,
+            org_receive_feedback_notifications=self.org_receive_feedback_notifications,
         )

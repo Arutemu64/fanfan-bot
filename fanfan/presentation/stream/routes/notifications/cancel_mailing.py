@@ -6,19 +6,19 @@ from faststream.nats import NatsRouter, PullSub
 from nats.js import JetStreamContext
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.core.dto.mailing import MailingId
+from fanfan.core.models.mailing import MailingId
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
 
 
 @router.subscriber(
-    "delete_mailing",
+    "cancel_mailing",
     stream=stream,
     pull_sub=PullSub(),
-    durable="delete_mailing",
+    durable="cancel_mailing",
 )
-async def delete_mailing(
+async def cancel_mailing(
     mailing_id: MailingId,
     mailing_repo: FromDishka[MailingRepository],
     bot: FromDishka[Bot],
@@ -41,6 +41,8 @@ async def delete_mailing(
                 message.message_id,
                 message.chat.id,
                 mailing_id,
+                extra={"deleted_message": message.model_dump_json(exclude_none=True)},
             )
-    logger.info("Mailing %s was deleted", mailing_id)
+    await mailing_repo.set_as_cancelled(mailing_id)
+    logger.info("Mailing %s was cancelled", mailing_id)
     return

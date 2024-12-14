@@ -8,8 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import Nomination, Participant, Ticket
-from fanfan.core.enums import UserRole
+from fanfan.adapters.db.models import DBNomination, DBParticipant, DBTicket
+from fanfan.core.models.user import UserRole
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -32,14 +32,14 @@ async def parse(file: BinaryIO, session: AsyncSession) -> None:
         try:
             async with session.begin_nested():
                 session.add(
-                    Nomination(
+                    DBNomination(
                         id=row["id"],
                         title=row["title"],
                         is_votable=row["is_votable"],
                     ),
                 )
         except IntegrityError:
-            nomination = await session.get(Nomination, row["id"])
+            nomination = await session.get(DBNomination, row["id"])
             if not nomination:
                 raise
     # Парсинг участников
@@ -48,14 +48,14 @@ async def parse(file: BinaryIO, session: AsyncSession) -> None:
         try:
             async with session.begin_nested():
                 session.add(
-                    Participant(
+                    DBParticipant(
                         title=row["title"],
                         nomination_id=row["nomination_id"],
                     ),
                 )
         except IntegrityError:
             participant = await session.scalar(
-                select(Participant).where(Participant.title == row["title"]),
+                select(DBParticipant).where(DBParticipant.title == row["title"]),
             )
             if not participant:
                 raise
@@ -71,9 +71,9 @@ async def parse(file: BinaryIO, session: AsyncSession) -> None:
     for _index, row in tickets_df.iterrows():
         try:
             async with session.begin_nested():
-                session.add(Ticket(id=row["id"], role=row["role"]))
+                session.add(DBTicket(id=row["id"], role=row["role"]))
         except IntegrityError:
-            ticket = await session.get(Ticket, row["id"])
+            ticket = await session.get(DBTicket, row["id"])
             if not ticket:
                 raise
 

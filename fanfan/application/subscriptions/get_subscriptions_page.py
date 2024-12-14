@@ -4,10 +4,10 @@ from fanfan.adapters.db.repositories.subscriptions import (
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.page import Page, Pagination
-from fanfan.core.models.subscription import FullSubscriptionModel
+from fanfan.core.models.subscription import FullSubscription
 
 
-class GetSubscriptionsPage(Interactor[Pagination, Page[FullSubscriptionModel]]):
+class GetSubscriptionsPage(Interactor[Pagination, Page[FullSubscription]]):
     def __init__(
         self,
         subscriptions_repo: SubscriptionsRepository,
@@ -19,7 +19,7 @@ class GetSubscriptionsPage(Interactor[Pagination, Page[FullSubscriptionModel]]):
     async def __call__(
         self,
         pagination: Pagination | None = None,
-    ) -> Page[FullSubscriptionModel]:
+    ) -> Page[FullSubscription]:
         user_id = self.id_provider.get_current_user_id()
         subscriptions = await self.subscriptions_repo.list_subscriptions(
             user_id=user_id,

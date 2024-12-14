@@ -13,7 +13,6 @@ from fanfan.application.subscriptions.delete_subscription import DeleteSubscript
 from fanfan.application.subscriptions.get_subscription_by_event import (
     GetSubscriptionByEvent,
 )
-from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.event import EventId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_helper
@@ -121,16 +120,11 @@ async def unsubscribe_button_handler(
     )
     delete_subscription: DeleteSubscription = await container.get(DeleteSubscription)
 
-    try:
-        subscription = await get_subscription_by_event(
-            manager.start_data[DATA_SELECTED_EVENT_ID]
-        )
-        await delete_subscription(subscription.id)
-        await callback.answer("🗑️ Подписка удалена!")
-    except AppException as e:
-        await callback.answer(e.message, show_alert=True)
-        manager.show_mode = ShowMode.DELETE_AND_SEND
-        return
+    subscription = await get_subscription_by_event(
+        manager.start_data[DATA_SELECTED_EVENT_ID]
+    )
+    await delete_subscription(subscription.id)
+    await callback.answer("🗑️ Подписка удалена!")
 
 
 selected_event_window = Window(

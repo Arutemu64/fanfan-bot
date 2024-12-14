@@ -8,11 +8,11 @@ from fanfan.core.models.user import UserId
 VoteId = NewType("VoteId", int)
 
 
-@dataclass(slots=True)
-class VoteModel:
+@dataclass(slots=True, kw_only=True)
+class Vote:
+    id: VoteId | None = None
     user_id: UserId
     participant_id: ParticipantId
-    id: VoteId | None = None
 
 
 from fanfan.core.models.participant import ParticipantId  # noqa: E402

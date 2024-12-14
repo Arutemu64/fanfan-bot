@@ -1,7 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import Quote
+from fanfan.adapters.db.models import DBQuote
 
 
 class GetRandomQuote:
@@ -9,5 +9,5 @@ class GetRandomQuote:
         self.session = session
 
     async def __call__(self) -> str | None:
-        query = select(Quote.text).order_by(func.random()).limit(1)
+        query = select(DBQuote.text).order_by(func.random()).limit(1)
         return await self.session.scalar(query)

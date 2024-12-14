@@ -55,7 +55,7 @@ user_info_window = Window(
         "<b>Билет:</b> {{ managed_user.ticket.id "
         "if managed_user.ticket else 'не привязан' }}"
     ),
-    Jinja("<b>Роль:</b> {{ managed_user.role.label }}"),
+    Jinja("<b>Роль:</b> {{ managed_user.role }}"),
     Jinja("<b>Регистрация на квест:</b> {{ '✅' if quest_registration else '❌' }}"),
     Const(" "),
     Jinja("<b>💰 Очков</b>: {{ points }} "),

@@ -5,11 +5,10 @@ import sys
 
 from aiogram import Bot, Dispatcher
 
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import BotMode, Configuration
 from fanfan.adapters.config.parsers import get_config
 from fanfan.common.logging import setup_logging
 from fanfan.common.telemetry import setup_telemetry
-from fanfan.core.enums import BotMode
 from fanfan.main.di import create_bot_container
 
 logger = logging.getLogger(__name__)

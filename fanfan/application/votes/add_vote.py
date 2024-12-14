@@ -15,7 +15,7 @@ from fanfan.core.exceptions.votes import (
     AlreadyVotedInThisNomination,
 )
 from fanfan.core.models.participant import ParticipantId
-from fanfan.core.models.vote import VoteModel
+from fanfan.core.models.vote import Vote
 from fanfan.core.services.access import AccessService
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class AddVoteDTO:
     participant_id: ParticipantId
 
 
-class AddVote(Interactor[ParticipantId, VoteModel]):
+class AddVote(Interactor[ParticipantId, Vote]):
     def __init__(
         self,
         participants_repo: ParticipantsRepository,
@@ -44,7 +44,7 @@ class AddVote(Interactor[ParticipantId, VoteModel]):
     async def __call__(
         self,
         participant_id: ParticipantId,
-    ) -> VoteModel:
+    ) -> Vote:
         # Checking participant
         participant = await self.participants_repo.get_participant_by_id(participant_id)
         if not participant:
@@ -59,7 +59,7 @@ class AddVote(Interactor[ParticipantId, VoteModel]):
         async with self.uow:
             try:
                 vote = await self.votes_repo.add_vote(
-                    VoteModel(user_id=user.id, participant_id=participant_id)
+                    Vote(user_id=user.id, participant_id=participant_id)
                 )
                 await self.uow.commit()
             except IntegrityError as e:

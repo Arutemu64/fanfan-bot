@@ -12,18 +12,17 @@ from sqlalchemy.orm import (
 )
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.quest_registration import QuestRegistration
-from fanfan.adapters.db.models.received_achievement import ReceivedAchievement
-from fanfan.adapters.db.models.user_permissions import UserPermissions
-from fanfan.adapters.db.models.user_settings import UserSettings
-from fanfan.core.enums import UserRole
-from fanfan.core.models.user import FullUserModel, UserId, UserModel
+from fanfan.adapters.db.models.quest_registration import DBQuestRegistration
+from fanfan.adapters.db.models.received_achievement import DBReceivedAchievement
+from fanfan.adapters.db.models.user_permissions import DBUserPermissions
+from fanfan.adapters.db.models.user_settings import DBUserSettings
+from fanfan.core.models.user import FullUser, User, UserId, UserRole
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.ticket import Ticket
+    from fanfan.adapters.db.models.ticket import DBTicket
 
 
-class User(Base):
+class DBUser(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
@@ -39,32 +38,32 @@ class User(Base):
     )
 
     # Relations
-    settings: Mapped[UserSettings] = relationship(cascade="all, delete-orphan")
-    permissions: Mapped[UserPermissions] = relationship(cascade="all, delete-orphan")
-    ticket: Mapped[Ticket | None] = relationship(foreign_keys="Ticket.used_by_id")
+    settings: Mapped[DBUserSettings] = relationship(cascade="all, delete-orphan")
+    permissions: Mapped[DBUserPermissions] = relationship(cascade="all, delete-orphan")
+    ticket: Mapped[DBTicket | None] = relationship(foreign_keys="DBTicket.used_by_id")
 
     # Quest
-    quest_registration: Mapped[QuestRegistration | None] = relationship()
+    quest_registration: Mapped[DBQuestRegistration | None] = relationship()
     points: Mapped[int] = mapped_column(server_default="0", deferred=True)
     achievements_count = column_property(
-        select(func.count(ReceivedAchievement.id))
-        .where(ReceivedAchievement.user_id == id)
-        .correlate_except(ReceivedAchievement)
+        select(func.count(DBReceivedAchievement.id))
+        .where(DBReceivedAchievement.user_id == id)
+        .correlate_except(DBReceivedAchievement)
         .scalar_subquery(),
         deferred=True,
     )
 
     def __init__(self, **kw: Any) -> None:
         super().__init__(**kw)
-        self.permissions = UserPermissions()
-        self.settings = UserSettings()
+        self.permissions = DBUserPermissions()
+        self.settings = DBUserSettings()
 
     def __str__(self) -> str:
         return f"{self.username} ({self.id})"
 
     @classmethod
-    def from_model(cls, model: UserModel):
-        return User(
+    def from_model(cls, model: User):
+        return DBUser(
             id=model.id,
             username=model.username,
             first_name=model.first_name,
@@ -72,8 +71,8 @@ class User(Base):
             role=model.role,
         )
 
-    def to_model(self) -> UserModel:
-        return UserModel(
+    def to_model(self) -> User:
+        return User(
             id=UserId(self.id),
             username=self.username,
             first_name=self.first_name,
@@ -81,8 +80,8 @@ class User(Base):
             role=UserRole(self.role),
         )
 
-    def to_full_model(self) -> FullUserModel:
-        return FullUserModel(
+    def to_full_model(self) -> FullUser:
+        return FullUser(
             id=UserId(self.id),
             username=self.username,
             first_name=self.first_name,

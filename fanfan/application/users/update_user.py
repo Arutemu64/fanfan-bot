@@ -9,10 +9,9 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.core.models.user import UserId
+from fanfan.core.models.user import UserId, UserRole
 
 logger = logging.getLogger(__name__)
 

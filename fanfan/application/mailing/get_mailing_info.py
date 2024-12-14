@@ -2,12 +2,13 @@ from dataclasses import dataclass
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.dto.mailing import MailingData, MailingId
+from fanfan.core.models.mailing import Mailing, MailingId, MailingStatus
 
 
 @dataclass(slots=True, frozen=True)
 class MailingInfoDTO:
-    data: MailingData
+    data: Mailing
+    status: MailingStatus
     sent: int
 
 
@@ -16,7 +17,13 @@ class GetMailingInfo(Interactor[MailingId, MailingInfoDTO]):
         self.mailing_repo = mailing_repo
 
     async def __call__(self, mailing_id: MailingId) -> MailingInfoDTO:
-        return MailingInfoDTO(
-            data=await self.mailing_repo.get_mailing_info(mailing_id),
-            sent=await self.mailing_repo.get_sent_count(mailing_id),
-        )
+        data = await self.mailing_repo.get_mailing_data(mailing_id)
+        sent = await self.mailing_repo.get_sent_count(mailing_id)
+        status = MailingStatus.PENDING
+        if data.cancelled:
+            status = MailingStatus.CANCELLED
+        elif data.processed >= data.total:
+            status = MailingStatus.DONE
+        elif data.processed < data.total:
+            status = MailingStatus.PENDING
+        return MailingInfoDTO(data=data, status=status, sent=sent)

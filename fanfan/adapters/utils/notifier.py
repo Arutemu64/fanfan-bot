@@ -3,13 +3,13 @@ import logging
 from aiogram import Bot
 from aiogram.types import Message
 
-from fanfan.core.dto.notification import UserNotification
+from fanfan.core.models.notification import UserNotification
 from fanfan.core.models.user import UserId
 
 logger = logging.getLogger(__name__)
 
 
-class Notifier:
+class BotNotifier:
     def __init__(self, bot: Bot):
         self.bot = bot
 

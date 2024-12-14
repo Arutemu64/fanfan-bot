@@ -1,21 +1,21 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import Ticket
+from fanfan.adapters.db.models import DBTicket
 
 
-class TicketView(ModelView, model=Ticket):
+class TicketView(ModelView, model=DBTicket):
     name_plural = "Билеты"
     icon = "fa-solid fa-ticket"
 
-    column_list = [Ticket.id, Ticket.role, Ticket.used_by, Ticket.issued_by]
+    column_list = [DBTicket.id, DBTicket.role, DBTicket.used_by, DBTicket.issued_by]
     form_include_pk = True
-    form_columns = [Ticket.id, Ticket.role]
-    column_searchable_list = [Ticket.id, Ticket.role]
+    form_columns = [DBTicket.id, DBTicket.role]
+    column_searchable_list = [DBTicket.id, DBTicket.role]
     column_labels = {
-        Ticket.id: "Номер билета",
-        Ticket.role: "Роль",
-        Ticket.used_by: "Использовал",
-        Ticket.issued_by: "Выпустил",
-        Ticket.created_at: "Время создания",
-        Ticket.updated_at: "Время изменения",
+        DBTicket.id: "Номер билета",
+        DBTicket.role: "Роль",
+        DBTicket.used_by: "Использовал",
+        DBTicket.issued_by: "Выпустил",
+        DBTicket.created_at: "Время создания",
+        DBTicket.updated_at: "Время изменения",
     }

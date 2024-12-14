@@ -10,9 +10,9 @@ from faststream.nats import NatsMessage, NatsRouter, PullSub
 from pydantic import BaseModel
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.notifier import Notifier
-from fanfan.core.dto.mailing import MailingId
-from fanfan.core.dto.notification import UserNotification
+from fanfan.adapters.utils.notifier import BotNotifier
+from fanfan.core.models.mailing import MailingId
+from fanfan.core.models.notification import UserNotification
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
@@ -34,7 +34,7 @@ async def edit_notification(
     data: EditNotificationDTO,
     mailing_repo: FromDishka[MailingRepository],
     msg: FromDishka[NatsMessage],
-    notifier: FromDishka[Notifier],
+    notifier: FromDishka[BotNotifier],
     logger: Logger,
 ) -> None:
     try:
@@ -42,9 +42,8 @@ async def edit_notification(
             message=data.message, notification=data.notification
         )
         if data.mailing_id:
-            await mailing_repo.add_to_processed(
-                mailing_id=data.mailing_id,
-                message=new_message,
+            await mailing_repo.add_processed(
+                mailing_id=data.mailing_id, message=new_message
             )
     except TelegramRetryAfter as e:
         await msg.nack(delay=e.retry_after)

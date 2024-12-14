@@ -8,8 +8,8 @@ from starlette.responses import RedirectResponse, Response
 
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.users import UserNotFound
+from fanfan.core.models.user import UserRole
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer

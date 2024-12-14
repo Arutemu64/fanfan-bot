@@ -1,13 +1,14 @@
+from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import AsyncContainer
 
-from fanfan.application.mailing.delete_mailing import DeleteMailing
+from fanfan.application.mailing.cancel_mailing import CancelMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
 from fanfan.application.users.get_user_by_id import GetUserById
-from fanfan.core.dto.mailing import MailingId
+from fanfan.core.models.mailing import MailingId, MailingStatus
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.mailing.common import DATA_MAILING_ID
@@ -29,7 +30,7 @@ async def mailing_info_getter(
         "id": mailing_info.data.id,
         "total": mailing_info.data.total,
         "processed": mailing_info.data.processed,
-        "status": mailing_info.data.status,
+        "status": mailing_info.status,
         "sent": mailing_info.sent,
         "sender": sender,
     }
@@ -41,8 +42,8 @@ async def cancel_mailing_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    delete_mailing: DeleteMailing = await container.get(DeleteMailing)
-    await delete_mailing(manager.start_data[DATA_MAILING_ID])
+    cancel_mailing: CancelMailing = await container.get(CancelMailing)
+    await cancel_mailing(manager.start_data[DATA_MAILING_ID])
     await callback.answer("✅ Рассылка отменена")
 
 
@@ -51,10 +52,11 @@ mailing_info_window = Window(
     Jinja("<b>ID:</b> <code>{{ id }}</code>"),
     Jinja("<b>Обработано:</b> {{ processed }} из {{ total }}"),
     Jinja("<b>Сообщений в БД:</b> {{ sent }}"),
-    Jinja("<b>Статус:</b> {{ status.label }}"),
+    Jinja("<b>Статус:</b> {{ status }}"),
     Jinja("<b>Отправил:</b> @{{ sender.username }} ({{ sender.id }})"),
     Button(
         Const("🗑️ Отменить рассылку"),
+        when=F["status"].is_not(MailingStatus.CANCELLED),
         id="cancel_mailing",
         on_click=cancel_mailing_handler,
     ),

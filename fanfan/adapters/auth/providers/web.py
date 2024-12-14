@@ -5,7 +5,7 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.auth import AuthenticationError
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.core.models.user import FullUserModel, UserId
+from fanfan.core.models.user import FullUser, UserId
 
 
 class WebIdProvider(IdProvider):
@@ -24,7 +24,7 @@ class WebIdProvider(IdProvider):
             return self.token_processor.validate_token(token)
         raise AuthenticationError
 
-    async def get_current_user(self) -> FullUserModel:
+    async def get_current_user(self) -> FullUser:
         if user := await self.users_repo.get_user_by_id(self.get_current_user_id()):
             return user
         raise UserNotFound

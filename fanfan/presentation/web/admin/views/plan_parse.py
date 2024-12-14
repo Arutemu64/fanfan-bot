@@ -7,8 +7,8 @@ from sqladmin import BaseView, expose
 from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import Event, Participant
-from fanfan.adapters.db.models.block import Block
+from fanfan.adapters.db.models import DBEvent, DBParticipant
+from fanfan.adapters.db.models.block import DBBlock
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -20,9 +20,9 @@ async def proceed_plan(file: typing.BinaryIO, session: AsyncSession) -> None:
     # Constraints must be deferred, so we can swap ids and order
     await session.execute(text("SET CONSTRAINTS ALL DEFERRED"))
     # Delete orphaned events later
-    events_to_delete = list(await session.scalars(select(Event)))
+    events_to_delete = list(await session.scalars(select(DBEvent)))
     # Delete all blocks
-    await session.execute(delete(Block))
+    await session.execute(delete(DBBlock))
     await session.flush()
     # Get everything ready
     wb = load_workbook(file)
@@ -31,7 +31,7 @@ async def proceed_plan(file: typing.BinaryIO, session: AsyncSession) -> None:
     for row in ws.iter_rows(min_row=4):
         if row[0].value and row[2].value:  # Block
             title = str(row[2].value)
-            block = Block(title=title, start_order=order)
+            block = DBBlock(title=title, start_order=order)
             session.add(block)
             await session.flush([block])
             logger.info("New block %s added", title)
@@ -41,7 +41,9 @@ async def proceed_plan(file: typing.BinaryIO, session: AsyncSession) -> None:
             event_title = data.split(", ", 1)[1]
             # Try to find a participant
             participant = await session.scalar(
-                select(Participant).where(Participant.title.ilike(f"%{event_title}%"))
+                select(DBParticipant).where(
+                    DBParticipant.title.ilike(f"%{event_title}%")
+                )
             )
             if participant:
                 logger.info("Found a linked participant for %s", event_title)
@@ -52,7 +54,7 @@ async def proceed_plan(file: typing.BinaryIO, session: AsyncSession) -> None:
                     event_title,
                 )
             event = await session.merge(
-                Event(
+                DBEvent(
                     id=id_,
                     title=event_title,
                     order=order,

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Protocol
 
-from fanfan.core.models.user import FullUserModel, UserId
+from fanfan.core.models.user import FullUser, UserId
 
 
 class IdProvider(Protocol):
@@ -10,5 +10,5 @@ class IdProvider(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_current_user(self) -> FullUserModel:
+    async def get_current_user(self) -> FullUser:
         raise NotImplementedError

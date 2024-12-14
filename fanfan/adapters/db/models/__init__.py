@@ -1,37 +1,37 @@
-from .achievement import Achievement
-from .activity import Activity
+from .achievement import DBAchievement
+from .activity import DBActivity
 from .base import Base
-from .event import Event
-from .feedback import Feedback
-from .nomination import Nomination
-from .participant import Participant
-from .quote import Quote
-from .received_achievement import ReceivedAchievement
-from .settings import GlobalSettings
-from .subscription import Subscription
-from .ticket import Ticket
-from .transaction import Transaction
-from .user import User
-from .user_permissions import UserPermissions
-from .user_settings import UserSettings
-from .vote import Vote
+from .event import DBEvent
+from .feedback import DBFeedback
+from .nomination import DBNomination
+from .participant import DBParticipant
+from .quote import DBQuote
+from .received_achievement import DBReceivedAchievement
+from .settings import DBGlobalSettings
+from .subscription import DBSubscription
+from .ticket import DBTicket
+from .transaction import DBTransaction
+from .user import DBUser
+from .user_permissions import DBUserPermissions
+from .user_settings import DBUserSettings
+from .vote import DBVote
 
 __all__ = [
-    "Achievement",
+    "DBAchievement",
     "Base",
-    "Event",
-    "Nomination",
-    "Participant",
-    "ReceivedAchievement",
-    "GlobalSettings",
-    "Subscription",
-    "Ticket",
-    "User",
-    "UserPermissions",
-    "UserSettings",
-    "Vote",
-    "Activity",
-    "Quote",
-    "Feedback",
-    "Transaction",
+    "DBEvent",
+    "DBNomination",
+    "DBParticipant",
+    "DBReceivedAchievement",
+    "DBGlobalSettings",
+    "DBSubscription",
+    "DBTicket",
+    "DBUser",
+    "DBUserPermissions",
+    "DBUserSettings",
+    "DBVote",
+    "DBActivity",
+    "DBQuote",
+    "DBFeedback",
+    "DBTransaction",
 ]

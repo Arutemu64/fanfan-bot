@@ -3,8 +3,8 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 from pydantic_core import to_json
 
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.enums import UserRole
 from fanfan.core.exceptions.base import AppException
+from fanfan.core.models.user import UserRole
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,

@@ -8,8 +8,8 @@ from fanfan.application.events.get_page_number_by_event import GetPageNumberByEv
 from fanfan.application.events.get_schedule_page import GetSchedulePage
 from fanfan.application.feedback.process_feedback import ProcessFeedback
 from fanfan.application.feedback.send_feedback import SendFeedback
+from fanfan.application.mailing.cancel_mailing import CancelMailing
 from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
-from fanfan.application.mailing.delete_mailing import DeleteMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
 from fanfan.application.nominations.get_nomination_by_id import GetNominationById
 from fanfan.application.nominations.get_nominations_page import GetNominationsPage
@@ -43,10 +43,8 @@ from fanfan.application.tickets.create_ticket import CreateTicket
 from fanfan.application.tickets.delete_ticket import DeleteTicket
 from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.application.users.authenticate import Authenticate
-from fanfan.application.users.get_org_settings import GetOrgSettings
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.get_user_by_username import GetUserByUsername
-from fanfan.application.users.update_org_settings import UpdateOrgSettings
 from fanfan.application.users.update_user import UpdateUser
 from fanfan.application.users.update_user_commands import UpdateUserCommands
 from fanfan.application.users.update_user_settings import UpdateUserSettings
@@ -85,7 +83,7 @@ class InteractorsProvider(Provider):
 
     create_mailing = provide(CreateRoleMailing)
     get_mailing_info = provide(GetMailingInfo)
-    delete_mailing = provide(DeleteMailing)
+    delete_mailing = provide(CancelMailing)
 
     get_nomination_by_id = provide(GetNominationById)
     get_nominations_page = provide(GetNominationsPage)
@@ -111,8 +109,6 @@ class InteractorsProvider(Provider):
     update_user = provide(UpdateUser)
     update_user_settings = provide(UpdateUserSettings)
     update_user_commands = provide(UpdateUserCommands)
-    get_org_settings = provide(GetOrgSettings)
-    update_org_settings = provide(UpdateOrgSettings)
 
     get_quest_conditions = provide(GetQuestConditions)
     get_user_quest_details = provide(GetUserQuestStats)

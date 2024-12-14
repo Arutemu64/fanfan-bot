@@ -7,17 +7,18 @@ from fanfan.adapters.config.models import WebConfig
 from fanfan.core.exceptions.auth import AuthenticationError
 from fanfan.core.models.user import UserId
 
+TOKEN_TTL = datetime.timedelta(minutes=30)
+
 
 class JwtTokenProcessor:
-    def __init__(self, config: WebConfig | None):
+    def __init__(self, config: WebConfig):
         self.config = config
 
     def create_access_token(self, user_id: int) -> str:
         return jwt.encode(
             payload={
                 "user_id": user_id,
-                "exp": datetime.datetime.now(datetime.UTC)
-                + datetime.timedelta(minutes=30),
+                "exp": datetime.datetime.now(datetime.UTC) + TOKEN_TTL,
             },
             key=self.config.secret_key.get_secret_value(),
         )

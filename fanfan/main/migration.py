@@ -3,11 +3,12 @@ import contextlib
 import logging
 import sys
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.config.parsers import get_config
+from fanfan.adapters.db.models import DBGlobalSettings
 from fanfan.common.logging import setup_logging
-from fanfan.core.utils.settings import setup_initial_settings
 from fanfan.main.di import create_scheduler_container
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,12 @@ async def migrate():
     # Setup initial settings
     async with container() as container:
         session: AsyncSession = await container.get(AsyncSession)
-        await setup_initial_settings(session)
+        async with session:
+            try:
+                session.add(DBGlobalSettings(id=1))
+                await session.commit()
+            except IntegrityError:
+                await session.rollback()
 
     logger.info("Migration completed")
 

@@ -9,9 +9,9 @@ from faststream.nats import NatsMessage, NatsRouter, PullSub
 from pydantic import BaseModel
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.notifier import Notifier
-from fanfan.core.dto.mailing import MailingId
-from fanfan.core.dto.notification import UserNotification
+from fanfan.adapters.utils.notifier import BotNotifier
+from fanfan.core.models.mailing import MailingId
+from fanfan.core.models.notification import UserNotification
 from fanfan.core.models.user import UserId
 from fanfan.presentation.stream.jstream import stream
 
@@ -42,7 +42,7 @@ class SendNotificationDTO(BaseModel):
 async def send_notification(
     data: SendNotificationDTO,
     msg: FromDishka[NatsMessage],
-    notifier: FromDishka[Notifier],
+    notifier: FromDishka[BotNotifier],
     mailing_repo: FromDishka[MailingRepository],
     logger: Logger,
     mailing_id: MailingId | None = Path(default=None),  # noqa: B008
@@ -61,7 +61,7 @@ async def send_notification(
     except (TelegramBadRequest, TelegramForbiddenError):
         await msg.reject()
         if mailing_id:
-            await mailing_repo.add_to_processed(mailing_id, None)
+            await mailing_repo.add_processed(mailing_id, None)
         logger.info("Skipping sending message to %s", data.user_id)
         return
     else:
@@ -70,8 +70,11 @@ async def send_notification(
             "Sent message %s to user %s",
             message.message_id,
             data.user_id,
-            extra={"sent_message": message, "mailing_id": mailing_id},
+            extra={
+                "sent_message": message.model_dump_json(exclude_none=True),
+                "mailing_id": mailing_id,
+            },
         )
     if mailing_id:
-        await mailing_repo.add_to_processed(mailing_id=mailing_id, message=message)
+        await mailing_repo.add_processed(mailing_id=mailing_id, message=message)
     return
