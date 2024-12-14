@@ -29,6 +29,8 @@ class AccessService:
     async def ensure_can_edit_schedule(user: FullUser) -> None:
         if user.role not in [UserRole.HELPER, UserRole.ORG]:
             raise AccessDenied
+        if user.permissions.helper_can_edit_schedule is False:
+            raise AccessDenied
 
     async def ensure_can_vote(
         self, user: FullUser, nomination_id: NominationId | None = None
