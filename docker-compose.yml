@@ -53,7 +53,7 @@ services:
   db:
     container_name: "fanfan-db-${ENV_NAME}"
     image: postgres:17-alpine
-    restart: on-failure
+    restart: always
     env_file:
       - .env
     environment:
@@ -97,7 +97,7 @@ services:
     command: "redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS__PASSWORD}"
     env_file:
       - .env
-    restart: on-failure
+    restart: always
     volumes:
       - redis-data:/data
       - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
@@ -112,7 +112,7 @@ services:
   nats:
     container_name: "fanfan-nats-${ENV_NAME}"
     image: docker.io/nats:alpine
-    restart: on-failure
+    restart: always
     env_file:
       - .env
     ports:
