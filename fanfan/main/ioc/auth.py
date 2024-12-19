@@ -4,7 +4,7 @@ from aiogram.types import (
 from dishka import Provider, Scope, from_context, provide
 from fastapi import Request
 
-from fanfan.adapters.auth.providers.stub import StubIdProvider
+from fanfan.adapters.auth.providers.system import SystemIdProvider
 from fanfan.adapters.auth.providers.telegram import TelegramIdProvider
 from fanfan.adapters.auth.providers.web import WebIdProvider
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
@@ -35,4 +35,4 @@ class WebAuthProvider(Provider):
 class StubAuthProvider(Provider):
     scope = Scope.REQUEST
 
-    stub_id_provider = provide(StubIdProvider, provides=IdProvider)
+    stub_id_provider = provide(SystemIdProvider, provides=IdProvider)

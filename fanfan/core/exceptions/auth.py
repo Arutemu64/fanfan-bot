@@ -5,5 +5,5 @@ class AuthenticationError(AppException):
     message = "⚠️ Ошибка авторизации"
 
 
-class NoAuthenticationRequired(AuthenticationError):
+class NoUserContextError(AuthenticationError):
     pass
