@@ -8,7 +8,7 @@ from dishka import AsyncContainer
 from fanfan.application.feedback.send_feedback import SendFeedback, SendFeedbackDTO
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 ID_FEEDBACK_TEXT_INPUT = "feedback_text_input"
 DATA_FEEDBACK_TEXT = "feedback_text"

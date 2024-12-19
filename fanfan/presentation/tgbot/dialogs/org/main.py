@@ -13,7 +13,7 @@ from fanfan.application.settings.update_settings import (
 )
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 ID_TOGGLE_VOTING_BUTTON = "id_toggle_voting_button"
 

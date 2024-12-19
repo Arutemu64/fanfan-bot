@@ -13,7 +13,7 @@ from fanfan.application.users.update_user_settings import (
 from fanfan.core.models.user import FullUser
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.settings.common import ID_ITEMS_PER_PAGE_INPUT
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer

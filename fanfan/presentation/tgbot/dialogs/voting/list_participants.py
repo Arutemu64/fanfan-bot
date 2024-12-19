@@ -39,8 +39,8 @@ from fanfan.presentation.tgbot.dialogs.common.widgets import (
 from fanfan.presentation.tgbot.dialogs.voting.common import (
     DATA_SELECTED_NOMINATION_ID,
 )
+from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.static.templates import voting_list
-from fanfan.presentation.tgbot.ui import strings
 
 ID_VOTING_SCROLL = "voting_scroll"
 DATA_USER_VOTE_ID = "user_vote_id"

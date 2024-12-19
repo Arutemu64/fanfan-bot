@@ -40,8 +40,8 @@ from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
 )
 from fanfan.presentation.tgbot.keyboards.buttons import show_mailing_info_button
+from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.static.templates import schedule_list
-from fanfan.presentation.tgbot.ui import strings
 
 if typing.TYPE_CHECKING:
     from aiogram_dialog.widgets.common import ManagedScroll

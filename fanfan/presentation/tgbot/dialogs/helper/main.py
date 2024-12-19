@@ -6,7 +6,7 @@ from dishka import AsyncContainer
 from fanfan.adapters.config.models import Configuration
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 
 async def helper_main_getter(

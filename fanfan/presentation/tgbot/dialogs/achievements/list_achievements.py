@@ -29,8 +29,8 @@ from fanfan.core.models.achievement import AchievementId
 from fanfan.core.models.user import FullUser, UserId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
+from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.static.templates import achievements_list
-from fanfan.presentation.tgbot.ui import strings
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 ID_ADD_ACHIEVEMENT_INPUT = "add_achievement_input"

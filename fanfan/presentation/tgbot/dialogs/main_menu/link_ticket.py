@@ -10,7 +10,7 @@ from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.core.models.ticket import TicketId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer

@@ -12,7 +12,7 @@ from fanfan.application.subscriptions.create_subscription import (
 )
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.schedule.common import DATA_SELECTED_EVENT_ID
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer

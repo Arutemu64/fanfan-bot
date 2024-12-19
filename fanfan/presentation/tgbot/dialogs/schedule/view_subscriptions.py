@@ -30,8 +30,8 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
     current_event_getter,
 )
 from fanfan.presentation.tgbot.dialogs.schedule.event_details import show_event_details
+from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.static.templates import subscriptions_list
-from fanfan.presentation.tgbot.ui import strings
 
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
 ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
@@ -106,8 +106,8 @@ subscriptions_main_window = Window(
     Button(
         Case(
             {
-                True: Const("🔔 Получать все уведомления: ✅"),
-                False: Const("🔔 Получать все уведомления: ❌"),
+                True: Const("🔔 Получать общие уведомления: ✅"),
+                False: Const("🔔 Получать общие уведомления: ❌"),
             },
             selector="receive_all_announcements",
         ),

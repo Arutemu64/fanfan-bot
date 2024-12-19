@@ -42,7 +42,7 @@ class AchievementView(ModelView, model=DBAchievement):
         pk = request.query_params.get("pks", "").split(",")[0]
         achievement = await self.get_object_for_details(pk)
         qr = QR(type=QRType.ACHIEVEMENT, data=str(achievement.secret_id))
-        qr_file_path = QR_CODES_TEMP_DIR.joinpath(f"{hash(qr)}.png")
+        qr_file_path = QR_CODES_TEMP_DIR.joinpath(f"achievement_{achievement.id}.png")
         if not qr_file_path.is_file():
             generate_img(qr).save(qr_file_path)
         return FileResponse(qr_file_path)

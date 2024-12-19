@@ -11,7 +11,7 @@ from fanfan.application.users.update_user import UpdateUser, UpdateUserDTO
 from fanfan.core.models.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 from .common import DATA_USER_ID
 

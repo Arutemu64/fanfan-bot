@@ -13,7 +13,7 @@ from fanfan.presentation.tgbot.dialogs.user_manager.common import (
     DATA_USER_ID,
     managed_user_getter,
 )
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 MAX_POINTS = 30
 

@@ -24,7 +24,7 @@ from fanfan.presentation.tgbot.dialogs.common.predicates import (
     is_ticket_linked,
 )
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 SLAY_MODE = "slay_mode"
 
@@ -119,8 +119,9 @@ main_window = Window(
     Title(Const(strings.titles.main_menu)),
     Jinja(
         "👋 Привет, {{ first_name|e }}! "
-        "Сейчас ты находишься в главном меню. "
-        "Сюда всегда можно вернуться по команде <b>/start</b>.",
+        "Рады видеть тебя среди гостей нашего фестиваля. "
+        "Мы приложим все наши усилия, чтобы ты запомнил его надолго. "
+        "Желаем волшебно провести это время! ✨"
     ),
     Const(" "),
     Const(

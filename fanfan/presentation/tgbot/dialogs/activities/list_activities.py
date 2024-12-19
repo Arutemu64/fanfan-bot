@@ -26,7 +26,7 @@ from fanfan.presentation.tgbot.dialogs.activities.common import (
     DATA_SELECTED_ACTIVITY_ID,
 )
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 ID_ACTIVITIES_SCROLL = "activities_scroll"
 

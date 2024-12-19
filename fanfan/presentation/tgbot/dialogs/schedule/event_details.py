@@ -23,8 +23,8 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
     current_event_getter,
 )
 from fanfan.presentation.tgbot.keyboards.buttons import show_mailing_info_button
+from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.static.templates import selected_event_info
-from fanfan.presentation.tgbot.ui import strings
 
 SELECTED_EVENT = "selected_event"
 

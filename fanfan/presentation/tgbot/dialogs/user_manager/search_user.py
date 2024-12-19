@@ -13,7 +13,7 @@ from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.user_manager import (
     DATA_USER_ID,
 )
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer

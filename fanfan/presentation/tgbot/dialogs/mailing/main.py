@@ -4,7 +4,7 @@ from aiogram_dialog.widgets.text import Const
 
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 main_mailing_window = Window(
     Title(Const("✉️ Рассылки")),

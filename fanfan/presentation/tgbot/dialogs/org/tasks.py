@@ -9,7 +9,7 @@ from fanfan.adapters.config.models import Configuration
 from fanfan.adapters.utils.task_manager import TaskManager
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 
 async def tasks_menu_getter(

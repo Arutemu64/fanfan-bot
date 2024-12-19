@@ -19,7 +19,7 @@ from fanfan.core.utils.qr import generate_img
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 
 async def quest_main_getter(
@@ -42,7 +42,7 @@ async def quest_main_getter(
     quest_conditions = await get_quest_conditions()
 
     qr = QR(type=QRType.USER, data=str(user.id))
-    qr_file_path = QR_CODES_TEMP_DIR.joinpath(f"{hash(qr)}.png")
+    qr_file_path = QR_CODES_TEMP_DIR.joinpath(f"user_{user.id}.png")
     if not qr_file_path.is_file():
         generate_img(qr).save(qr_file_path)
 

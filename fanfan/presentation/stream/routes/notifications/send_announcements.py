@@ -115,7 +115,7 @@ async def prepare_announcements(  # noqa: C901
                     case EventChangeType.MOVE:
                         reason = f"(Выступление №{e.event.id} было перемещено)"
                     case EventChangeType.SKIP:
-                        reason = f"(Выступление №{e.event.id} было пропущено)"
+                        reason = f"(Выступление №{e.event.id} было снято)"
                     case EventChangeType.UNSKIP:
                         reason = f"(Выступление №{e.event.id} вернулось)"
         if notify:

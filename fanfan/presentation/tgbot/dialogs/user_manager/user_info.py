@@ -11,7 +11,7 @@ from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_org
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 from .common import DATA_USER_ID, managed_user_getter
 

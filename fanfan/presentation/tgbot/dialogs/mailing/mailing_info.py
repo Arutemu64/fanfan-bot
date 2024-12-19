@@ -12,7 +12,7 @@ from fanfan.core.models.mailing import MailingId, MailingStatus
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.mailing.common import DATA_MAILING_ID
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 
 async def mailing_info_getter(

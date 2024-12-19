@@ -29,7 +29,7 @@ from fanfan.presentation.tgbot.dialogs.voting.common import (
     DATA_SELECTED_NOMINATION_ID,
 )
 from fanfan.presentation.tgbot.dialogs.voting.list_participants import ID_VOTING_SCROLL
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 if typing.TYPE_CHECKING:
     from aiogram.fsm.context import FSMContext

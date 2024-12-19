@@ -13,7 +13,7 @@ from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_org
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.settings.common import ID_ITEMS_PER_PAGE_INPUT
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 ID_ORG_RECEIVE_FEEDBACK_NOTIFICATIONS = "ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX"
 

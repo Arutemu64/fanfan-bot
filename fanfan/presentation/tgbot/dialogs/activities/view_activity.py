@@ -15,7 +15,7 @@ from fanfan.presentation.tgbot.dialogs.activities.list_activities import (
     ID_ACTIVITIES_SCROLL,
 )
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 
 async def view_activity_getter(

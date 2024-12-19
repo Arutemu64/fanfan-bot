@@ -1,6 +1,6 @@
 from aiogram.types import BotCommand
 
-from fanfan.presentation.tgbot.ui.strings import titles
+from fanfan.presentation.tgbot.static.strings import titles
 
 START_CMD = BotCommand(command="start", description=titles.main_menu)
 LINK_TICKET_CMD = BotCommand(command="ticket", description=titles.link_ticket)

@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.text import Const
 from fanfan.application.quest.reset_quest import ResetQuest
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.ui import strings
+from fanfan.presentation.tgbot.static import strings
 
 if TYPE_CHECKING:
     from dishka import AsyncContainer
