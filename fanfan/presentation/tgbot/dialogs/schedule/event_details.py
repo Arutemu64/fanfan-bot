@@ -15,10 +15,11 @@ from fanfan.application.subscriptions.get_subscription_by_event import (
 )
 from fanfan.core.models.event import EventId
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.common.predicates import is_helper
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
+    CAN_EDIT_SCHEDULE,
     DATA_SELECTED_EVENT_ID,
+    can_edit_schedule_getter,
     current_event_getter,
 )
 from fanfan.presentation.tgbot.keyboards.buttons import show_mailing_info_button
@@ -169,9 +170,9 @@ selected_event_window = Window(
             on_click=skip_event_handler,
             when=~F[SELECTED_EVENT].is_current,
         ),
-        when=is_helper,
+        when=F[CAN_EDIT_SCHEDULE],
     ),
     Cancel(Const(strings.buttons.back), id="back"),
-    getter=[selected_event_getter, current_event_getter],
+    getter=[selected_event_getter, current_event_getter, can_edit_schedule_getter],
     state=states.Schedule.event_details,
 )

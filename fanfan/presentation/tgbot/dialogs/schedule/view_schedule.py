@@ -28,8 +28,10 @@ from fanfan.presentation.tgbot.dialogs.common.widgets import (
 )
 from fanfan.presentation.tgbot.dialogs.schedule import show_event_page
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
+    CAN_EDIT_SCHEDULE,
     DATA_TOTAL_PAGES,
     ID_SCHEDULE_SCROLL,
+    can_edit_schedule_getter,
     current_event_getter,
     schedule_getter,
 )
@@ -125,7 +127,7 @@ schedule_main_window = Window(
             Const("🧰 Инструменты волонтёра ⬆️"),
             id=ID_TOGGLE_HELPER_TOOLS,
         ),
-        when=F["can_edit_schedule"],
+        when=F[CAN_EDIT_SCHEDULE],
     ),
     Row(
         SwitchInlineQueryCurrentChat(
@@ -140,6 +142,11 @@ schedule_main_window = Window(
     ),
     SCHEDULE_SCROLL,
     Cancel(text=Const(strings.buttons.back)),
-    getter=[schedule_getter, current_event_getter, view_schedule_getter],
+    getter=[
+        schedule_getter,
+        current_event_getter,
+        view_schedule_getter,
+        can_edit_schedule_getter,
+    ],
     state=states.Schedule.main,
 )

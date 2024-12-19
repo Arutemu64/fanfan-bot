@@ -21,6 +21,8 @@ ID_SCHEDULE_SCROLL = "schedule_scroll"
 DATA_SELECTED_EVENT_ID = "selected_event_id"
 DATA_TOTAL_PAGES = "total_pages"
 
+CAN_EDIT_SCHEDULE = "can_edit_schedule"
+
 
 async def schedule_getter(
     dialog_manager: DialogManager,
@@ -29,7 +31,6 @@ async def schedule_getter(
     **kwargs,
 ):
     get_schedule_page: GetSchedulePage = await container.get(GetSchedulePage)
-    access: AccessService = await container.get(AccessService)
 
     page = await get_schedule_page(
         GetSchedulePageDTO(
@@ -45,18 +46,10 @@ async def schedule_getter(
         + bool(page.total % user.settings.items_per_page)
     )
 
-    try:
-        await access.ensure_can_edit_schedule(user)
-    except AppException:
-        can_edit_schedule = False
-    else:
-        can_edit_schedule = True
-
     return {
         "events": page.items,
         "page_number": await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page() + 1,
         "pages": dialog_manager.dialog_data[DATA_TOTAL_PAGES],
-        "can_edit_schedule": can_edit_schedule,
     }
 
 
@@ -89,4 +82,24 @@ async def current_event_getter(
 
     return {
         "current_event": current_event,
+    }
+
+
+async def can_edit_schedule_getter(
+    dialog_manager: DialogManager,
+    container: AsyncContainer,
+    user: FullUser,
+    **kwargs,
+):
+    access: AccessService = await container.get(AccessService)
+
+    try:
+        await access.ensure_can_edit_schedule(user)
+    except AppException:
+        can_edit_schedule = False
+    else:
+        can_edit_schedule = True
+
+    return {
+        CAN_EDIT_SCHEDULE: can_edit_schedule,
     }
