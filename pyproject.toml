@@ -26,6 +26,7 @@ dependencies = [
     "psycopg[binary]>=3.2.3",
     "pydantic[timezone]>=2.9.2",
     "pydantic-extra-types>=2.9.0",
+    "pydantic-settings>=2.6.1",
     "pyjwt>=2.9.0",
     "qrcode[pil]>=8.0",
     "redis>=5.1.1",
@@ -38,7 +39,6 @@ dependencies = [
     "taskiq>=0.11.7",
     "taskiq-redis>=1.0.2",
     "uvicorn>=0.32.0",
-    "pydantic-settings>=2.6.1",
 ]
 
 [dependency-groups]

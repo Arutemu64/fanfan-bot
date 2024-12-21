@@ -11,21 +11,22 @@
 У вас нет подписок 🔕
 {% else %}
     {% for subscription in subscriptions %}
-        {% set tag %}{% endset %}
-        {% if current_event %}
-            {% if not subscription.event.skip %}
-                {% set events_left = subscription.event.queue - current_event.queue %}
-                {% if (events_left > 0) and (events_left > subscription.counter) %}
-                    {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}, начнём напоминать за {{subscription.counter}} {{events_pluralize(subscription.counter)}} до начала]{% endset %}
-                {% elif (events_left > 0) and (events_left < subscription.counter) %}
-                    {% set tag %}[осталось {{events_left}} {{events_pluralize(events_left)}}]{% endset %}
-                {% endif -%}
-            {% endif %}
-        {% else %}
-            {% set tag %}[начнём напоминать за {{subscription.counter}} {{events_pluralize(subscription.counter)}} до начала]{% endset %}
+        {% if current_event and subscription.event.queue %}
+            {% set events_left = subscription.event.queue - current_event.queue %}
+            {% if events_left > 0 %}
+                {% set tag %}⌚ До начала: {{events_left}} {{events_pluralize(events_left)}}
+🔔 Напоминания: за {{subscription.counter}} {{events_pluralize(subscription.counter)}}{% endset %}
+            {% elif events_left == 0 %}
+                {% set tag %}🔴 Идёт сейчас{% endset %}
+            {% elif events_left < 0 %}
+                {% set tag %}⌛ Закончилось{% endset %}
+            {% endif -%}
+        {% elif not subscription.event.is_skipped %}
+            {% set tag %}Начнём напоминать за {{subscription.counter}} {{events_pluralize(subscription.counter)}} до начала{% endset %}
         {% endif %}
-{% if subscription.event.skip %}<s>{% endif %}
-<b>/{{ subscription.event.id }}</b> {{ subscription.event.title }} <b>{{ tag }}</b>
-{% if subscription.event.skip %}</s>{% endif %}
+<b>/{{ subscription.event.id }}</b> {% if subscription.event.is_skipped %}<s>{% endif %}{{ subscription.event.title }}{% if subscription.event.is_skipped %}</s>{% endif %}
+{% if tag +%}
+<b>{{ tag }}</b>{% endif +%}
+
     {% endfor %}
 {% endif %}

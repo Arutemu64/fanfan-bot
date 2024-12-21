@@ -46,7 +46,7 @@ class ImportOrders:
     async def __call__(self) -> ImportOrdersResult:
         async with self.limiter(
             limit_name=IMPORT_ORDERS_LIMIT_NAME,
-            limit_timeout=IMPORT_ORDERS_LIMIT_TIMEOUT,
+            cooldown_period=IMPORT_ORDERS_LIMIT_TIMEOUT,
             blocking=False,
             lock_timeout=timedelta(minutes=10).seconds,
         ):

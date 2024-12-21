@@ -2,7 +2,7 @@ from dishka import AsyncContainer, Provider, make_async_container
 
 from fanfan.main.ioc.auth import (
     JwtTokenProcessorProvider,
-    StubAuthProvider,
+    SystemAuthProvider,
     TelegramAuthProvider,
     WebAuthProvider,
 )
@@ -53,5 +53,5 @@ def create_web_container() -> AsyncContainer:
 
 def create_scheduler_container() -> AsyncContainer:
     providers = get_common_providers()
-    providers += [StubAuthProvider()]
+    providers += [SystemAuthProvider()]
     return make_async_container(*providers)

@@ -50,7 +50,7 @@ class ImportFromC2:
     async def __call__(self) -> ImportFromC2Result:
         async with self.limiter(
             limit_name=IMPORT_FROM_C2_LIMIT_NAME,
-            limit_timeout=IMPORT_FROM_C2_TIMEOUT,
+            cooldown_period=IMPORT_FROM_C2_TIMEOUT,
             blocking=False,
             lock_timeout=timedelta(minutes=5).seconds,
         ):

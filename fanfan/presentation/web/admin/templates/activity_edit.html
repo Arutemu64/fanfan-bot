@@ -1,12 +1,13 @@
 {% extends "sqladmin/edit.html" %}
 {% block tail %}
-<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<!-- Include TinyMCE -->
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js"></script>
+
 <script>
-    ClassicEditor
-        .create(document.querySelector('#description'), {
-        } )
-        .catch(error => {
-            console.error(error);
-        });
+  tinymce.init({
+    selector: '#description',  // The ID of the textarea you want to convert
+    menubar: false,  // Disable menu
+    toolbar: 'undo redo | bold italic',  // Customize toolbar
+  });
 </script>
 {% endblock %}

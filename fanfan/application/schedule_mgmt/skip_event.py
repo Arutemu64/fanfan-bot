@@ -62,7 +62,8 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
             async with (
                 self.uow,
                 self.limiter(
-                    ANNOUNCE_LIMIT_NAME, limit_timeout=self.limits.announcement_timeout
+                    ANNOUNCE_LIMIT_NAME,
+                    cooldown_period=self.limits.announcement_timeout,
                 ),
             ):
                 # Get event

@@ -32,7 +32,7 @@ class WebAuthProvider(Provider):
     web_id_provider = provide(WebIdProvider, provides=IdProvider)
 
 
-class StubAuthProvider(Provider):
+class SystemAuthProvider(Provider):
     scope = Scope.REQUEST
 
-    stub_id_provider = provide(SystemIdProvider, provides=IdProvider)
+    system_id_provider = provide(SystemIdProvider, provides=IdProvider)

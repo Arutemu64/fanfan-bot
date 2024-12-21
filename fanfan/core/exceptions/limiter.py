@@ -8,10 +8,10 @@ class LimiterException(AppException):
 
 
 class TooFast(LimiterException):
-    def __init__(self, limit_timeout: float, current_timestamp: float):
-        self.limit_timeout = limit_timeout
-        self.current_timestamp = current_timestamp
-        time_left = int(current_timestamp + limit_timeout - time.time())
+    def __init__(self, cooldown_period: float, timestamp: float):
+        self.limit_timeout = cooldown_period
+        self.current_timestamp = timestamp
+        time_left = int(timestamp + cooldown_period - time.time())
         self.message = (
             f"⚠️ Задача выполняется слишком часто." f"Попробуйте через {time_left} с."
         )

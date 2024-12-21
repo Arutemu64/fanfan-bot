@@ -72,7 +72,7 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
                 self.uow,
                 self.limiter(
                     ANNOUNCE_LIMIT_NAME,
-                    limit_timeout=self.limits.announcement_timeout,
+                    cooldown_period=self.limits.announcement_timeout,
                 ),
             ):
                 # Check event
