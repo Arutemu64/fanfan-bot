@@ -1,7 +1,5 @@
 from aiogram import F
-from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
     Cancel,
     CurrentPage,
@@ -14,19 +12,11 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
-from dishka.integrations.aiogram import CONTAINER_NAME
 
-from fanfan.application.quest.add_achievement import (
-    AddAchievement,
-    AddAchievementDTO,
-)
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.core.dto.page import Pagination
-from fanfan.core.exceptions.achievements import UserAlreadyHasThisAchievement
-from fanfan.core.exceptions.users import TicketNotLinked
-from fanfan.core.models.achievement import AchievementId
-from fanfan.core.models.user import FullUser, UserId
+from fanfan.core.models.user import FullUser
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
@@ -71,37 +61,7 @@ async def list_achievements_getter(
         + bool(page.total % user.settings.items_per_page),
         "showing_self": showing_self,
         "username": username,
-        "add_mode": bool(dialog_manager.start_data.get("add_mode")),
     }
-
-
-async def add_achievement_to_user_handler(
-    message: Message,
-    widget: ManagedTextInput,
-    dialog_manager: DialogManager,
-    data: str,
-) -> None:
-    container: AsyncContainer = dialog_manager.middleware_data[CONTAINER_NAME]
-
-    if (
-        "/" in data
-        and data.replace("/", "").isnumeric()
-        and bool(dialog_manager.start_data.get("add_mode"))
-    ):
-        try:
-            add_achievement: AddAchievement = await container.get(AddAchievement)
-            await add_achievement(
-                AddAchievementDTO(
-                    achievement_id=AchievementId(int(data.replace("/", ""))),
-                    to_user_id=UserId(dialog_manager.start_data[DATA_USER_ID]),
-                )
-            )
-        except TicketNotLinked:
-            await message.answer("⚠️ У участника не привязан билет")
-            return
-        except UserAlreadyHasThisAchievement:
-            await message.answer("⚠️ У участника уже есть это достижение")
-            return
 
 
 list_achievements_window = Window(
@@ -126,11 +86,6 @@ list_achievements_window = Window(
         NextPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏭️")),
         when=F["pages"] > 1,
-    ),
-    TextInput(
-        id=ID_ADD_ACHIEVEMENT_INPUT,
-        type_factory=str,
-        on_success=add_achievement_to_user_handler,
     ),
     Cancel(text=Const(strings.buttons.back)),
     state=states.Achievements.list_achievements,

@@ -17,7 +17,6 @@ from fanfan.application.participants.get_participant_by_voting_number import (
     GetParticipantByVotingNumber,
 )
 from fanfan.application.participants.get_participants_page import GetParticipantsPage
-from fanfan.application.quest.add_achievement import AddAchievement
 from fanfan.application.quest.add_points import AddPoints
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.quest.get_quest_conditions import GetQuestConditions
@@ -61,7 +60,6 @@ class InteractorsProvider(Provider):
 
     receive_achievement_by_secret_id = provide(ReceiveAchievementBySecretId)
     get_achievements_page = provide(GetAchievementsPage)
-    receive_achievement = provide(AddAchievement)
 
     get_activities_page = provide(GetActivitiesPage)
     get_activity_by_id = provide(GetActivityById)

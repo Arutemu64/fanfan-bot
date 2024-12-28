@@ -23,7 +23,7 @@ class DBAchievement(Base, OrderMixin):
     title: Mapped[str] = mapped_column()
     description: Mapped[str | None] = mapped_column()
     # Secret ID for quest
-    secret_id: Mapped[str | None] = mapped_column(unique=True)
+    secret_id: Mapped[str] = mapped_column(unique=True)
 
     # Relationships
     user_received: Mapped[DBReceivedAchievement | None] = relationship(

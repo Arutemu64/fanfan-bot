@@ -1,8 +1,7 @@
 {% for achievement in achievements %}
-{% if add_mode %}/{{ achievement.id }} {% endif %}<b>{{ achievement.title }} {% if achievement.received %}✅{% else %}⬜{% endif %}</b>
+<b>{{ achievement.title }} {% if achievement.received %}✅{% else %}⬜{% endif %}</b>
 {% if achievement.description %}
 {{ achievement.description }}
 {% endif %}
 
 {% endfor -%}
-{% if add_mode %}👆 Чтобы добавить участнику достижение нажми на номер в списке{% endif %}

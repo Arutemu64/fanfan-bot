@@ -44,7 +44,7 @@ async def open_user_achievements_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    await start_achievements(manager, manager.start_data[DATA_USER_ID], add_mode=True)
+    await start_achievements(manager, manager.start_data[DATA_USER_ID])
 
 
 user_info_window = Window(
