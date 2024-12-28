@@ -15,5 +15,6 @@ class RequestStatus(enum.StrEnum):
 class Request:
     id: int
     topic_id: int
+    voting_number: int | None
     voting_title: str | None
     status: RequestStatus

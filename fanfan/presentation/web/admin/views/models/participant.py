@@ -14,7 +14,7 @@ class ParticipantView(ModelView, model=DBParticipant):
         DBParticipant.votes_count,
     ]
     form_columns = [
-        DBParticipant.scoped_id,
+        DBParticipant.voting_number,
         DBParticipant.title,
         DBParticipant.nomination,
     ]
@@ -23,7 +23,7 @@ class ParticipantView(ModelView, model=DBParticipant):
     column_details_exclude_list = [DBParticipant.user_vote, DBParticipant.nomination]
     column_labels = {
         DBParticipant.id: "ID",
-        DBParticipant.scoped_id: "ID внутри номинации",
+        DBParticipant.voting_number: "Номер для голосования",
         DBParticipant.title: "Название",
         DBParticipant.nomination: "Номинация",
         DBParticipant.votes_count: "Количество голосов",

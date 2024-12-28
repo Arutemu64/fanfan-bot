@@ -51,7 +51,7 @@ def create_web_container() -> AsyncContainer:
     return make_async_container(*providers)
 
 
-def create_scheduler_container() -> AsyncContainer:
+def create_system_container() -> AsyncContainer:
     providers = get_common_providers()
     providers += [SystemAuthProvider()]
     return make_async_container(*providers)

@@ -13,8 +13,8 @@ from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
 from fanfan.application.nominations.get_nomination_by_id import GetNominationById
 from fanfan.application.nominations.get_nominations_page import GetNominationsPage
-from fanfan.application.participants.get_participant_by_scoped_id import (
-    GetScopedParticipant,
+from fanfan.application.participants.get_participant_by_voting_number import (
+    GetParticipantByVotingNumber,
 )
 from fanfan.application.participants.get_participants_page import GetParticipantsPage
 from fanfan.application.quest.add_achievement import AddAchievement
@@ -88,7 +88,7 @@ class InteractorsProvider(Provider):
     get_nomination_by_id = provide(GetNominationById)
     get_nominations_page = provide(GetNominationsPage)
 
-    get_participant_by_scoped_id = provide(GetScopedParticipant)
+    get_participant_by_voting_number = provide(GetParticipantByVotingNumber)
     get_participants_page = provide(GetParticipantsPage)
 
     get_settings = provide(GetSettings)

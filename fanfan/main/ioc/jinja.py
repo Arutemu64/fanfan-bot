@@ -1,7 +1,7 @@
 from dishka import Provider, Scope, provide
 from jinja2 import Environment, FileSystemLoader
 
-from fanfan.common.paths import JINJA_TEMPLATES_DIR
+from fanfan.presentation.tgbot import JINJA_TEMPLATES_DIR
 
 
 class JinjaProvider(Provider):

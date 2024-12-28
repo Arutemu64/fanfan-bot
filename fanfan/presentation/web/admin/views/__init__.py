@@ -1,5 +1,5 @@
-from .aioparser import AioParserView
 from .models import model_views
-from .plan_parse import PlanParseView
+from .parse_schedule import ParseScheduleView
+from .parse_tickets import ParseTicketsView
 
-views = [*model_views, PlanParseView, AioParserView]
+views = [*model_views, ParseScheduleView, ParseTicketsView]

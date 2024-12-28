@@ -2,9 +2,9 @@ import html
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from fanfan.core.dto.notification import DEFAULT_REPLY_MARKUP, UserNotification
 from fanfan.core.models.achievement import Achievement
 from fanfan.core.models.feedback import FullFeedback
-from fanfan.core.models.notification import DEFAULT_REPLY_MARKUP, UserNotification
 from fanfan.core.utils.pluralize import Plurals, pluralize
 from fanfan.presentation.tgbot.keyboards.buttons import (
     DELETE_BUTTON,

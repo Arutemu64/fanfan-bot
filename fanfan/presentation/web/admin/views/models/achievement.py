@@ -4,7 +4,7 @@ from starlette.responses import FileResponse
 
 from fanfan.adapters.db.models import DBAchievement
 from fanfan.common.paths import QR_CODES_TEMP_DIR
-from fanfan.core.models.qr import QR, QRType
+from fanfan.core.dto.qr import QR, QRType
 from fanfan.core.utils.qr import generate_img
 
 

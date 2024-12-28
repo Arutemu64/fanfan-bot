@@ -191,8 +191,8 @@ class Configuration(BaseSettings):
     redis: RedisConfig
     nats: NatsConfig
 
-    limits: LimitsConfig = LimitsConfig()
-    debug: DebugConfig = DebugConfig()
+    limits: LimitsConfig
+    debug: DebugConfig
 
     timepad: TimepadConfig | None = None
     cosplay2: Cosplay2Config | None = None

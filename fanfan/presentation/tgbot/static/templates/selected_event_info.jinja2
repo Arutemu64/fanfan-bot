@@ -14,16 +14,16 @@
 
 {% endif %}
 {% if selected_event.nomination %}
-💃 Номинация: <b>{{ selected_event.nomination.title }}</b>
+✨ Номинация: <b>{{ selected_event.nomination.title }}</b>
 
 {% endif %}
 {% if selected_event.queue and current_event %}
     {% set queue_difference = selected_event.queue - current_event.queue %}
     {% if queue_difference < 0 %}
-⌛ Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference)}}</b> назад
+⏪ Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference)}}</b> назад
     {% elif queue_difference == 0 %}
-🔴 Выступление идёт <b>ПРЯМО СЕЙЧАС</b>
+▶️ Выступление идёт <b>ПРЯМО СЕЙЧАС</b>
     {% elif queue_difference > 0 %}
-⌚ До начала: <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b>
+⏭️ До начала: <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b>
     {% endif %}
 {% endif %}

@@ -6,7 +6,7 @@ from datetime import timedelta
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.adapters.cosplay2.client import Cosplay2Client
-from fanfan.adapters.cosplay2.dto.requests import Request
+from fanfan.adapters.cosplay2.dto.requests import Request, RequestStatus
 from fanfan.adapters.cosplay2.exceptions import (
     NoCosplay2ConfigProvided,
 )
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Limits
 IMPORT_FROM_C2_LIMIT_NAME = "import_from_c2"
-IMPORT_FROM_C2_TIMEOUT = timedelta(minutes=30).seconds
+IMPORT_FROM_C2_TIMEOUT = timedelta(minutes=1).seconds
 
 
 @dataclass(slots=True, frozen=True)
@@ -75,7 +75,7 @@ class ImportFromC2:
             # Import requests into participants
             requests = await self.cosplay2.get_all_requests()
             for request in requests:
-                if request.voting_title and request.status.APPROVED:
+                if request.voting_title and (request.status is RequestStatus.APPROVED):
                     logger.info(
                         "Importing request %s", request.id, extra={"request": request}
                     )
@@ -86,6 +86,7 @@ class ImportFromC2:
                                     id=ParticipantId(request.id),
                                     title=request.voting_title,
                                     nomination_id=NominationId(request.topic_id),
+                                    voting_number=request.voting_number,
                                 )
                             )
                             await self.uow.commit()

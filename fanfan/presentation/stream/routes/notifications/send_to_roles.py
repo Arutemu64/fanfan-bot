@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.core.dto.notification import UserNotification
 from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import UserNotification
 from fanfan.core.models.user import UserRole
 from fanfan.presentation.stream.jstream import stream
 from fanfan.presentation.stream.routes.notifications.send_notification import (
@@ -30,11 +30,11 @@ class SendNotificationToRolesDTO(BaseModel):
 )
 async def send_to_roles(
     data: SendNotificationToRolesDTO,
-    users_dao: FromDishka[UsersRepository],
+    users_repo: FromDishka[UsersRepository],
     mailing: FromDishka[MailingRepository],
     broker_adapter: FromDishka[StreamBrokerAdapter],
 ) -> None:
-    users = await users_dao.get_all_by_roles(*data.roles)
+    users = await users_repo.get_all_by_roles(*data.roles)
     for u in users:
         await broker_adapter.send_notification(
             SendNotificationDTO(

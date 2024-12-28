@@ -14,9 +14,9 @@ from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepositor
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.core.dto.notification import UserNotification
 from fanfan.core.models.event import Event
 from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import UserNotification
 from fanfan.presentation.stream.jstream import stream
 from fanfan.presentation.stream.routes.notifications.send_notification import (
     SendNotificationDTO,
@@ -25,6 +25,10 @@ from fanfan.presentation.tgbot.keyboards.buttons import (
     OPEN_SUBSCRIPTIONS_BUTTON,
     PULL_DOWN_DIALOG,
 )
+
+ANNOUNCEMENT_REPLY_MARKUP = InlineKeyboardBuilder(
+    [[OPEN_SUBSCRIPTIONS_BUTTON], [PULL_DOWN_DIALOG]],
+).as_markup()
 
 router = NatsRouter()
 
@@ -91,9 +95,7 @@ async def prepare_announcements(  # noqa: C901
         notification = UserNotification(
             title=f"📢 НА СЦЕНЕ ({time})",
             text=text,
-            reply_markup=InlineKeyboardBuilder(
-                [[OPEN_SUBSCRIPTIONS_BUTTON], [PULL_DOWN_DIALOG]],
-            ).as_markup(),
+            reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
         )
         for u in await users_repo.get_users_by_receive_all_announcements():
             await broker_adapter.send_notification(
@@ -132,9 +134,7 @@ async def prepare_announcements(  # noqa: C901
                         title=f"📢 СКОРО НА СЦЕНЕ ({time})",
                         text=text,
                         bottom_text=reason,
-                        reply_markup=InlineKeyboardBuilder(
-                            [[OPEN_SUBSCRIPTIONS_BUTTON], [PULL_DOWN_DIALOG]],
-                        ).as_markup(),
+                        reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
                     ),
                 ),
                 mailing_id=data.mailing_id,

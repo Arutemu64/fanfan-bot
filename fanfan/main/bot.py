@@ -48,7 +48,7 @@ async def run_webhook(bot: Bot, dp: Dispatcher, config: Configuration) -> None:
     await asyncio.Event().wait()
 
 
-async def main(config: Configuration) -> None:
+async def run(config: Configuration) -> None:
     # Get dependencies ready
     container = create_bot_container()
     bot: Bot = await container.get(Bot)
@@ -69,7 +69,7 @@ async def main(config: Configuration) -> None:
         await container.close()
 
 
-if __name__ == "__main__":
+def main():
     config = get_config()
     setup_logging(
         level=config.debug.logging_level,
@@ -82,4 +82,8 @@ if __name__ == "__main__":
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with contextlib.suppress(KeyboardInterrupt):
-        asyncio.run(main(config=config))
+        asyncio.run(run(config=config))
+
+
+if __name__ == "__main__":
+    main()

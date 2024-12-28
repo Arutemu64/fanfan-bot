@@ -1,0 +1,8 @@
+{% if current_event %}<b>▶️ Сейчас:</b> {{ current_event.id }}. {{ current_event.title }}
+{% if current_event.nomination %}<b>✨ Номинация:</b> {{ current_event.nomination.title }}{% endif +%}
+{% if current_event.block %}<b>📅 Блок:</b> {{ current_event.block.title }}{% endif %}{% endif %}
+
+
+{%+ if next_event %}<b>⏭️ Затем:</b> {{ next_event.id }}. {{ next_event.title }}
+{% if next_event.nomination %}<b>✨ Номинация:</b> {{ next_event.nomination.title }}{% endif +%}
+{% if next_event.block %}<b>📅 Блок:</b> {{ next_event.block.title }}{% endif %}{% endif %}

@@ -9,13 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fanfan.adapters.config.parsers import get_config
 from fanfan.adapters.db.models import DBGlobalSettings
 from fanfan.common.logging import setup_logging
-from fanfan.main.di import create_scheduler_container
+from fanfan.main.di import create_system_container
 
 logger = logging.getLogger(__name__)
 
 
 async def migrate():
-    container = create_scheduler_container()
+    container = create_system_container()
 
     # Setup initial settings
     async with container() as container:
@@ -30,7 +30,7 @@ async def migrate():
     logger.info("Migration completed")
 
 
-if __name__ == "__main__":
+def main():
     config = get_config()
     setup_logging(
         level=config.debug.logging_level,
@@ -40,3 +40,7 @@ if __name__ == "__main__":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(migrate())
+
+
+if __name__ == "__main__":
+    main()

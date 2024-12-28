@@ -70,11 +70,11 @@ async def search_voting_participants(
     )
     results = [
         InlineQueryResultArticle(
-            id=str(p.scoped_id),
-            title=str(p.scoped_id),
+            id=str(p.voting_number),
+            title=str(p.voting_number),
             description=p.title,
             input_message_content=InputTextMessageContent(
-                message_text=f"/{p.scoped_id}"
+                message_text=f"/{p.voting_number}"
             ),
         )
         for p in page.items

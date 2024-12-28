@@ -2,18 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Identity, UniqueConstraint, func, select
+from sqlalchemy import ForeignKey, UniqueConstraint, func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.vote import DBVote
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.participant import (
-    UNSET_SCOPED_ID,
     FullParticipant,
     Participant,
     ParticipantId,
-    ParticipantScopedId,
+    ParticipantVotingNumber,
 )
 
 if TYPE_CHECKING:
@@ -28,14 +27,16 @@ class DBParticipant(Base):
     title: Mapped[str] = mapped_column(index=True)
 
     # Nomination relation
-    nomination_id: Mapped[int | None] = mapped_column(
-        ForeignKey("nominations.id", ondelete="SET NULL"),
+    nomination_id: Mapped[int] = mapped_column(
+        ForeignKey("nominations.id", ondelete="CASCADE"),
     )
-    nomination: Mapped[DBNomination | None] = relationship()
+    nomination: Mapped[DBNomination] = relationship()
 
     # Nomination scoped id
-    scoped_id: Mapped[int] = mapped_column(Identity(start=1))
-    UniqueConstraint(nomination_id, scoped_id)
+    voting_number: Mapped[int | None] = mapped_column()
+    UniqueConstraint(
+        nomination_id, voting_number, deferrable=True, initially="DEFERRED"
+    )
 
     # Relationships
     event: Mapped[DBEvent | None] = relationship(
@@ -55,21 +56,19 @@ class DBParticipant(Base):
 
     @classmethod
     def from_model(cls, model: Participant):
-        data = {
-            "id": model.id,
-            "title": model.title,
-            "nomination_id": model.nomination_id,
-        }
-        if model.scoped_id is not UNSET_SCOPED_ID:
-            data.update(scoped_id=model.scoped_id)
-        return DBParticipant(**data)
+        return DBParticipant(
+            id=model.id,
+            title=model.title,
+            nomination_id=model.nomination_id,
+            voting_number=model.voting_number,
+        )
 
     def to_model(self) -> Participant:
         return Participant(
             id=ParticipantId(self.id),
             title=self.title,
             nomination_id=NominationId(self.nomination_id),
-            scoped_id=ParticipantScopedId(self.scoped_id),
+            voting_number=ParticipantVotingNumber(self.voting_number),
         )
 
     def to_full_model(self) -> FullParticipant:
@@ -77,7 +76,7 @@ class DBParticipant(Base):
             id=ParticipantId(self.id),
             title=self.title,
             nomination_id=NominationId(self.nomination_id),
-            scoped_id=ParticipantScopedId(self.scoped_id),
+            voting_number=ParticipantVotingNumber(self.voting_number),
             event=self.event.to_model() if self.event else None,
             nomination=self.nomination.to_model() if self.nomination else None,
             votes_count=self.votes_count,

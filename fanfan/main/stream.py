@@ -8,7 +8,7 @@ from prometheus_client import CollectorRegistry, make_asgi_app
 
 from fanfan.adapters.config.parsers import get_config
 from fanfan.common.telemetry import setup_telemetry
-from fanfan.main.di import create_scheduler_container
+from fanfan.main.di import create_system_container
 from fanfan.presentation.stream.broker import create_broker
 
 
@@ -31,13 +31,17 @@ def create_app() -> AsgiFastStream:
     )
 
     # Setup Dishka
-    container = create_scheduler_container()
+    container = create_system_container()
     setup_dishka(container, app, auto_inject=True)
 
     return app
 
 
-if __name__ == "__main__":
+def main():
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     uvicorn.run(create_app(), host="0.0.0.0", port=8000)  # noqa: S104
+
+
+if __name__ == "__main__":
+    main()

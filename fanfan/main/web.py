@@ -68,7 +68,7 @@ def create_app(config: Configuration) -> FastAPI:
     return app
 
 
-if __name__ == "__main__":
+def main():
     config = get_config()
     setup_telemetry(
         service_name="web",
@@ -84,3 +84,7 @@ if __name__ == "__main__":
             root_path=config.web.path,
             log_level=config.debug.logging_level,
         )
+
+
+if __name__ == "__main__":
+    main()

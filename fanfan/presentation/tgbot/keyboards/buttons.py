@@ -19,7 +19,7 @@ OPEN_SUBSCRIPTIONS_BUTTON = InlineKeyboardButton(
     callback_data=OpenSubscriptionsCallback().pack(),
 )
 PULL_DOWN_DIALOG = InlineKeyboardButton(
-    text="🔽 Опустить меню",
+    text="🏠 Вернуть меню",
     callback_data=PullDialogDownCallback().pack(),
 )
 

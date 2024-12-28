@@ -4,24 +4,22 @@ from dataclasses import dataclass
 from typing import NewType
 
 ParticipantId = NewType("ParticipantId", int)
-ParticipantScopedId = NewType("ParticipantScopedId", int)
-
-UNSET_SCOPED_ID = object()
+ParticipantVotingNumber = NewType("ParticipantVotingNumber", int)
 
 
 @dataclass(slots=True, kw_only=True)
 class Participant:
     id: ParticipantId
     title: str
-    nomination_id: NominationId | None
-    scoped_id: ParticipantScopedId | None = UNSET_SCOPED_ID
+    nomination_id: NominationId
+    voting_number: ParticipantVotingNumber | None
 
 
 @dataclass(slots=True, kw_only=True)
 class FullParticipant(Participant):
-    event: Event | None
-    nomination: Nomination | None
+    nomination: Nomination
     votes_count: int
+    event: Event | None
     user_vote: Vote | None
 
 

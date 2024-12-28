@@ -14,12 +14,12 @@
         {% if current_event and subscription.event.queue %}
             {% set events_left = subscription.event.queue - current_event.queue %}
             {% if events_left > 0 %}
-                {% set tag %}⌚ До начала: {{events_left}} {{events_pluralize(events_left)}}
+                {% set tag %}⏭️ До начала: {{events_left}} {{events_pluralize(events_left)}}
 🔔 Напоминания: за {{subscription.counter}} {{events_pluralize(subscription.counter)}}{% endset %}
             {% elif events_left == 0 %}
-                {% set tag %}🔴 Идёт сейчас{% endset %}
+                {% set tag %}▶️ Идёт сейчас{% endset %}
             {% elif events_left < 0 %}
-                {% set tag %}⌛ Закончилось{% endset %}
+                {% set tag %}⏪ Закончилось{% endset %}
             {% endif -%}
         {% elif not subscription.event.is_skipped %}
             {% set tag %}Начнём напоминать за {{subscription.counter}} {{events_pluralize(subscription.counter)}} до начала{% endset %}

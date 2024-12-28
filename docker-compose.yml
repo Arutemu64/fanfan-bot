@@ -136,6 +136,7 @@ services:
     command: ["python", "-m", "fanfan.main.stream"]
 
   taskiq:
+    profiles: ["scheduler"]
     container_name: "fanfan-taskiq-${ENV_NAME}"
     build: .
     restart: unless-stopped

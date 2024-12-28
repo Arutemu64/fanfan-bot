@@ -17,9 +17,9 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.nominations.get_nomination_by_id import GetNominationById
-from fanfan.application.participants.get_participant_by_scoped_id import (
-    GetScopedParticipant,
-    GetScopedParticipantDTO,
+from fanfan.application.participants.get_participant_by_voting_number import (
+    GetParticipantByVotingNumber,
+    GetParticipantByVotingNumberDTO,
 )
 from fanfan.application.participants.get_participants_page import (
     GetParticipantsPage,
@@ -29,7 +29,7 @@ from fanfan.application.votes.add_vote import AddVote
 from fanfan.application.votes.cancel_vote import CancelVote
 from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.votes import VoteNotFound
-from fanfan.core.models.participant import ParticipantScopedId
+from fanfan.core.models.participant import ParticipantVotingNumber
 from fanfan.core.models.user import FullUser
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
@@ -91,15 +91,15 @@ async def add_vote_handler(
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
     add_vote: AddVote = await container.get(AddVote)
-    get_participant_by_scoped_id: GetScopedParticipant = await container.get(
-        GetScopedParticipant
+    get_participant_by_voting_number: GetParticipantByVotingNumber = (
+        await container.get(GetParticipantByVotingNumber)
     )
 
     if "/" in data and data.replace("/", "").isnumeric():
-        participant = await get_participant_by_scoped_id(
-            GetScopedParticipantDTO(
+        participant = await get_participant_by_voting_number(
+            GetParticipantByVotingNumberDTO(
                 nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
-                scoped_id=ParticipantScopedId(int(data.replace("/", ""))),
+                voting_number=ParticipantVotingNumber(int(data.replace("/", ""))),
             )
         )
         await add_vote(participant.id)

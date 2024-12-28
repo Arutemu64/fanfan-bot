@@ -25,7 +25,6 @@ class Main(StatesGroup):
 
 class Org(StatesGroup):
     main = State()
-    tasks = State()
     input_task_cron = State()
     add_ticket = State()
 

@@ -10,8 +10,8 @@ from pydantic import BaseModel
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.notifier import BotNotifier
+from fanfan.core.dto.notification import UserNotification
 from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.notification import UserNotification
 from fanfan.core.models.user import UserId
 from fanfan.presentation.stream.jstream import stream
 

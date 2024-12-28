@@ -31,9 +31,9 @@ broker = (
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup(state: TaskiqState) -> None:
-    from fanfan.main.di import create_scheduler_container
+    from fanfan.main.di import create_system_container
 
-    container = create_scheduler_container()
+    container = create_system_container()
     config: Configuration = await container.get(Configuration)
 
     setup_logging(

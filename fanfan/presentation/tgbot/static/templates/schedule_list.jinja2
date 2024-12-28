@@ -8,7 +8,7 @@
             {% endif %}
         {% endif %}
         {% if event.nomination %}
-            {% if (not loop.previtem) or (loop.previtem and (event.block != loop.previtem.block)) %}
+            {% if (not loop.previtem) or (loop.previtem and (event.nomination != loop.previtem.nomination)) %}
 <b>➡️ {{event.nomination.title}}</b>
             {% endif %}
         {% endif %}

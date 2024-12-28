@@ -90,11 +90,6 @@ org_main_window = Window(
             id=ID_TOGGLE_VOTING_BUTTON,
             on_click=toggle_voting_handler,
         ),
-        SwitchTo(
-            Const(strings.titles.tasks),
-            id="tasks",
-            state=states.Org.tasks,
-        ),
         width=2,
     ),
     Cancel(Const(strings.buttons.back)),

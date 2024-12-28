@@ -9,7 +9,7 @@ from fanfan.core.models.participant import (
     FullParticipant,
     Participant,
     ParticipantId,
-    ParticipantScopedId,
+    ParticipantVotingNumber,
 )
 from fanfan.core.models.user import UserId
 
@@ -33,7 +33,7 @@ class ParticipantsRepository:
             query = query.where(
                 or_(
                     DBParticipant.title.ilike(f"%{search_query}%"),
-                    DBParticipant.scoped_id == int(search_query)
+                    DBParticipant.voting_number == int(search_query)
                     if search_query.isnumeric()
                     else False,
                 )
@@ -83,15 +83,15 @@ class ParticipantsRepository:
         participant = await self.session.scalar(query)
         return participant.to_full_model() if participant else None
 
-    async def get_participant_by_scoped_id(
-        self, nomination_id: NominationId, scoped_id: ParticipantScopedId
+    async def get_participant_by_voting_number(
+        self, nomination_id: NominationId, voting_number: ParticipantVotingNumber
     ) -> Participant | None:
         query = (
             select(DBParticipant)
             .where(
                 and_(
                     DBParticipant.nomination_id == nomination_id,
-                    DBParticipant.scoped_id == scoped_id,
+                    DBParticipant.voting_number == voting_number,
                 ),
             )
             .limit(1)
@@ -107,7 +107,7 @@ class ParticipantsRepository:
         user_id: UserId | None = None,
         pagination: Pagination | None = None,
     ) -> list[FullParticipant]:
-        query = select(DBParticipant).order_by(DBParticipant.scoped_id)
+        query = select(DBParticipant).order_by(DBParticipant.voting_number)
         query = self._load_full(query, user_id)
 
         if pagination:
