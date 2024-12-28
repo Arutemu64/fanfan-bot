@@ -1,7 +1,5 @@
-import json
 from pathlib import Path
 
-from adaptix import Retort
 from adaptix.load_error import LoadError
 from aiogram import Bot
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -18,12 +16,13 @@ from fanfan.application.quest.receive_achievement_by_secret_id import (
 )
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.core.dto.notification import UserNotification
-from fanfan.core.dto.qr import QR, QRType
+from fanfan.core.dto.qr import QRType
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import SecretId
 from fanfan.core.models.user import UserRole
 from fanfan.core.utils.notifications import create_achievement_notification
+from fanfan.core.utils.qr import decode_qr_json
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
 from fanfan.presentation.tgbot.keyboards.buttons import DELETE_BUTTON
 from fanfan.presentation.web.webapp.auth import webapp_auth
@@ -52,10 +51,10 @@ async def proceed_qr_post(
     get_user_id_by: FromDishka[GetUserById],
     bg_factory: FromDishka[BgManagerFactory],
 ) -> JSONResponse:
-    data = await request.form()
+    data = await request.json()
     # Parsing QR code
     try:
-        qr = Retort(strict_coercion=False).load(json.loads(data["qr_text"]), QR)
+        qr = decode_qr_json(data["qr_data"])
     except LoadError:
         await notifier.send_notification(
             user_id=id_provider.get_current_user_id(),

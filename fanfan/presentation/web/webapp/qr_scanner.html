@@ -11,7 +11,6 @@
     <meta name="robots" content="noindex,nofollow"/>
     <title>QR Scanner WebApp for FAN-FAN Telegram Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://webappcontent.telegram.org/js/jquery.min.js"></script>
     <script>
         function setThemeClass() {
             document.documentElement.className = Telegram.WebApp.colorScheme;
@@ -24,46 +23,54 @@
 </head>
 <body>
     <script>
-    Telegram.WebApp.ready();
+        Telegram.WebApp.ready();
 
-    is_telegram_api_updated = Telegram.WebApp.isVersionAtLeast('6.4');
-    if (Telegram.WebApp.platform != 'unknown') {
-      is_telegram_client = true;
-    }
+        const isTelegramApiUpdated = Telegram.WebApp.isVersionAtLeast('6.4');
+        const isTelegramClient = Telegram.WebApp.platform !== 'unknown';
 
-    if (is_telegram_client && is_telegram_api_updated) {
-      Telegram.WebApp.MainButton
-        .setText('⬅️ Назад')
-        .show()
-        .onClick(() => {
-          Telegram.WebApp.close();
-        });
-      const initData = Telegram.WebApp.initData || '';
-      const initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
-      Telegram.WebApp.showScanQrPopup('Наведите смартфон на QR-код с логотипом фестиваля', (qr_text) => {
-        $.ajax({
-          url: 'qr_scanner',
-          method: 'post',
-          dataType: 'json',
-          data: {
-            _auth: initData,
-            qr_text,
-          },
-          success(result) {
-            Telegram.WebApp.closeScanQrPopup();
+        if (isTelegramClient && isTelegramApiUpdated) {
+            Telegram.WebApp.MainButton
+                .setText('⬅️ Назад')
+                .show()
+                .onClick(() => {
+                    Telegram.WebApp.close();
+                });
+
+            const initData = Telegram.WebApp.initData || '';
+            const initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
+
+            Telegram.WebApp.showScanQrPopup(
+                'Наведите смартфон на QR-код с логотипом фестиваля',
+                (qrData) => {
+                    fetch('qr_scanner', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            _auth: initData,
+                            qr_data: qrData,
+                        }),
+                    })
+                    .then((response) => {
+                        if (response.ok) {
+                            Telegram.WebApp.closeScanQrPopup();
+                            Telegram.WebApp.close();
+                        } else {
+                            throw new Error('Failed to process QR data');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        Telegram.WebApp.closeScanQrPopup();
+                        Telegram.WebApp.close();
+                    });
+                }
+            );
+        } else if (isTelegramClient && !isTelegramApiUpdated) {
+            Telegram.WebApp.showAlert('⚠️ Ваш клиент Telegram не поддерживает Bot API 6.4.\nПожалуйста, обновите приложение.');
             Telegram.WebApp.close();
-          },
-          error(result) {
-            Telegram.WebApp.closeScanQrPopup();
-            Telegram.WebApp.close();
-          },
-        });
-      });
-    } else if (is_telegram_client && !is_telegram_api_updated) {
-      Telegram.WebApp.showAlert('⚠️ Ваш клиент Telegram не поддерживает Bot API 6.4.\n'
-                + 'Пожалуйста, обновите приложение.');
-      Telegram.WebApp.close();
-    }
+        }
     </script>
 </body>
 </html>

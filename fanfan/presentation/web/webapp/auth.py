@@ -14,7 +14,7 @@ async def webapp_auth(
     config: FromDishka[BotConfig],
     token_processor: FromDishka[JwtTokenProcessor],
 ):
-    data = await request.form()
+    data = await request.json()
     try:
         web_app_init_data = safe_parse_webapp_init_data(
             token=config.token.get_secret_value(),
