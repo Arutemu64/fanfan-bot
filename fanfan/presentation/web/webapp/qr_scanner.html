@@ -9,68 +9,51 @@
     <meta name="MobileOptimized" content="176"/>
     <meta name="HandheldFriendly" content="True"/>
     <meta name="robots" content="noindex,nofollow"/>
-    <title>QR Scanner WebApp for FAN-FAN Telegram Bot</title>
+    <title>QR Scanner WebApp for FAN FAN Telegram Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        function setThemeClass() {
-            document.documentElement.className = Telegram.WebApp.colorScheme;
+        function handleQrScan(qrData) {
+            try {
+                const response = fetch('qr_scanner', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        _auth: Telegram.WebApp.initData || '',
+                        qr_data: qrData,
+                    }),
+                });
+
+                if (response.ok) {
+                    Telegram.WebApp.closeScanQrPopup();
+                    Telegram.WebApp.close();
+                } else {
+                    const error = response.text();
+                    throw new Error(`Failed to process QR data: ${error}`);
+                }
+            } catch (error) {
+                console.error(error);
+                Telegram.WebApp.closeScanQrPopup();
+                Telegram.WebApp.close();
+            }
         }
 
-        Telegram.WebApp.onEvent('themeChanged', setThemeClass);
-        setThemeClass();
-
-    </script>
-</head>
-<body>
-    <script>
-        Telegram.WebApp.ready();
-
-        const isTelegramApiUpdated = Telegram.WebApp.isVersionAtLeast('6.4');
+        const isTelegramApiUpdated = Telegram.WebApp.isVersionAtLeast('7.7');
         const isTelegramClient = Telegram.WebApp.platform !== 'unknown';
 
         if (isTelegramClient && isTelegramApiUpdated) {
-            Telegram.WebApp.MainButton
-                .setText('⬅️ Назад')
-                .show()
-                .onClick(() => {
-                    Telegram.WebApp.close();
-                });
-
-            const initData = Telegram.WebApp.initData || '';
-            const initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
-
+            Telegram.WebApp.onEvent('scanQrPopupClosed', Telegram.WebApp.close);
             Telegram.WebApp.showScanQrPopup(
                 'Наведите смартфон на QR-код с логотипом фестиваля',
-                (qrData) => {
-                    fetch('qr_scanner', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            _auth: initData,
-                            qr_data: qrData,
-                        }),
-                    })
-                    .then((response) => {
-                        if (response.ok) {
-                            Telegram.WebApp.closeScanQrPopup();
-                            Telegram.WebApp.close();
-                        } else {
-                            throw new Error('Failed to process QR data');
-                        }
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        Telegram.WebApp.closeScanQrPopup();
-                        Telegram.WebApp.close();
-                    });
-                }
+                handleQrScan
             );
         } else if (isTelegramClient && !isTelegramApiUpdated) {
-            Telegram.WebApp.showAlert('⚠️ Ваш клиент Telegram не поддерживает Bot API 6.4.\nПожалуйста, обновите приложение.');
+            Telegram.WebApp.showAlert('⚠️ Ваш клиент Telegram не поддерживает Bot API 7.7.\nПожалуйста, обновите приложение.');
             Telegram.WebApp.close();
         }
     </script>
+</head>
+<body>
 </body>
 </html>

@@ -88,6 +88,6 @@ list_achievements_window = Window(
         when=F["pages"] > 1,
     ),
     Cancel(text=Const(strings.buttons.back)),
-    state=states.Achievements.list_achievements,
+    state=states.Achievements.LIST_ACHIEVEMENTS,
     getter=list_achievements_getter,
 )

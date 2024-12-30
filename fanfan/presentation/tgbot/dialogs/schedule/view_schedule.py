@@ -137,7 +137,7 @@ schedule_main_window = Window(
         SwitchTo(
             text=Const(strings.titles.notifications),
             id="open_notifications_menu",
-            state=states.Schedule.subscriptions,
+            state=states.Schedule.SUBSCRIPTIONS,
         ),
     ),
     SCHEDULE_SCROLL,
@@ -148,5 +148,5 @@ schedule_main_window = Window(
         view_schedule_getter,
         can_edit_schedule_getter,
     ],
-    state=states.Schedule.main,
+    state=states.Schedule.MAIN,
 )

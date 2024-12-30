@@ -9,7 +9,7 @@ from fanfan.presentation.tgbot.dialogs.achievements.list_achievements import (
 
 async def start_achievements(manager: DialogManager, user_id: int | None = None):
     await manager.start(
-        state=states.Achievements.list_achievements,
+        state=states.Achievements.LIST_ACHIEVEMENTS,
         data={
             DATA_USER_ID: user_id or manager.event.from_user.id,
         },

@@ -34,7 +34,7 @@ async def show_event_details(manager: DialogManager, event_id: EventId) -> None:
     get_event_by_id: GetEventById = await container.get(GetEventById)
     await get_event_by_id(event_id)
     await manager.start(
-        state=states.Schedule.event_details, data={DATA_SELECTED_EVENT_ID: event_id}
+        state=states.Schedule.EVENT_DETAILS, data={DATA_SELECTED_EVENT_ID: event_id}
     )
 
 
@@ -129,12 +129,12 @@ async def unsubscribe_button_handler(
 
 
 selected_event_window = Window(
-    Title(Const("🎭 Выступление")),
+    Title(Jinja("🎭 Выступление №{{ selected_event.id }}")),
     Jinja(selected_event_info),
     SwitchTo(
         text=Const("🔔 Подписаться"),
         id="subscribe",
-        state=states.Schedule.add_subscription,
+        state=states.Schedule.ADD_SUBSCRIPTION,
         when=~F[SELECTED_EVENT].user_subscription,
     ),
     Button(
@@ -159,7 +159,7 @@ selected_event_window = Window(
         SwitchTo(
             text=Const("🔀 Переместить"),
             id="move_event",
-            state=states.Schedule.move_event,
+            state=states.Schedule.MOVE_EVENT,
         ),
         Button(
             text=Case(
@@ -174,5 +174,5 @@ selected_event_window = Window(
     ),
     Cancel(Const(strings.buttons.back), id="back"),
     getter=[selected_event_getter, current_event_getter, can_edit_schedule_getter],
-    state=states.Schedule.event_details,
+    state=states.Schedule.EVENT_DETAILS,
 )

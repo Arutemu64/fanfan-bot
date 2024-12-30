@@ -34,7 +34,7 @@ async def start_cmd(
 ) -> None:
     await state.clear()
     await dialog_manager.start(
-        state=states.Main.home,
+        state=states.Main.HOME,
         mode=StartMode.RESET_STACK,
         show_mode=ShowMode.SEND,
     )
@@ -47,22 +47,22 @@ async def link_ticket_cmd(
     user: FullUser,
 ) -> None:
     if not user.ticket:
-        await dialog_manager.start(states.Main.link_ticket)
+        await dialog_manager.start(states.Main.LINK_TICKET)
 
 
 @router.message(Command(ABOUT_CMD))
 async def activities_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Activities.list_activities)
+    await dialog_manager.start(states.Activities.LIST_ACTIVITIES)
 
 
 @router.message(Command(SCHEDULE_CMD))
 async def schedule_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Schedule.main)
+    await dialog_manager.start(states.Schedule.MAIN)
 
 
 @router.message(Command(NOTIFICATIONS_CMD))
 async def notifications_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Schedule.subscriptions)
+    await dialog_manager.start(states.Schedule.SUBSCRIPTIONS)
 
 
 @router.message(Command(QUEST_CMD))
@@ -75,7 +75,7 @@ async def quest_cmd(
 ) -> None:
     try:
         await access.ensure_can_participate_in_quest(user)
-        await dialog_manager.start(states.Quest.main)
+        await dialog_manager.start(states.Quest.MAIN)
     except AppException:
         await dialog_manager.update(data={})
 
@@ -90,19 +90,19 @@ async def voting_cmd(
 ) -> None:
     try:
         await access.ensure_can_vote(user)
-        await dialog_manager.start(states.Voting.list_nominations)
+        await dialog_manager.start(states.Voting.LIST_NOMINATIONS)
     except AppException:
         await dialog_manager.update(data={})
 
 
 @router.message(Command(HELPER_CMD), RoleFilter(UserRole.HELPER, UserRole.ORG))
 async def helper_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Helper.main)
+    await dialog_manager.start(states.Helper.MAIN)
 
 
 @router.message(Command(ORG_CMD), RoleFilter(UserRole.ORG))
 async def org_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Org.main)
+    await dialog_manager.start(states.Org.MAIN)
 
 
 @router.message(Command(FEEDBACK_CMD))
@@ -115,14 +115,14 @@ async def feedback_cmd(
 ) -> None:
     try:
         await access.ensure_can_send_feedback(user)
-        await dialog_manager.start(states.Feedback.send_feedback)
+        await dialog_manager.start(states.Feedback.SEND_FEEDBACK)
     except AppException:
         await dialog_manager.update(data={})
 
 
 @router.message(Command(SETTINGS_CMD))
 async def settings_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Settings.main)
+    await dialog_manager.start(states.Settings.MAIN)
 
 
 @router.message(Command("brat"))

@@ -34,7 +34,7 @@ async def manual_user_search_handler(
     else:
         user = await get_user_by_username(data)
     await dialog_manager.start(
-        state=states.UserManager.user_info,
+        state=states.UserManager.USER_INFO,
         data={DATA_USER_ID: user.id},
     )
 
@@ -47,5 +47,5 @@ manual_user_search_window = Window(
         on_success=manual_user_search_handler,
     ),
     Cancel(id="back", text=Const(strings.buttons.back)),
-    state=states.UserManager.manual_user_search,
+    state=states.UserManager.MANUAL_USER_SEARCH,
 )

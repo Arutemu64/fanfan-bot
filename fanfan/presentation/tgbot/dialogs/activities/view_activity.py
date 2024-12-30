@@ -43,9 +43,9 @@ view_activity_window = Window(
     SwitchTo(
         Const(strings.buttons.back),
         "back_to_activity_selection",
-        states.Activities.list_activities,
+        states.Activities.LIST_ACTIVITIES,
     ),
     parse_mode=SULGUK_PARSE_MODE,
-    state=states.Activities.view_activity,
+    state=states.Activities.VIEW_ACTIVITY,
     getter=view_activity_getter,
 )

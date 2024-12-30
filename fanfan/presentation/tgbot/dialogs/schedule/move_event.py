@@ -57,7 +57,7 @@ async def move_event_handler(
             ).as_markup(),
         )
         await dialog_manager.switch_to(
-            states.Schedule.event_details,
+            states.Schedule.EVENT_DETAILS,
             show_mode=ShowMode.DELETE_AND_SEND,
         )
     elif data.isnumeric():
@@ -83,8 +83,8 @@ move_event_window = Window(
     SwitchTo(
         text=Const(strings.buttons.back),
         id="back",
-        state=states.Schedule.event_details,
+        state=states.Schedule.EVENT_DETAILS,
     ),
     getter=[schedule_getter, current_event_getter],
-    state=states.Schedule.move_event,
+    state=states.Schedule.MOVE_EVENT,
 )

@@ -72,15 +72,15 @@ user_info_window = Window(
     SwitchTo(
         Const("💰 Добавить очков"),
         id="open_add_points",
-        state=states.UserManager.set_points,
+        state=states.UserManager.SET_POINTS,
     ),
     SwitchTo(
         text=Const("✏️ Изменить роль"),
         id="change_user_role",
-        state=states.UserManager.change_role,
+        state=states.UserManager.CHANGE_ROLE,
         when=is_org,
     ),
     Cancel(Const(strings.buttons.back)),
-    state=states.UserManager.user_info,
+    state=states.UserManager.USER_INFO,
     getter=[user_info_getter, managed_user_getter],
 )

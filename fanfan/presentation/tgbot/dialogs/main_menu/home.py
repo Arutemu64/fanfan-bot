@@ -82,11 +82,11 @@ async def open_voting_handler(
     # Backdoor for orgs
     user: FullUser = manager.middleware_data["user"]
     if user.role is UserRole.ORG:
-        await manager.start(states.Voting.list_nominations)
+        await manager.start(states.Voting.LIST_NOMINATIONS)
         return
 
     await access.ensure_can_vote(user)
-    await manager.start(states.Voting.list_nominations)
+    await manager.start(states.Voting.LIST_NOMINATIONS)
 
 
 async def open_feedback_handler(
@@ -99,7 +99,7 @@ async def open_feedback_handler(
     access: AccessService = await container.get(AccessService)
 
     await access.ensure_can_send_feedback(user)
-    await manager.start(states.Feedback.send_feedback)
+    await manager.start(states.Feedback.SEND_FEEDBACK)
 
 
 async def open_quest_handler(
@@ -112,7 +112,7 @@ async def open_quest_handler(
     access: AccessService = await container.get(AccessService)
 
     await access.ensure_can_participate_in_quest(user)
-    await manager.start(states.Quest.main)
+    await manager.start(states.Quest.MAIN)
 
 
 main_window = Window(
@@ -134,19 +134,19 @@ main_window = Window(
     Start(
         Const(strings.titles.link_ticket),
         id="link_ticket",
-        state=states.Main.link_ticket,
+        state=states.Main.LINK_TICKET,
         when=~F[CURRENT_USER].ticket,
     ),
     Group(
         Start(
             Const(strings.titles.activities),
             id="open_activities",
-            state=states.Activities.list_activities,
+            state=states.Activities.LIST_ACTIVITIES,
         ),
         Start(
             text=Const(strings.titles.schedule),
             id="open_schedule",
-            state=states.Schedule.main,
+            state=states.Schedule.MAIN,
         ),
         Button(
             Case(
@@ -174,12 +174,12 @@ main_window = Window(
             text=Const(strings.titles.helper_menu),
             id="open_helper_menu",
             when=is_helper,
-            state=states.Helper.main,
+            state=states.Helper.MAIN,
         ),
         Start(
             text=Const(strings.titles.org_menu),
             id="open_org_menu",
-            state=states.Org.main,
+            state=states.Org.MAIN,
             when=is_org,
         ),
         Button(
@@ -196,16 +196,16 @@ main_window = Window(
         Start(
             text=Const(strings.titles.settings),
             id="open_settings",
-            state=states.Settings.main,
+            state=states.Settings.MAIN,
         ),
         Start(
             text=Const(strings.titles.test_mode),
             id="open_test_mode",
-            state=states.TestMode.main,
+            state=states.TestMode.MAIN,
             when="can_access_test_mode",
         ),
         width=2,
     ),
-    state=states.Main.home,
+    state=states.Main.HOME,
     getter=[main_menu_getter, current_user_getter],
 )

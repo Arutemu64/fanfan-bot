@@ -63,13 +63,13 @@ mailing_info_window = Window(
     Button(Const(strings.buttons.update), id="update"),
     Cancel(Const(strings.buttons.back)),
     getter=mailing_info_getter,
-    state=states.Mailing.mailing_info,
+    state=states.Mailing.MAILING_INFO,
 )
 
 
 async def show_mailing_info(manager: DialogManager, mailing_id: MailingId) -> None:
     await manager.start(
-        state=states.Mailing.mailing_info,
+        state=states.Mailing.MAILING_INFO,
         data={DATA_MAILING_ID: mailing_id},
         show_mode=ShowMode.SEND,
     )

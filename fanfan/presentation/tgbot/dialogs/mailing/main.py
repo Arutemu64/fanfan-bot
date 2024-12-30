@@ -11,13 +11,13 @@ main_mailing_window = Window(
     SwitchTo(
         Const("💌 Создать рассылку"),
         id="create_notification",
-        state=states.Mailing.create_mailing,
+        state=states.Mailing.CREATE_MAILING,
     ),
     SwitchTo(
         Const("🔍 Найти рассылку по ID"),
         id="find_mailing_button",
-        state=states.Mailing.find_mailing,
+        state=states.Mailing.FIND_MAILING,
     ),
     Cancel(id="org_main_window", text=Const(strings.buttons.back)),
-    state=states.Mailing.main,
+    state=states.Mailing.MAIN,
 )

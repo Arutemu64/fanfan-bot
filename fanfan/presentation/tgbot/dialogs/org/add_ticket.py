@@ -40,7 +40,7 @@ async def add_ticket_handler(
     await message.answer(
         f"✅ Билет <code>{ticket.id}</code> с " f"ролью {ticket.role} успешно добавлен!"
     )
-    await dialog_manager.switch_to(states.Org.main)
+    await dialog_manager.switch_to(states.Org.MAIN)
 
 
 add_ticket_window = Window(
@@ -57,10 +57,10 @@ add_ticket_window = Window(
     ),
     TextInput(id="ticket_id", type_factory=TicketId, on_success=add_ticket_handler),
     SwitchTo(
-        state=states.Org.main,
+        state=states.Org.MAIN,
         id="org_main_window",
         text=Const(strings.buttons.back),
     ),
     getter=roles_getter,
-    state=states.Org.add_ticket,
+    state=states.Org.ADD_TICKET,
 )

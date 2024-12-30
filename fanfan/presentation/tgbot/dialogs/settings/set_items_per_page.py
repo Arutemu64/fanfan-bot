@@ -37,7 +37,7 @@ async def items_per_page_handler(
     )
     manager.middleware_data["user"] = await get_user_by_id(user.id)
     await callback.answer("✅ Успешно!")
-    await manager.switch_to(state=states.Settings.main)
+    await manager.switch_to(state=states.Settings.MAIN)
 
 
 items_per_page_window = Window(
@@ -60,7 +60,7 @@ items_per_page_window = Window(
     SwitchTo(
         text=Const(strings.buttons.back),
         id="back",
-        state=states.Settings.main,
+        state=states.Settings.MAIN,
     ),
-    state=states.Settings.set_items_per_page,
+    state=states.Settings.SET_ITEMS_PER_PAGE,
 )

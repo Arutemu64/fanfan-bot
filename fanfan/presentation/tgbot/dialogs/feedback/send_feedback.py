@@ -81,5 +81,5 @@ send_feedback_window = Window(
         on_success=send_feedback_text_handler,
     ),
     getter=send_feedback_getter,
-    state=states.Feedback.send_feedback,
+    state=states.Feedback.SEND_FEEDBACK,
 )

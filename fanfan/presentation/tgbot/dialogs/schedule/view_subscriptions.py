@@ -106,8 +106,8 @@ subscriptions_main_window = Window(
     Button(
         Case(
             {
-                True: Const("🔔 Получать общие уведомления: ✅"),
-                False: Const("🔔 Получать общие уведомления: ❌"),
+                True: Const("📣 Получать общие уведомления: ✅"),
+                False: Const("📣 Получать общие уведомления: ❌"),
             },
             selector="receive_all_announcements",
         ),
@@ -129,8 +129,8 @@ subscriptions_main_window = Window(
     SwitchTo(
         text=Const(strings.buttons.back),
         id="back",
-        state=states.Schedule.main,
+        state=states.Schedule.MAIN,
     ),
     getter=[subscriptions_getter, current_event_getter],
-    state=states.Schedule.subscriptions,
+    state=states.Schedule.SUBSCRIPTIONS,
 )

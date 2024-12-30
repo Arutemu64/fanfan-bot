@@ -73,10 +73,10 @@ async def select_nomination_handler(
 
     # Enable search
     await state.update_data({DATA_SELECTED_NOMINATION_ID: item_id})
-    await state.set_state(states.InlineQuerySearch.voting_participants)
+    await state.set_state(states.InlineQuerySearch.VOTING_PARTICIPANTS)
 
     await dialog_manager.find(ID_VOTING_SCROLL).set_page(0)
-    await dialog_manager.switch_to(states.Voting.add_vote)
+    await dialog_manager.switch_to(states.Voting.ADD_VOTE)
 
 
 nominations_window = Window(
@@ -105,6 +105,6 @@ nominations_window = Window(
         when=F["pages"] > 1,
     ),
     Cancel(Const(strings.buttons.back)),
-    state=states.Voting.list_nominations,
+    state=states.Voting.LIST_NOMINATIONS,
     getter=nominations_getter,
 )

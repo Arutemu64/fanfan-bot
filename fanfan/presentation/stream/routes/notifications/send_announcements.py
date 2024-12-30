@@ -93,7 +93,7 @@ async def prepare_announcements(  # noqa: C901
             },
         )
         notification = UserNotification(
-            title=f"📢 НА СЦЕНЕ ({time})",
+            title=f"📣 НА СЦЕНЕ ({time})",
             text=text,
             reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
         )
@@ -115,11 +115,11 @@ async def prepare_announcements(  # noqa: C901
                 notify = True
                 match e.type:
                     case EventChangeType.MOVE:
-                        reason = f"(Выступление №{e.event.id} было перемещено)"
+                        reason = f"(Выступление №{e.event.id} было перемещено 🔀)"
                     case EventChangeType.SKIP:
-                        reason = f"(Выступление №{e.event.id} было снято)"
+                        reason = f"(Выступление №{e.event.id} было снято 🚫)"
                     case EventChangeType.UNSKIP:
-                        reason = f"(Выступление №{e.event.id} вернулось)"
+                        reason = f"(Выступление №{e.event.id} вернулось 🙉)"
         if notify:
             text = await subscription_template.render_async(
                 {
@@ -131,7 +131,7 @@ async def prepare_announcements(  # noqa: C901
                 SendNotificationDTO(
                     user_id=subscription.user_id,
                     notification=UserNotification(
-                        title=f"📢 СКОРО НА СЦЕНЕ ({time})",
+                        title=f"🔔 УВЕДОМЛЕНИЕ О ПОДПИСКЕ ({time})",
                         text=text,
                         bottom_text=reason,
                         reply_markup=ANNOUNCEMENT_REPLY_MARKUP,

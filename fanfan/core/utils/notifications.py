@@ -3,6 +3,7 @@ import html
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from fanfan.core.dto.notification import DEFAULT_REPLY_MARKUP, UserNotification
+from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import Achievement
 from fanfan.core.models.feedback import FullFeedback
 from fanfan.core.utils.pluralize import Plurals, pluralize
@@ -58,7 +59,15 @@ def create_feedback_notification(feedback: FullFeedback) -> UserNotification:
     )
 
 
-def create_error_notification(exception: Exception) -> UserNotification:
+def create_app_exception_notification(app_exception: AppException) -> UserNotification:
+    return UserNotification(
+        title="⚠️ ОШИБКА",
+        text=app_exception.message,
+        reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
+    )
+
+
+def create_exception_notification(exception: Exception) -> UserNotification:
     return UserNotification(
         title="⚠️ НЕИЗВЕСТНАЯ ОШИБКА",
         text=f"Возникла необработанная ошибка ({type(exception).__name__}). "

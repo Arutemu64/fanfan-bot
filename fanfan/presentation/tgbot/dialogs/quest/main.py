@@ -135,5 +135,5 @@ main_quest_window = Window(
     ),
     Cancel(Const(strings.buttons.back)),
     getter=quest_main_getter,
-    state=states.Quest.main,
+    state=states.Quest.MAIN,
 )

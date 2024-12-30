@@ -24,7 +24,7 @@ async def on_start_schedule(start_data: dict, manager: DialogManager) -> None:
     get_current_event = await container.get(GetCurrentEvent)
 
     # Enable search
-    await state.set_state(states.InlineQuerySearch.events)
+    await state.set_state(states.InlineQuerySearch.EVENTS)
 
     try:
         current_event = await get_current_event()

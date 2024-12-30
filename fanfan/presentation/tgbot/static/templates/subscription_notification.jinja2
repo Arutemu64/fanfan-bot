@@ -9,7 +9,7 @@
 {% endmacro %}
 {% set counter = event.queue - current_event.queue %}
 {% if counter == 0 %}
-Выступление {{ event.id }}. {{ event.title }} <b>НАЧАЛОСЬ!</b>
+🔥 Выступление {{ event.id }}. {{ event.title }} <b>НАЧАЛОСЬ!</b>
 {% else %}
-До начала выступления {{ event.id }}. {{ event.title }} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
+🚀 До начала выступления {{ event.id }}. {{ event.title }} осталось <b>{{ counter }} {{ events_pluralize(counter) }}</b>
 {%- endif -%}

@@ -61,7 +61,7 @@ async def select_activity_handler(
     item_id: int,
 ) -> None:
     dialog_manager.dialog_data[DATA_SELECTED_ACTIVITY_ID] = item_id
-    await dialog_manager.switch_to(states.Activities.view_activity)
+    await dialog_manager.switch_to(states.Activities.VIEW_ACTIVITY)
 
 
 list_activities_window = Window(
@@ -93,5 +93,5 @@ list_activities_window = Window(
     ),
     Cancel(Const(strings.buttons.back)),
     getter=list_activities_getter,
-    state=states.Activities.list_activities,
+    state=states.Activities.LIST_ACTIVITIES,
 )

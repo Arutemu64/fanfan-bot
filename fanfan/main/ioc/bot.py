@@ -19,6 +19,8 @@ from fanfan.presentation.tgbot.middlewares import (
     RetryRequestMiddleware,
 )
 
+BG_FACTORY_KEY = "dialog_bg_factory"
+
 
 class BotProvider(Provider):
     scope = Scope.APP
@@ -59,7 +61,7 @@ class DpProvider(Provider):
         setup_dishka(container, dp, auto_inject=True)
 
         # Setup dialogs
-        dp["bgm_factory"] = setup_dialogs(
+        dp[BG_FACTORY_KEY] = setup_dialogs(
             dp,
             media_id_storage=MediaIdStorage(),
             events_isolation=event_isolation,
@@ -83,4 +85,4 @@ class DpProvider(Provider):
 
     @provide
     def get_bg_manager_factory(self, dp: Dispatcher) -> BgManagerFactory:
-        return dp["bgm_factory"]
+        return dp[BG_FACTORY_KEY]

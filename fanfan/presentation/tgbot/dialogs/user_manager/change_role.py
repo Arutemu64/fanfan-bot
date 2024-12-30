@@ -30,7 +30,7 @@ async def change_role_handler(
 
     await update_user(UpdateUserDTO(id=manager.start_data[DATA_USER_ID], role=data))
     await callback.answer(strings.common.success)
-    await manager.switch_to(states.UserManager.user_info)
+    await manager.switch_to(states.UserManager.USER_INFO)
 
 
 change_role_window = Window(
@@ -48,8 +48,8 @@ change_role_window = Window(
     SwitchTo(
         id="back",
         text=Const(strings.buttons.back),
-        state=states.UserManager.user_info,
+        state=states.UserManager.USER_INFO,
     ),
     getter=roles_getter,
-    state=states.UserManager.change_role,
+    state=states.UserManager.CHANGE_ROLE,
 )

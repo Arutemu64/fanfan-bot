@@ -2,85 +2,77 @@ from aiogram.fsm.state import State, StatesGroup
 
 
 class Achievements(StatesGroup):
-    list_achievements = State()
+    LIST_ACHIEVEMENTS = State()
 
 
 class Activities(StatesGroup):
-    list_activities = State()
-    view_activity = State()
+    LIST_ACTIVITIES = State()
+    VIEW_ACTIVITY = State()
 
 
 class Feedback(StatesGroup):
-    send_feedback = State()
+    SEND_FEEDBACK = State()
 
 
 class Helper(StatesGroup):
-    main = State()
+    MAIN = State()
 
 
 class Main(StatesGroup):
-    home = State()
-    link_ticket = State()
+    HOME = State()
+    LINK_TICKET = State()
 
 
 class Org(StatesGroup):
-    main = State()
-    input_task_cron = State()
-    add_ticket = State()
+    MAIN = State()
+    ADD_TICKET = State()
 
 
 class Mailing(StatesGroup):
-    main = State()
-    create_mailing = State()
-    find_mailing = State()
-    mailing_info = State()
-    delete_mailing = State()
+    MAIN = State()
+    CREATE_MAILING = State()
+    FIND_MAILING = State()
+    MAILING_INFO = State()
 
 
 class Schedule(StatesGroup):
-    main = State()
-    subscriptions = State()
+    MAIN = State()
+    SUBSCRIPTIONS = State()
 
-    event_details = State()
-    move_event = State()
-    add_subscription = State()
-
-
-class EventDetails(StatesGroup):
-    main = State()
-    move_event = State()
-    add_subscription = State()
+    EVENT_DETAILS = State()
+    MOVE_EVENT = State()
+    ADD_SUBSCRIPTION = State()
 
 
 class Settings(StatesGroup):
-    main = State()
-    set_items_per_page = State()
+    MAIN = State()
+    SET_ITEMS_PER_PAGE = State()
 
 
 class UserManager(StatesGroup):
-    user_info = State()
-    manual_user_search = State()
-    change_role = State()
+    USER_INFO = State()
+    MANUAL_USER_SEARCH = State()
+    CHANGE_ROLE = State()
 
     # Adding points
-    set_points = State()
-    set_comment = State()
-    preview_add_points = State()
+    SET_POINTS = State()
+    SET_COMMENT = State()
+    PREVIEW_ADD_POINTS = State()
 
 
 class Voting(StatesGroup):
-    list_nominations = State()
-    add_vote = State()
+    LIST_NOMINATIONS = State()
+    ADD_VOTE = State()
 
 
 class Quest(StatesGroup):
-    main = State()
+    MAIN = State()
 
 
 class InlineQuerySearch(StatesGroup):
-    events = State()
-    voting_participants = State()
+    EVENTS = State()
+    VOTING_PARTICIPANTS = State()
 
 
 class TestMode(StatesGroup):
-    main = State()
+    MAIN = State()

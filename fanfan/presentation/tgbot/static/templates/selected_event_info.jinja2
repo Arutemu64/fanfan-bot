@@ -7,23 +7,18 @@
 выступлений
 {%- endif %}
 {% endmacro %}
-<blockquote>{% if selected_event.is_skipped %}<s>{% endif %}<b>{{ selected_event.id }}.</b> {{ selected_event.title }}{% if selected_event.is_skipped %}</s>{% endif %}</blockquote>
-
-{% if selected_event.block %}
-📆 Блок: <b>{{ selected_event.block.title }}</b>
-
-{% endif %}
-{% if selected_event.nomination %}
-✨ Номинация: <b>{{ selected_event.nomination.title }}</b>
-
-{% endif %}
-{% if selected_event.queue and current_event %}
+<blockquote>{% if selected_event.is_skipped %}🚫 <s>{% endif %}{{ selected_event.title }}{% if selected_event.is_skipped %}</s>{% endif %}</blockquote>
+{% if selected_event.queue and current_event +%}
     {% set queue_difference = selected_event.queue - current_event.queue %}
     {% if queue_difference < 0 %}
-⏪ Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference)}}</b> назад
+🏁 Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference|abs)}}</b> назад
     {% elif queue_difference == 0 %}
-▶️ Выступление идёт <b>ПРЯМО СЕЙЧАС</b>
+🔥 Выступление идёт <b>ПРЯМО СЕЙЧАС</b>
     {% elif queue_difference > 0 %}
-⏭️ До начала: <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b>
+🚀 До начала осталось <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b>
     {% endif %}
 {% endif %}
+
+{% if selected_event.nomination %}🌟 Номинация: <b>{{ selected_event.nomination.title }}</b>{% endif +%}
+
+{% if selected_event.block %}🗂️ Блок: <b>{{ selected_event.block.title }}</b>{% endif %}

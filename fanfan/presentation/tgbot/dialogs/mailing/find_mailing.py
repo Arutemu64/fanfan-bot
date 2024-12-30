@@ -35,6 +35,6 @@ find_mailing_window = Window(
         type_factory=MailingId,
         on_success=find_mailing_handler,
     ),
-    SwitchTo(Const(strings.buttons.back), id="back", state=states.Mailing.main),
-    state=states.Mailing.find_mailing,
+    SwitchTo(Const(strings.buttons.back), id="back", state=states.Mailing.MAIN),
+    state=states.Mailing.FIND_MAILING,
 )

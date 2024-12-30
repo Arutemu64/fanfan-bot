@@ -137,8 +137,8 @@ create_mailing_window = Window(
     SwitchTo(
         Const(strings.buttons.back),
         id="back",
-        state=states.Mailing.main,
+        state=states.Mailing.MAIN,
     ),
     getter=[create_mailing_getter, roles_getter],
-    state=states.Mailing.create_mailing,
+    state=states.Mailing.CREATE_MAILING,
 )

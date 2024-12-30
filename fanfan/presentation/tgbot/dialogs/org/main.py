@@ -65,17 +65,17 @@ org_main_window = Window(
             when="docs_link",
         ),
         Start(
-            state=states.Mailing.main,
+            state=states.Mailing.MAIN,
             id="new_notification",
             text=Const("✉️ Рассылки"),
         ),
         Start(
-            state=states.UserManager.manual_user_search,
+            state=states.UserManager.MANUAL_USER_SEARCH,
             id="user_search",
             text=Const("🔍 Поиск пользователей"),
         ),
         SwitchTo(
-            state=states.Org.add_ticket,
+            state=states.Org.ADD_TICKET,
             id="new_ticket",
             text=Const("🎫 Новый билет"),
         ),
@@ -93,6 +93,6 @@ org_main_window = Window(
         width=2,
     ),
     Cancel(Const(strings.buttons.back)),
-    state=states.Org.main,
+    state=states.Org.MAIN,
     getter=org_main_getter,
 )

@@ -35,7 +35,7 @@ helper_main_window = Window(
         "как полученное",
     ),
     Start(
-        state=states.UserManager.manual_user_search,
+        state=states.UserManager.MANUAL_USER_SEARCH,
         id="user_search",
         text=Const("🔍 Найти пользователя"),
     ),
@@ -45,6 +45,6 @@ helper_main_window = Window(
         when="docs_link",
     ),
     Cancel(Const(strings.buttons.back)),
-    state=states.Helper.main,
+    state=states.Helper.MAIN,
     getter=helper_main_getter,
 )

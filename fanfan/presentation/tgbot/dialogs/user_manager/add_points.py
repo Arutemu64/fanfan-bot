@@ -42,7 +42,7 @@ async def set_points_handler(
 ) -> None:
     if 0 < data <= MAX_POINTS:
         dialog_manager.dialog_data[POINTS] = data
-        await dialog_manager.switch_to(states.UserManager.set_comment)
+        await dialog_manager.switch_to(states.UserManager.SET_COMMENT)
         return
     await message.answer(f"⚠️ Количество очков должно быть от 0 до {MAX_POINTS}")
 
@@ -54,7 +54,7 @@ async def set_comment_handler(
     data: str,
 ) -> None:
     dialog_manager.dialog_data[COMMENT] = data
-    await dialog_manager.switch_to(states.UserManager.preview_add_points)
+    await dialog_manager.switch_to(states.UserManager.PREVIEW_ADD_POINTS)
 
 
 async def add_points_handler(
@@ -74,7 +74,7 @@ async def add_points_handler(
             )
         )
         await callback.answer("✅ Успешно")
-        await manager.switch_to(states.UserManager.user_info)
+        await manager.switch_to(states.UserManager.USER_INFO)
     except TicketNotLinked:
         await callback.answer("⚠️ У участника не привязан билет", show_alert=True)
 
@@ -92,9 +92,9 @@ set_points_window = Window(
     SwitchTo(
         Const(strings.buttons.back),
         id="back",
-        state=states.UserManager.user_info,
+        state=states.UserManager.USER_INFO,
     ),
-    state=states.UserManager.set_points,
+    state=states.UserManager.SET_POINTS,
 )
 
 set_comment_window = Window(
@@ -107,9 +107,9 @@ set_comment_window = Window(
     SwitchTo(
         Const(strings.buttons.back),
         id="back",
-        state=states.UserManager.set_points,
+        state=states.UserManager.SET_POINTS,
     ),
-    state=states.UserManager.set_comment,
+    state=states.UserManager.SET_COMMENT,
 )
 
 
@@ -131,8 +131,8 @@ preview_add_points_window = Window(
         on_click=add_points_handler,
     ),
     SwitchTo(
-        Const(strings.buttons.back), id="back", state=states.UserManager.set_comment
+        Const(strings.buttons.back), id="back", state=states.UserManager.SET_COMMENT
     ),
     getter=[preview_add_points_getter, managed_user_getter],
-    state=states.UserManager.preview_add_points,
+    state=states.UserManager.PREVIEW_ADD_POINTS,
 )

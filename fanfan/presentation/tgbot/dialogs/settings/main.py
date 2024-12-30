@@ -79,7 +79,7 @@ settings_main_window = Window(
             ),
             id="set_items_per_page_button",
             on_click=update_counter_value_handler,
-            state=states.Settings.set_items_per_page,
+            state=states.Settings.SET_ITEMS_PER_PAGE,
         ),
     ),
     Group(
@@ -101,6 +101,6 @@ settings_main_window = Window(
         when=is_org,
     ),
     Cancel(Const(strings.buttons.back)),
-    state=states.Settings.main,
+    state=states.Settings.MAIN,
     getter=[settings_user_info_getter],
 )

@@ -20,7 +20,7 @@ from fanfan.presentation.tgbot.dialogs.voting.common import DATA_SELECTED_NOMINA
 router = Router(name="inline_query_router")
 
 
-@router.inline_query(StateFilter(states.InlineQuerySearch.events))
+@router.inline_query(StateFilter(states.InlineQuerySearch.EVENTS))
 @inject
 async def search_events(
     inline_query: InlineQuery, get_schedule_page: FromDishka[GetSchedulePage]
@@ -49,7 +49,7 @@ async def search_events(
     )
 
 
-@router.inline_query(StateFilter(states.InlineQuerySearch.voting_participants))
+@router.inline_query(StateFilter(states.InlineQuerySearch.VOTING_PARTICIPANTS))
 @inject
 async def search_voting_participants(
     inline_query: InlineQuery,

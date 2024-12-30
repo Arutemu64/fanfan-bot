@@ -31,5 +31,5 @@ test_mode_main_window = Window(
         Const("🏆 Сбросить достижения"), id="reset_quest", on_click=reset_quest_handler
     ),
     Cancel(Const(strings.buttons.back)),
-    state=states.TestMode.main,
+    state=states.TestMode.MAIN,
 )

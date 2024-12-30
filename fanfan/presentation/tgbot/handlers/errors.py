@@ -12,7 +12,7 @@ from aiogram_dialog.api.exceptions import OutdatedIntent, UnknownIntent, Unknown
 from sentry_sdk import capture_exception
 
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.utils.notifications import create_error_notification
+from fanfan.core.utils.notifications import create_exception_notification
 from fanfan.presentation.tgbot import states
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ async def on_dialog_error(event: ErrorEvent, dialog_manager: DialogManager) -> N
     elif m := event.update.message:
         await m.answer(msg, reply_markup=ReplyKeyboardRemove())
     await dialog_manager.start(
-        states.Main.home,
+        states.Main.HOME,
         mode=StartMode.RESET_STACK,
         show_mode=ShowMode.DELETE_AND_SEND,
     )
@@ -50,7 +50,7 @@ async def on_unknown_error(event: ErrorEvent) -> None:
     logger.critical(
         "Critical error caused by %s", type(event.exception).__name__, exc_info=True
     )
-    notification = create_error_notification(event.exception)
+    notification = create_exception_notification(event.exception)
     if c := event.update.callback_query:
         await c.message.answer(
             notification.render_message_text(),

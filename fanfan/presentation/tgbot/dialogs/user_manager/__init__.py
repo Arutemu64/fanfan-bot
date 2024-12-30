@@ -13,7 +13,7 @@ async def start_user_manager(
     manager: DialogManager | BaseDialogManager, user_id: int
 ) -> None:
     await manager.start(
-        state=states.UserManager.user_info, data={DATA_USER_ID: user_id}
+        state=states.UserManager.USER_INFO, data={DATA_USER_ID: user_id}
     )
 
 

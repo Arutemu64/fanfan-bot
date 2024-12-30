@@ -38,7 +38,7 @@ async def set_counter_handler(
         f"успешно оформлена!",
     )
     await dialog_manager.switch_to(
-        states.Schedule.event_details,
+        states.Schedule.EVENT_DETAILS,
         show_mode=ShowMode.DELETE_AND_SEND,
     )
 
@@ -55,7 +55,7 @@ set_subscription_counter_window = Window(
     SwitchTo(
         text=Const(strings.buttons.back),
         id="back",
-        state=states.Schedule.event_details,
+        state=states.Schedule.EVENT_DETAILS,
     ),
-    state=states.Schedule.add_subscription,
+    state=states.Schedule.ADD_SUBSCRIPTION,
 )

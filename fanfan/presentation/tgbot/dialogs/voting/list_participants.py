@@ -120,7 +120,7 @@ async def cancel_vote_handler(
 
 
 voting_window = Window(
-    Title(Format("🎖️ Номинация {nomination_title}")),
+    Title(Format("🌟 Номинация {nomination_title}")),
     Jinja(voting_list),
     Const("👆 Чтобы проголосовать, нажми на номер участника", when=~F["voted"]),
     SwitchInlineQueryCurrentChat(
@@ -147,7 +147,7 @@ voting_window = Window(
     ),
     SwitchTo(
         text=Const(strings.buttons.back),
-        state=states.Voting.list_nominations,
+        state=states.Voting.LIST_NOMINATIONS,
         id="nominations",
     ),
     TextInput(
@@ -155,6 +155,6 @@ voting_window = Window(
         type_factory=str,
         on_success=add_vote_handler,
     ),
-    state=states.Voting.add_vote,
+    state=states.Voting.ADD_VOTE,
     getter=participants_getter,
 )
