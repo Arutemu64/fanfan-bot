@@ -1,7 +1,6 @@
 from collections.abc import AsyncIterable
 
 from dishka import Provider, Scope, provide
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -21,7 +20,6 @@ class DbProvider(Provider):
             echo=config.echo,
             pool_pre_ping=True,
         )
-        SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
         yield engine
         await engine.dispose()
 
