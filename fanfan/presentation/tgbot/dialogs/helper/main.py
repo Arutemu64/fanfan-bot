@@ -1,5 +1,5 @@
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Cancel, Start, Url
+from aiogram_dialog.widgets.kbd import Cancel, Start, Url, WebApp
 from aiogram_dialog.widgets.text import Const, Format
 from dishka import AsyncContainer
 
@@ -17,22 +17,16 @@ async def helper_main_getter(
     config: Configuration = await container.get(Configuration)
     return {
         "docs_link": config.docs_link,
+        "qr_scanner_url": config.web.build_qr_scanner_url() if config.web else None,
     }
 
 
 helper_main_window = Window(
     Title(Const(strings.titles.helper_menu)),
-    Const("Для волонтёров доступны следующие функции:\n"),
-    Const(
-        "<b>🧰 Инструменты волонтёра</b> в <code>📅 Программе</code> - "
-        "Вы можете отмечать выступления на сцене как текущие, а также "
-        "переносить и пропускать их.\n",
-    ),
-    Const(
-        "<b>🔍 Найти пользователя</b> - если <code>🤳 QR-сканер</code> в главном меню "
-        "не работает, вы можете найти пользователя вручную по его @никнейму или ID. "
-        "Найдя пользователя, Вы можете добавить ему очков или отметить достижение "
-        "как полученное",
+    WebApp(
+        Const(strings.titles.qr_scanner),
+        url=Format("{qr_scanner_url}"),
+        when="qr_scanner_url",
     ),
     Start(
         state=states.UserManager.MANUAL_USER_SEARCH,

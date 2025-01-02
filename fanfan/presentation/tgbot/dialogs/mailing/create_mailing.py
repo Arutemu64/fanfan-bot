@@ -126,7 +126,7 @@ create_mailing_window = Window(
         width=2,
     ),
     Button(
-        Const("📤 Отправить"),
+        Const(strings.buttons.send),
         id="send",
         on_click=send_mailing_handler,
         when="sending_allowed",

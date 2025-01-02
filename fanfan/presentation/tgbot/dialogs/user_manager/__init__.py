@@ -6,6 +6,7 @@ from .add_points import preview_add_points_window, set_comment_window, set_point
 from .change_role import change_role_window
 from .common import DATA_USER_ID
 from .search_user import manual_user_search_window
+from .send_message import send_message_window
 from .user_info import user_info_window
 
 
@@ -21,6 +22,7 @@ dialog = Dialog(
     user_info_window,
     manual_user_search_window,
     change_role_window,
+    send_message_window,
     set_points_window,
     set_comment_window,
     preview_add_points_window,

@@ -53,6 +53,7 @@ class UserManager(StatesGroup):
     USER_INFO = State()
     MANUAL_USER_SEARCH = State()
     CHANGE_ROLE = State()
+    SEND_MESSAGE = State()
 
     # Adding points
     SET_POINTS = State()

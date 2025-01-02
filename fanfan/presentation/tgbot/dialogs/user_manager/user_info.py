@@ -75,6 +75,12 @@ user_info_window = Window(
         state=states.UserManager.SET_POINTS,
     ),
     SwitchTo(
+        text=Const(strings.titles.send_message),
+        id="send_message",
+        state=states.UserManager.SEND_MESSAGE,
+        when=is_org,
+    ),
+    SwitchTo(
         text=Const("✏️ Изменить роль"),
         id="change_user_role",
         state=states.UserManager.CHANGE_ROLE,
