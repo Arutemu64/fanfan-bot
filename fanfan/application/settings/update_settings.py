@@ -16,10 +16,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True, slots=True)
 class UpdateSettingsDTO:
-    announcement_timeout: int | None = None
     voting_enabled: bool | None = None
-    quest_registration_enabled: bool | None = None
-    quest_registrations_limit: int | None = None
 
 
 class UpdateSettings(Interactor[UpdateSettingsDTO, None]):

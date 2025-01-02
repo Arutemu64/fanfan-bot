@@ -1,6 +1,5 @@
 import math
 
-from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, WebApp
@@ -9,9 +8,7 @@ from aiogram_dialog.widgets.text import Const, Format, Multi, Progress
 from dishka import AsyncContainer
 
 from fanfan.adapters.config.models import Configuration
-from fanfan.application.quest.get_quest_conditions import GetQuestConditions
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
-from fanfan.application.quest.register_to_quest import RegisterToQuest
 from fanfan.common.paths import QR_CODES_TEMP_DIR
 from fanfan.core.dto.qr import QR, QRType
 from fanfan.core.models.user import FullUser
@@ -29,7 +26,6 @@ async def quest_main_getter(
     **kwargs,
 ) -> dict:
     get_user_stats: GetUserQuestStats = await container.get(GetUserQuestStats)
-    get_quest_conditions: GetQuestConditions = await container.get(GetQuestConditions)
     config: Configuration = await container.get(Configuration)
 
     achievements_progress = 0
@@ -39,23 +35,17 @@ async def quest_main_getter(
             user_stats.achievements_count * 100 / user_stats.total_achievements,
         )
 
-    quest_conditions = await get_quest_conditions()
-
-    qr = QR(type=QRType.USER, data=str(user.id))
     qr_file_path = QR_CODES_TEMP_DIR.joinpath(f"user_{user.id}.png")
     if not qr_file_path.is_file():
+        qr = QR(type=QRType.USER, data=str(user.id))
         generate_img(qr).save(qr_file_path)
 
     return {
-        # Quest conditions
-        "is_registration_open": quest_conditions.is_registration_open,
-        "can_user_participate": quest_conditions.can_user_participate,
         # User stats
         "points": user_stats.points,
         "achievements_count": user_stats.achievements_count,
         "achievements_progress": achievements_progress,
         "total_achievements": user_stats.total_achievements,
-        "quest_registration": user_stats.quest_registration,
         # QR
         "qr_file_path": qr_file_path,
         "qr_scanner_url": config.web.build_qr_scanner_url() if config.web else None,
@@ -71,18 +61,6 @@ async def open_achievements_handler(
     return
 
 
-async def register_to_quest_handler(
-    callback: CallbackQuery,
-    button: Button,
-    manager: DialogManager,
-) -> None:
-    container: AsyncContainer = manager.middleware_data["container"]
-    register: RegisterToQuest = await container.get(RegisterToQuest)
-
-    await register()
-    await callback.answer("✅ Вы зарегистрировались на квест, удачи!")
-
-
 main_quest_window = Window(
     StaticMedia(path=Format("{qr_file_path}")),
     Title(Const(strings.titles.quest)),
@@ -95,32 +73,8 @@ main_quest_window = Window(
         Format("<b>💰 Очков:</b> {points}"),
         Format("<b>🏆 Достижений:</b> {achievements_count} из {total_achievements}"),
         Progress(field="achievements_progress", filled="🟩", empty="⬜"),
-        Const(" "),
-        Const(
-            "✅ Ты зарегистрирован в квесте, удачи!",
-            when=F["quest_registration"],
-        ),
-        Multi(
-            Const(
-                "✅ Регистрация на квест открыта, "
-                "не забудь её пройти, чтобы побороться за призы!",
-                when=F["is_registration_open"],
-            ),
-            Const(
-                "⛔ К сожалению, регистрация на квест сейчас закрыта, попробуй позже.\n"
-                "Но ты можешь участвовать в некоторых активностях и без неё!",
-                when=~F["is_registration_open"],
-            ),
-            when=~F["quest_registration"],
-        ),
     ),
     Group(
-        Button(
-            text=Const("📃 Зарегистрироваться на квест"),
-            id="register_to_quest",
-            on_click=register_to_quest_handler,
-            when=~F["quest_registration"] & F["is_registration_open"],
-        ),
         WebApp(
             Const(strings.titles.qr_scanner),
             url=Format("{qr_scanner_url}"),
@@ -131,7 +85,6 @@ main_quest_window = Window(
             id="open_achievements",
             on_click=open_achievements_handler,
         ),
-        when=F["can_user_participate"],
     ),
     Cancel(Const(strings.buttons.back)),
     getter=quest_main_getter,

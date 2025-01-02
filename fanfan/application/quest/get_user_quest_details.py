@@ -10,12 +10,11 @@ from fanfan.core.models.user import UserId
 
 
 @dataclass(frozen=True, slots=True)
-class QuestStats:
+class QuestStatsDTO:
     user_id: UserId
     points: int
     achievements_count: int
     total_achievements: int
-    quest_registration: bool
 
 
 class GetUserQuestStats:
@@ -29,17 +28,16 @@ class GetUserQuestStats:
         self.quest_repo = quest_repo
         self.achievements = achievements
 
-    async def __call__(self, user_id: UserId) -> QuestStats:
+    async def __call__(self, user_id: UserId) -> QuestStatsDTO:
         participant = await self.quest_repo.get_quest_participant(user_id=user_id)
         if participant is None:
             raise UserNotFound
 
         total = await self.achievements.count_achievements()
 
-        return QuestStats(
+        return QuestStatsDTO(
             user_id=participant.id,
             points=participant.points,
             achievements_count=participant.achievements_count,
             total_achievements=total,
-            quest_registration=participant.quest_registration,
         )

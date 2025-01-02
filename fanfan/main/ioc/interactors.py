@@ -19,12 +19,10 @@ from fanfan.application.participants.get_participant_by_voting_number import (
 from fanfan.application.participants.get_participants_page import GetParticipantsPage
 from fanfan.application.quest.add_points import AddPoints
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
-from fanfan.application.quest.get_quest_conditions import GetQuestConditions
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.application.quest.receive_achievement_by_secret_id import (
     ReceiveAchievementBySecretId,
 )
-from fanfan.application.quest.register_to_quest import RegisterToQuest
 from fanfan.application.quest.reset_quest import ResetQuest
 from fanfan.application.schedule_mgmt.move_event import MoveEvent
 from fanfan.application.schedule_mgmt.set_current_event import SetCurrentEvent
@@ -110,9 +108,7 @@ class InteractorsProvider(Provider):
     update_user_commands = provide(UpdateUserCommands)
     send_message = provide(SendMessage)
 
-    get_quest_conditions = provide(GetQuestConditions)
     get_user_quest_details = provide(GetUserQuestStats)
-    register_to_quest = provide(RegisterToQuest)
     add_points = provide(AddPoints)
     reset_quest = provide(ResetQuest)
 

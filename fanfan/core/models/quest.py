@@ -15,4 +15,3 @@ class QuestParticipant:
 @dataclass(slots=True, kw_only=True)
 class FullQuestParticipant(QuestParticipant):
     achievements_count: int
-    quest_registration: bool

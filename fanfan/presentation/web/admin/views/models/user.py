@@ -14,7 +14,6 @@ class UserView(ModelView, model=DBUser):
         DBUser.username,
         DBUser.ticket,
         DBUser.role,
-        DBUser.quest_registration,
         DBUser.achievements_count,
         DBUser.points,
     ]
@@ -34,7 +33,6 @@ class UserView(ModelView, model=DBUser):
         DBUser.id: "Telegram ID",
         DBUser.username: "Имя пользователя",
         DBUser.role: "Роль",
-        DBUser.quest_registration: "Регистрация на квест",
         DBUser.achievements_count: "Достижений получено",
         DBUser.points: "Очков",
         DBUser.settings: "Настройки пользователя",

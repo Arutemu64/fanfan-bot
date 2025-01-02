@@ -12,7 +12,6 @@ from sqlalchemy.orm import (
 )
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.quest_registration import DBQuestRegistration
 from fanfan.adapters.db.models.received_achievement import DBReceivedAchievement
 from fanfan.adapters.db.models.user_permissions import DBUserPermissions
 from fanfan.adapters.db.models.user_settings import DBUserSettings
@@ -43,7 +42,6 @@ class DBUser(Base):
     ticket: Mapped[DBTicket | None] = relationship(foreign_keys="DBTicket.used_by_id")
 
     # Quest
-    quest_registration: Mapped[DBQuestRegistration | None] = relationship()
     points: Mapped[int] = mapped_column(server_default="0", deferred=True)
     achievements_count = column_property(
         select(func.count(DBReceivedAchievement.id))

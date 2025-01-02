@@ -35,7 +35,6 @@ async def user_info_getter(
         "achievements_count": user_stats.achievements_count,
         "achievements_progress": achievements_progress,
         "total_achievements_count": user_stats.total_achievements,
-        "quest_registration": user_stats.quest_registration,
     }
 
 
@@ -56,7 +55,6 @@ user_info_window = Window(
         "if managed_user.ticket else 'не привязан' }}"
     ),
     Jinja("<b>Роль:</b> {{ managed_user.role }}"),
-    Jinja("<b>Регистрация на квест:</b> {{ '✅' if quest_registration else '❌' }}"),
     Const(" "),
     Jinja("<b>💰 Очков</b>: {{ points }} "),
     Jinja(

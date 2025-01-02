@@ -2,7 +2,6 @@ from fanfan.adapters.db.repositories.quest import QuestRepository
 from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.exceptions.quest import QuestRegistrationClosed
 from fanfan.core.exceptions.users import TicketNotLinked
 from fanfan.core.exceptions.votes import AlreadyVotedInThisNomination, VotingDisabled
 from fanfan.core.models.nomination import NominationId
@@ -49,14 +48,3 @@ class AccessService:
     async def ensure_can_participate_in_quest(user: FullUser):
         if user.ticket is None:
             raise TicketNotLinked
-
-    async def ensure_quest_registration_is_open(self) -> None:
-        settings = await self.settings.get_settings()
-        if not (
-            settings.quest_registration_enabled
-            and (
-                await self.quest_repo.count_registrations()
-                < settings.quest_registrations_limit
-            )
-        ):
-            raise QuestRegistrationClosed
