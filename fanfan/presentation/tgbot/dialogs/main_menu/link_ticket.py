@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
 
+from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.core.models.ticket import TicketId
 from fanfan.presentation.tgbot import states
@@ -24,8 +25,13 @@ async def link_ticket_handler(
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
     link_ticket: LinkTicket = await container.get(LinkTicket)
+    id_provider: IdProvider = await container.get(IdProvider)
 
     await link_ticket(data)
+    # Update user in context
+    # TODO: Find a (maybe) nicer way to update user
+    # Middleware won't run after linking ticket, bg update fails
+    dialog_manager.middleware_data["user"] = await id_provider.get_current_user()
     await message.answer(
         "✅ Билет успешно привязан! Теперь тебе доступны все функции бота!",
     )
