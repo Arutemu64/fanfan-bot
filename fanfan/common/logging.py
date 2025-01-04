@@ -41,6 +41,10 @@ def setup_logging(level: int, json_logs: bool):
     root_logger.addHandler(handler)
     root_logger.setLevel(level)
 
-    # Silence aiogram
+    # Silence aiogram.event
     aiogram_event_logger = logging.getLogger("aiogram.event")
     aiogram_event_logger.setLevel(logging.WARNING)
+
+    # Silence aiohttp.access
+    aiohttp_access_logger = logging.getLogger("aiohttp.access")
+    aiohttp_access_logger.setLevel(logging.WARNING)

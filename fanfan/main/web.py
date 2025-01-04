@@ -13,6 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from fanfan.adapters.config.models import Configuration
 from fanfan.adapters.config.parsers import get_config
+from fanfan.common.logging import setup_logging
 from fanfan.common.telemetry import setup_telemetry
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
@@ -74,6 +75,10 @@ def main():
         service_name="web",
         config=config,
     )
+    setup_logging(
+        level=config.debug.logging_level,
+        json_logs=config.debug.json_logs,
+    )
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with suppress(KeyboardInterrupt):
@@ -83,6 +88,7 @@ def main():
             port=config.web.port,
             root_path=config.web.path,
             log_level=config.debug.logging_level,
+            log_config=None,
         )
 
 
