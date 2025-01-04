@@ -133,7 +133,7 @@ services:
       - nats
       - migration
       - redis
-    command: ["faststream", "run", "--factory", "fanfan.main.stream:create_app", "--workers", "3", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["python", "-m", "fanfan.main.stream"]
 
   taskiq:
     profiles: ["scheduler"]
