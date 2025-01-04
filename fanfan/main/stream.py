@@ -40,13 +40,7 @@ def create_app() -> AsgiFastStream:
 def main():
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    uvicorn.run(
-        "fanfan.main.stream:create_app",
-        factory=True,
-        workers=3,
-        host="0.0.0.0",  # noqa: S104
-        port=8000,
-    )
+    uvicorn.run(create_app(), host="0.0.0.0", port=8000)  # noqa: S104
 
 
 if __name__ == "__main__":
