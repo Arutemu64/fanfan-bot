@@ -57,7 +57,7 @@ class SendAnnouncementsDTO(BaseModel):
     pull_sub=PullSub(),
     durable="send_announcements",
 )
-async def prepare_announcements(  # noqa: C901
+async def send_announcements(  # noqa: C901
     data: SendAnnouncementsDTO,
     events_repo: FromDishka[EventsRepository],
     users_repo: FromDishka[UsersRepository],

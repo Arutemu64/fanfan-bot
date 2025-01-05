@@ -1,69 +1,34 @@
+name: fanfan-bot
+
 services:
-
   bot:
-    container_name: "fanfan-bot-${ENV_NAME}"
     build: .
-    env_file:
-      - .env
-    restart: unless-stopped
-    volumes:
-      - bot-data:/media/bot-data
-    ports:
-      - "127.0.0.1:${BOT__WEBHOOK__PORT}:${BOT__WEBHOOK__PORT}"
     depends_on:
       - migration
-      - redis
       - nats
-    command: ["python", "-m", "fanfan.main.bot"]
-
-  web:
-    profiles: [ "web" ]
-    container_name: "fanfan-web-${ENV_NAME}"
-    build: .
-    env_file:
-      - .env
-    restart: unless-stopped
-    stop_signal: SIGINT
+      - redis
     volumes:
       - bot-data:/media/bot-data
+    env_file:
+      - .env
     ports:
-      - "127.0.0.1:${WEB__PORT}:${WEB__PORT}"
-    depends_on:
-      - migration
-    command: [
-      "python",
-      "-m",
-      "fanfan.main.web",
-    ]
-
-  migration:
-    container_name: "fanfan-migration-${ENV_NAME}"
-    build: .
-    restart: on-failure
-    env_file:
-      - .env
-    volumes:
-      - bot-data:/media/bot-data
-      - ./alembic.ini:/app/alembic.ini
-    depends_on:
-      db:
-        condition: service_healthy
-    command: ["sh", "-c", "alembic upgrade head && python -m fanfan.main.migration"]
+      - '127.0.0.1:${BOT__WEBHOOK__PORT}:${BOT__WEBHOOK__PORT}'
+    command: [ "python", "-m", "fanfan.main.bot" ]
+    restart: unless-stopped
 
   db:
-    container_name: "fanfan-db-${ENV_NAME}"
     image: postgres:17-alpine
-    restart: always
-    env_file:
-      - .env
+    volumes:
+      - db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=${DB__USER}
       - POSTGRES_PASSWORD=${DB__PASSWORD}
       - POSTGRES_DB=${DB__NAME}
-    volumes:
-      - db-data:/var/lib/postgresql/data
+    env_file:
+      - .env
     ports:
-      - "127.0.0.1:${DB__EXPOSED_PORT}:5432"
+      - '127.0.0.1:${DB__EXPOSED_PORT}:5432'
+    restart: always
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
       interval: 2s
@@ -71,118 +36,31 @@ services:
       retries: 10
       start_period: 5s
 
-  pgbackup:
-    container_name: "fanfan-db-backup-${ENV_NAME}"
-    image: prodrigestivill/postgres-backup-local
-    restart: always
-    volumes:
-      - pgbackup-data:/backups
-    depends_on:
-      - db
-    environment:
-      - POSTGRES_HOST=db
-      - POSTGRES_DB=${DB__NAME}
-      - POSTGRES_USER=${DB__USER}
-      - POSTGRES_PASSWORD=${DB__PASSWORD}
-      - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
-      - SCHEDULE=@every 6h00m00s
-      - BACKUP_ON_START=TRUE
-      - BACKUP_KEEP_DAYS=7
-      - BACKUP_KEEP_WEEKS=4
-      - BACKUP_KEEP_MONTHS=6
-
-  redis:
-    image: redis:7-alpine
-    container_name: "fanfan-redis-${ENV_NAME}"
-    command: "redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS__PASSWORD}"
-    env_file:
-      - .env
-    restart: always
-    volumes:
-      - redis-data:/data
-      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
-    ports:
-      - "127.0.0.1:${REDIS__EXPOSED_PORT}:6379"
-    healthcheck:
-      test: [ "CMD", "redis-cli","ping" ]
-      interval: 5s
-      timeout: 20s
-      retries: 5
-
-  nats:
-    container_name: "fanfan-nats-${ENV_NAME}"
-    image: docker.io/nats:alpine
-    restart: always
-    env_file:
-      - .env
-    ports:
-      - "127.0.0.1:${NATS__EXPOSED_PORT}:4222"
-    volumes:
-      - nats-data:/data
-    command: "--js --sd=/data --user ${NATS__USER} --pass ${NATS__PASSWORD}"
-
   faststream:
-    container_name: "fanfan-faststream-${ENV_NAME}"
     build: .
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - bot-data:/media/bot-data
-    depends_on:
-      - nats
-      - migration
-      - redis
-    command: ["python", "-m", "fanfan.main.stream"]
-
-  taskiq:
-    profiles: ["scheduler"]
-    container_name: "fanfan-taskiq-${ENV_NAME}"
-    build: .
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - bot-data:/media/bot-data
     depends_on:
       - migration
-      - redis
       - nats
-    command:
-      [
-        "taskiq",
-        "worker",
-        "fanfan.main.scheduler:broker",
-        "fanfan.presentation.scheduler.tasks",
-      ]
-
-  scheduler:
-    profiles: ["scheduler"]
-    container_name: "fanfan-scheduler-${ENV_NAME}"
-    build: .
-    depends_on:
       - redis
-    restart: unless-stopped
-    env_file:
-      - .env
     volumes:
       - bot-data:/media/bot-data
+    env_file:
+      - .env
     command:
       [
-        "taskiq",
-        "scheduler",
-        "fanfan.main.scheduler:scheduler",
-        "fanfan.presentation.scheduler.tasks",
+        "faststream",
+        "run",
+        "--factory",
+        "fanfan.main.stream:create_app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
       ]
-
+    restart: unless-stopped
 
   grafana:
-    profiles: [ "grafana" ]
     image: grafana/grafana:latest
-    container_name: "fanfan-grafana-${ENV_NAME}"
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana:rw
       - ./config/grafana/provisioning:/etc/grafana/provisioning:rw
@@ -195,33 +73,151 @@ services:
       - VIRTUAL_HOST=grafana
       - NETWORK_ACCESS=internal
       - VIRTUAL_PORT=3000
-
-  tempo:
-    profiles: [ "grafana" ]
-    image: grafana/tempo:latest
-    container_name: "fanfan-tempo-${ENV_NAME}"
-    command: [ "-config.file=/etc/tempo.yaml" ]
-    volumes:
-      - tempo-data:/var/tempo
-      - ./config/tempo/tempo.yaml:/etc/tempo.yaml
-    restart: unless-stopped
     ports:
-      - "14250:14250"
-      - "4317:4317"
-      - "3200:3200"
+      - '127.0.0.1:3000:3000'
+    restart: unless-stopped
+    profiles: [ "grafana" ]
+
+  migration:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - bot-data:/media/bot-data
+      - ./alembic.ini:/app/alembic.ini
+    env_file:
+      - .env
+    command: [ "sh", "-c", "alembic upgrade head && python -m fanfan.main.migration" ]
+    restart: on-failure
+
+  nats:
+    image: docker.io/nats:alpine
+    volumes:
+      - nats-data:/data
+    env_file:
+      - .env
+    ports:
+      - '127.0.0.1:${NATS__EXPOSED_PORT}:4222'
+    command: "--js --sd=/data --user ${NATS__USER} --pass ${NATS__PASSWORD}"
+    restart: always
+
+  pgbackup:
+    image: prodrigestivill/postgres-backup-local
+    depends_on:
+      - db
+    volumes:
+      - pgbackup-data:/backups
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=${DB__NAME}
+      - POSTGRES_USER=${DB__USER}
+      - POSTGRES_PASSWORD=${DB__PASSWORD}
+      - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
+      - SCHEDULE=@every 6h00m00s
+      - BACKUP_ON_START=TRUE
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+    restart: always
 
   prometheus:
-    profiles: [ "grafana" ]
     image: prom/prometheus:latest
-    container_name: "fanfan-prometheus-${ENV_NAME}"
+    volumes:
+      - ./config/prometheus/prometheus.yaml:/etc/prometheus.yaml
+    ports:
+      - '9090:9090'
     command:
       - --config.file=/etc/prometheus.yaml
       - --web.enable-remote-write-receiver
       - --enable-feature=exemplar-storage
+    profiles: [ "grafana" ]
+
+  redis:
+    image: redis:7-alpine
     volumes:
-      - ./config/prometheus/prometheus.yaml:/etc/prometheus.yaml
+      - redis-data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    env_file:
+      - .env
     ports:
-      - "9090:9090"
+      - '127.0.0.1:${REDIS__EXPOSED_PORT}:6379'
+    command: "redis-server /usr/local/etc/redis/redis.conf --requirepass
+      ${REDIS__PASSWORD}"
+    restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 20s
+      retries: 5
+
+  scheduler:
+    build: .
+    depends_on:
+      - redis
+    volumes:
+      - bot-data:/media/bot-data
+    env_file:
+      - .env
+    command:
+      [
+        "taskiq",
+        "scheduler",
+        "fanfan.main.scheduler:scheduler",
+        "fanfan.presentation.scheduler.tasks"
+      ]
+    restart: unless-stopped
+    profiles: [ "scheduler" ]
+
+  taskiq:
+    build: .
+    depends_on:
+      - migration
+      - nats
+      - redis
+    volumes:
+      - bot-data:/media/bot-data
+    env_file:
+      - .env
+    command:
+      [
+        "taskiq",
+        "worker",
+        "--workers",
+        "1",
+        "fanfan.main.scheduler:broker",
+        "fanfan.presentation.scheduler.tasks"
+      ]
+    restart: unless-stopped
+    profiles: [ "scheduler" ]
+
+  tempo:
+    image: grafana/tempo:latest
+    volumes:
+      - tempo-data:/var/tempo
+      - ./config/tempo/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - '3200:3200'
+      - '4317:4317'
+      - '14250:14250'
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    restart: unless-stopped
+    profiles: [ "grafana" ]
+
+  web:
+    build: .
+    depends_on:
+      - migration
+    volumes:
+      - bot-data:/media/bot-data
+    env_file:
+      - .env
+    ports:
+      - '127.0.0.1:${WEB__PORT}:${WEB__PORT}'
+    command: [ "python", "-m", "fanfan.main.web" ]
+    restart: unless-stopped
+    profiles: [ "web" ]
+    stop_signal: SIGINT
 
 volumes:
   bot-data: {}

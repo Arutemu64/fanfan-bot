@@ -28,7 +28,6 @@ class SendNotificationDTO(BaseModel):
     stream=stream,
     pull_sub=PullSub(),
     durable="send_notification",
-    max_workers=3,
     retry=True,
 )
 @router.subscriber(
@@ -36,7 +35,6 @@ class SendNotificationDTO(BaseModel):
     stream=stream,
     pull_sub=PullSub(),
     durable="mailings",
-    max_workers=3,
     retry=True,
 )
 async def send_notification(
@@ -66,6 +64,8 @@ async def send_notification(
         return
     else:
         await msg.ack()
+        if mailing_id:
+            await mailing_repo.add_processed(mailing_id=mailing_id, message=message)
         logger.info(
             "Sent message %s to user %s",
             message.message_id,
@@ -75,6 +75,4 @@ async def send_notification(
                 "mailing_id": mailing_id,
             },
         )
-    if mailing_id:
-        await mailing_repo.add_processed(mailing_id=mailing_id, message=message)
     return
