@@ -8,7 +8,7 @@ from aiogram.types import Message
 from redis.asyncio import Redis
 
 from fanfan.core.exceptions.mailing import MailingNotFound
-from fanfan.core.models.mailing import Mailing, MailingId, SendMessageResult
+from fanfan.core.models.mailing import Mailing, MailingId
 from fanfan.core.models.user import UserId
 
 logger = logging.getLogger(__name__)
@@ -71,16 +71,17 @@ class MailingRepository:
     async def add_processed(
         self,
         mailing_id: MailingId,
-        result: SendMessageResult,
+        message: Message | None,
     ):
         info_key = self._build_info_key(mailing_id)
         sent_key = self._build_sent_key(mailing_id)
-        # Push result to list
-        await self.redis.lpush(
-            sent_key,
-            result.model_dump_json(exclude_none=True),
-        )
-        await self.redis.expire(sent_key, time=MAILING_TTL)
+        # Push sent message to list
+        if message:
+            await self.redis.lpush(
+                sent_key,
+                message.model_dump_json(exclude_none=True),
+            )
+            await self.redis.expire(sent_key, time=MAILING_TTL)
         # Incr processed by 1
         await self.redis.hincrby(
             name=info_key,

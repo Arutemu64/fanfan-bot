@@ -2,9 +2,6 @@ import enum
 from dataclasses import dataclass
 from typing import NewType
 
-from aiogram.types import Message
-from pydantic import BaseModel
-
 from fanfan.core.models.user import UserId
 
 MailingId = NewType("MailingId", str)
@@ -32,8 +29,3 @@ class Mailing:
     processed: int
     cancelled: bool
     by_user_id: UserId
-
-
-class SendMessageResult(BaseModel):
-    user_id: UserId
-    message: Message | None
