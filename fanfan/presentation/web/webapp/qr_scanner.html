@@ -12,9 +12,9 @@
     <title>QR Scanner WebApp for FAN FAN Telegram Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        function handleQrScan(qrData) {
+        async function handleQrScan(qrData) {
             try {
-                const response = fetch('qr_scanner', {
+                const response = await fetch('qr_scanner', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -29,7 +29,7 @@
                     Telegram.WebApp.closeScanQrPopup();
                     Telegram.WebApp.close();
                 } else {
-                    const error = response.text();
+                    const error = await response.text();
                     throw new Error(`Failed to process QR data: ${error}`);
                 }
             } catch (error) {
