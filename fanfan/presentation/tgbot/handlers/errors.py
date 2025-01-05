@@ -30,7 +30,7 @@ async def on_app_exception(event: ErrorEvent, dialog_manager: DialogManager) -> 
 
 async def on_dialog_error(event: ErrorEvent, dialog_manager: DialogManager) -> None:
     logging.error("Restarting dialog: %s", event.exception)
-    msg = "⌛ Ваша сессия истекла, перезапуск бота..."
+    msg = "🔄 Обновление бота..."
     if c := event.update.callback_query:
         await c.answer(msg)
         if c.message:
