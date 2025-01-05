@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.notifier import BotNotifier
 from fanfan.core.dto.notification import UserNotification
-from fanfan.core.models.mailing import MailingId
+from fanfan.core.models.mailing import MailingId, SendMessageResult
 from fanfan.core.models.user import UserId
 from fanfan.presentation.stream.jstream import stream
 
@@ -59,13 +59,17 @@ async def send_notification(
     except (TelegramBadRequest, TelegramForbiddenError):
         await msg.reject()
         if mailing_id:
-            await mailing_repo.add_processed(mailing_id, None)
+            await mailing_repo.add_processed(
+                mailing_id, SendMessageResult(user_id=data.user_id, message=None)
+            )
         logger.info("Skipping sending message to %s", data.user_id)
         return
     else:
         await msg.ack()
         if mailing_id:
-            await mailing_repo.add_processed(mailing_id=mailing_id, message=message)
+            await mailing_repo.add_processed(
+                mailing_id, SendMessageResult(user_id=data.user_id, message=message)
+            )
         logger.info(
             "Sent message %s to user %s",
             message.message_id,
