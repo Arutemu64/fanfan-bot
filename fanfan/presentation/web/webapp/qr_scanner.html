@@ -43,7 +43,6 @@
         const isTelegramClient = Telegram.WebApp.platform !== 'unknown';
 
         if (isTelegramClient && isTelegramApiUpdated) {
-            Telegram.WebApp.onEvent('scanQrPopupClosed', Telegram.WebApp.close);
             Telegram.WebApp.showScanQrPopup(
                 'Наведите смартфон на QR-код с логотипом фестиваля',
                 handleQrScan
