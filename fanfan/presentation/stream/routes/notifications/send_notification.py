@@ -56,11 +56,11 @@ async def send_notification(
             "Retrying sending a message to %s in %s", data.user_id, e.retry_after
         )
         return
-    except (TelegramBadRequest, TelegramForbiddenError):
+    except (TelegramBadRequest, TelegramForbiddenError) as e:
         await msg.reject()
         if mailing_id:
             await mailing_repo.add_processed(mailing_id, None)
-        logger.info("Skipping sending message to %s", data.user_id)
+        logger.info("Skipping sending message to %s", data.user_id, exc_info=e)
         return
     else:
         await msg.ack()

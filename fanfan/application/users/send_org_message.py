@@ -18,12 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, frozen=True)
-class SendMessageDTO:
+class SendOrgMessageDTO:
     user_id: UserId
     message_text: str
 
 
-class SendMessage(Interactor[SendMessageDTO, None]):
+class SendOrgMessage(Interactor[SendOrgMessageDTO, None]):
     def __init__(
         self,
         users_repo: UsersRepository,
@@ -36,7 +36,7 @@ class SendMessage(Interactor[SendMessageDTO, None]):
         self.id_provider = id_provider
         self.stream_broker_adapter = stream_broker_adapter
 
-    async def __call__(self, data: SendMessageDTO):
+    async def __call__(self, data: SendOrgMessageDTO):
         current_user = await self.id_provider.get_current_user()
         if current_user.role != UserRole.ORG:
             raise AccessDenied
@@ -52,7 +52,7 @@ class SendMessage(Interactor[SendMessageDTO, None]):
             data=SendNotificationDTO(
                 user_id=user.id,
                 notification=UserNotification(
-                    title="🗨️ Личное сообщение от оргов",
+                    title="🗨️ Сообщение от организаторов",
                     text=f"<blockquote>{data.message_text}</blockquote>",
                     bottom_text=f"<i>Отправил @{current_user.username}</i>",
                 ),

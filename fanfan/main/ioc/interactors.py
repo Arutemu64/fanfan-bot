@@ -42,7 +42,7 @@ from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.application.users.authenticate import Authenticate
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.get_user_by_username import GetUserByUsername
-from fanfan.application.users.send_message import SendMessage
+from fanfan.application.users.send_org_message import SendOrgMessage
 from fanfan.application.users.update_user import UpdateUser
 from fanfan.application.users.update_user_commands import UpdateUserCommands
 from fanfan.application.users.update_user_settings import UpdateUserSettings
@@ -106,7 +106,7 @@ class InteractorsProvider(Provider):
     update_user = provide(UpdateUser)
     update_user_settings = provide(UpdateUserSettings)
     update_user_commands = provide(UpdateUserCommands)
-    send_message = provide(SendMessage)
+    send_message = provide(SendOrgMessage)
 
     get_user_quest_details = provide(GetUserQuestStats)
     add_points = provide(AddPoints)

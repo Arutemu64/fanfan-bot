@@ -11,12 +11,14 @@ from fanfan.application.feedback.process_feedback import (
 )
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
+from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
 from fanfan.presentation.tgbot.filters.callbacks import (
     DeleteMessageCallback,
     OpenSubscriptionsCallback,
     ProcessFeedbackCallback,
     PullDialogDownCallback,
     ShowMailingInfoCallback,
+    ShowUserInfoCallback,
 )
 
 router = Router(name="callbacks_router")
@@ -62,15 +64,22 @@ async def process_feedback(
     query: CallbackQuery,
     callback_data: ProcessFeedbackCallback,
     interactor: FromDishka[ProcessFeedback],
-    dialog_manager: DialogManager,
 ):
-    feedback = await interactor(
-        ProcessFeedbackDTO(feedback_id=callback_data.feedback_id)
-    )
+    await interactor(ProcessFeedbackDTO(feedback_id=callback_data.feedback_id))
     await query.answer(
-        "✅ Вы взяли обработку отзыва на себя. "
-        f"Теперь можете связаться с @{feedback.user.username} "
-        f"в ЛС для уточнения деталей. "
-        "Другие организаторы увидят, что вы взяли отзыв в работу.",
+        "✅ Вы взяли отзыв в работу. "
+        "Теперь можете связаться с пользователем. "
+        "Это можно сделать в ЛС или от имени бота "
+        "через информацию о пользователе (односторонняя связь). ",
         show_alert=True,
     )
+
+
+@router.callback_query(ShowUserInfoCallback.filter())
+@inject
+async def show_user_info(
+    query: CallbackQuery,
+    callback_data: ShowUserInfoCallback,
+    dialog_manager: DialogManager,
+):
+    await start_user_manager(manager=dialog_manager, user_id=callback_data.user_id)

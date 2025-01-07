@@ -1,5 +1,6 @@
 from aiogram_dialog import BaseDialogManager, Dialog, DialogManager
 
+from fanfan.core.models.user import UserId
 from fanfan.presentation.tgbot import states
 
 from .add_points import preview_add_points_window, set_comment_window, set_points_window
@@ -11,7 +12,7 @@ from .user_info import user_info_window
 
 
 async def start_user_manager(
-    manager: DialogManager | BaseDialogManager, user_id: int
+    manager: DialogManager | BaseDialogManager, user_id: UserId
 ) -> None:
     await manager.start(
         state=states.UserManager.USER_INFO, data={DATA_USER_ID: user_id}

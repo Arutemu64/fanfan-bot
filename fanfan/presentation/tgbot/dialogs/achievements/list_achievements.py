@@ -68,7 +68,7 @@ list_achievements_window = Window(
     Title(
         Case(
             texts={
-                True: Const("🏆 Твои достижения"),
+                True: Const("🏆 Мои достижения"),
                 False: Format("🏆 Достижения @{username}"),
             },
             selector="showing_self",

@@ -2,7 +2,7 @@ import html
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from fanfan.core.dto.notification import DEFAULT_REPLY_MARKUP, UserNotification
+from fanfan.core.dto.notification import UserNotification
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import Achievement
 from fanfan.core.models.feedback import FullFeedback
@@ -11,6 +11,7 @@ from fanfan.presentation.tgbot.keyboards.buttons import (
     DELETE_BUTTON,
     PULL_DOWN_DIALOG,
     process_feedback_button,
+    show_user_info_button,
 )
 
 
@@ -33,22 +34,28 @@ def create_points_notification(points: int, comment: str | None) -> UserNotifica
 
 
 def create_feedback_notification(feedback: FullFeedback) -> UserNotification:
+    bottom_text = (
+        "⚙️ Уведомления можно отключить в личных настройках.\n"
+        "⚠️ Пользователю можно ограничить доступ к обратной связи, "
+        "отозвав разрешение can_send_feedback через орг-панель.\n"
+    )
     if feedback.processed_by is None:
-        bottom_text = (
-            "🙋 Нажмите кнопку, если готовы взять обработку отзыва на себя\n"
-            "⚙️ Уведомления можно отключить в настройках\n"
-            "⚠️ Пользователю можно ограничить доступ к обратной связи, "
-            "отозвав разрешение can_send_feedback"
-        )
+        bottom_text += "🙋 Нажмите кнопку, если готовы взять обработку отзыва на себя."
         reply_markup = InlineKeyboardBuilder(
             [
                 [process_feedback_button(feedback_id=feedback.id)],
+                [show_user_info_button(user_id=feedback.user_id)],
                 [PULL_DOWN_DIALOG],
             ]
         ).as_markup()
     else:
-        bottom_text = f"✅ @{feedback.processed_by.username} взял отзыв в работу"
-        reply_markup = DEFAULT_REPLY_MARKUP
+        bottom_text += f"✅ @{feedback.processed_by.username} взял отзыв в работу."
+        reply_markup = InlineKeyboardBuilder(
+            [
+                [show_user_info_button(user_id=feedback.user_id)],
+                [PULL_DOWN_DIALOG],
+            ]
+        ).as_markup()
     return UserNotification(
         title="💬 ОБРАТНАЯ СВЯЗЬ",
         text=f"Поступила обратная связь "
