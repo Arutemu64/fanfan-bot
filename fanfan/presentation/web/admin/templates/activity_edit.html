@@ -6,8 +6,9 @@
 <script>
   tinymce.init({
     selector: '#description',  // The ID of the textarea you want to convert
+    plugins: 'link',
     menubar: false,  // Disable menu
-    toolbar: 'undo redo | bold italic',  // Customize toolbar
+    toolbar: 'undo redo | bold italic link',  // Customize toolbar
   });
 </script>
 {% endblock %}
