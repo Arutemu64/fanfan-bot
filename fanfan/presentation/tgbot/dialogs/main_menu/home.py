@@ -67,7 +67,7 @@ async def main_menu_getter(
         and user.role in [UserRole.HELPER, UserRole.ORG],
         # Customization
         "image_path": image_path,
-        "random_quote": await get_random_quote(),
+        "quote": await get_random_quote(),
     }
 
 
@@ -129,7 +129,7 @@ main_window = Window(
         "всем функциям бота (голосование, участие в квесте).\n",
         when=~F[CURRENT_USER].ticket,
     ),
-    Format("<i>{random_quote}</i>", when=F["random_quote"]),
+    Format("<i>{quote}</i>", when=F["quote"]),
     StaticMedia(path=Format("{image_path}")),
     Start(
         Const(strings.titles.link_ticket),
