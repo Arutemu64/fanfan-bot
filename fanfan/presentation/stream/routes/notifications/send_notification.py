@@ -67,9 +67,10 @@ async def send_notification(
         if mailing_id:
             await mailing_repo.add_processed(mailing_id=mailing_id, message=message)
         logger.info(
-            "Sent message %s to user %s",
+            "Sent message %s to user %s via mailing %s",
             message.message_id,
             data.user_id,
+            mailing_id,
             extra={
                 "sent_message": message.model_dump_json(exclude_none=True),
                 "mailing_id": mailing_id,
