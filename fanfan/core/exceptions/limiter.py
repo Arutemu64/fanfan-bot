@@ -13,7 +13,7 @@ class TooFast(LimiterException):
         self.current_timestamp = timestamp
         time_left = int(timestamp + cooldown_period - time.time())
         self.message = (
-            f"⚠️ Задача выполняется слишком часто." f"Попробуйте через {time_left} с."
+            f"⚠️ Задача выполняется слишком часто.Попробуйте через {time_left} с."
         )
 
 

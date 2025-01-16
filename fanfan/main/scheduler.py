@@ -40,7 +40,7 @@ async def startup(state: TaskiqState) -> None:
         level=config.debug.logging_level,
         json_logs=config.debug.json_logs,
     )
-    setup_telemetry(service_name="taskiq", config=config)
+    setup_telemetry(config=config)
 
     setup_dishka(container, broker)
     state.container = container

@@ -75,10 +75,7 @@ def main():
         level=config.debug.logging_level,
         json_logs=config.debug.json_logs,
     )
-    setup_telemetry(
-        service_name="bot",
-        config=config,
-    )
+    setup_telemetry(config=config)
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with contextlib.suppress(KeyboardInterrupt):

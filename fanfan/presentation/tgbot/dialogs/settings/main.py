@@ -75,7 +75,7 @@ settings_main_window = Window(
         ),
         SwitchTo(
             text=Jinja(
-                "🔢 Количество элементов на странице: " "{{ items_per_page }}",
+                "🔢 Количество элементов на странице: {{ items_per_page }}",
             ),
             id="set_items_per_page_button",
             on_click=update_counter_value_handler,

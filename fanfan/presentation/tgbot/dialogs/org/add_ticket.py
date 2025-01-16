@@ -38,7 +38,7 @@ async def add_ticket_handler(
         CreateTicketDTO(id=data, role=role_picker.get_checked())
     )
     await message.answer(
-        f"✅ Билет <code>{ticket.id}</code> с " f"ролью {ticket.role} успешно добавлен!"
+        f"✅ Билет <code>{ticket.id}</code> с ролью {ticket.role} успешно добавлен!"
     )
     await dialog_manager.switch_to(states.Org.MAIN)
 

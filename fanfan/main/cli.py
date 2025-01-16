@@ -31,10 +31,7 @@ def main():
         level=config.debug.logging_level,
         json_logs=config.debug.json_logs,
     )
-    setup_telemetry(
-        service_name="cli",
-        config=config,
-    )
+    setup_telemetry(config=config)
 
     # Setup commands
     cli.add_command(parse_schedule_command)

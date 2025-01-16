@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 import uvicorn
 from dishka.integrations.fastapi import setup_dishka
 from fastapi import FastAPI
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -43,9 +42,6 @@ def create_app(config: Configuration) -> FastAPI:
     # Setup FastAPI app
     app = FastAPI(lifespan=lifespan, debug=config.debug.enabled)
 
-    # OTPL
-    FastAPIInstrumentor.instrument_app(app)
-
     # Setup DI
     setup_dishka(container=create_web_container(), app=app)
 
@@ -71,10 +67,7 @@ def create_app(config: Configuration) -> FastAPI:
 
 def main():
     config = get_config()
-    setup_telemetry(
-        service_name="web",
-        config=config,
-    )
+    setup_telemetry(config=config)
     setup_logging(
         level=config.debug.logging_level,
         json_logs=config.debug.json_logs,

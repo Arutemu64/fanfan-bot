@@ -57,25 +57,6 @@ services:
       ]
     restart: unless-stopped
 
-  grafana:
-    image: grafana/grafana:latest
-    volumes:
-      - grafana-data:/var/lib/grafana:rw
-      - ./config/grafana/provisioning:/etc/grafana/provisioning:rw
-      - ./config/grafana/dashboards:/etc/grafana/dashboards
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_DATABASE_WAL=true
-      - VIRTUAL_HOST=grafana
-      - NETWORK_ACCESS=internal
-      - VIRTUAL_PORT=3000
-    ports:
-      - '127.0.0.1:3000:3000'
-    restart: unless-stopped
-    profiles: [ "grafana" ]
-
   migration:
     build: .
     depends_on:
@@ -118,18 +99,6 @@ services:
       - BACKUP_KEEP_WEEKS=4
       - BACKUP_KEEP_MONTHS=6
     restart: always
-
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./config/prometheus/prometheus.yaml:/etc/prometheus.yaml
-    ports:
-      - '9090:9090'
-    command:
-      - --config.file=/etc/prometheus.yaml
-      - --web.enable-remote-write-receiver
-      - --enable-feature=exemplar-storage
-    profiles: [ "grafana" ]
 
   redis:
     image: redis:7-alpine
@@ -189,19 +158,6 @@ services:
     restart: unless-stopped
     profiles: [ "scheduler" ]
 
-  tempo:
-    image: grafana/tempo:latest
-    volumes:
-      - tempo-data:/var/tempo
-      - ./config/tempo/tempo.yaml:/etc/tempo.yaml
-    ports:
-      - '3200:3200'
-      - '4317:4317'
-      - '14250:14250'
-    command: [ "-config.file=/etc/tempo.yaml" ]
-    restart: unless-stopped
-    profiles: [ "grafana" ]
-
   web:
     build: .
     depends_on:
@@ -223,6 +179,3 @@ volumes:
   pgbackup-data: {}
   redis-data: {}
   nats-data: {}
-  grafana-data: {}
-  tempo-data: {}
-  loki-data: {}

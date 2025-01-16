@@ -63,7 +63,7 @@ class WebConfig(BaseModel):
         url: HttpUrl = HttpUrl.build(
             scheme=self.base_url.scheme,
             host=self.base_url.host,
-            path=f"{self.path.lstrip("/")}/admin/auth?token={token}",
+            path=f"{self.path.lstrip('/')}/admin/auth?token={token}",
         )
         return url.unicode_string()
 
@@ -71,7 +71,7 @@ class WebConfig(BaseModel):
         url: HttpUrl = HttpUrl.build(
             scheme=self.base_url.scheme,
             host=self.base_url.host,
-            path=f"{self.path.lstrip("/")}/qr_scanner",
+            path=f"{self.path.lstrip('/')}/qr_scanner",
         )
         return url.unicode_string()
 
@@ -165,8 +165,6 @@ class DebugConfig(BaseModel):
 
     sentry_enabled: bool = False
     sentry_dsn: HttpUrl | None = None
-
-    otlp_endpoint: HttpUrl | None = None
 
     @model_validator(mode="after")
     def check_if_sentry_dsn_set(self) -> Self:

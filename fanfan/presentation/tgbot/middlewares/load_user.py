@@ -5,7 +5,6 @@ import sentry_sdk
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 from dishka.integrations.aiogram import CONTAINER_NAME
-from opentelemetry import trace
 
 from fanfan.adapters.config.models import DebugConfig
 from fanfan.application.users.authenticate import Authenticate, AuthenticateDTO
@@ -15,8 +14,6 @@ if TYPE_CHECKING:
     from aiogram.types import User
     from dishka import AsyncContainer
 
-tracer = trace.get_tracer(__name__)
-
 
 class LoadDataMiddleware(BaseMiddleware):
     async def __call__(
@@ -25,33 +22,32 @@ class LoadDataMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        with tracer.start_as_current_span("user action"):
-            if data.get("event_from_user"):
-                tg_user: User = data["event_from_user"]
-                container: AsyncContainer = data[CONTAINER_NAME]
-                authenticate: Authenticate = await container.get(Authenticate)
-                update_user_commands: UpdateUserCommands = await container.get(
-                    UpdateUserCommands
+        if data.get("event_from_user"):
+            tg_user: User = data["event_from_user"]
+            container: AsyncContainer = data[CONTAINER_NAME]
+            authenticate: Authenticate = await container.get(Authenticate)
+            update_user_commands: UpdateUserCommands = await container.get(
+                UpdateUserCommands
+            )
+
+            # Setup Sentry logging
+            debug_config: DebugConfig = await container.get(DebugConfig)
+            if debug_config.sentry_enabled:
+                sentry_sdk.set_user(
+                    {
+                        "id": tg_user.id,
+                        "username": tg_user.username,
+                    },
                 )
 
-                # Setup Sentry logging
-                debug_config: DebugConfig = await container.get(DebugConfig)
-                if debug_config.sentry_enabled:
-                    sentry_sdk.set_user(
-                        {
-                            "id": tg_user.id,
-                            "username": tg_user.username,
-                        },
-                    )
+            # Authenticate
+            user = await authenticate(AuthenticateDTO.from_aiogram(tg_user))
 
-                # Authenticate
-                user = await authenticate(AuthenticateDTO.from_aiogram(tg_user))
+            # Update user commands
+            await update_user_commands()
 
-                # Update user commands
-                await update_user_commands()
+            # DI
+            data["user"] = user
+            data["container"] = container
 
-                # DI
-                data["user"] = user
-                data["container"] = container
-
-            return await handler(event, data)
+        return await handler(event, data)
