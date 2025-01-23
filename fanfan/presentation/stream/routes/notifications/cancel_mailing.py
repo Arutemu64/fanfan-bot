@@ -1,6 +1,7 @@
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from dishka import FromDishka
+from dishka.integrations.faststream import inject
 from faststream import Logger
 from faststream.nats import NatsRouter, PullSub
 from nats.js import JetStreamContext
@@ -18,6 +19,7 @@ router = NatsRouter()
     pull_sub=PullSub(),
     durable="cancel_mailing",
 )
+@inject
 async def cancel_mailing(
     mailing_id: MailingId,
     mailing_repo: FromDishka[MailingRepository],

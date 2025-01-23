@@ -1,4 +1,5 @@
 from dishka import FromDishka
+from dishka.integrations.faststream import inject
 from faststream import Logger
 from faststream.nats import NatsMessage, NatsRouter, PullSub
 from pydantic import BaseModel
@@ -31,6 +32,7 @@ class SendFeedbackNotificationsDTO(BaseModel):
     pull_sub=PullSub(),
     durable="send_feedback_notifications",
 )
+@inject
 async def send_feedback_notifications(
     data: SendFeedbackNotificationsDTO,
     feedback_repo: FromDishka[FeedbackRepository],

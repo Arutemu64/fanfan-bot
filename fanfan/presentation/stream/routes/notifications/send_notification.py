@@ -1,9 +1,12 @@
+from aiogram import Bot
 from aiogram.exceptions import (
     TelegramBadRequest,
     TelegramForbiddenError,
     TelegramRetryAfter,
 )
+from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
+from dishka.integrations.faststream import inject
 from faststream import Logger, Path
 from faststream.nats import NatsMessage, NatsRouter, PullSub
 from pydantic import BaseModel
@@ -37,19 +40,28 @@ class SendNotificationDTO(BaseModel):
     durable="mailings",
     retry=True,
 )
+@inject
 async def send_notification(
     data: SendNotificationDTO,
     msg: FromDishka[NatsMessage],
     notifier: FromDishka[BotNotifier],
+    bot: FromDishka[Bot],
+    bgm_factory: FromDishka[BgManagerFactory],
     mailing_repo: FromDishka[MailingRepository],
     logger: Logger,
     mailing_id: MailingId | None = Path(default=None),  # noqa: B008
 ) -> None:
     try:
+        # Send message
         message = await notifier.send_notification(
             user_id=data.user_id,
             notification=data.notification,
         )
+        # Update current dialog (in case if it's information is now outdated)
+        bg = bgm_factory.bg(
+            bot=bot, user_id=data.user_id, chat_id=data.user_id, load=True
+        )
+        await bg.update(data={}, show_mode=ShowMode.EDIT)
     except TelegramRetryAfter as e:
         await msg.nack(delay=e.retry_after)
         logger.warning(

@@ -49,7 +49,7 @@ async def open_subscriptions_menu(
 ) -> None:
     await dialog_manager.start(
         state=states.Schedule.SUBSCRIPTIONS,
-        show_mode=ShowMode.DELETE_AND_SEND,
+        show_mode=ShowMode.SEND,
     )
 
 

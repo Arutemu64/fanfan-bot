@@ -3,6 +3,7 @@ from datetime import datetime
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from dishka import FromDishka
+from dishka.integrations.faststream import inject
 from faststream.nats import NatsRouter, PullSub
 from jinja2 import Environment
 from pydantic import BaseModel
@@ -57,6 +58,7 @@ class SendAnnouncementsDTO(BaseModel):
     pull_sub=PullSub(),
     durable="send_announcements",
 )
+@inject
 async def send_announcements(  # noqa: C901
     data: SendAnnouncementsDTO,
     events_repo: FromDishka[EventsRepository],

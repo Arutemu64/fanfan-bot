@@ -22,7 +22,7 @@ def create_app() -> FastStream:
 
     # Setup Dishka
     container = create_system_container()
-    setup_dishka(container, app, auto_inject=True)
+    setup_dishka(container, app)
 
     return app
 

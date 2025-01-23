@@ -1,4 +1,5 @@
 from dishka import FromDishka
+from dishka.integrations.faststream import inject
 from faststream.nats import NatsRouter, PullSub
 from pydantic import BaseModel
 
@@ -28,6 +29,7 @@ class SendNotificationToRolesDTO(BaseModel):
     pull_sub=PullSub(),
     durable="send_to_roles",
 )
+@inject
 async def send_to_roles(
     data: SendNotificationToRolesDTO,
     users_repo: FromDishka[UsersRepository],

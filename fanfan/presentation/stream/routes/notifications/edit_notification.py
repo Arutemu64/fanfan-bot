@@ -5,6 +5,7 @@ from aiogram.exceptions import (
 )
 from aiogram.types import Message
 from dishka import FromDishka
+from dishka.integrations.faststream import inject
 from faststream import Logger
 from faststream.nats import NatsMessage, NatsRouter, PullSub
 from pydantic import BaseModel
@@ -30,6 +31,7 @@ class EditNotificationDTO(BaseModel):
     pull_sub=PullSub(),
     durable="edit_notification",
 )
+@inject
 async def edit_notification(
     data: EditNotificationDTO,
     mailing_repo: FromDishka[MailingRepository],
