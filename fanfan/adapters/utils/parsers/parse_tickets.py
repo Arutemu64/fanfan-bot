@@ -5,7 +5,7 @@ import pandas as pd
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import DBTicket
+from fanfan.adapters.db.models import TicketORM
 from fanfan.core.models.user import UserRole
 
 logger = logging.getLogger(__name__)
@@ -22,10 +22,10 @@ async def parse_tickets(file: BinaryIO, session: AsyncSession) -> None:
     for _index, row in tickets_df.iterrows():
         try:
             async with session.begin_nested():
-                session.add(DBTicket(id=row["id"], role=row["role"]))
+                session.add(TicketORM(id=row["id"], role=row["role"]))
             logger.info("Parsed ticket %s with role %s", row["id"], row["role"])
         except IntegrityError:
-            ticket = await session.get(DBTicket, row["id"])
+            ticket = await session.get(TicketORM, row["id"])
             if not ticket:
                 raise
             logger.info("Ticket %s already exist", row["id"])

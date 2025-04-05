@@ -5,17 +5,17 @@ from openpyxl import load_workbook
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import DBEvent, DBParticipant
-from fanfan.adapters.db.models.block import DBBlock
+from fanfan.adapters.db.models import EventORM, ParticipantORM
+from fanfan.adapters.db.models.block import BlockORM
 
 logger = logging.getLogger(__name__)
 
 
 async def parse_schedule(file: typing.BinaryIO, session: AsyncSession) -> None:
     # Delete orphaned events later
-    events_to_delete = list(await session.scalars(select(DBEvent)))
+    events_to_delete = list(await session.scalars(select(EventORM)))
     # Delete all blocks
-    await session.execute(delete(DBBlock))
+    await session.execute(delete(BlockORM))
     await session.flush()
     # Get everything ready
     wb = load_workbook(file)
@@ -28,7 +28,7 @@ async def parse_schedule(file: typing.BinaryIO, session: AsyncSession) -> None:
             event_title = str(row[5].value)  # Title
             # Try to find a participant
             participant = await session.scalar(
-                select(DBParticipant).where(DBParticipant.voting_number == card)
+                select(ParticipantORM).where(ParticipantORM.voting_number == card)
             )
             if participant:
                 logger.info("Found a linked participant for %s", event_title)
@@ -39,7 +39,7 @@ async def parse_schedule(file: typing.BinaryIO, session: AsyncSession) -> None:
                     card,
                 )
             event = await session.merge(
-                DBEvent(
+                EventORM(
                     id=id_,
                     title=event_title,
                     order=order,
@@ -51,7 +51,7 @@ async def parse_schedule(file: typing.BinaryIO, session: AsyncSession) -> None:
                     events_to_delete.remove(e)
         elif row[0].value and row[0].font.italic:  # Block
             title = str(row[0].value)
-            block = DBBlock(title=title, start_order=order)
+            block = BlockORM(title=title, start_order=order)
             session.add(block)
             await session.flush([block])
             logger.info("New block %s added", title)

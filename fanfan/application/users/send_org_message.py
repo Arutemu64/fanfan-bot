@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.notification import UserNotification
@@ -11,7 +11,7 @@ from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import UserId, UserRole
 from fanfan.presentation.stream.routes.notifications.send_notification import (
-    SendNotificationDTO,
+    NewNotificationDTO,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class SendOrgMessage(Interactor[SendOrgMessageDTO, None]):
         users_repo: UsersRepository,
         mailing_repo: MailingRepository,
         id_provider: IdProvider,
-        stream_broker_adapter: StreamBrokerAdapter,
+        stream_broker_adapter: EventsBroker,
     ):
         self.users_repo = users_repo
         self.mailing_repo = mailing_repo
@@ -48,8 +48,8 @@ class SendOrgMessage(Interactor[SendOrgMessageDTO, None]):
         mailing_id = await self.mailing_repo.create_new_mailing(
             by_user_id=current_user.id
         )
-        await self.stream_broker_adapter.send_notification(
-            data=SendNotificationDTO(
+        await self.stream_broker_adapter.new_notification(
+            data=NewNotificationDTO(
                 user_id=user.id,
                 notification=UserNotification(
                     title="🗨️ Сообщение от организаторов",

@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from fanfan.adapters.db.repositories.feedback import FeedbackRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.feedback import FeedbackException
@@ -32,7 +32,7 @@ class SendFeedback(Interactor[SendFeedbackDTO, None]):
         id_provider: IdProvider,
         uow: UnitOfWork,
         mailing_repo: MailingRepository,
-        stream_broker_adapter: StreamBrokerAdapter,
+        stream_broker_adapter: EventsBroker,
     ) -> None:
         self.feedback_repo = feedback_repo
         self.access = access

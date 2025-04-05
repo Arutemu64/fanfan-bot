@@ -12,17 +12,17 @@ from sqlalchemy.orm import (
 )
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.block import DBBlock
+from fanfan.adapters.db.models.block import BlockORM
 from fanfan.adapters.db.models.mixins.order import OrderMixin
-from fanfan.core.models.event import Event, EventId, FullEvent
+from fanfan.core.models.event import Event, EventFull, EventId
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.nomination import DBNomination
-    from fanfan.adapters.db.models.participant import DBParticipant
-    from fanfan.adapters.db.models.subscription import DBSubscription
+    from fanfan.adapters.db.models.nomination import NominationORM
+    from fanfan.adapters.db.models.participant import ParticipantORM
+    from fanfan.adapters.db.models.subscription import SubscriptionORM
 
 
-class DBEvent(Base, OrderMixin):
+class EventORM(Base, OrderMixin):
     __tablename__ = "schedule"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -36,35 +36,35 @@ class DBEvent(Base, OrderMixin):
     participant_id: Mapped[int | None] = mapped_column(
         ForeignKey("participants.id", ondelete="SET NULL"),
     )
-    participant: Mapped[DBParticipant | None] = relationship(
+    participant: Mapped[ParticipantORM | None] = relationship(
         back_populates="event", single_parent=True
     )
-    nomination: Mapped[DBNomination | None] = relationship(
+    nomination: Mapped[NominationORM | None] = relationship(
         secondary="participants",
         viewonly=True,
     )
 
     # User subscription relation
-    user_subscription: Mapped[DBSubscription | None] = relationship(
+    user_subscription: Mapped[SubscriptionORM | None] = relationship(
         viewonly=True,
         lazy="noload",
     )
 
     @declared_attr
     @classmethod
-    def block(cls) -> Mapped[DBBlock | None]:
+    def block(cls) -> Mapped[BlockORM | None]:
         subquery = select(
             cls.id,
-            select(DBBlock.id)
-            .order_by(DBBlock.start_order.desc())
-            .where(cls.order >= DBBlock.start_order)
+            select(BlockORM.id)
+            .order_by(BlockORM.start_order.desc())
+            .where(cls.order >= BlockORM.start_order)
             .limit(1)
             .label("block_id"),
         ).subquery()
         return relationship(
-            DBBlock,
+            BlockORM,
             primaryjoin=(cls.id == subquery.c.id),
-            secondaryjoin=(DBBlock.id == subquery.c.block_id),
+            secondaryjoin=(BlockORM.id == subquery.c.block_id),
             secondary=subquery,
             uselist=False,
             viewonly=True,
@@ -99,7 +99,7 @@ class DBEvent(Base, OrderMixin):
 
     @classmethod
     def from_model(cls, model: Event):
-        return DBEvent(
+        return EventORM(
             id=model.id,
             title=model.title,
             is_current=model.is_current,
@@ -116,8 +116,8 @@ class DBEvent(Base, OrderMixin):
             order=self.order,
         )
 
-    def to_full_model(self) -> FullEvent:
-        return FullEvent(
+    def to_full_model(self) -> EventFull:
+        return EventFull(
             id=EventId(self.id),
             title=self.title,
             is_current=self.is_current,

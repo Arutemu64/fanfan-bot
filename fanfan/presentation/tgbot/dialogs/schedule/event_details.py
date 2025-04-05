@@ -1,6 +1,5 @@
 from aiogram import F
 from aiogram.types import CallbackQuery
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, SwitchTo
 from aiogram_dialog.widgets.text import Case, Const, Jinja
@@ -22,7 +21,6 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
     can_edit_schedule_getter,
     current_event_getter,
 )
-from fanfan.presentation.tgbot.keyboards.buttons import show_mailing_info_button
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.static.templates import selected_event_info
 
@@ -62,10 +60,6 @@ async def set_as_current(
     data = await set_current_event(manager.start_data[DATA_SELECTED_EVENT_ID])
     await callback.message.answer(
         f"✅ Выступление <b>{data.current_event.title}</b> отмечено как текущее\n"
-        f"Уникальный ID рассылки: <code>{data.mailing_id}</code>",
-        reply_markup=InlineKeyboardBuilder(
-            [[show_mailing_info_button(data.mailing_id)]]
-        ).as_markup(),
     )
     manager.show_mode = ShowMode.DELETE_AND_SEND
 
@@ -92,21 +86,10 @@ async def skip_event_handler(
 
     data = await skip_event(manager.start_data[DATA_SELECTED_EVENT_ID])
     if data.event.is_skipped:
-        text = (
-            f"🙈 Выступление <b>{data.event.title}</b> пропущено\n"
-            f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
-        )
+        text = f"🙈 Выступление <b>{data.event.title}</b> пропущено"
     else:
-        text = (
-            f"🙉 Выступление <b>{data.event.title}</b> возвращено\n"
-            f"Уникальный ID рассылки: <code>{data.mailing_id}</code>"
-        )
-    await callback.message.answer(
-        text,
-        reply_markup=InlineKeyboardBuilder(
-            [[show_mailing_info_button(data.mailing_id)]]
-        ).as_markup(),
-    )
+        text = f"🙉 Выступление <b>{data.event.title}</b> возвращено"
+    await callback.message.answer(text)
     manager.show_mode = ShowMode.DELETE_AND_SEND
 
 

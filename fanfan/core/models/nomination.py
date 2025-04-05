@@ -17,7 +17,7 @@ class Nomination:
 
 
 @dataclass(slots=True, kw_only=True)
-class FullNomination(Nomination):
+class NominationFull(Nomination):
     user_vote: Vote | None
 
 

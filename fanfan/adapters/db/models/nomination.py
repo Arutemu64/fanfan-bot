@@ -6,19 +6,19 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.participant import DBParticipant
+from fanfan.adapters.db.models.participant import ParticipantORM
 from fanfan.core.models.nomination import (
     UNSET_IS_VOTABLE,
-    FullNomination,
     Nomination,
+    NominationFull,
     NominationId,
 )
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.vote import DBVote
+    from fanfan.adapters.db.models.vote import VoteORM
 
 
-class DBNomination(Base):
+class NominationORM(Base):
     __tablename__ = "nominations"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -27,15 +27,15 @@ class DBNomination(Base):
     is_votable: Mapped[bool] = mapped_column(server_default="False")
 
     # Relationships
-    user_vote: Mapped[DBVote | None] = relationship(
+    user_vote: Mapped[VoteORM | None] = relationship(
         secondary="participants",
         viewonly=True,
         lazy="noload",
     )
     participants_count = column_property(
-        select(func.count(DBParticipant.id))
-        .where(DBParticipant.nomination_id == id)
-        .correlate_except(DBParticipant)
+        select(func.count(ParticipantORM.id))
+        .where(ParticipantORM.nomination_id == id)
+        .correlate_except(ParticipantORM)
         .scalar_subquery(),
         deferred=True,
     )
@@ -48,7 +48,7 @@ class DBNomination(Base):
         data = {"id": model.id, "code": model.code, "title": model.title}
         if model.is_votable is not UNSET_IS_VOTABLE:
             data.update(is_votable=model.is_votable)
-        return DBNomination(**data)
+        return NominationORM(**data)
 
     def to_model(self) -> Nomination:
         return Nomination(
@@ -58,8 +58,8 @@ class DBNomination(Base):
             is_votable=self.is_votable,
         )
 
-    def to_full_model(self) -> FullNomination:
-        return FullNomination(
+    def to_full_model(self) -> NominationFull:
+        return NominationFull(
             id=NominationId(self.id),
             code=self.code,
             title=self.title,

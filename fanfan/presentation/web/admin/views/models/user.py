@@ -1,28 +1,28 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import DBUser, DBUserPermissions, DBUserSettings
+from fanfan.adapters.db.models import UserORM, UserPermissionsORM, UserSettingsORM
 
 
-class UserView(ModelView, model=DBUser):
+class UserView(ModelView, model=UserORM):
     name_plural = "Пользователи"
     category = "Пользователи"
     icon = "fa-solid fa-users"
 
     can_create = False
     column_list = [
-        DBUser.id,
-        DBUser.username,
-        DBUser.ticket,
-        DBUser.role,
-        DBUser.achievements_count,
-        DBUser.points,
+        UserORM.id,
+        UserORM.username,
+        UserORM.ticket,
+        UserORM.role,
+        UserORM.achievements_count,
+        UserORM.points,
     ]
     form_columns = [
-        DBUser.role,
-        DBUser.ticket,
+        UserORM.role,
+        UserORM.ticket,
     ]
-    column_searchable_list = [DBUser.username, DBUser.role]
-    column_sortable_list = [DBUser.achievements_count, DBUser.points]
+    column_searchable_list = [UserORM.username, UserORM.role]
+    column_sortable_list = [UserORM.achievements_count, UserORM.points]
     form_ajax_refs = {
         "ticket": {
             "fields": ("id",),
@@ -30,46 +30,46 @@ class UserView(ModelView, model=DBUser):
         },
     }
     column_labels = {
-        DBUser.id: "Telegram ID",
-        DBUser.username: "Имя пользователя",
-        DBUser.role: "Роль",
-        DBUser.achievements_count: "Достижений получено",
-        DBUser.points: "Очков",
-        DBUser.settings: "Настройки пользователя",
-        DBUser.permissions: "Права пользователя",
-        DBUser.ticket: "Билет",
-        DBUser.created_at: "Время создания",
-        DBUser.updated_at: "Время изменения",
+        UserORM.id: "Telegram ID",
+        UserORM.username: "Имя пользователя",
+        UserORM.role: "Роль",
+        UserORM.achievements_count: "Достижений получено",
+        UserORM.points: "Очков",
+        UserORM.settings: "Настройки пользователя",
+        UserORM.permissions: "Права пользователя",
+        UserORM.ticket: "Билет",
+        UserORM.created_at: "Время создания",
+        UserORM.updated_at: "Время изменения",
     }
 
 
-class UserPermissionsView(ModelView, model=DBUserPermissions):
+class UserPermissionsView(ModelView, model=UserPermissionsORM):
     name_plural = "Права пользователей"
     category = "Пользователи"
     icon = "fa-solid fa-passport"
     can_create = False
 
     column_list = [
-        DBUserPermissions.user,
+        UserPermissionsORM.user,
     ]
     column_labels = {
-        DBUserPermissions.user: "Пользователь",
-        DBUserPermissions.can_send_feedback: "Может отправлять отзывы",
+        UserPermissionsORM.user: "Пользователь",
+        UserPermissionsORM.can_send_feedback: "Может отправлять отзывы",
     }
-    form_excluded_columns = [DBUserPermissions.user]
+    form_excluded_columns = [UserPermissionsORM.user]
 
 
-class UserSettingsView(ModelView, model=DBUserSettings):
+class UserSettingsView(ModelView, model=UserSettingsORM):
     name_plural = "Настройки пользователей"
     category = "Пользователи"
     icon = "fa-solid fa-gear"
     can_create = False
 
     column_list = [
-        DBUserSettings.user,
+        UserSettingsORM.user,
     ]
     column_labels = {
-        DBUserSettings.items_per_page: "Элементов на странице",
-        DBUserSettings.receive_all_announcements: "Получает все уведомления",
+        UserSettingsORM.items_per_page: "Элементов на странице",
+        UserSettingsORM.receive_all_announcements: "Получает все уведомления",
     }
-    form_excluded_columns = [DBUserSettings.user]
+    form_excluded_columns = [UserSettingsORM.user]

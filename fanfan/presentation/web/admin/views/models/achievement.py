@@ -2,35 +2,39 @@ from sqladmin import ModelView, action
 from starlette.requests import Request
 from starlette.responses import FileResponse
 
-from fanfan.adapters.db.models import DBAchievement
+from fanfan.adapters.db.models import AchievementORM
 from fanfan.common.paths import QR_CODES_TEMP_DIR
 from fanfan.core.dto.qr import QR, QRType
 from fanfan.core.utils.qr import generate_img
 
 
-class AchievementView(ModelView, model=DBAchievement):
+class AchievementView(ModelView, model=AchievementORM):
     name_plural = "Достижения"
     category = "Квест"
     icon = "fa-solid fa-trophy"
-    column_default_sort = [(DBAchievement.order, False)]
+    column_default_sort = [(AchievementORM.order, False)]
 
-    column_list = [DBAchievement.order, DBAchievement.title, DBAchievement.description]
-    column_details_exclude_list = [DBAchievement.user_received]
+    column_list = [
+        AchievementORM.order,
+        AchievementORM.title,
+        AchievementORM.description,
+    ]
+    column_details_exclude_list = [AchievementORM.user_received]
     form_columns = [
-        DBAchievement.order,
-        DBAchievement.title,
-        DBAchievement.description,
-        DBAchievement.secret_id,
+        AchievementORM.order,
+        AchievementORM.title,
+        AchievementORM.description,
+        AchievementORM.secret_id,
     ]
 
     column_labels = {
-        DBAchievement.id: "ID",
-        DBAchievement.order: "Порядок",
-        DBAchievement.secret_id: "Секретный ID",
-        DBAchievement.title: "Название",
-        DBAchievement.description: "Описание",
-        DBAchievement.created_at: "Время создания",
-        DBAchievement.updated_at: "Время изменения",
+        AchievementORM.id: "ID",
+        AchievementORM.order: "Порядок",
+        AchievementORM.secret_id: "Секретный ID",
+        AchievementORM.title: "Название",
+        AchievementORM.description: "Описание",
+        AchievementORM.created_at: "Время создания",
+        AchievementORM.updated_at: "Время изменения",
     }
 
     @action(

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from aiogram_dialog import Dialog, DialogManager
 
 from fanfan.application.events.get_current_event import GetCurrentEvent
-from fanfan.core.exceptions.events import NoCurrentEvent
+from fanfan.core.exceptions.schedule import NoCurrentEvent
 from fanfan.presentation.tgbot import states
 
 from .add_subscription import set_subscription_counter_window

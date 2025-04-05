@@ -2,12 +2,12 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.user import DBUser
+from fanfan.adapters.db.models.user import UserORM
 from fanfan.core.models.transaction import Transaction, TransactionId
 from fanfan.core.models.user import UserId
 
 
-class DBTransaction(Base):
+class TransactionORM(Base):
     __tablename__ = "transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -16,17 +16,17 @@ class DBTransaction(Base):
 
     # To user
     to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    to_user: Mapped[DBUser] = relationship(foreign_keys=to_user_id)
+    to_user: Mapped[UserORM] = relationship(foreign_keys=to_user_id)
 
     # From user
     from_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
-    from_user: Mapped[DBUser | None] = relationship(foreign_keys=from_user_id)
+    from_user: Mapped[UserORM | None] = relationship(foreign_keys=from_user_id)
 
     @classmethod
     def from_model(cls, model: Transaction):
-        return DBTransaction(
+        return TransactionORM(
             id=model.id,
             points=model.points,
             comment=model.comment,

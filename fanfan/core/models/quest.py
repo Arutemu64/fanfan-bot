@@ -13,5 +13,5 @@ class QuestParticipant:
 
 
 @dataclass(slots=True, kw_only=True)
-class FullQuestParticipant(QuestParticipant):
+class QuestParticipantFull(QuestParticipant):
     achievements_count: int

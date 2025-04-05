@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.config.parsers import get_config
-from fanfan.adapters.db.models import DBGlobalSettings
+from fanfan.adapters.db.models import GlobalSettingsORM
 from fanfan.common.logging import setup_logging
 from fanfan.main.di import create_system_container
 
@@ -22,7 +22,7 @@ async def migrate():
         session: AsyncSession = await container.get(AsyncSession)
         async with session:
             try:
-                session.add(DBGlobalSettings(id=1))
+                session.add(GlobalSettingsORM(id=1))
                 await session.commit()
             except IntegrityError:
                 await session.rollback()

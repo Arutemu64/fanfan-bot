@@ -11,7 +11,7 @@ from fanfan.adapters.config.models import Configuration
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.common.paths import QR_CODES_TEMP_DIR
 from fanfan.core.dto.qr import QR, QRType
-from fanfan.core.models.user import FullUser
+from fanfan.core.models.user import UserFull
 from fanfan.core.utils.qr import generate_img
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
@@ -21,7 +21,7 @@ from fanfan.presentation.tgbot.static import strings
 
 async def quest_main_getter(
     dialog_manager: DialogManager,
-    user: FullUser,
+    user: UserFull,
     container: AsyncContainer,
     **kwargs,
 ) -> dict:

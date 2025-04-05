@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.notification import UserNotification
@@ -28,7 +28,7 @@ class CreateRoleMailing(Interactor[CreateRoleMailingDTO, Mailing]):
         self,
         id_provider: IdProvider,
         mailing_repo: MailingRepository,
-        stream_broker_adapter: StreamBrokerAdapter,
+        stream_broker_adapter: EventsBroker,
     ):
         self.id_provider = id_provider
         self.mailing_repo = mailing_repo

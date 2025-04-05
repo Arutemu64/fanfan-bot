@@ -17,6 +17,6 @@ class Feedback:
 
 
 @dataclass(slots=True, kw_only=True)
-class FullFeedback(Feedback):
+class FeedbackFull(Feedback):
     user: User
     processed_by: User

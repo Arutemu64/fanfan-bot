@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-@dataclass(slots=True, kw_only=True)
+@dataclass(kw_only=True)
 class UserPermissions:
     user_id: UserId
 

@@ -2,12 +2,12 @@ from sqlalchemy import Select, and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
-from fanfan.adapters.db.models import DBAchievement, DBReceivedAchievement
+from fanfan.adapters.db.models import AchievementORM, ReceivedAchievementORM
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.achievement import (
     Achievement,
+    AchievementFull,
     AchievementId,
-    FullAchievement,
     SecretId,
 )
 from fanfan.core.models.user import UserId
@@ -21,12 +21,12 @@ class AchievementsRepository:
     def _load_full(query: Select, user_id: UserId | None = None) -> Select:
         if user_id:
             query = query.options(
-                contains_eager(DBAchievement.user_received)
+                contains_eager(AchievementORM.user_received)
             ).outerjoin(
-                DBReceivedAchievement,
+                ReceivedAchievementORM,
                 and_(
-                    DBReceivedAchievement.achievement_id == DBAchievement.id,
-                    DBReceivedAchievement.user_id == user_id,
+                    ReceivedAchievementORM.achievement_id == AchievementORM.id,
+                    ReceivedAchievementORM.user_id == user_id,
                 ),
             )
         return query
@@ -34,21 +34,21 @@ class AchievementsRepository:
     async def get_achievement_by_id(
         self, achievement_id: AchievementId
     ) -> Achievement | None:
-        achievement = await self.session.get(DBAchievement, achievement_id)
+        achievement = await self.session.get(AchievementORM, achievement_id)
         return achievement.to_model() if achievement else None
 
     async def get_achievement_by_secret_id(
         self, secret_id: SecretId
     ) -> Achievement | None:
         achievement = await self.session.scalar(
-            select(DBAchievement).where(DBAchievement.secret_id == secret_id),
+            select(AchievementORM).where(AchievementORM.secret_id == secret_id),
         )
         return achievement.to_model() if achievement else None
 
     async def list_achievements(
         self, user_id: UserId | None = None, pagination: Pagination | None = None
-    ) -> list[FullAchievement]:
-        query = select(DBAchievement).order_by(DBAchievement.order)
+    ) -> list[AchievementFull]:
+        query = select(AchievementORM).order_by(AchievementORM.order)
         query = self._load_full(query, user_id)
 
         if pagination:
@@ -58,7 +58,7 @@ class AchievementsRepository:
         return [a.to_full_model() for a in achievements]
 
     async def count_achievements(self) -> int:
-        return await self.session.scalar(select(func.count(DBAchievement.id)))
+        return await self.session.scalar(select(func.count(AchievementORM.id)))
 
     async def add_achievement_to_user(
         self,
@@ -66,7 +66,7 @@ class AchievementsRepository:
         user_id: UserId,
         from_user_id: UserId | None = None,
     ) -> None:
-        received = DBReceivedAchievement(
+        received = ReceivedAchievementORM(
             achievement_id=achievement_id, user_id=user_id, from_user_id=from_user_id
         )
         self.session.add(received)
@@ -74,7 +74,7 @@ class AchievementsRepository:
 
     async def delete_all_user_received_achievements(self, user_id: UserId) -> None:
         await self.session.execute(
-            delete(DBReceivedAchievement).where(
-                DBReceivedAchievement.user_id == user_id
+            delete(ReceivedAchievementORM).where(
+                ReceivedAchievementORM.user_id == user_id
             )
         )

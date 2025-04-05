@@ -1,20 +1,20 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import DBVote
+from fanfan.adapters.db.models import VoteORM
 
 
-class VoteView(ModelView, model=DBVote):
+class VoteView(ModelView, model=VoteORM):
     name_plural = "Голоса"
     icon = "fa-solid fa-square-poll-vertical"
     can_create = False
     can_edit = False
 
     column_labels = {
-        DBVote.id: "ID",
-        DBVote.participant: "Участник",
-        DBVote.user: "Пользователь",
-        DBVote.created_at: "Время создания",
-        DBVote.updated_at: "Время изменения",
+        VoteORM.id: "ID",
+        VoteORM.participant: "Участник",
+        VoteORM.user: "Пользователь",
+        VoteORM.created_at: "Время создания",
+        VoteORM.updated_at: "Время изменения",
     }
-    column_list = [DBVote.id, DBVote.participant, DBVote.user, DBVote.created_at]
-    column_details_exclude_list = [DBVote.participant_id, DBVote.user_id]
+    column_list = [VoteORM.id, VoteORM.participant, VoteORM.user, VoteORM.created_at]
+    column_details_exclude_list = [VoteORM.participant_id, VoteORM.user_id]

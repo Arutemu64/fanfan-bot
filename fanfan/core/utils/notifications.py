@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import Achievement
-from fanfan.core.models.feedback import FullFeedback
+from fanfan.core.models.feedback import FeedbackFull
 from fanfan.core.utils.pluralize import Plurals, pluralize
 from fanfan.presentation.tgbot.keyboards.buttons import (
     DELETE_BUTTON,
@@ -33,7 +33,7 @@ def create_points_notification(points: int, comment: str | None) -> UserNotifica
     )
 
 
-def create_feedback_notification(feedback: FullFeedback) -> UserNotification:
+def create_feedback_notification(feedback: FeedbackFull) -> UserNotification:
     bottom_text = (
         "⚙️ Уведомления можно отключить в личных настройках.\n"
         "⚠️ Пользователю можно ограничить доступ к обратной связи, "

@@ -1,7 +1,7 @@
 import logging
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.access import AccessDenied
@@ -16,7 +16,7 @@ class CancelMailing(Interactor[MailingId, Mailing]):
         self,
         mailing_repo: MailingRepository,
         id_provider: IdProvider,
-        stream_broker_adapter: StreamBrokerAdapter,
+        stream_broker_adapter: EventsBroker,
     ):
         self.mailing_repo = mailing_repo
         self.id_provider = id_provider

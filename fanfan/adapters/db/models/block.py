@@ -4,7 +4,7 @@ from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.block import Block, BlockId
 
 
-class DBBlock(Base):
+class BlockORM(Base):
     __tablename__ = "blocks"
 
     id: Mapped[int] = mapped_column(primary_key=True)

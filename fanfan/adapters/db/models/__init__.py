@@ -1,37 +1,39 @@
-from .achievement import DBAchievement
-from .activity import DBActivity
+from .achievement import AchievementORM
+from .activity import ActivityORM
 from .base import Base
-from .event import DBEvent
-from .feedback import DBFeedback
-from .nomination import DBNomination
-from .participant import DBParticipant
-from .quote import DBQuote
-from .received_achievement import DBReceivedAchievement
-from .settings import DBGlobalSettings
-from .subscription import DBSubscription
-from .ticket import DBTicket
-from .transaction import DBTransaction
-from .user import DBUser
-from .user_permissions import DBUserPermissions
-from .user_settings import DBUserSettings
-from .vote import DBVote
+from .event import EventORM
+from .feedback import FeedbackORM
+from .nomination import NominationORM
+from .participant import ParticipantORM
+from .quote import QuoteORM
+from .received_achievement import ReceivedAchievementORM
+from .schedule_change import ScheduleChangeORM
+from .settings import GlobalSettingsORM
+from .subscription import SubscriptionORM
+from .ticket import TicketORM
+from .transaction import TransactionORM
+from .user import UserORM
+from .user_permissions import UserPermissionsORM
+from .user_settings import UserSettingsORM
+from .vote import VoteORM
 
 __all__ = [
-    "DBAchievement",
+    "AchievementORM",
     "Base",
-    "DBEvent",
-    "DBNomination",
-    "DBParticipant",
-    "DBReceivedAchievement",
-    "DBGlobalSettings",
-    "DBSubscription",
-    "DBTicket",
-    "DBUser",
-    "DBUserPermissions",
-    "DBUserSettings",
-    "DBVote",
-    "DBActivity",
-    "DBQuote",
-    "DBFeedback",
-    "DBTransaction",
+    "EventORM",
+    "NominationORM",
+    "ParticipantORM",
+    "ReceivedAchievementORM",
+    "GlobalSettingsORM",
+    "SubscriptionORM",
+    "TicketORM",
+    "UserORM",
+    "UserPermissionsORM",
+    "UserSettingsORM",
+    "VoteORM",
+    "ActivityORM",
+    "QuoteORM",
+    "FeedbackORM",
+    "TransactionORM",
+    "ScheduleChangeORM",
 ]

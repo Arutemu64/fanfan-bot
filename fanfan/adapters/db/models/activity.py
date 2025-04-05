@@ -10,7 +10,7 @@ from fanfan.adapters.db.utils.imagetype import ImageType
 from fanfan.core.models.activity import Activity, ActivityId
 
 
-class DBActivity(Base, OrderMixin):
+class ActivityORM(Base, OrderMixin):
     __tablename__ = "activities"
 
     id: Mapped[int] = mapped_column(primary_key=True)

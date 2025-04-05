@@ -2,7 +2,6 @@ import typing
 
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
@@ -39,7 +38,6 @@ from fanfan.presentation.tgbot.dialogs.schedule.event_details import show_event_
 from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
 )
-from fanfan.presentation.tgbot.keyboards.buttons import show_mailing_info_button
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.static.templates import schedule_list
 
@@ -70,11 +68,7 @@ async def set_next_event_handler(
 
     data = await set_next_event()
     await callback.message.answer(
-        f"✅ Выступление <b>{data.current_event.title}</b> отмечено текущим\n"
-        f"Уникальный ID рассылки: <code>{data.mailing_id}</code>",
-        reply_markup=InlineKeyboardBuilder(
-            [[show_mailing_info_button(data.mailing_id)]]
-        ).as_markup(),
+        f"✅ Выступление <b>{data.current_event.title}</b> отмечено текущим\n",
     )
     await show_event_page(manager, data.current_event.id)
     manager.show_mode = ShowMode.DELETE_AND_SEND

@@ -4,13 +4,13 @@ from fanfan.adapters.db.repositories.achievements import (
     AchievementsRepository,
 )
 from fanfan.adapters.db.repositories.activities import ActivitiesRepository
-from fanfan.adapters.db.repositories.events import EventsRepository
 from fanfan.adapters.db.repositories.feedback import FeedbackRepository
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import (
     ParticipantsRepository,
 )
 from fanfan.adapters.db.repositories.quest import QuestRepository
+from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.adapters.db.repositories.settings import (
     SettingsRepository,
 )
@@ -30,7 +30,7 @@ class RepositoriesProvider(Provider):
     # RDB
     achievements = provide(AchievementsRepository)
     activities = provide(ActivitiesRepository)
-    events = provide(EventsRepository)
+    events = provide(ScheduleRepository)
     feedback = provide(FeedbackRepository)
     nominations = provide(NominationsRepository)
     participants = provide(ParticipantsRepository)

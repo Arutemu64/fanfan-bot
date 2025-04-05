@@ -21,28 +21,28 @@ from fanfan.presentation.stream.jstream import stream
 router = NatsRouter()
 
 
-class SendNotificationDTO(BaseModel):
+class NewNotificationDTO(BaseModel):
     user_id: UserId
     notification: UserNotification
 
 
 @router.subscriber(
-    "send_notification",
+    "notifications.new",
     stream=stream,
     pull_sub=PullSub(),
-    durable="send_notification",
+    durable="notifications_new",
     retry=True,
 )
 @router.subscriber(
-    "mailing.{mailing_id}",
+    "notifications.mailing.{mailing_id}",
     stream=stream,
     pull_sub=PullSub(),
-    durable="mailings",
+    durable="notifications_mailing",
     retry=True,
 )
 @inject
 async def send_notification(
-    data: SendNotificationDTO,
+    data: NewNotificationDTO,
     msg: FromDishka[NatsMessage],
     notifier: FromDishka[BotNotifier],
     bot: FromDishka[Bot],

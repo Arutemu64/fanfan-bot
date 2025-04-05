@@ -5,7 +5,7 @@ from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.users import TicketNotLinked
 from fanfan.core.exceptions.votes import AlreadyVotedInThisNomination, VotingDisabled
 from fanfan.core.models.nomination import NominationId
-from fanfan.core.models.user import FullUser, UserRole
+from fanfan.core.models.user import UserFull, UserRole
 
 
 class AccessService:
@@ -20,19 +20,19 @@ class AccessService:
         self.quest_repo = quest_repo
 
     @staticmethod
-    async def ensure_can_send_feedback(user: FullUser) -> None:
+    async def ensure_can_send_feedback(user: UserFull) -> None:
         if not user.permissions.can_send_feedback:
             raise AccessDenied
 
     @staticmethod
-    async def ensure_can_edit_schedule(user: FullUser) -> None:
+    async def ensure_can_edit_schedule(user: UserFull) -> None:
         if user.role not in [UserRole.HELPER, UserRole.ORG]:
             raise AccessDenied
         if user.permissions.helper_can_edit_schedule is False:
             raise AccessDenied
 
     async def ensure_can_vote(
-        self, user: FullUser, nomination_id: NominationId | None = None
+        self, user: UserFull, nomination_id: NominationId | None = None
     ) -> None:
         if user.ticket is None:
             raise TicketNotLinked
@@ -45,6 +45,6 @@ class AccessService:
             raise AlreadyVotedInThisNomination
 
     @staticmethod
-    async def ensure_can_participate_in_quest(user: FullUser):
+    async def ensure_can_participate_in_quest(user: UserFull):
         if user.ticket is None:
             raise TicketNotLinked

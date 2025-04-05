@@ -8,10 +8,10 @@ from fanfan.core.models.user import UserId
 from fanfan.core.models.user_settings import UserSettings
 
 if typing.TYPE_CHECKING:
-    from fanfan.adapters.db.models import DBUser
+    from fanfan.adapters.db.models import UserORM
 
 
-class DBUserSettings(Base):
+class UserSettingsORM(Base):
     __tablename__ = "user_settings"
 
     # General settings
@@ -28,11 +28,11 @@ class DBUserSettings(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    user: Mapped["DBUser"] = relationship(back_populates="settings")
+    user: Mapped["UserORM"] = relationship(back_populates="settings")
 
     @classmethod
     def from_model(cls, model: UserSettings):
-        return DBUserSettings(
+        return UserSettingsORM(
             user_id=model.user_id,
             items_per_page=model.items_per_page,
             receive_all_announcements=model.receive_all_announcements,

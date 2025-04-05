@@ -11,10 +11,10 @@ from fanfan.core.models.ticket import Ticket, TicketId
 from fanfan.core.models.user import UserId, UserRole
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.user import DBUser
+    from fanfan.adapters.db.models.user import UserORM
 
 
-class DBTicket(Base):
+class TicketORM(Base):
     __tablename__ = "tickets"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -25,7 +25,7 @@ class DBTicket(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
     )
-    used_by: Mapped[DBUser | None] = relationship(
+    used_by: Mapped[UserORM | None] = relationship(
         foreign_keys=used_by_id,
         back_populates="ticket",
     )
@@ -33,14 +33,14 @@ class DBTicket(Base):
     issued_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
     )
-    issued_by: Mapped[DBUser | None] = relationship(foreign_keys=issued_by_id)
+    issued_by: Mapped[UserORM | None] = relationship(foreign_keys=issued_by_id)
 
     def __str__(self) -> str:
         return self.id
 
     @classmethod
     def from_model(cls, model: Ticket):
-        return DBTicket(
+        return TicketORM(
             id=model.id,
             role=model.role,
             used_by_id=model.used_by_id,

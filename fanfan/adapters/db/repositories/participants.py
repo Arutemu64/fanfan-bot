@@ -2,12 +2,12 @@ from sqlalchemy import Select, and_, case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, undefer
 
-from fanfan.adapters.db.models import DBEvent, DBNomination, DBParticipant, DBVote
+from fanfan.adapters.db.models import EventORM, NominationORM, ParticipantORM, VoteORM
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.participant import (
-    FullParticipant,
     Participant,
+    ParticipantFull,
     ParticipantId,
     ParticipantVotingNumber,
 )
@@ -27,13 +27,13 @@ class ParticipantsRepository:
     ) -> Select:
         if nomination_id:
             query = query.where(
-                DBParticipant.nomination.has(DBNomination.id == nomination_id),
+                ParticipantORM.nomination.has(NominationORM.id == nomination_id),
             )
         if search_query:
             query = query.where(
                 or_(
-                    DBParticipant.title.ilike(f"%{search_query}%"),
-                    DBParticipant.voting_number == int(search_query)
+                    ParticipantORM.title.ilike(f"%{search_query}%"),
+                    ParticipantORM.voting_number == int(search_query)
                     if search_query.isnumeric()
                     else False,
                 )
@@ -43,12 +43,12 @@ class ParticipantsRepository:
                 and_(
                     case(
                         (
-                            DBParticipant.event.has(),
-                            DBParticipant.event.has(DBEvent.is_skipped.isnot(True)),
+                            ParticipantORM.event.has(),
+                            ParticipantORM.event.has(EventORM.is_skipped.isnot(True)),
                         ),
                         else_=True,
                     ),
-                    DBParticipant.nomination.has(DBNomination.is_votable.is_(True)),
+                    ParticipantORM.nomination.has(NominationORM.is_votable.is_(True)),
                 ),
             )
         return query
@@ -56,29 +56,29 @@ class ParticipantsRepository:
     @staticmethod
     def _load_full(query: Select, user_id: UserId | None = None) -> Select:
         query = query.options(
-            joinedload(DBParticipant.nomination),
-            joinedload(DBParticipant.event),
-            undefer(DBParticipant.votes_count),
+            joinedload(ParticipantORM.nomination),
+            joinedload(ParticipantORM.event),
+            undefer(ParticipantORM.votes_count),
         )
         if user_id:
-            query = query.options(contains_eager(DBParticipant.user_vote)).outerjoin(
-                DBVote,
+            query = query.options(contains_eager(ParticipantORM.user_vote)).outerjoin(
+                VoteORM,
                 and_(
-                    DBVote.participant_id == DBParticipant.id,
-                    DBVote.user_id == user_id,
+                    VoteORM.participant_id == ParticipantORM.id,
+                    VoteORM.user_id == user_id,
                 ),
             )
         return query
 
     async def save_participant(self, model: Participant) -> Participant:
-        participant = await self.session.merge(DBParticipant.from_model(model))
+        participant = await self.session.merge(ParticipantORM.from_model(model))
         await self.session.flush([participant])
         return participant.to_model()
 
     async def get_participant_by_id(
         self, participant_id: ParticipantId
-    ) -> FullParticipant | None:
-        query = select(DBParticipant).where(DBParticipant.id == participant_id)
+    ) -> ParticipantFull | None:
+        query = select(ParticipantORM).where(ParticipantORM.id == participant_id)
         query = self._load_full(query)
         participant = await self.session.scalar(query)
         return participant.to_full_model() if participant else None
@@ -87,11 +87,11 @@ class ParticipantsRepository:
         self, nomination_id: NominationId, voting_number: ParticipantVotingNumber
     ) -> Participant | None:
         query = (
-            select(DBParticipant)
+            select(ParticipantORM)
             .where(
                 and_(
-                    DBParticipant.nomination_id == nomination_id,
-                    DBParticipant.voting_number == voting_number,
+                    ParticipantORM.nomination_id == nomination_id,
+                    ParticipantORM.voting_number == voting_number,
                 ),
             )
             .limit(1)
@@ -106,8 +106,8 @@ class ParticipantsRepository:
         search_query: str | None = None,
         user_id: UserId | None = None,
         pagination: Pagination | None = None,
-    ) -> list[FullParticipant]:
-        query = select(DBParticipant).order_by(DBParticipant.voting_number)
+    ) -> list[ParticipantFull]:
+        query = select(ParticipantORM).order_by(ParticipantORM.voting_number)
         query = self._load_full(query, user_id)
 
         if pagination:
@@ -125,7 +125,7 @@ class ParticipantsRepository:
         nomination_id: NominationId | None = None,
         search_query: str | None = None,
     ) -> int:
-        query = select(func.count(DBParticipant.id))
+        query = select(func.count(ParticipantORM.id))
         query = self._filter_participants_query(
             query, nomination_id, search_query, only_votable
         )

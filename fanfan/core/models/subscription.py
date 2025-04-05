@@ -17,8 +17,8 @@ class Subscription:
 
 
 @dataclass(slots=True, kw_only=True)
-class FullSubscription(Subscription):
-    event: FullEvent
+class SubscriptionFull(Subscription):
+    event: EventFull
 
 
-from fanfan.core.models.event import EventId, FullEvent  # noqa: E402
+from fanfan.core.models.event import EventFull, EventId  # noqa: E402

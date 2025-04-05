@@ -9,6 +9,7 @@ from fanfan.application.feedback.process_feedback import (
     ProcessFeedback,
     ProcessFeedbackDTO,
 )
+from fanfan.application.schedule_mgmt.revert_change import RevertScheduleChange
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
@@ -19,6 +20,7 @@ from fanfan.presentation.tgbot.filters.callbacks import (
     PullDialogDownCallback,
     ShowMailingInfoCallback,
     ShowUserInfoCallback,
+    UndoScheduleChangeCallback,
 )
 
 router = Router(name="callbacks_router")
@@ -83,3 +85,14 @@ async def show_user_info(
     dialog_manager: DialogManager,
 ):
     await start_user_manager(manager=dialog_manager, user_id=callback_data.user_id)
+
+
+@router.callback_query(UndoScheduleChangeCallback.filter())
+@inject
+async def undo_schedule_change(
+    query: CallbackQuery,
+    callback_data: UndoScheduleChangeCallback,
+    interactor: FromDishka[RevertScheduleChange],
+):
+    await interactor(callback_data.schedule_change_id)
+    await query.answer()

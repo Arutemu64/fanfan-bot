@@ -1,32 +1,32 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import DBParticipant
+from fanfan.adapters.db.models import ParticipantORM
 
 
-class ParticipantView(ModelView, model=DBParticipant):
+class ParticipantView(ModelView, model=ParticipantORM):
     name_plural = "Участники"
     icon = "fa-solid fa-person-falling-burst"
-    column_default_sort = [(DBParticipant.id, False)]
+    column_default_sort = [(ParticipantORM.id, False)]
 
     column_list = [
-        DBParticipant.title,
-        DBParticipant.nomination,
-        DBParticipant.votes_count,
+        ParticipantORM.title,
+        ParticipantORM.nomination,
+        ParticipantORM.votes_count,
     ]
     form_columns = [
-        DBParticipant.voting_number,
-        DBParticipant.title,
-        DBParticipant.nomination,
+        ParticipantORM.voting_number,
+        ParticipantORM.title,
+        ParticipantORM.nomination,
     ]
-    column_searchable_list = [DBParticipant.title]
-    column_sortable_list = [DBParticipant.votes_count]
-    column_details_exclude_list = [DBParticipant.user_vote, DBParticipant.nomination]
+    column_searchable_list = [ParticipantORM.title]
+    column_sortable_list = [ParticipantORM.votes_count]
+    column_details_exclude_list = [ParticipantORM.user_vote, ParticipantORM.nomination]
     column_labels = {
-        DBParticipant.id: "ID",
-        DBParticipant.voting_number: "Номер для голосования",
-        DBParticipant.title: "Название",
-        DBParticipant.nomination: "Номинация",
-        DBParticipant.votes_count: "Количество голосов",
-        DBParticipant.created_at: "Время создания",
-        DBParticipant.updated_at: "Время изменения",
+        ParticipantORM.id: "ID",
+        ParticipantORM.voting_number: "Номер для голосования",
+        ParticipantORM.title: "Название",
+        ParticipantORM.nomination: "Номинация",
+        ParticipantORM.votes_count: "Количество голосов",
+        ParticipantORM.created_at: "Время создания",
+        ParticipantORM.updated_at: "Время изменения",
     }

@@ -10,7 +10,7 @@ from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
     UpdateUserSettingsDTO,
 )
-from fanfan.core.models.user import FullUser
+from fanfan.core.models.user import UserFull
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.settings.common import ID_ITEMS_PER_PAGE_INPUT
 from fanfan.presentation.tgbot.static import strings
@@ -27,7 +27,7 @@ async def items_per_page_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
     get_user_by_id: GetUserById = await container.get(GetUserById)
-    user: FullUser = manager.middleware_data["user"]
+    user: UserFull = manager.middleware_data["user"]
 
     await update_user_settings(
         UpdateUserSettingsDTO(

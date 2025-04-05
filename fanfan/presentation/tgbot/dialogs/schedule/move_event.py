@@ -1,7 +1,6 @@
 import typing
 
 from aiogram.types import Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram_dialog import DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
@@ -23,7 +22,6 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
 from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
 )
-from fanfan.presentation.tgbot.keyboards.buttons import show_mailing_info_button
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.static.templates import schedule_list
 
@@ -44,17 +42,12 @@ async def move_event_handler(
         data = await move_event(
             MoveEventDTO(
                 event_id=EventId(dialog_manager.start_data[DATA_SELECTED_EVENT_ID]),
-                after_event_id=EventId(int(data.replace("/", ""))),
+                place_after_event_id=EventId(int(data.replace("/", ""))),
             )
         )
         await message.reply(
             f"✅ Выступление <b>{data.event.title}</b> поставлено "
-            f"после <b>{data.after_event.title}</b>\n"
-            f"Уникальный ID рассылки: "
-            f"<code>{data.mailing_id}</code>",
-            reply_markup=InlineKeyboardBuilder(
-                [[show_mailing_info_button(data.mailing_id)]]
-            ).as_markup(),
+            f"после <b>{data.place_after_event.title}</b>\n"
         )
         await dialog_manager.switch_to(
             states.Schedule.EVENT_DETAILS,

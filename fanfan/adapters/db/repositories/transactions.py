@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models.transaction import DBTransaction
+from fanfan.adapters.db.models.transaction import TransactionORM
 from fanfan.core.models.transaction import Transaction
 
 
@@ -9,7 +9,7 @@ class TransactionsRepository:
         self.session = session
 
     async def add_transaction(self, model: Transaction) -> Transaction:
-        transaction = DBTransaction.from_model(model)
+        transaction = TransactionORM.from_model(model)
         self.session.add(transaction)
         await self.session.flush([transaction])
         return transaction

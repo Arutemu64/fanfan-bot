@@ -23,7 +23,7 @@ from fanfan.application.users.update_user_settings import (
 )
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.event import EventId
-from fanfan.core.models.user import FullUser
+from fanfan.core.models.user import UserFull
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
@@ -40,7 +40,7 @@ ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 async def subscriptions_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: FullUser,
+    user: UserFull,
     **kwargs,
 ):
     get_subscriptions_page: GetSubscriptionsPage = await container.get(
@@ -78,7 +78,7 @@ async def toggle_all_notifications_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUser = manager.middleware_data["user"]
+    user: UserFull = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 

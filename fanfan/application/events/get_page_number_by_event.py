@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from fanfan.adapters.db.repositories.events import EventsRepository
+from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.models.event import EventId
 
@@ -12,7 +12,7 @@ class GetPageNumberByEventDTO:
 
 
 class GetPageNumberByEvent(Interactor[GetPageNumberByEventDTO, int]):
-    def __init__(self, events_repo: EventsRepository) -> None:
+    def __init__(self, events_repo: ScheduleRepository) -> None:
         self.events_repo = events_repo
 
     async def __call__(

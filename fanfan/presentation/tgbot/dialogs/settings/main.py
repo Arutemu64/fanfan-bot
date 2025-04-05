@@ -8,7 +8,7 @@ from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
     UpdateUserSettingsDTO,
 )
-from fanfan.core.models.user import FullUser
+from fanfan.core.models.user import UserFull
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_org
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -20,7 +20,7 @@ ID_ORG_RECEIVE_FEEDBACK_NOTIFICATIONS = "ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX"
 
 async def settings_user_info_getter(
     dialog_manager: DialogManager,
-    user: FullUser,
+    user: UserFull,
     container: AsyncContainer,
     **kwargs,
 ):
@@ -40,7 +40,7 @@ async def update_counter_value_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUser = manager.middleware_data["user"]
+    user: UserFull = manager.middleware_data["user"]
     await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(user.settings.items_per_page)
 
 
@@ -49,7 +49,7 @@ async def toggle_org_receive_feedback_notifications(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUser = manager.middleware_data["user"]
+    user: UserFull = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 

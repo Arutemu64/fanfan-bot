@@ -8,7 +8,7 @@ from fanfan.adapters.db.repositories.feedback import FeedbackRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.core.models.feedback import FeedbackId
 from fanfan.core.utils.notifications import create_feedback_notification
 from fanfan.presentation.stream.jstream import stream
@@ -16,7 +16,7 @@ from fanfan.presentation.stream.routes.notifications.edit_notification import (
     EditNotificationDTO,
 )
 from fanfan.presentation.stream.routes.notifications.send_notification import (
-    SendNotificationDTO,
+    NewNotificationDTO,
 )
 
 router = NatsRouter()
@@ -39,7 +39,7 @@ async def send_feedback_notifications(
     users_repo: FromDishka[UsersRepository],
     mailing_repo: FromDishka[MailingRepository],
     uow: FromDishka[UnitOfWork],
-    broker_adapter: FromDishka[StreamBrokerAdapter],
+    broker_adapter: FromDishka[EventsBroker],
     msg: FromDishka[NatsMessage],
     logger: Logger,
 ) -> None:
@@ -69,7 +69,7 @@ async def send_feedback_notifications(
     else:
         orgs = await users_repo.get_orgs_for_feedback_notification()
         for org in orgs:
-            await broker_adapter.send_notification(
-                SendNotificationDTO(user_id=org.id, notification=notification),
+            await broker_adapter.new_notification(
+                NewNotificationDTO(user_id=org.id, notification=notification),
                 mailing_id=feedback.mailing_id,
             )

@@ -1,5 +1,6 @@
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
+from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
 from dishka.integrations.faststream import inject
 from faststream import Logger
@@ -24,6 +25,7 @@ async def cancel_mailing(
     mailing_id: MailingId,
     mailing_repo: FromDishka[MailingRepository],
     bot: FromDishka[Bot],
+    bgm_factory: FromDishka[BgManagerFactory],
     js: FromDishka[JetStreamContext],
     logger: Logger,
 ) -> None:
@@ -35,6 +37,11 @@ async def cancel_mailing(
                 chat_id=message.chat.id,
                 message_id=message.message_id,
             )
+            # Update current dialog (in case if it's information is now outdated)
+            bg = bgm_factory.bg(
+                bot=bot, user_id=message.chat.id, chat_id=message.chat.id, load=True
+            )
+            await bg.update(data={}, show_mode=ShowMode.EDIT)
         except (TelegramBadRequest, TelegramForbiddenError):
             pass
         else:

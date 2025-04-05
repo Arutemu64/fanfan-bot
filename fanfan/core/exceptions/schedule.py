@@ -4,11 +4,11 @@ from fanfan.core.exceptions.base import AppException
 from fanfan.core.utils.pluralize import SECONDS_PLURALS, pluralize
 
 
-class EventsException(AppException):
+class ScheduleException(AppException):
     pass
 
 
-class EventNotFound(EventsException):
+class EventNotFound(ScheduleException):
     message = "⚠️ Выступление не найдено"
 
     def __init__(self, event_id: int | None = None) -> None:
@@ -24,7 +24,7 @@ class NoNextEvent(EventNotFound):
     message = "👏 Выступления закончились, спасибо за работу! Увидимся! 😉"
 
 
-class ScheduleEditTooFast(EventsException):
+class ScheduleEditTooFast(ScheduleException):
     def __init__(self, announcement_timeout: float, old_timestamp: float) -> None:
         time_left = int(old_timestamp + announcement_timeout - time.time())
         self.message = (
@@ -36,13 +36,21 @@ class ScheduleEditTooFast(EventsException):
         )
 
 
-class CurrentEventNotAllowed(EventsException):
+class CurrentEventNotAllowed(ScheduleException):
     message = "⚠️ Это выступление является текущим"
 
 
-class SkippedEventNotAllowed(EventsException):
+class SkippedEventNotAllowed(ScheduleException):
     message = "⚠️ Это выступление пропущено"
 
 
-class SameEventsAreNotAllowed(EventsException):
+class SameEventsAreNotAllowed(ScheduleException):
     message = "⚠️ Выступления не могут совпадать"
+
+
+class ScheduleChangeNotFound(ScheduleException):
+    message = "⚠️ Изменение расписания не найдено. Возможно, оно отменено."
+
+
+class OutdatedScheduleChange(ScheduleException):
+    message = "⚠️ Это изменение уже неактуально."

@@ -3,19 +3,19 @@ from dataclasses import dataclass
 
 from sqlalchemy.exc import IntegrityError
 
-from fanfan.adapters.db.repositories.events import EventsRepository
+from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.adapters.db.repositories.subscriptions import (
     SubscriptionsRepository,
 )
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
-from fanfan.core.exceptions.events import EventNotFound
+from fanfan.core.exceptions.schedule import EventNotFound
 from fanfan.core.exceptions.subscriptions import SubscriptionAlreadyExist
 from fanfan.core.models.event import EventId
 from fanfan.core.models.subscription import (
-    FullSubscription,
     Subscription,
+    SubscriptionFull,
 )
 
 logger = logging.getLogger(__name__)
@@ -27,12 +27,12 @@ class CreateSubscriptionDTO:
     counter: int
 
 
-class CreateSubscription(Interactor[CreateSubscriptionDTO, FullSubscription]):
+class CreateSubscription(Interactor[CreateSubscriptionDTO, SubscriptionFull]):
     def __init__(
         self,
         subscriptions_repo: SubscriptionsRepository,
         id_provider: IdProvider,
-        events_repo: EventsRepository,
+        events_repo: ScheduleRepository,
         uow: UnitOfWork,
     ) -> None:
         self.subscriptions_repo = subscriptions_repo
@@ -43,7 +43,7 @@ class CreateSubscription(Interactor[CreateSubscriptionDTO, FullSubscription]):
     async def __call__(
         self,
         data: CreateSubscriptionDTO,
-    ) -> FullSubscription:
+    ) -> SubscriptionFull:
         async with self.uow:
             try:
                 subscription = await self.subscriptions_repo.add_subscription(

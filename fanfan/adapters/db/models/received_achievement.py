@@ -8,11 +8,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fanfan.adapters.db.models.base import Base
 
 if typing.TYPE_CHECKING:
-    from fanfan.adapters.db.models.achievement import DBAchievement
-    from fanfan.adapters.db.models.user import DBUser
+    from fanfan.adapters.db.models.achievement import AchievementORM
+    from fanfan.adapters.db.models.user import UserORM
 
 
-class DBReceivedAchievement(Base):
+class ReceivedAchievementORM(Base):
     __tablename__ = "received_achievements"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -21,17 +21,17 @@ class DBReceivedAchievement(Base):
     achievement_id: Mapped[int] = mapped_column(
         ForeignKey("achievements.id", ondelete="CASCADE"),
     )
-    achievement: Mapped[DBAchievement] = relationship(viewonly=True)
+    achievement: Mapped[AchievementORM] = relationship(viewonly=True)
 
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    user: Mapped[DBUser] = relationship(foreign_keys=user_id)
+    user: Mapped[UserORM] = relationship(foreign_keys=user_id)
 
     # From user relation
     from_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
-    from_user: Mapped[DBUser | None] = relationship(foreign_keys=from_user_id)
+    from_user: Mapped[UserORM | None] = relationship(foreign_keys=from_user_id)
 
     # Constraint
     UniqueConstraint(user_id, achievement_id)

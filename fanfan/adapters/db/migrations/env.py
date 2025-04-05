@@ -2,6 +2,7 @@ import asyncio
 import sys
 from logging.config import fileConfig
 
+import alembic_postgresql_enum  # noqa: F401
 from alembic import context
 from alembic.script import ScriptDirectory
 from sqlalchemy import pool

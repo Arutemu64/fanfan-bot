@@ -8,17 +8,17 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.event import EventId
 from fanfan.core.models.subscription import (
-    FullSubscription,
     Subscription,
+    SubscriptionFull,
     SubscriptionId,
 )
 from fanfan.core.models.user import UserId
 
 if typing.TYPE_CHECKING:
-    from fanfan.adapters.db.models import DBEvent, DBUser
+    from fanfan.adapters.db.models import EventORM, UserORM
 
 
-class DBSubscription(Base):
+class SubscriptionORM(Base):
     __tablename__ = "subscriptions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -26,18 +26,18 @@ class DBSubscription(Base):
 
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    user: Mapped[DBUser] = relationship()
+    user: Mapped[UserORM] = relationship()
 
     # Event relation
     event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id", ondelete="CASCADE"))
-    event: Mapped[DBEvent] = relationship()
+    event: Mapped[EventORM] = relationship()
 
     # Constraint
     UniqueConstraint(event_id, user_id)
 
     @classmethod
     def from_model(cls, model: Subscription):
-        return DBSubscription(
+        return SubscriptionORM(
             id=model.id,
             user_id=model.user_id,
             event_id=model.event_id,
@@ -52,8 +52,8 @@ class DBSubscription(Base):
             counter=self.counter,
         )
 
-    def to_full_model(self) -> FullSubscription:
-        return FullSubscription(
+    def to_full_model(self) -> SubscriptionFull:
+        return SubscriptionFull(
             id=SubscriptionId(self.id),
             user_id=UserId(self.user_id),
             event_id=EventId(self.event_id),

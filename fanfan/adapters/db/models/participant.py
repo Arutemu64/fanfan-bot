@@ -6,21 +6,21 @@ from sqlalchemy import ForeignKey, UniqueConstraint, func, select
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.vote import DBVote
+from fanfan.adapters.db.models.vote import VoteORM
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.participant import (
-    FullParticipant,
     Participant,
+    ParticipantFull,
     ParticipantId,
     ParticipantVotingNumber,
 )
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.event import DBEvent
-    from fanfan.adapters.db.models.nomination import DBNomination
+    from fanfan.adapters.db.models.event import EventORM
+    from fanfan.adapters.db.models.nomination import NominationORM
 
 
-class DBParticipant(Base):
+class ParticipantORM(Base):
     __tablename__ = "participants"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -30,7 +30,7 @@ class DBParticipant(Base):
     nomination_id: Mapped[int] = mapped_column(
         ForeignKey("nominations.id", ondelete="CASCADE"),
     )
-    nomination: Mapped[DBNomination] = relationship()
+    nomination: Mapped[NominationORM] = relationship()
 
     # Nomination scoped id
     voting_number: Mapped[int | None] = mapped_column()
@@ -39,14 +39,14 @@ class DBParticipant(Base):
     )
 
     # Relationships
-    event: Mapped[DBEvent | None] = relationship(
+    event: Mapped[EventORM | None] = relationship(
         back_populates="participant", single_parent=True
     )
-    user_vote: Mapped[DBVote | None] = relationship(lazy="noload", viewonly=True)
+    user_vote: Mapped[VoteORM | None] = relationship(lazy="noload", viewonly=True)
     votes_count = column_property(
-        select(func.count(DBVote.id))
-        .where(DBVote.participant_id == id)
-        .correlate_except(DBVote)
+        select(func.count(VoteORM.id))
+        .where(VoteORM.participant_id == id)
+        .correlate_except(VoteORM)
         .scalar_subquery(),
         deferred=True,
     )
@@ -56,7 +56,7 @@ class DBParticipant(Base):
 
     @classmethod
     def from_model(cls, model: Participant):
-        return DBParticipant(
+        return ParticipantORM(
             id=model.id,
             title=model.title,
             nomination_id=model.nomination_id,
@@ -71,8 +71,8 @@ class DBParticipant(Base):
             voting_number=ParticipantVotingNumber(self.voting_number),
         )
 
-    def to_full_model(self) -> FullParticipant:
-        return FullParticipant(
+    def to_full_model(self) -> ParticipantFull:
+        return ParticipantFull(
             id=ParticipantId(self.id),
             title=self.title,
             nomination_id=NominationId(self.nomination_id),

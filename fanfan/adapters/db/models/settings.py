@@ -4,7 +4,7 @@ from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.settings import GlobalSettings
 
 
-class DBGlobalSettings(Base):
+class GlobalSettingsORM(Base):
     __tablename__ = "settings"
 
     id: Mapped[int] = mapped_column(primary_key=True, server_default="1")
@@ -14,7 +14,7 @@ class DBGlobalSettings(Base):
 
     @classmethod
     def from_model(cls, model: GlobalSettings):
-        return DBGlobalSettings(
+        return GlobalSettingsORM(
             id=1,
             voting_enabled=model.voting_enabled,
         )

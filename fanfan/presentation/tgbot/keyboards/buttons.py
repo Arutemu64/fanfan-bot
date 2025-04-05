@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardButton
 
 from fanfan.core.models.feedback import FeedbackId
 from fanfan.core.models.mailing import MailingId
+from fanfan.core.models.schedule_change import ScheduleChangeId
 from fanfan.core.models.user import UserId
 from fanfan.presentation.tgbot.filters.callbacks import (
     DeleteMessageCallback,
@@ -10,6 +11,7 @@ from fanfan.presentation.tgbot.filters.callbacks import (
     PullDialogDownCallback,
     ShowMailingInfoCallback,
     ShowUserInfoCallback,
+    UndoScheduleChangeCallback,
 )
 from fanfan.presentation.tgbot.static import strings
 
@@ -45,4 +47,15 @@ def show_user_info_button(user_id: UserId) -> InlineKeyboardButton:
     return InlineKeyboardButton(
         text=strings.titles.user_manager,
         callback_data=ShowUserInfoCallback(user_id=user_id).pack(),
+    )
+
+
+def undo_schedule_change_button(
+    schedule_change_id: ScheduleChangeId,
+) -> InlineKeyboardButton:
+    return InlineKeyboardButton(
+        text="♻️ Отменить изменение",
+        callback_data=UndoScheduleChangeCallback(
+            schedule_change_id=schedule_change_id
+        ).pack(),
     )

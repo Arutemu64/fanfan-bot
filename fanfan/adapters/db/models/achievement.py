@@ -8,15 +8,15 @@ from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.mixins.order import OrderMixin
 from fanfan.core.models.achievement import (
     Achievement,
+    AchievementFull,
     AchievementId,
-    FullAchievement,
 )
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.received_achievement import DBReceivedAchievement
+    from fanfan.adapters.db.models.received_achievement import ReceivedAchievementORM
 
 
-class DBAchievement(Base, OrderMixin):
+class AchievementORM(Base, OrderMixin):
     __tablename__ = "achievements"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -26,7 +26,7 @@ class DBAchievement(Base, OrderMixin):
     secret_id: Mapped[str] = mapped_column(unique=True)
 
     # Relationships
-    user_received: Mapped[DBReceivedAchievement | None] = relationship(
+    user_received: Mapped[ReceivedAchievementORM | None] = relationship(
         lazy="raise",
         viewonly=True,
     )
@@ -39,8 +39,8 @@ class DBAchievement(Base, OrderMixin):
             id=AchievementId(self.id), title=self.title, description=self.description
         )
 
-    def to_full_model(self) -> FullAchievement:
-        return FullAchievement(
+    def to_full_model(self) -> AchievementFull:
+        return AchievementFull(
             id=AchievementId(self.id),
             title=self.title,
             description=self.description,

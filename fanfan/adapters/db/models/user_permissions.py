@@ -8,10 +8,10 @@ from fanfan.core.models.permissions import UserPermissions
 from fanfan.core.models.user import UserId
 
 if typing.TYPE_CHECKING:
-    from fanfan.adapters.db.models import DBUser
+    from fanfan.adapters.db.models import UserORM
 
 
-class DBUserPermissions(Base):
+class UserPermissionsORM(Base):
     __tablename__ = "user_permissions"
 
     # Feedback
@@ -25,7 +25,7 @@ class DBUserPermissions(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    user: Mapped["DBUser"] = relationship(back_populates="permissions")
+    user: Mapped["UserORM"] = relationship(back_populates="permissions")
 
     def to_model(self) -> UserPermissions:
         return UserPermissions(

@@ -1,15 +1,15 @@
-from fanfan.adapters.db.repositories.events import EventsRepository
+from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.application.schedule_mgmt.set_current_event import (
     SetCurrentEvent,
     SetCurrentEventResult,
 )
-from fanfan.core.exceptions.events import NoNextEvent
+from fanfan.core.exceptions.schedule import NoNextEvent
 
 
 class SetNextEvent:
     def __init__(
         self,
-        events_repo: EventsRepository,
+        events_repo: ScheduleRepository,
         set_current_event: SetCurrentEvent,
     ):
         self.events_repo = events_repo

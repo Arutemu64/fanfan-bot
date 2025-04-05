@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import NewType
+from typing import Any, NewType
 
 from fanfan.core.models.block import Block
 
@@ -16,9 +16,12 @@ class Event:
     is_current: bool | None
     is_skipped: bool
 
+    def __eq__(self, other: Event | Any) -> bool:
+        return bool(isinstance(other, Event) and self.id == other.id)
+
 
 @dataclass(slots=True, kw_only=True)
-class FullEvent(Event):
+class EventFull(Event):
     queue: int | None
     nomination: Nomination | None
     block: Block | None

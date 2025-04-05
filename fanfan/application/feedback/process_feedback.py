@@ -6,14 +6,14 @@ from fanfan.adapters.db.repositories.feedback import FeedbackRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.adapters.utils.stream_broker import StreamBrokerAdapter
+from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.feedback import (
     FeedbackAlreadyProcessed,
     FeedbackException,
     FeedbackNotFound,
 )
-from fanfan.core.models.feedback import FeedbackId, FullFeedback
+from fanfan.core.models.feedback import FeedbackFull, FeedbackId
 from fanfan.presentation.stream.routes.notifications.send_feedback_notifications import (  # noqa: E501
     SendFeedbackNotificationsDTO,
 )
@@ -30,7 +30,7 @@ class ProcessFeedback:
         feedback_repo: FeedbackRepository,
         mailing_repo: MailingRepository,
         users_repo: UsersRepository,
-        stream_broker: StreamBrokerAdapter,
+        stream_broker: EventsBroker,
         uow: UnitOfWork,
         id_provider: IdProvider,
     ):
@@ -41,7 +41,7 @@ class ProcessFeedback:
         self.id_provider = id_provider
         self.stream_broker = stream_broker
 
-    async def __call__(self, data: ProcessFeedbackDTO) -> FullFeedback:
+    async def __call__(self, data: ProcessFeedbackDTO) -> FeedbackFull:
         async with self.uow:
             try:
                 feedback = await self.feedback_repo.get_feedback_by_id(

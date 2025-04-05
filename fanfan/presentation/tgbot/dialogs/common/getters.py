@@ -1,4 +1,4 @@
-from fanfan.core.models.user import FullUser, UserRole
+from fanfan.core.models.user import UserFull, UserRole
 
 CURRENT_USER = "current_user"
 
@@ -10,7 +10,7 @@ async def roles_getter(**kwargs) -> dict:
 
 
 async def current_user_getter(
-    user: FullUser,
+    user: UserFull,
     **kwargs,
-) -> dict[str, FullUser]:
+) -> dict[str, UserFull]:
     return {CURRENT_USER: user}

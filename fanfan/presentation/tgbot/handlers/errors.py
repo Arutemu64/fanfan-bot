@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 async def on_app_exception(event: ErrorEvent, dialog_manager: DialogManager) -> None:
-    exception: AppException = typing.cast(AppException, event.exception)
+    exception: AppException = typing.cast("AppException", event.exception)
     if c := event.update.callback_query:
         await c.answer(exception.message, show_alert=True)
         await dialog_manager.update(data={}, show_mode=ShowMode.EDIT)
@@ -29,7 +29,7 @@ async def on_app_exception(event: ErrorEvent, dialog_manager: DialogManager) -> 
 
 
 async def on_dialog_error(event: ErrorEvent, dialog_manager: DialogManager) -> None:
-    logging.error("Restarting dialog: %s", event.exception)
+    logger.error("Restarting dialog: %s", event.exception)
     msg = "🔄 Обновление бота..."
     if c := event.update.callback_query:
         await c.answer(msg)

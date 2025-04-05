@@ -25,6 +25,7 @@ from fanfan.application.quest.receive_achievement_by_secret_id import (
 )
 from fanfan.application.quest.reset_quest import ResetQuest
 from fanfan.application.schedule_mgmt.move_event import MoveEvent
+from fanfan.application.schedule_mgmt.revert_change import RevertScheduleChange
 from fanfan.application.schedule_mgmt.set_current_event import SetCurrentEvent
 from fanfan.application.schedule_mgmt.set_next_event import SetNextEvent
 from fanfan.application.schedule_mgmt.skip_event import SkipEvent
@@ -74,6 +75,7 @@ class InteractorsProvider(Provider):
     set_current_event = provide(SetCurrentEvent)
     set_next_event = provide(SetNextEvent)
     skip_event = provide(SkipEvent)
+    revert_change = provide(RevertScheduleChange)
 
     send_feedback = provide(SendFeedback)
     process_feedback = provide(ProcessFeedback)

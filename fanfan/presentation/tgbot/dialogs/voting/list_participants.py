@@ -30,7 +30,7 @@ from fanfan.application.votes.cancel_vote import CancelVote
 from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.votes import VoteNotFound
 from fanfan.core.models.participant import ParticipantVotingNumber
-from fanfan.core.models.user import FullUser
+from fanfan.core.models.user import UserFull
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
@@ -48,7 +48,7 @@ DATA_USER_VOTE_ID = "user_vote_id"
 
 async def participants_getter(
     dialog_manager: DialogManager,
-    user: FullUser,
+    user: UserFull,
     container: AsyncContainer,
     **kwargs,
 ) -> dict:

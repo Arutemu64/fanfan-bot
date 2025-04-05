@@ -13,5 +13,5 @@ class Achievement:
 
 
 @dataclass(slots=True, kw_only=True)
-class FullAchievement(Achievement):
+class AchievementFull(Achievement):
     received: bool

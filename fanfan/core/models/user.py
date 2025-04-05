@@ -34,7 +34,7 @@ class User:
 
 
 @dataclass(slots=True, kw_only=True)
-class FullUser(User):
+class UserFull(User):
     permissions: UserPermissions
     settings: UserSettings
     ticket: Ticket | None

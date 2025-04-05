@@ -10,7 +10,7 @@ from dishka.integrations.aiogram import CONTAINER_NAME
 from fanfan.adapters.config.models import Configuration
 from fanfan.application.utils.get_random_quote import GetRandomQuote
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.models.user import FullUser, UserRole
+from fanfan.core.models.user import UserFull, UserRole
 from fanfan.core.services.access import AccessService
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
@@ -28,7 +28,7 @@ from fanfan.presentation.tgbot.static import strings
 
 async def main_menu_getter(
     dialog_manager: DialogManager,
-    user: FullUser,
+    user: UserFull,
     container: AsyncContainer,
     **kwargs,
 ):
@@ -71,7 +71,7 @@ async def open_voting_handler(
     access: AccessService = await container.get(AccessService)
 
     # Backdoor for orgs
-    user: FullUser = manager.middleware_data["user"]
+    user: UserFull = manager.middleware_data["user"]
     if user.role is UserRole.ORG:
         await manager.start(states.Voting.LIST_NOMINATIONS)
         return
@@ -85,7 +85,7 @@ async def open_feedback_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUser = manager.middleware_data["user"]
+    user: UserFull = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 
@@ -98,7 +98,7 @@ async def open_quest_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: FullUser = manager.middleware_data["user"]
+    user: UserFull = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 

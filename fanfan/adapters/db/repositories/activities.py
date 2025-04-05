@@ -1,7 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import DBActivity
+from fanfan.adapters.db.models import ActivityORM
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.activity import Activity, ActivityId
 
@@ -11,13 +11,13 @@ class ActivitiesRepository:
         self.session = session
 
     async def get_activity_by_id(self, activity_id: ActivityId) -> Activity | None:
-        activity = await self.session.get(DBActivity, activity_id)
+        activity = await self.session.get(ActivityORM, activity_id)
         return activity.to_model() if activity else None
 
     async def list_activities(
         self, pagination: Pagination | None = None
     ) -> list[Activity]:
-        query = select(DBActivity).order_by(DBActivity.order)
+        query = select(ActivityORM).order_by(ActivityORM.order)
 
         if pagination:
             query = query.limit(pagination.limit).offset(pagination.offset)
@@ -26,4 +26,4 @@ class ActivitiesRepository:
         return [a.to_model() for a in activities]
 
     async def count_activities(self) -> int:
-        return await self.session.scalar(select(func.count(DBActivity.id)))
+        return await self.session.scalar(select(func.count(ActivityORM.id)))

@@ -3,7 +3,7 @@ import html
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import DBQuote
+from fanfan.adapters.db.models import QuoteORM
 from fanfan.application.common.id_provider import IdProvider
 
 
@@ -13,7 +13,7 @@ class GetRandomQuote:
         self.id_provider = id_provider
 
     async def __call__(self) -> str | None:
-        query = select(DBQuote.text).order_by(func.random()).limit(1)
+        query = select(QuoteORM.text).order_by(func.random()).limit(1)
         quote = await self.session.scalar(query)
 
         # Personalize quote

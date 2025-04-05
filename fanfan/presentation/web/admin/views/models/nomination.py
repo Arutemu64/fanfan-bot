@@ -1,27 +1,27 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import DBNomination
+from fanfan.adapters.db.models import NominationORM
 
 
-class NominationView(ModelView, model=DBNomination):
+class NominationView(ModelView, model=NominationORM):
     name_plural = "Номинации"
     icon = "fa-solid fa-graduation-cap"
-    column_default_sort = [(DBNomination.id, False)]
+    column_default_sort = [(NominationORM.id, False)]
 
     column_list = [
-        DBNomination.id,
-        DBNomination.title,
-        DBNomination.is_votable,
+        NominationORM.id,
+        NominationORM.title,
+        NominationORM.is_votable,
     ]
     form_include_pk = True
-    form_columns = [DBNomination.id, DBNomination.title, DBNomination.is_votable]
-    column_details_exclude_list = [DBNomination.user_vote]
+    form_columns = [NominationORM.id, NominationORM.title, NominationORM.is_votable]
+    column_details_exclude_list = [NominationORM.user_vote]
 
     column_labels = {
-        DBNomination.id: "ID",
-        DBNomination.title: "Название",
-        DBNomination.is_votable: "Голосование",
-        DBNomination.participants_count: "Количество участников",
-        DBNomination.created_at: "Время создания",
-        DBNomination.updated_at: "Время изменения",
+        NominationORM.id: "ID",
+        NominationORM.title: "Название",
+        NominationORM.is_votable: "Голосование",
+        NominationORM.participants_count: "Количество участников",
+        NominationORM.created_at: "Время создания",
+        NominationORM.updated_at: "Время изменения",
     }

@@ -11,26 +11,26 @@ from fanfan.core.models.user import UserId
 from fanfan.core.models.vote import Vote, VoteId
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.nomination import DBNomination
-    from fanfan.adapters.db.models.participant import DBParticipant
-    from fanfan.adapters.db.models.user import DBUser
+    from fanfan.adapters.db.models.nomination import NominationORM
+    from fanfan.adapters.db.models.participant import ParticipantORM
+    from fanfan.adapters.db.models.user import UserORM
 
 
-class DBVote(Base):
+class VoteORM(Base):
     __tablename__ = "votes"
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    user: Mapped[DBUser] = relationship()
+    user: Mapped[UserORM] = relationship()
 
     # Participant relation
     participant_id: Mapped[int] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE"),
     )
-    participant: Mapped[DBParticipant] = relationship()
-    nomination: Mapped[DBNomination] = relationship(
+    participant: Mapped[ParticipantORM] = relationship()
+    nomination: Mapped[NominationORM] = relationship(
         secondary="participants",
         viewonly=True,
     )
@@ -40,7 +40,7 @@ class DBVote(Base):
 
     @classmethod
     def from_model(cls, model: Vote):
-        return DBVote(
+        return VoteORM(
             id=model.id,
             user_id=model.user_id,
             participant_id=model.participant_id,

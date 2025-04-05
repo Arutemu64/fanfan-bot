@@ -16,7 +16,7 @@ class Participant:
 
 
 @dataclass(slots=True, kw_only=True)
-class FullParticipant(Participant):
+class ParticipantFull(Participant):
     nomination: Nomination
     votes_count: int
     event: Event | None
