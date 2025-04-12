@@ -46,7 +46,7 @@ SCHEDULE_SCROLL = Group(
         FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
         Button(
-            text=Format(text="{page_number} 🔄️"),
+            text=Format(text="{page_number} 🔥"),
             id="update_schedule",
             on_click=update_schedule_handler,
         ),
