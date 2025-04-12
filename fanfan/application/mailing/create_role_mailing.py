@@ -6,12 +6,10 @@ from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.notification import UserNotification
+from fanfan.core.events.notifications import NewRolesNotificationEvent
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.models.mailing import Mailing, MailingId
 from fanfan.core.models.user import UserRole
-from fanfan.presentation.stream.routes.notifications.send_to_roles import (
-    SendNotificationToRolesDTO,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +40,8 @@ class CreateRoleMailing(Interactor[CreateRoleMailingDTO, Mailing]):
         mailing_id = await self.mailing_repo.create_new_mailing(
             by_user_id=self.id_provider.get_current_user_id()
         )
-        await self.stream_broker_adapter.send_to_roles(
-            SendNotificationToRolesDTO(
+        await self.stream_broker_adapter.publish(
+            NewRolesNotificationEvent(
                 notification=UserNotification(
                     text=data.text,
                     bottom_text=f"Отправил @{sender.username}",

@@ -9,12 +9,10 @@ from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
+from fanfan.core.events.feedback import NewFeedbackEvent
 from fanfan.core.exceptions.feedback import FeedbackException
 from fanfan.core.models.feedback import Feedback
 from fanfan.core.services.access import AccessService
-from fanfan.presentation.stream.routes.notifications.send_feedback_notifications import (  # noqa: E501
-    SendFeedbackNotificationsDTO,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +64,6 @@ class SendFeedback(Interactor[SendFeedbackDTO, None]):
                     user.id,
                     extra={"feedback": feedback},
                 )
-                await self.stream_broker_adapter.send_feedback_notifications(
-                    SendFeedbackNotificationsDTO(feedback_id=feedback.id)
+                await self.stream_broker_adapter.publish(
+                    NewFeedbackEvent(feedback_id=feedback.id)
                 )

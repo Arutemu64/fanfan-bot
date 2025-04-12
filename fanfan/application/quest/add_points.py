@@ -8,14 +8,12 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
+from fanfan.core.events.notifications import NewNotificationEvent
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.transaction import Transaction
 from fanfan.core.models.user import UserId
 from fanfan.core.services.access import AccessService
 from fanfan.core.utils.notifications import create_points_notification
-from fanfan.presentation.stream.routes.notifications.send_notification import (
-    NewNotificationDTO,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +71,8 @@ class AddPoints(Interactor[AddPointsDTO, None]):
                 data.points,
                 self.id_provider.get_current_user_id(),
             )
-            await self.stream_broker_adapter.new_notification(
-                NewNotificationDTO(
+            await self.stream_broker_adapter.publish(
+                NewNotificationEvent(
                     user_id=data.user_id,
                     notification=create_points_notification(
                         points=data.points, comment=data.comment

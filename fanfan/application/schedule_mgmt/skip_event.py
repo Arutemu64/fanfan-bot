@@ -10,6 +10,7 @@ from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import ANNOUNCE_LIMIT_NAME
+from fanfan.core.events.schedule import ScheduleChangedEvent
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.exceptions.schedule import (
     CurrentEventNotAllowed,
@@ -92,7 +93,9 @@ class SkipEvent(Interactor[EventId, SkipEventResult]):
 
                 # Commit and proceed
                 await self.uow.commit()
-                await self.events_broker.schedule_changed(schedule_change)
+                await self.events_broker.publish(
+                    ScheduleChangedEvent(schedule_change_id=schedule_change.id)
+                )
 
                 # Update event after commit
                 event = await self.schedule_repo.get_event_by_id(event_id)

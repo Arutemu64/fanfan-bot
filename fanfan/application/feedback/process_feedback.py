@@ -8,15 +8,13 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.events.feedback import NewFeedbackEvent
 from fanfan.core.exceptions.feedback import (
     FeedbackAlreadyProcessed,
     FeedbackException,
     FeedbackNotFound,
 )
 from fanfan.core.models.feedback import FeedbackFull, FeedbackId
-from fanfan.presentation.stream.routes.notifications.send_feedback_notifications import (  # noqa: E501
-    SendFeedbackNotificationsDTO,
-)
 
 
 @dataclass(slots=True, frozen=True)
@@ -58,7 +56,7 @@ class ProcessFeedback:
             except IntegrityError as e:
                 raise FeedbackException from e
             else:
-                await self.stream_broker.send_feedback_notifications(
-                    SendFeedbackNotificationsDTO(feedback_id=data.feedback_id)
+                await self.stream_broker.publish(
+                    NewFeedbackEvent(feedback_id=data.feedback_id)
                 )
                 return feedback

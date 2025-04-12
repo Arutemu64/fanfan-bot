@@ -3,37 +3,28 @@ from aiogram.exceptions import (
     TelegramForbiddenError,
     TelegramRetryAfter,
 )
-from aiogram.types import Message
 from dishka import FromDishka
 from dishka.integrations.faststream import inject
 from faststream import Logger
 from faststream.nats import NatsMessage, NatsRouter, PullSub
-from pydantic import BaseModel
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.notifier import BotNotifier
-from fanfan.core.dto.notification import UserNotification
-from fanfan.core.models.mailing import MailingId
+from fanfan.core.events.notifications import EditNotificationEvent
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
 
 
-class EditNotificationDTO(BaseModel):
-    message: Message
-    notification: UserNotification
-    mailing_id: MailingId | None
-
-
 @router.subscriber(
-    "edit_notification",
+    "notifications.edit",
     stream=stream,
     pull_sub=PullSub(),
-    durable="edit_notification",
+    durable="notifications_edit",
 )
 @inject
 async def edit_notification(
-    data: EditNotificationDTO,
+    data: EditNotificationEvent,
     mailing_repo: FromDishka[MailingRepository],
     msg: FromDishka[NatsMessage],
     notifier: FromDishka[BotNotifier],

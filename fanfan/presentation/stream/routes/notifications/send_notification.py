@@ -9,21 +9,14 @@ from dishka import FromDishka
 from dishka.integrations.faststream import inject
 from faststream import Logger, Path
 from faststream.nats import NatsMessage, NatsRouter, PullSub
-from pydantic import BaseModel
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.notifier import BotNotifier
-from fanfan.core.dto.notification import UserNotification
+from fanfan.core.events.notifications import NewNotificationEvent
 from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.user import UserId
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
-
-
-class NewNotificationDTO(BaseModel):
-    user_id: UserId
-    notification: UserNotification
 
 
 @router.subscriber(
@@ -31,18 +24,16 @@ class NewNotificationDTO(BaseModel):
     stream=stream,
     pull_sub=PullSub(),
     durable="notifications_new",
-    retry=True,
 )
 @router.subscriber(
     "notifications.mailing.{mailing_id}",
     stream=stream,
     pull_sub=PullSub(),
     durable="notifications_mailing",
-    retry=True,
 )
 @inject
 async def send_notification(
-    data: NewNotificationDTO,
+    data: NewNotificationEvent,
     msg: FromDishka[NatsMessage],
     notifier: FromDishka[BotNotifier],
     bot: FromDishka[Bot],

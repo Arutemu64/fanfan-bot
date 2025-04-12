@@ -4,6 +4,7 @@ from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.events.notifications import CancelMailingEvent
 from fanfan.core.exceptions.schedule import (
     OutdatedScheduleChange,
     ScheduleChangeNotFound,
@@ -84,7 +85,9 @@ class RevertScheduleChange:
             await self.schedule_repo.delete_schedule_change(schedule_change_id)
             await self.uow.commit()
 
-            await self.events_broker.cancel_mailing(schedule_change.mailing_id)
+            await self.events_broker.publish(
+                CancelMailingEvent(mailing_id=schedule_change.mailing_id)
+            )
 
             logger.info(
                 "User %s reverted schedule change %s",

@@ -2,39 +2,29 @@ from dishka import FromDishka
 from dishka.integrations.faststream import inject
 from faststream import Logger
 from faststream.nats import NatsMessage, NatsRouter, PullSub
-from pydantic import BaseModel
 
 from fanfan.adapters.db.repositories.feedback import FeedbackRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
-from fanfan.core.models.feedback import FeedbackId
+from fanfan.core.events.feedback import NewFeedbackEvent
+from fanfan.core.events.notifications import EditNotificationEvent, NewNotificationEvent
 from fanfan.core.utils.notifications import create_feedback_notification
 from fanfan.presentation.stream.jstream import stream
-from fanfan.presentation.stream.routes.notifications.edit_notification import (
-    EditNotificationDTO,
-)
-from fanfan.presentation.stream.routes.notifications.send_notification import (
-    NewNotificationDTO,
-)
 
 router = NatsRouter()
 
 
-class SendFeedbackNotificationsDTO(BaseModel):
-    feedback_id: FeedbackId
-
-
 @router.subscriber(
-    "send_feedback_notifications",
+    "feedback.new",
     stream=stream,
     pull_sub=PullSub(),
-    durable="send_feedback_notifications",
+    durable="feedback_new",
 )
 @inject
 async def send_feedback_notifications(
-    data: SendFeedbackNotificationsDTO,
+    data: NewFeedbackEvent,
     feedback_repo: FromDishka[FeedbackRepository],
     users_repo: FromDishka[UsersRepository],
     mailing_repo: FromDishka[MailingRepository],
@@ -56,8 +46,8 @@ async def send_feedback_notifications(
                 by_user_id=feedback.processed_by_id
             )
             while message := await mailing_repo.pop_message(mailing_id=old_mailing_id):
-                await broker_adapter.edit_notification(
-                    EditNotificationDTO(
+                await broker_adapter.publish(
+                    EditNotificationEvent(
                         message=message,
                         notification=notification,
                         mailing_id=new_mailing_id,
@@ -69,7 +59,10 @@ async def send_feedback_notifications(
     else:
         orgs = await users_repo.get_orgs_for_feedback_notification()
         for org in orgs:
-            await broker_adapter.new_notification(
-                NewNotificationDTO(user_id=org.id, notification=notification),
-                mailing_id=feedback.mailing_id,
+            await broker_adapter.publish(
+                NewNotificationEvent(
+                    user_id=org.id,
+                    notification=notification,
+                    mailing_id=feedback.mailing_id,
+                )
             )

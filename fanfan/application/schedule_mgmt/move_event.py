@@ -11,6 +11,7 @@ from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import (
     ANNOUNCE_LIMIT_NAME,
 )
+from fanfan.core.events.schedule import ScheduleChangedEvent
 from fanfan.core.exceptions.limiter import TooFast
 from fanfan.core.exceptions.schedule import (
     EventNotFound,
@@ -119,7 +120,9 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
 
                 # Commit and proceed
                 await self.uow.commit()
-                await self.events_broker.schedule_changed(schedule_change)
+                await self.events_broker.publish(
+                    ScheduleChangedEvent(schedule_change_id=schedule_change.id)
+                )
 
                 logger.info(
                     "Event %s was placed after event %s by user %s",

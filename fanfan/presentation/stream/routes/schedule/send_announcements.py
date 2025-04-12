@@ -15,16 +15,14 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.core.dto.notification import UserNotification
+from fanfan.core.events.notifications import NewNotificationEvent
+from fanfan.core.events.schedule import ScheduleChangedEvent
 from fanfan.core.exceptions.schedule import ScheduleChangeNotFound
 from fanfan.core.models.schedule_change import (
-    ScheduleChange,
     ScheduleChangeFull,
     ScheduleChangeType,
 )
 from fanfan.presentation.stream.jstream import stream
-from fanfan.presentation.stream.routes.notifications.send_notification import (
-    NewNotificationDTO,
-)
 from fanfan.presentation.tgbot.keyboards.buttons import (
     OPEN_SUBSCRIPTIONS_BUTTON,
     PULL_DOWN_DIALOG,
@@ -53,14 +51,14 @@ def resolve_change_reason(schedule_change: ScheduleChangeFull) -> str | None:
 
 
 @router.subscriber(
-    "schedule.change.new",
+    "schedule.changed",
     stream=stream,
     pull_sub=PullSub(),
-    durable="schedule_change_new",
+    durable="schedule_changed",
 )
 @inject
 async def send_announcements(  # noqa: C901
-    data: ScheduleChange,
+    data: ScheduleChangedEvent,
     schedule_repo: FromDishka[ScheduleRepository],
     users_repo: FromDishka[UsersRepository],
     subscriptions_repo: FromDishka[SubscriptionsRepository],
@@ -75,7 +73,7 @@ async def send_announcements(  # noqa: C901
 
     # Get schedule change
     schedule_change = await schedule_repo.get_schedule_change(
-        schedule_change_id=data.id
+        schedule_change_id=data.schedule_change_id
     )
     if schedule_change is None:
         raise ScheduleChangeNotFound
@@ -113,9 +111,12 @@ async def send_announcements(  # noqa: C901
         ).as_markup(),
     )
     for editor in await users_repo.get_schedule_editors():
-        await events_broker.new_notification(
-            NewNotificationDTO(user_id=editor.id, notification=editors_notification),
-            mailing_id=mailing_id,
+        await events_broker.publish(
+            NewNotificationEvent(
+                user_id=editor.id,
+                notification=editors_notification,
+                mailing_id=mailing_id,
+            )
         )
 
     # Get current and next event
@@ -138,9 +139,10 @@ async def send_announcements(  # noqa: C901
             reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
         )
         for u in await users_repo.get_users_by_receive_all_announcements():
-            await events_broker.new_notification(
-                NewNotificationDTO(user_id=u.id, notification=notification),
-                mailing_id=mailing_id,
+            await events_broker.publish(
+                NewNotificationEvent(
+                    user_id=u.id, notification=notification, mailing_id=mailing_id
+                )
             )
             counter += 1
 
@@ -159,8 +161,8 @@ async def send_announcements(  # noqa: C901
                     "current_event": current_event,
                 },
             )
-            await events_broker.new_notification(
-                NewNotificationDTO(
+            await events_broker.publish(
+                NewNotificationEvent(
                     user_id=subscription.user_id,
                     notification=UserNotification(
                         title=f"🔔 УВЕДОМЛЕНИЕ О ПОДПИСКЕ ({time})",
@@ -168,8 +170,8 @@ async def send_announcements(  # noqa: C901
                         bottom_text=resolve_change_reason(schedule_change),
                         reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
                     ),
-                ),
-                mailing_id=mailing_id,
+                    mailing_id=mailing_id,
+                )
             )
             counter += 1
     await mailing_repo.update_total(mailing_id, counter)
