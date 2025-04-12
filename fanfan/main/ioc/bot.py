@@ -9,7 +9,6 @@ from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
 from aiogram_dialog.context.media_storage import MediaIdStorage
 from dishka import Provider, Scope, provide
 from dishka.integrations.aiogram import setup_dishka
-from sulguk import AiogramSulgukMiddleware
 
 from fanfan.adapters.config.models import BotConfig
 from fanfan.presentation.tgbot import dialogs, handlers
@@ -32,7 +31,6 @@ class BotProvider(Provider):
             default=DefaultBotProperties(parse_mode=ParseMode.HTML),
         )
         bot.session.middleware(RetryRequestMiddleware())
-        bot.session.middleware(AiogramSulgukMiddleware())
         async with bot:
             yield bot
 

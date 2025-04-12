@@ -4,9 +4,9 @@ from aiogram_dialog.widgets.kbd import StubScroll, SwitchTo
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
 from dishka import AsyncContainer
-from sulguk import SULGUK_PARSE_MODE
 
 from fanfan.application.activities.get_activity_by_id import GetActivityById
+from fanfan.core.utils.html import sanitize_html
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.activities.common import (
     DATA_SELECTED_ACTIVITY_ID,
@@ -30,7 +30,7 @@ async def view_activity_getter(
     )
     return {
         "title": activity.title,
-        "description": activity.description,
+        "description": sanitize_html(activity.description),
         "image_path": activity.image_path,
     }
 
@@ -45,7 +45,6 @@ view_activity_window = Window(
         "back_to_activity_selection",
         states.Activities.LIST_ACTIVITIES,
     ),
-    parse_mode=SULGUK_PARSE_MODE,
     state=states.Activities.VIEW_ACTIVITY,
     getter=view_activity_getter,
 )
