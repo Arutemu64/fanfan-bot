@@ -11,9 +11,9 @@ from fanfan.common.paths import COMMON_STATIC_DIR, QR_CODES_TEMP_DIR
 from fanfan.core.models.code import CodeId
 
 
-def generate_unique_code(length: int = 10) -> CodeId:
+def generate_unique_code(length: int = 10) -> str:
     alphabet = string.ascii_uppercase + string.digits
-    return CodeId("".join(secrets.choice(alphabet) for _ in range(length)))
+    return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 def get_qr_code_image(code: CodeId) -> Path:

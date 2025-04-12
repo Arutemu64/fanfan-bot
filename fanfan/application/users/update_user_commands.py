@@ -9,13 +9,12 @@ from fanfan.core.services.access import AccessService
 from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,
     FEEDBACK_CMD,
-    HELPER_CMD,
     LINK_TICKET_CMD,
     NOTIFICATIONS_CMD,
-    ORG_CMD,
     QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
+    STAFF_CMD,
     START_CMD,
     VOTING_CMD,
 )
@@ -45,7 +44,7 @@ class UpdateUserCommands:
         commands_list.append(NOTIFICATIONS_CMD)
 
         try:
-            await self.access.ensure_can_participate_in_quest(user)
+            self.access.ensure_can_participate_in_quest(user)
             commands_list.append(QUEST_CMD)
         except AppException:
             pass
@@ -57,15 +56,13 @@ class UpdateUserCommands:
             pass
 
         try:
-            await self.access.ensure_can_send_feedback(user)
+            self.access.ensure_can_send_feedback(user)
             commands_list.append(FEEDBACK_CMD)
         except AppException:
             pass
 
         if user.role in [UserRole.HELPER, UserRole.ORG]:
-            commands_list.append(HELPER_CMD)
-        if user.role is UserRole.ORG:
-            commands_list.append(ORG_CMD)
+            commands_list.append(STAFF_CMD)
 
         commands_list.append(SETTINGS_CMD)
 

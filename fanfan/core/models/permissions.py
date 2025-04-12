@@ -7,11 +7,9 @@ from dataclasses import dataclass
 class UserPermissions:
     user_id: UserId
 
-    # Feedback
     can_send_feedback: bool
-
-    # Helper specific
-    helper_can_edit_schedule: bool
+    can_edit_schedule: bool
+    can_create_tickets: bool
 
 
 from fanfan.core.models.user import UserId  # noqa: E402

@@ -1,7 +1,7 @@
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Group, Start
+from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
@@ -19,7 +19,6 @@ from fanfan.presentation.tgbot.dialogs.common.getters import (
 )
 from fanfan.presentation.tgbot.dialogs.common.predicates import (
     is_helper,
-    is_org,
     is_ticket_linked,
 )
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -42,7 +41,7 @@ async def main_menu_getter(
     except AppException:
         can_vote = False
     try:
-        await access.ensure_can_participate_in_quest(user)
+        access.ensure_can_participate_in_quest(user)
         can_participate_in_quest = True
     except AppException:
         can_participate_in_quest = False
@@ -89,7 +88,7 @@ async def open_feedback_handler(
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 
-    await access.ensure_can_send_feedback(user)
+    access.ensure_can_send_feedback(user)
     await manager.start(states.Feedback.SEND_FEEDBACK)
 
 
@@ -102,7 +101,7 @@ async def open_quest_handler(
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     access: AccessService = await container.get(AccessService)
 
-    await access.ensure_can_participate_in_quest(user)
+    access.ensure_can_participate_in_quest(user)
     await manager.start(states.Quest.MAIN)
 
 
@@ -150,6 +149,11 @@ main_window = Window(
             id="open_quest",
             on_click=open_quest_handler,
         ),
+        SwitchTo(
+            Const(strings.titles.qr_code),
+            id="open_qr_code",
+            state=states.Main.QR_CODE,
+        ),
         Button(
             text=Case(
                 texts={
@@ -162,16 +166,10 @@ main_window = Window(
             on_click=open_voting_handler,
         ),
         Start(
-            text=Const(strings.titles.helper_menu),
+            text=Const(strings.titles.staff_menu),
             id="open_helper_menu",
             when=is_helper,
-            state=states.Helper.MAIN,
-        ),
-        Start(
-            text=Const(strings.titles.org_menu),
-            id="open_org_menu",
-            state=states.Org.MAIN,
-            when=is_org,
+            state=states.Staff.MAIN,
         ),
         Button(
             text=Case(

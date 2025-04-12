@@ -50,7 +50,7 @@ class AddPoints(Interactor[AddPointsDTO, None]):
         user = await self.users_repo.get_user_by_id(data.user_id)
         if user is None:
             raise UserNotFound
-        await self.access.ensure_can_participate_in_quest(user)
+        self.access.ensure_can_participate_in_quest(user)
         async with self.uow:
             participant = await self.quest_repo.get_quest_participant(
                 user_id=user.id, lock_points=True

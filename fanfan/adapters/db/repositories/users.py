@@ -1,4 +1,4 @@
-from sqlalchemy import Select, and_, func, select, update
+from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -83,7 +83,7 @@ class UsersRepository:
                 and_(
                     UserORM.role.in_([UserRole.HELPER, UserRole.ORG]),
                     UserORM.permissions.has(
-                        UserPermissionsORM.helper_can_edit_schedule.is_(True)
+                        UserPermissionsORM.can_edit_schedule.is_(True)
                     ),
                 )
             )
@@ -93,10 +93,3 @@ class UsersRepository:
     async def update_user_settings(self, model: UserSettings) -> None:
         user_settings = await self.session.merge(UserSettingsORM.from_model(model))
         await self.session.flush([user_settings])
-
-    async def add_points(self, user_id: UserId, points: int) -> None:
-        await self.session.execute(
-            update(UserORM)
-            .where(UserORM.id == user_id)
-            .values(points=UserORM.points + points)
-        )

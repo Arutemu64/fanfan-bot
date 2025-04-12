@@ -1,5 +1,4 @@
 import logging
-from dataclasses import dataclass, replace
 
 from adaptix import Retort, name_mapping
 
@@ -14,12 +13,7 @@ from fanfan.core.models.user import UserRole
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True, slots=True)
-class UpdateSettingsDTO:
-    voting_enabled: bool | None = None
-
-
-class UpdateSettings(Interactor[UpdateSettingsDTO, None]):
+class UpdateSettings(Interactor[None, None]):
     def __init__(
         self,
         settings_repo: SettingsRepository,
@@ -31,19 +25,19 @@ class UpdateSettings(Interactor[UpdateSettingsDTO, None]):
         self.uow = uow
         self.retort = Retort(recipe=[name_mapping(omit_default=True)])
 
-    async def __call__(self, data: UpdateSettingsDTO) -> None:
+    async def toggle_voting(self, voting_enabled: bool) -> None:
         user = await self.id_provider.get_current_user()
         if user.role is not UserRole.ORG:
             raise AccessDenied
         settings = await self.repo.get_settings()
         if settings is None:
             raise SettingsNotFound
-        settings = replace(settings, **self.retort.dump(data))
+        settings.voting_enabled = voting_enabled
         async with self.uow:
             await self.repo.save_settings(settings)
             await self.uow.commit()
             logger.info(
-                "Global settings were updated by user %s",
+                "Voting toggled by user %s",
                 self.id_provider.get_current_user_id(),
                 extra={"settings": settings},
             )

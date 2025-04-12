@@ -5,13 +5,12 @@ from fanfan.presentation.tgbot.dialogs import (
     achievements,
     activities,
     feedback,
-    helper,
     mailing,
     main_menu,
-    org,
     quest,
     schedule,
     settings,
+    staff,
     test_mode,
     user_manager,
     voting,
@@ -36,11 +35,14 @@ def setup_router() -> Router:
     helper_router = Router(name="helper_dialog_router")
     helper_router.callback_query.filter(RoleFilter(UserRole.HELPER, UserRole.ORG))
     helper_router.message.filter(RoleFilter(UserRole.HELPER, UserRole.ORG))
-    helper_router.include_routers(helper.dialog, user_manager.dialog, mailing.dialog)
+    helper_router.include_routers(
+        user_manager.dialog,
+        mailing.dialog,
+        staff.dialog,
+    )
 
     org_router = Router(name="org_dialog_router")
     org_router.callback_query.filter(RoleFilter(UserRole.ORG))
-    org_router.include_routers(org.dialog)
 
     dialog_router = Router(name="dialog_router")
     dialog_router.include_routers(common_router, helper_router, org_router)

@@ -6,4 +6,4 @@ class CodesException(AppException):
 
 
 class CodeNotFound(CodesException):
-    message = "⚠️ Неверный код"
+    message = "⚠️ Неизвестный QR-код"

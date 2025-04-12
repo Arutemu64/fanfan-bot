@@ -94,7 +94,7 @@ async def can_edit_schedule_getter(
     access: AccessService = await container.get(AccessService)
 
     try:
-        await access.ensure_can_edit_schedule(user)
+        access.ensure_can_edit_schedule(user)
     except AppException:
         can_edit_schedule = False
     else:

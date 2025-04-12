@@ -2,16 +2,12 @@ import math
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, Group, WebApp
-from aiogram_dialog.widgets.media import StaticMedia
+from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const, Format, Multi, Progress
 from dishka import AsyncContainer
 
-from fanfan.adapters.config.models import Configuration
-from fanfan.application.codes.get_user_code import GetUserCode
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.core.models.user import UserFull
-from fanfan.core.utils.code import get_qr_code_image
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -25,8 +21,6 @@ async def quest_main_getter(
     **kwargs,
 ) -> dict:
     get_user_stats: GetUserQuestStats = await container.get(GetUserQuestStats)
-    get_user_code: GetUserCode = await container.get(GetUserCode)
-    config: Configuration = await container.get(Configuration)
 
     achievements_progress = 0
     user_stats = await get_user_stats(user.id)
@@ -36,14 +30,10 @@ async def quest_main_getter(
         )
 
     return {
-        # User stats
         "points": user_stats.points,
         "achievements_count": user_stats.achievements_count,
         "achievements_progress": achievements_progress,
         "total_achievements": user_stats.total_achievements,
-        # QR
-        "qr_file_path": get_qr_code_image(await get_user_code()),
-        "qr_scanner_url": config.web.build_qr_scanner_url() if config.web else None,
     }
 
 
@@ -57,7 +47,6 @@ async def open_achievements_handler(
 
 
 main_quest_window = Window(
-    StaticMedia(path=Format("{qr_file_path}")),
     Title(Const(strings.titles.quest)),
     Const(
         "Во время фестиваля можно поучаствовать в разнообразных активностях "
@@ -69,17 +58,10 @@ main_quest_window = Window(
         Format("<b>🏆 Достижений:</b> {achievements_count} из {total_achievements}"),
         Progress(field="achievements_progress", filled="🟩", empty="⬜"),
     ),
-    Group(
-        WebApp(
-            Const(strings.titles.qr_scanner),
-            url=Format("{qr_scanner_url}"),
-            when="qr_scanner_url",
-        ),
-        Button(
-            text=Const("🏆 Мои достижения"),
-            id="open_achievements",
-            on_click=open_achievements_handler,
-        ),
+    Button(
+        text=Const("🏆 Мои достижения"),
+        id="open_achievements",
+        on_click=open_achievements_handler,
     ),
     Cancel(Const(strings.buttons.back)),
     getter=quest_main_getter,

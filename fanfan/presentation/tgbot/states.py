@@ -14,18 +14,10 @@ class Feedback(StatesGroup):
     SEND_FEEDBACK = State()
 
 
-class Helper(StatesGroup):
-    MAIN = State()
-
-
 class Main(StatesGroup):
     HOME = State()
     LINK_TICKET = State()
-
-
-class Org(StatesGroup):
-    MAIN = State()
-    ADD_TICKET = State()
+    QR_CODE = State()
 
 
 class Mailing(StatesGroup):
@@ -77,3 +69,10 @@ class InlineQuerySearch(StatesGroup):
 
 class TestMode(StatesGroup):
     MAIN = State()
+
+
+class Staff(StatesGroup):
+    MAIN = State()
+
+    CREATE_TICKET_PICK_ROLE = State()
+    CREATE_TICKET_RESULT = State()

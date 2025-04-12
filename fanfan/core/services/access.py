@@ -20,15 +20,13 @@ class AccessService:
         self.quest_repo = quest_repo
 
     @staticmethod
-    async def ensure_can_send_feedback(user: UserFull) -> None:
+    def ensure_can_send_feedback(user: UserFull) -> None:
         if not user.permissions.can_send_feedback:
             raise AccessDenied
 
     @staticmethod
-    async def ensure_can_edit_schedule(user: UserFull) -> None:
-        if user.role not in [UserRole.HELPER, UserRole.ORG]:
-            raise AccessDenied
-        if user.permissions.helper_can_edit_schedule is False:
+    def ensure_can_edit_schedule(user: UserFull) -> None:
+        if user.permissions.can_edit_schedule is False:
             raise AccessDenied
 
     async def ensure_can_vote(
@@ -45,11 +43,16 @@ class AccessService:
             raise AlreadyVotedInThisNomination
 
     @staticmethod
-    async def ensure_can_participate_in_quest(user: UserFull):
+    def ensure_can_participate_in_quest(user: UserFull):
         if user.ticket is None:
             raise TicketNotLinked
 
     @staticmethod
-    async def ensure_can_open_user_manager(user: UserFull):
+    def ensure_can_open_user_manager(user: UserFull):
         if user.role not in [UserRole.HELPER, UserRole.ORG]:
+            raise AccessDenied
+
+    @staticmethod
+    def ensure_can_create_tickets(user: UserFull):
+        if user.permissions.can_create_tickets is False:
             raise AccessDenied

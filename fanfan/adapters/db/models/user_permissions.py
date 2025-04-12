@@ -14,11 +14,9 @@ if typing.TYPE_CHECKING:
 class UserPermissionsORM(Base):
     __tablename__ = "user_permissions"
 
-    # Feedback
     can_send_feedback: Mapped[bool] = mapped_column(server_default="True")
-
-    # Helper specific
-    helper_can_edit_schedule: Mapped[bool] = mapped_column(server_default="False")
+    can_edit_schedule: Mapped[bool] = mapped_column(server_default="False")
+    can_create_tickets: Mapped[bool] = mapped_column(server_default="False")
 
     # User relation
     user_id: Mapped[int] = mapped_column(
@@ -31,5 +29,6 @@ class UserPermissionsORM(Base):
         return UserPermissions(
             user_id=UserId(self.user_id),
             can_send_feedback=self.can_send_feedback,
-            helper_can_edit_schedule=self.helper_can_edit_schedule,
+            can_edit_schedule=self.can_edit_schedule,
+            can_create_tickets=self.can_create_tickets,
         )

@@ -36,8 +36,8 @@ from fanfan.application.subscriptions.get_subscription_by_event import (
     GetSubscriptionByEvent,
 )
 from fanfan.application.subscriptions.get_subscriptions_page import GetSubscriptionsPage
-from fanfan.application.tickets.create_ticket import CreateTicket
 from fanfan.application.tickets.delete_ticket import DeleteTicket
+from fanfan.application.tickets.generate_ticket import GenerateTicket
 from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.application.users.authenticate import Authenticate
 from fanfan.application.users.get_user_by_id import GetUserById
@@ -96,7 +96,7 @@ class InteractorsProvider(Provider):
     get_subscription_by_event = provide(GetSubscriptionByEvent)
     get_subscriptions_page = provide(GetSubscriptionsPage)
 
-    create_ticket = provide(CreateTicket)
+    generate_ticket = provide(GenerateTicket)
     delete_ticket = provide(DeleteTicket)
     link_ticket = provide(LinkTicket)
 

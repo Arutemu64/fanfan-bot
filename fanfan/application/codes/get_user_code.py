@@ -24,7 +24,7 @@ class GetUserCode:
                 async with self.uow:
                     try:
                         user_code = Code(
-                            id=generate_unique_code(),
+                            id=CodeId(generate_unique_code()),
                             achievement_id=None,
                             user_id=user_id,
                             ticket_id=None,

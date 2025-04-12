@@ -62,7 +62,7 @@ class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
 
     async def __call__(self, data: MoveEventDTO) -> MoveEventResult:
         user = await self.id_provider.get_current_user()
-        await self.access.ensure_can_edit_schedule(user)
+        self.access.ensure_can_edit_schedule(user)
         try:
             async with (
                 self.uow,

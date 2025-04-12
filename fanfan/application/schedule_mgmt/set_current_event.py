@@ -47,7 +47,7 @@ class SetCurrentEvent(Interactor[EventId | None, SetCurrentEventResult]):
 
     async def __call__(self, event_id: EventId | None) -> SetCurrentEventResult:
         user = await self.id_provider.get_current_user()
-        await self.access.ensure_can_edit_schedule(user)
+        self.access.ensure_can_edit_schedule(user)
         try:
             async with (
                 self.uow,

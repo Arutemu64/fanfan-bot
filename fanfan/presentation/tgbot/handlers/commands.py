@@ -14,13 +14,12 @@ from fanfan.presentation.tgbot.filters import RoleFilter
 from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,
     FEEDBACK_CMD,
-    HELPER_CMD,
     LINK_TICKET_CMD,
     NOTIFICATIONS_CMD,
-    ORG_CMD,
     QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
+    STAFF_CMD,
     VOTING_CMD,
 )
 
@@ -73,7 +72,7 @@ async def quest_cmd(
     access: FromDishka[AccessService],
 ) -> None:
     try:
-        await access.ensure_can_participate_in_quest(user)
+        access.ensure_can_participate_in_quest(user)
         await dialog_manager.start(states.Quest.MAIN)
     except AppException:
         await dialog_manager.update(data={})
@@ -94,14 +93,9 @@ async def voting_cmd(
         await dialog_manager.update(data={})
 
 
-@router.message(Command(HELPER_CMD), RoleFilter(UserRole.HELPER, UserRole.ORG))
-async def helper_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Helper.MAIN)
-
-
-@router.message(Command(ORG_CMD), RoleFilter(UserRole.ORG))
-async def org_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Org.MAIN)
+@router.message(Command(STAFF_CMD), RoleFilter(UserRole.HELPER, UserRole.ORG))
+async def staff_cmd(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(states.Staff.MAIN)
 
 
 @router.message(Command(FEEDBACK_CMD))
@@ -113,7 +107,7 @@ async def feedback_cmd(
     access: FromDishka[AccessService],
 ) -> None:
     try:
-        await access.ensure_can_send_feedback(user)
+        access.ensure_can_send_feedback(user)
         await dialog_manager.start(states.Feedback.SEND_FEEDBACK)
     except AppException:
         await dialog_manager.update(data={})
