@@ -4,6 +4,7 @@ from fanfan.adapters.db.repositories.achievements import (
     AchievementsRepository,
 )
 from fanfan.adapters.db.repositories.activities import ActivitiesRepository
+from fanfan.adapters.db.repositories.codes import CodesRepository
 from fanfan.adapters.db.repositories.feedback import FeedbackRepository
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import (
@@ -41,6 +42,7 @@ class RepositoriesProvider(Provider):
     users = provide(UsersRepository)
     votes = provide(VotesRepository)
     transactions = provide(TransactionsRepository)
+    codes = provide(CodesRepository)
 
     # Redis
     mailing = provide(MailingRepository)

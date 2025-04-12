@@ -8,11 +8,10 @@ from aiogram_dialog.widgets.text import Const, Format, Multi, Progress
 from dishka import AsyncContainer
 
 from fanfan.adapters.config.models import Configuration
+from fanfan.application.codes.get_user_code import GetUserCode
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
-from fanfan.common.paths import QR_CODES_TEMP_DIR
-from fanfan.core.dto.qr import QR, QRType
 from fanfan.core.models.user import UserFull
-from fanfan.core.utils.qr import generate_img
+from fanfan.core.utils.code import get_qr_code_image
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -26,6 +25,7 @@ async def quest_main_getter(
     **kwargs,
 ) -> dict:
     get_user_stats: GetUserQuestStats = await container.get(GetUserQuestStats)
+    get_user_code: GetUserCode = await container.get(GetUserCode)
     config: Configuration = await container.get(Configuration)
 
     achievements_progress = 0
@@ -35,11 +35,6 @@ async def quest_main_getter(
             user_stats.achievements_count * 100 / user_stats.total_achievements,
         )
 
-    qr_file_path = QR_CODES_TEMP_DIR.joinpath(f"user_{user.id}.png")
-    if not qr_file_path.is_file():
-        qr = QR(type=QRType.USER, data=str(user.id))
-        generate_img(qr).save(qr_file_path)
-
     return {
         # User stats
         "points": user_stats.points,
@@ -47,7 +42,7 @@ async def quest_main_getter(
         "achievements_progress": achievements_progress,
         "total_achievements": user_stats.total_achievements,
         # QR
-        "qr_file_path": qr_file_path,
+        "qr_file_path": get_qr_code_image(await get_user_code()),
         "qr_scanner_url": config.web.build_qr_scanner_url() if config.web else None,
     }
 

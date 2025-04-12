@@ -86,7 +86,7 @@ class RevertScheduleChange:
 
             await self.events_broker.cancel_mailing(schedule_change.mailing_id)
 
-            logging.info(
+            logger.info(
                 "User %s reverted schedule change %s",
                 user.id,
                 schedule_change_id,

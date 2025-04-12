@@ -48,3 +48,8 @@ class AccessService:
     async def ensure_can_participate_in_quest(user: UserFull):
         if user.ticket is None:
             raise TicketNotLinked
+
+    @staticmethod
+    async def ensure_can_open_user_manager(user: UserFull):
+        if user.role not in [UserRole.HELPER, UserRole.ORG]:
+            raise AccessDenied

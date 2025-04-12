@@ -2,6 +2,8 @@ from dishka import Provider, Scope, provide
 
 from fanfan.application.activities.get_activities_page import GetActivitiesPage
 from fanfan.application.activities.get_activity_by_id import GetActivityById
+from fanfan.application.codes.get_user_code import GetUserCode
+from fanfan.application.codes.proceed_code import ProceedCode
 from fanfan.application.events.get_current_event import GetCurrentEvent
 from fanfan.application.events.get_event_by_id import GetEventById
 from fanfan.application.events.get_page_number_by_event import GetPageNumberByEvent
@@ -20,9 +22,6 @@ from fanfan.application.participants.get_participants_page import GetParticipant
 from fanfan.application.quest.add_points import AddPoints
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
-from fanfan.application.quest.receive_achievement_by_secret_id import (
-    ReceiveAchievementBySecretId,
-)
 from fanfan.application.quest.reset_quest import ResetQuest
 from fanfan.application.schedule_mgmt.move_event import MoveEvent
 from fanfan.application.schedule_mgmt.revert_change import RevertScheduleChange
@@ -58,7 +57,6 @@ from fanfan.application.votes.cancel_vote import CancelVote
 class InteractorsProvider(Provider):
     scope = Scope.REQUEST
 
-    receive_achievement_by_secret_id = provide(ReceiveAchievementBySecretId)
     get_achievements_page = provide(GetAchievementsPage)
 
     get_activities_page = provide(GetActivitiesPage)
@@ -120,3 +118,6 @@ class InteractorsProvider(Provider):
     import_from_c2 = provide(ImportFromC2)
     import_tickets = provide(ImportOrders)
     proceed_timepad_order = provide(ProceedOrder)
+
+    get_user_code = provide(GetUserCode)
+    proceed_code = provide(ProceedCode)

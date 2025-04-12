@@ -22,8 +22,6 @@ class AchievementORM(Base, OrderMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column()
     description: Mapped[str | None] = mapped_column()
-    # Secret ID for quest
-    secret_id: Mapped[str] = mapped_column(unique=True)
 
     # Relationships
     user_received: Mapped[ReceivedAchievementORM | None] = relationship(

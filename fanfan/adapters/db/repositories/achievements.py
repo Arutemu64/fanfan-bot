@@ -8,7 +8,6 @@ from fanfan.core.models.achievement import (
     Achievement,
     AchievementFull,
     AchievementId,
-    SecretId,
 )
 from fanfan.core.models.user import UserId
 
@@ -35,14 +34,6 @@ class AchievementsRepository:
         self, achievement_id: AchievementId
     ) -> Achievement | None:
         achievement = await self.session.get(AchievementORM, achievement_id)
-        return achievement.to_model() if achievement else None
-
-    async def get_achievement_by_secret_id(
-        self, secret_id: SecretId
-    ) -> Achievement | None:
-        achievement = await self.session.scalar(
-            select(AchievementORM).where(AchievementORM.secret_id == secret_id),
-        )
         return achievement.to_model() if achievement else None
 
     async def list_achievements(

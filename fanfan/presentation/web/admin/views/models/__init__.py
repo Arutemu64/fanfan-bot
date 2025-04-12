@@ -1,5 +1,6 @@
 from .achievement import AchievementView
 from .activity import ActivityView
+from .code import CodeView
 from .event import EventView
 from .feedback import FeedbackView
 from .nomination import NominationView
@@ -24,4 +25,5 @@ model_views = [
     VoteView,
     FeedbackView,
     TransactionView,
+    CodeView,
 ]
