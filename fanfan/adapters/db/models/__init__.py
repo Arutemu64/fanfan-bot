@@ -2,6 +2,7 @@ from .achievement import AchievementORM
 from .activity import ActivityORM
 from .base import Base
 from .code import CodeORM
+from .contest import ContestEntryORM
 from .event import EventORM
 from .feedback import FeedbackORM
 from .nomination import NominationORM
@@ -38,4 +39,5 @@ __all__ = [
     "TransactionORM",
     "ScheduleChangeORM",
     "CodeORM",
+    "ContestEntryORM",
 ]

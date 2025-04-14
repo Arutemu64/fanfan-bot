@@ -1,4 +1,4 @@
-from sqlalchemy import and_, delete, select
+from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.db.models import NominationORM, VoteORM
@@ -33,6 +33,11 @@ class VotesRepository:
             )
         )
         return vote.to_model() if vote else None
+
+    async def count_user_votes(self, user_id: UserId) -> int:
+        return await self.session.scalar(
+            select(func.count(VoteORM.id)).where(VoteORM.user_id == user_id)
+        )
 
     async def delete_vote(self, vote_id: VoteId):
         await self.session.execute(delete(VoteORM).where(VoteORM.id == vote_id))

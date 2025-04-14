@@ -17,16 +17,12 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.nominations.get_nomination_by_id import GetNominationById
-from fanfan.application.participants.get_participant_by_voting_number import (
-    GetParticipantByVotingNumber,
-    GetParticipantByVotingNumberDTO,
-)
-from fanfan.application.participants.get_participants_page import (
+from fanfan.application.voting.add_vote import AddVote, AddVoteDTO
+from fanfan.application.voting.cancel_vote import CancelVote, CancelVoteDTO
+from fanfan.application.voting.get_participants_page import (
     GetParticipantsPage,
     GetParticipantsPageDTO,
 )
-from fanfan.application.votes.add_vote import AddVote
-from fanfan.application.votes.cancel_vote import CancelVote
 from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.votes import VoteNotFound
 from fanfan.core.models.participant import ParticipantVotingNumber
@@ -91,18 +87,14 @@ async def add_vote_handler(
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
     add_vote: AddVote = await container.get(AddVote)
-    get_participant_by_voting_number: GetParticipantByVotingNumber = (
-        await container.get(GetParticipantByVotingNumber)
-    )
 
     if "/" in data and data.replace("/", "").isnumeric():
-        participant = await get_participant_by_voting_number(
-            GetParticipantByVotingNumberDTO(
+        await add_vote(
+            AddVoteDTO(
                 nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
                 voting_number=ParticipantVotingNumber(int(data.replace("/", ""))),
             )
         )
-        await add_vote(participant.id)
 
 
 async def cancel_vote_handler(
@@ -114,7 +106,7 @@ async def cancel_vote_handler(
     cancel_vote: CancelVote = await container.get(CancelVote)
 
     try:
-        await cancel_vote(manager.dialog_data[DATA_USER_VOTE_ID])
+        await cancel_vote(CancelVoteDTO(vote_id=manager.dialog_data[DATA_USER_VOTE_ID]))
     except VoteNotFound:
         return
 

@@ -8,13 +8,16 @@ from fanfan.adapters.db.repositories.participants import (
 )
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.common.interactor import Interactor
+from fanfan.core.events.voting import VoteUpdatedEvent
 from fanfan.core.exceptions.participants import ParticipantNotFound
 from fanfan.core.exceptions.votes import (
     AlreadyVotedInThisNomination,
 )
-from fanfan.core.models.participant import ParticipantId
+from fanfan.core.models.nomination import NominationId
+from fanfan.core.models.participant import ParticipantId, ParticipantVotingNumber
 from fanfan.core.models.vote import Vote
 from fanfan.core.services.access import AccessService
 
@@ -23,7 +26,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True, slots=True)
 class AddVoteDTO:
-    participant_id: ParticipantId
+    nomination_id: NominationId
+    voting_number: ParticipantVotingNumber
 
 
 class AddVote(Interactor[ParticipantId, Vote]):
@@ -34,19 +38,23 @@ class AddVote(Interactor[ParticipantId, Vote]):
         uow: UnitOfWork,
         access: AccessService,
         id_provider: IdProvider,
+        events_broker: EventsBroker,
     ) -> None:
         self.participants_repo = participants_repo
         self.votes_repo = votes_repo
         self.uow = uow
         self.access = access
         self.id_provider = id_provider
+        self.events_broker = events_broker
 
     async def __call__(
         self,
-        participant_id: ParticipantId,
+        data: AddVoteDTO,
     ) -> Vote:
         # Checking participant
-        participant = await self.participants_repo.get_participant_by_id(participant_id)
+        participant = await self.participants_repo.get_participant_by_voting_number(
+            nomination_id=data.nomination_id, voting_number=data.voting_number
+        )
         if not participant:
             raise ParticipantNotFound
         if participant.event and participant.event.is_skipped:
@@ -59,7 +67,7 @@ class AddVote(Interactor[ParticipantId, Vote]):
         async with self.uow:
             try:
                 vote = await self.votes_repo.add_vote(
-                    Vote(user_id=user.id, participant_id=participant_id)
+                    Vote(user_id=user.id, participant_id=participant.id)
                 )
                 await self.uow.commit()
             except IntegrityError as e:
@@ -72,4 +80,5 @@ class AddVote(Interactor[ParticipantId, Vote]):
                     participant.id,
                     extra={"vote": vote},
                 )
+                await self.events_broker.publish(VoteUpdatedEvent(vote=vote))
                 return vote

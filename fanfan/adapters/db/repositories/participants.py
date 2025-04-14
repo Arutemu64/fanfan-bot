@@ -1,4 +1,4 @@
-from sqlalchemy import Select, and_, case, func, or_, select
+from sqlalchemy import Select, String, and_, case, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload, undefer
 
@@ -85,7 +85,7 @@ class ParticipantsRepository:
 
     async def get_participant_by_voting_number(
         self, nomination_id: NominationId, voting_number: ParticipantVotingNumber
-    ) -> Participant | None:
+    ) -> ParticipantFull | None:
         query = (
             select(ParticipantORM)
             .where(
@@ -96,8 +96,9 @@ class ParticipantsRepository:
             )
             .limit(1)
         )
+        query = self._load_full(query)
         participant = await self.session.scalar(query)
-        return participant.to_model() if participant else None
+        return participant.to_full_model() if participant else None
 
     async def list_participants(
         self,
@@ -107,15 +108,24 @@ class ParticipantsRepository:
         user_id: UserId | None = None,
         pagination: Pagination | None = None,
     ) -> list[ParticipantFull]:
-        query = select(ParticipantORM).order_by(ParticipantORM.voting_number)
-        query = self._load_full(query, user_id)
+        query = select(ParticipantORM)
 
-        if pagination:
-            query = query.limit(pagination.limit).offset(pagination.offset)
+        # Filter
         query = self._filter_participants_query(
             query, nomination_id, search_query, only_votable
         )
 
+        # Order
+        user_unique_order = func.md5(
+            func.concat(cast(user_id, String), "-", cast(ParticipantORM.id, String))
+        )
+        query = query.order_by(user_unique_order)
+
+        # Limit
+        if pagination:
+            query = query.limit(pagination.limit).offset(pagination.offset)
+
+        query = self._load_full(query, user_id)
         participants = await self.session.scalars(query)
         return [p.to_full_model() for p in participants]
 

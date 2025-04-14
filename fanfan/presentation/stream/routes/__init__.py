@@ -8,6 +8,7 @@ from fanfan.presentation.stream.routes.notifications import (
     send_to_roles,
 )
 from fanfan.presentation.stream.routes.schedule import send_announcements
+from fanfan.presentation.stream.routes.voting import voting_contest
 
 
 def setup_router() -> NatsRouter:
@@ -20,5 +21,7 @@ def setup_router() -> NatsRouter:
     router.include_router(send_feedback_notifications.router)
 
     router.include_router(send_announcements.router)
+
+    router.include_router(voting_contest.router)
 
     return router

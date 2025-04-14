@@ -15,10 +15,6 @@ from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
 from fanfan.application.nominations.get_nomination_by_id import GetNominationById
 from fanfan.application.nominations.get_nominations_page import GetNominationsPage
-from fanfan.application.participants.get_participant_by_voting_number import (
-    GetParticipantByVotingNumber,
-)
-from fanfan.application.participants.get_participants_page import GetParticipantsPage
 from fanfan.application.quest.add_points import AddPoints
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
@@ -50,8 +46,9 @@ from fanfan.application.utils.get_random_quote import GetRandomQuote
 from fanfan.application.utils.import_from_c2 import ImportFromC2
 from fanfan.application.utils.import_orders import ImportOrders
 from fanfan.application.utils.proceed_order import ProceedOrder
-from fanfan.application.votes.add_vote import AddVote
-from fanfan.application.votes.cancel_vote import CancelVote
+from fanfan.application.voting.add_vote import AddVote
+from fanfan.application.voting.cancel_vote import CancelVote
+from fanfan.application.voting.get_participants_page import GetParticipantsPage
 
 
 class InteractorsProvider(Provider):
@@ -85,9 +82,6 @@ class InteractorsProvider(Provider):
     get_nomination_by_id = provide(GetNominationById)
     get_nominations_page = provide(GetNominationsPage)
 
-    get_participant_by_voting_number = provide(GetParticipantByVotingNumber)
-    get_participants_page = provide(GetParticipantsPage)
-
     get_settings = provide(GetSettings)
     update_settings = provide(UpdateSettings)
 
@@ -112,6 +106,7 @@ class InteractorsProvider(Provider):
     add_points = provide(AddPoints)
     reset_quest = provide(ResetQuest)
 
+    get_participants_page = provide(GetParticipantsPage)
     add_vote = provide(AddVote)
     cancel_vote = provide(CancelVote)
 

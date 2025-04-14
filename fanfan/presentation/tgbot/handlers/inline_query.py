@@ -9,7 +9,7 @@ from fanfan.application.events.get_schedule_page import (
     GetSchedulePage,
     GetSchedulePageDTO,
 )
-from fanfan.application.participants.get_participants_page import (
+from fanfan.application.voting.get_participants_page import (
     GetParticipantsPage,
     GetParticipantsPageDTO,
 )
