@@ -34,7 +34,7 @@ class GetUserQuestStats:
         self.access = access
 
     async def __call__(self, user_id: UserId) -> QuestStatsDTO:
-        participant = await self.quest_repo.get_quest_participant(user_id=user_id)
+        participant = await self.quest_repo.get_player(user_id=user_id)
         if participant is None:
             raise UserNotFound
 

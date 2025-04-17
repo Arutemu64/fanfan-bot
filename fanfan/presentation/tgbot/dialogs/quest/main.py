@@ -2,7 +2,7 @@ import math
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel
+from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format, Multi, Progress
 from dishka import AsyncContainer
 
@@ -55,7 +55,7 @@ main_quest_window = Window(
     Const(" "),
     Multi(
         Format("<b>💰 Очков:</b> {points}"),
-        Format("<b>🏆 Достижений:</b> {achievements_count} из {total_achievements}"),
+        Format("<b>🎯 Достижений:</b> {achievements_count} из {total_achievements}"),
         Progress(field="achievements_progress", filled="🟩", empty="⬜"),
     ),
     Button(
@@ -63,6 +63,7 @@ main_quest_window = Window(
         id="open_achievements",
         on_click=open_achievements_handler,
     ),
+    SwitchTo(Const(strings.titles.rating), state=states.Quest.RATING, id="rating"),
     Cancel(Const(strings.buttons.back)),
     getter=quest_main_getter,
     state=states.Quest.MAIN,

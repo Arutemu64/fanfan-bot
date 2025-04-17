@@ -60,6 +60,7 @@ class Voting(StatesGroup):
 
 class Quest(StatesGroup):
     MAIN = State()
+    RATING = State()
 
 
 class InlineQuerySearch(StatesGroup):

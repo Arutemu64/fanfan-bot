@@ -19,12 +19,11 @@ class ResetQuest:
 
     async def __call__(self) -> None:
         async with self.uow:
-            participant = await self.quest_repo.get_quest_participant(
-                user_id=self.id_provider.get_current_user_id(),
-                lock_points=True,
+            participant = await self.quest_repo.get_player(
+                user_id=self.id_provider.get_current_user_id()
             )
             participant.points = 0
-            await self.quest_repo.save_quest_participant(participant)
+            await self.quest_repo.save_player(participant)
             await self.achievements_repo.delete_all_user_received_achievements(
                 user_id=self.id_provider.get_current_user_id()
             )

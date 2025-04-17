@@ -1,0 +1,6 @@
+{% for player in players %}
+{% if player.position == 1 %}🥇
+{%- elif player.position == 2 %}🥈
+{%- elif player.position == 3 %}🥉
+{%- else %}  {{player.position}}  {% endif %} <b>{{player.username}}</b> — {{player.points}} 💰 • {{player.achievements_count}} 🎯
+{% endfor %}

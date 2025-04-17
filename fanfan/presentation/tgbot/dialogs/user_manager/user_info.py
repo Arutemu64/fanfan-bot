@@ -61,12 +61,12 @@ user_info_window = Window(
     Const(" "),
     Jinja("<b>💰 Очков</b>: {{ points }} "),
     Jinja(
-        "<b>🏆 Достижений</b>: {{ achievements_count }} "
+        "<b>🎯 Достижений</b>: {{ achievements_count }} "
         "из {{ total_achievements_count }}",
     ),
     Progress("achievements_progress", filled="🟩", empty="⬜"),
     Button(
-        text=Const("🏆 Достижения"),
+        text=Const("🎯 Достижения"),
         id="show_achievements",
         on_click=open_user_achievements_handler,
     ),

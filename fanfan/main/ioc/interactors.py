@@ -17,6 +17,7 @@ from fanfan.application.nominations.get_nomination_by_id import GetNominationByI
 from fanfan.application.nominations.get_nominations_page import GetNominationsPage
 from fanfan.application.quest.add_points import AddPoints
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
+from fanfan.application.quest.get_quest_rating import GetQuestRating
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.application.quest.reset_quest import ResetQuest
 from fanfan.application.schedule_mgmt.move_event import MoveEvent
@@ -103,6 +104,7 @@ class InteractorsProvider(Provider):
     send_message = provide(SendOrgMessage)
 
     get_user_quest_details = provide(GetUserQuestStats)
+    get_quest_rating = provide(GetQuestRating)
     add_points = provide(AddPoints)
     reset_quest = provide(ResetQuest)
 

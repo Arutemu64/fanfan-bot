@@ -50,9 +50,7 @@ class AddPoints(Interactor[AddPointsDTO, None]):
             raise UserNotFound
         self.access.ensure_can_participate_in_quest(user)
         async with self.uow:
-            participant = await self.quest_repo.get_quest_participant(
-                user_id=user.id, lock_points=True
-            )
+            participant = await self.quest_repo.get_player(user_id=user.id)
             participant.add_points(data.points)
             transaction = Transaction(
                 points=data.points,
@@ -61,7 +59,7 @@ class AddPoints(Interactor[AddPointsDTO, None]):
                 from_user_id=self.id_provider.get_current_user_id(),
             )
 
-            await self.quest_repo.save_quest_participant(participant)
+            await self.quest_repo.save_player(participant)
             await self.transactions_repo.add_transaction(transaction)
             await self.uow.commit()
 
