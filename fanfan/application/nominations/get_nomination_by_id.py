@@ -1,11 +1,10 @@
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.nominations import NominationNotFound
 from fanfan.core.models.nomination import NominationFull, NominationId
 
 
-class GetNominationById(Interactor[NominationId, NominationFull]):
+class GetNominationById:
     def __init__(
         self, nominations_repo: NominationsRepository, id_provider: IdProvider
     ) -> None:

@@ -19,7 +19,6 @@ from dishka import AsyncContainer
 from fanfan.application.subscriptions.get_subscriptions_page import GetSubscriptionsPage
 from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
-    UpdateUserSettingsDTO,
 )
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.event import EventId
@@ -82,11 +81,8 @@ async def toggle_all_notifications_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 
-    await update_user_settings(
-        UpdateUserSettingsDTO(
-            user_id=user.id,
-            receive_all_announcements=not user.settings.receive_all_announcements,
-        )
+    await update_user_settings.toggle_receive_all_announcements(
+        not user.settings.receive_all_announcements
     )
     await manager.bg().update(data={})
 

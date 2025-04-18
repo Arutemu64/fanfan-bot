@@ -8,7 +8,6 @@ from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import ANNOUNCE_LIMIT_NAME
 from fanfan.core.events.schedule import ScheduleChangedEvent
 from fanfan.core.exceptions.limiter import TooFast
@@ -25,7 +24,7 @@ class SetCurrentEventResult:
     current_event: Event | None
 
 
-class SetCurrentEvent(Interactor[EventId | None, SetCurrentEventResult]):
+class SetCurrentEvent:
     def __init__(
         self,
         schedule_repo: ScheduleRepository,

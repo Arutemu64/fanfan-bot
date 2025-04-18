@@ -25,6 +25,15 @@ class UserPermissionsORM(Base):
     )
     user: Mapped["UserORM"] = relationship(back_populates="permissions")
 
+    @classmethod
+    def from_model(cls, model: UserPermissions):
+        return UserPermissionsORM(
+            user_id=model.user_id,
+            can_send_feedback=model.can_send_feedback,
+            can_edit_schedule=model.can_edit_schedule,
+            can_create_tickets=model.can_create_tickets,
+        )
+
     def to_model(self) -> UserPermissions:
         return UserPermissions(
             user_id=UserId(self.user_id),

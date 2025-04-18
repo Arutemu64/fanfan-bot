@@ -6,7 +6,6 @@ from aiogram.types import User as AiogramUser
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import User, UserFull, UserId, UserRole
 
@@ -30,7 +29,7 @@ class AuthenticateDTO:
         )
 
 
-class Authenticate(Interactor[AuthenticateDTO, UserFull]):
+class Authenticate:
     def __init__(
         self, id_provider: IdProvider, users_repo: UsersRepository, uow: UnitOfWork
     ):
@@ -50,7 +49,7 @@ class Authenticate(Interactor[AuthenticateDTO, UserFull]):
                     last_name=data.last_name,
                     role=UserRole.VISITOR,
                 )
-                await self.users_repo.save_user(user)
+                await self.users_repo.add_user(user)
                 await self.uow.commit()
                 logger.info("New user %s has registered", data.id, extra={"user": user})
                 return await self.id_provider.get_current_user()

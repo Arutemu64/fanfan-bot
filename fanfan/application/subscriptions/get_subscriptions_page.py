@@ -2,12 +2,11 @@ from fanfan.adapters.db.repositories.subscriptions import (
     SubscriptionsRepository,
 )
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.subscription import SubscriptionFull
 
 
-class GetSubscriptionsPage(Interactor[Pagination, Page[SubscriptionFull]]):
+class GetSubscriptionsPage:
     def __init__(
         self,
         subscriptions_repo: SubscriptionsRepository,

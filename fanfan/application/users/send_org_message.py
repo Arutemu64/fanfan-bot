@@ -5,7 +5,6 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.notifications import NewNotificationEvent
 from fanfan.core.exceptions.access import AccessDenied
@@ -21,7 +20,7 @@ class SendOrgMessageDTO:
     message_text: str
 
 
-class SendOrgMessage(Interactor[SendOrgMessageDTO, None]):
+class SendOrgMessage:
     def __init__(
         self,
         users_repo: UsersRepository,

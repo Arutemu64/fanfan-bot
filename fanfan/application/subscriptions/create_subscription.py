@@ -9,7 +9,6 @@ from fanfan.adapters.db.repositories.subscriptions import (
 )
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.schedule import EventNotFound
 from fanfan.core.exceptions.subscriptions import SubscriptionAlreadyExist
 from fanfan.core.models.event import EventId
@@ -27,7 +26,7 @@ class CreateSubscriptionDTO:
     counter: int
 
 
-class CreateSubscription(Interactor[CreateSubscriptionDTO, SubscriptionFull]):
+class CreateSubscription:
     def __init__(
         self,
         subscriptions_repo: SubscriptionsRepository,

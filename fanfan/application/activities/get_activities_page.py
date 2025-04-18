@@ -1,10 +1,9 @@
 from fanfan.adapters.db.repositories.activities import ActivitiesRepository
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.activity import Activity
 
 
-class GetActivitiesPage(Interactor[Pagination, Page[Activity]]):
+class GetActivitiesPage:
     def __init__(self, activities_repo: ActivitiesRepository) -> None:
         self.activities_repo = activities_repo
 

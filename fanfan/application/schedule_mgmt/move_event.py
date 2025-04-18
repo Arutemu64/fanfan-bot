@@ -7,7 +7,6 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.application.schedule_mgmt.common import (
     ANNOUNCE_LIMIT_NAME,
 )
@@ -42,7 +41,7 @@ class MoveEventResult:
     schedule_change_id: ScheduleChangeId
 
 
-class MoveEvent(Interactor[MoveEventDTO, MoveEventResult]):
+class MoveEvent:
     def __init__(
         self,
         schedule_repo: ScheduleRepository,

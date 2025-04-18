@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import undefer
 
@@ -54,7 +54,7 @@ class QuestRepository:
                 UserORM.achievements_count,
                 func.row_number().over(order_by=order_rule).label("position"),
             )
-            .where(UserORM.points > 0)
+            .where(or_(UserORM.points > 0, UserORM.achievements_count > 0))
             .order_by(*order_rule)
         )
         total_query = select(func.count(UserORM.id)).where(UserORM.points > 0)

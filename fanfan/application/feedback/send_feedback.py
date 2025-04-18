@@ -8,7 +8,6 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.events.feedback import NewFeedbackEvent
 from fanfan.core.exceptions.feedback import FeedbackException
 from fanfan.core.models.feedback import Feedback
@@ -22,7 +21,7 @@ class SendFeedbackDTO:
     text: str
 
 
-class SendFeedback(Interactor[SendFeedbackDTO, None]):
+class SendFeedback:
     def __init__(
         self,
         feedback_repo: FeedbackRepository,

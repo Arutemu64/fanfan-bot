@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.event import EventFull
 
@@ -13,7 +12,7 @@ class GetSchedulePageDTO:
     search_query: str | None = None
 
 
-class GetSchedulePage(Interactor[GetSchedulePageDTO, Page[EventFull]]):
+class GetSchedulePage:
     def __init__(
         self, events_repo: ScheduleRepository, id_provider: IdProvider
     ) -> None:

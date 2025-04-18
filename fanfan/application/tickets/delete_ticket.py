@@ -2,14 +2,13 @@ import logging
 
 from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.tickets import TicketNotFound
 from fanfan.core.models.ticket import TicketId
 
 logger = logging.getLogger(__name__)
 
 
-class DeleteTicket(Interactor[TicketId, None]):
+class DeleteTicket:
     def __init__(self, tickets_repo: TicketsRepository, uow: UnitOfWork) -> None:
         self.tickets_repo = tickets_repo
         self.uow = uow

@@ -3,7 +3,6 @@ import logging
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.events.notifications import CancelMailingEvent
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.models.mailing import Mailing, MailingId
@@ -12,7 +11,7 @@ from fanfan.core.models.user import UserRole
 logger = logging.getLogger(__name__)
 
 
-class CancelMailing(Interactor[MailingId, Mailing]):
+class CancelMailing:
     def __init__(
         self,
         mailing_repo: MailingRepository,

@@ -10,14 +10,13 @@ from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.events.voting import VoteUpdatedEvent
 from fanfan.core.exceptions.participants import ParticipantNotFound
 from fanfan.core.exceptions.votes import (
     AlreadyVotedInThisNomination,
 )
 from fanfan.core.models.nomination import NominationId
-from fanfan.core.models.participant import ParticipantId, ParticipantVotingNumber
+from fanfan.core.models.participant import ParticipantVotingNumber
 from fanfan.core.models.vote import Vote
 from fanfan.core.services.access import AccessService
 
@@ -30,7 +29,7 @@ class AddVoteDTO:
     voting_number: ParticipantVotingNumber
 
 
-class AddVote(Interactor[ParticipantId, Vote]):
+class AddVote:
     def __init__(
         self,
         participants_repo: ParticipantsRepository,

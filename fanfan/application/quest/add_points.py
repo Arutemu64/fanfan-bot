@@ -7,7 +7,6 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.events.notifications import NewNotificationEvent
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.transaction import Transaction
@@ -25,7 +24,7 @@ class AddPointsDTO:
     comment: str | None
 
 
-class AddPoints(Interactor[AddPointsDTO, None]):
+class AddPoints:
     def __init__(
         self,
         users_repo: UsersRepository,

@@ -1,10 +1,9 @@
 from fanfan.adapters.db.repositories.users import UsersRepository
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import User
 
 
-class GetUserByUsername(Interactor[str, User]):
+class GetUserByUsername:
     def __init__(self, users_repo: UsersRepository) -> None:
         self.users_repo = users_repo
 

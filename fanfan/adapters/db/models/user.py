@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, func, select
 from sqlalchemy.dialects import postgresql
@@ -50,11 +50,6 @@ class UserORM(Base):
         .scalar_subquery(),
         deferred=True,
     )
-
-    def __init__(self, **kw: Any) -> None:
-        super().__init__(**kw)
-        self.permissions = UserPermissionsORM()
-        self.settings = UserSettingsORM()
 
     def __str__(self) -> str:
         return f"{self.username} ({self.id})"

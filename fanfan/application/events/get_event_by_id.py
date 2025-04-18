@@ -1,11 +1,10 @@
 from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.schedule import EventNotFound
 from fanfan.core.models.event import EventFull, EventId
 
 
-class GetEventById(Interactor[EventId, EventFull]):
+class GetEventById:
     def __init__(
         self, events_repo: ScheduleRepository, id_provider: IdProvider
     ) -> None:

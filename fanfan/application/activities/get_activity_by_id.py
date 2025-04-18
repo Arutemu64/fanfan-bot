@@ -1,10 +1,9 @@
 from fanfan.adapters.db.repositories.activities import ActivitiesRepository
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.activities import ActivityNotFound
 from fanfan.core.models.activity import Activity, ActivityId
 
 
-class GetActivityById(Interactor[ActivityId, Activity]):
+class GetActivityById:
     def __init__(self, activities_repo: ActivitiesRepository) -> None:
         self.activities_repo = activities_repo
 

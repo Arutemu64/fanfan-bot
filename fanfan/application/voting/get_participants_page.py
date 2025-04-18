@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.participant import ParticipantFull
@@ -16,7 +15,7 @@ class GetParticipantsPageDTO:
     search_query: str | None = None
 
 
-class GetParticipantsPage(Interactor[GetParticipantsPageDTO, Page[ParticipantFull]]):
+class GetParticipantsPage:
     def __init__(
         self, participants_repo: ParticipantsRepository, id_provider: IdProvider
     ) -> None:

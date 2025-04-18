@@ -6,7 +6,6 @@ from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.tickets import (
     TicketAlreadyUsed,
     TicketNotFound,
@@ -18,7 +17,7 @@ from fanfan.core.models.ticket import TicketId
 logger = logging.getLogger(__name__)
 
 
-class LinkTicket(Interactor[TicketId, None]):
+class LinkTicket:
     def __init__(
         self,
         tickets_repo: TicketsRepository,

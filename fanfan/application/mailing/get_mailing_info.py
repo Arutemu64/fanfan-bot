@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.models.mailing import Mailing, MailingId, MailingStatus
 
 
@@ -12,7 +11,7 @@ class MailingInfoDTO:
     sent: int
 
 
-class GetMailingInfo(Interactor[MailingId, MailingInfoDTO]):
+class GetMailingInfo:
     def __init__(self, mailing_repo: MailingRepository):
         self.mailing_repo = mailing_repo
 

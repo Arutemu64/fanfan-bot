@@ -4,11 +4,10 @@ from dataclasses import dataclass
 from fanfan.adapters.redis.repositories.mailing import MailingRepository
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.notifications import NewRolesNotificationEvent
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.models.mailing import Mailing, MailingId
+from fanfan.core.models.mailing import MailingId
 from fanfan.core.models.user import UserRole
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ class CreateRoleMailingDTO:
     image_id: str | None = None
 
 
-class CreateRoleMailing(Interactor[CreateRoleMailingDTO, Mailing]):
+class CreateRoleMailing:
     def __init__(
         self,
         id_provider: IdProvider,

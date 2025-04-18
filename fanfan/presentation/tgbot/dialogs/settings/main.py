@@ -6,7 +6,6 @@ from dishka import AsyncContainer
 
 from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
-    UpdateUserSettingsDTO,
 )
 from fanfan.core.models.user import UserFull
 from fanfan.presentation.tgbot import states
@@ -53,11 +52,8 @@ async def toggle_org_receive_feedback_notifications(
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 
-    await update_user_settings(
-        UpdateUserSettingsDTO(
-            user_id=user.id,
-            org_receive_feedback_notifications=not user.settings.org_receive_feedback_notifications,  # noqa: E501
-        )
+    await update_user_settings.toggle_org_receive_feedback_notifications(
+        not user.settings.org_receive_feedback_notifications
     )
     await manager.bg().update(data={})
 

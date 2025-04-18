@@ -5,7 +5,6 @@ from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.events.voting import VoteUpdatedEvent
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.votes import VoteNotFound
@@ -19,7 +18,7 @@ class CancelVoteDTO:
     vote_id: VoteId
 
 
-class CancelVote(Interactor[VoteId, None]):
+class CancelVote:
     def __init__(
         self,
         votes_repo: VotesRepository,

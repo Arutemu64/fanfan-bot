@@ -2,13 +2,12 @@ import typing
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Counter, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Counter, ManagedCounter, SwitchTo
 from aiogram_dialog.widgets.text import Const
 
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
-    UpdateUserSettingsDTO,
 )
 from fanfan.core.models.user import UserFull
 from fanfan.presentation.tgbot import states
@@ -28,13 +27,9 @@ async def items_per_page_handler(
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
     get_user_by_id: GetUserById = await container.get(GetUserById)
     user: UserFull = manager.middleware_data["user"]
+    counter: ManagedCounter = manager.find(ID_ITEMS_PER_PAGE_INPUT)
 
-    await update_user_settings(
-        UpdateUserSettingsDTO(
-            user_id=user.id,
-            items_per_page=manager.find(ID_ITEMS_PER_PAGE_INPUT).get_value(),
-        )
-    )
+    await update_user_settings.set_items_per_page(int(counter.get_value()))
     manager.middleware_data["user"] = await get_user_by_id(user.id)
     await callback.answer("✅ Успешно!")
     await manager.switch_to(state=states.Settings.MAIN)

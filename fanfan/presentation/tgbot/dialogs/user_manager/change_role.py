@@ -7,7 +7,7 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Column, Select, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
-from fanfan.application.users.update_user import UpdateUser, UpdateUserDTO
+from fanfan.application.users.update_user import UpdateUser
 from fanfan.core.models.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
@@ -28,7 +28,7 @@ async def change_role_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     update_user: UpdateUser = await container.get(UpdateUser)
 
-    await update_user(UpdateUserDTO(id=manager.start_data[DATA_USER_ID], role=data))
+    await update_user.change_role(user_id=manager.start_data[DATA_USER_ID], role=data)
     await callback.answer(strings.common.success)
     await manager.switch_to(states.UserManager.USER_INFO)
 

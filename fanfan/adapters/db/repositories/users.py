@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from fanfan.adapters.db.models import UserORM, UserPermissionsORM, UserSettingsORM
+from fanfan.core.models.permissions import UserPermissions
 from fanfan.core.models.user import (
     User,
     UserFull,
@@ -24,8 +25,13 @@ class UsersRepository:
             joinedload(UserORM.permissions),
         )
 
-    async def save_user(self, model: User) -> User:
-        user = await self.session.merge(UserORM.from_model(model))
+    async def add_user(self, model: User) -> User:
+        user = UserORM.from_model(model)
+        user.permissions = UserPermissionsORM.from_model(
+            UserPermissions(user_id=model.id)
+        )
+        user.settings = UserSettingsORM.from_model(UserSettings(user_id=model.id))
+        self.session.add(user)
         await self.session.flush([user])
         return user.to_model()
 
@@ -90,6 +96,11 @@ class UsersRepository:
         )
         return [e.to_model() for e in editors]
 
-    async def update_user_settings(self, model: UserSettings) -> None:
+    async def save_user(self, model: User) -> User:
+        user = await self.session.merge(UserORM.from_model(model))
+        await self.session.flush([user])
+        return user.to_model()
+
+    async def save_user_settings(self, model: UserSettings) -> None:
         user_settings = await self.session.merge(UserSettingsORM.from_model(model))
         await self.session.flush([user_settings])

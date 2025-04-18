@@ -3,7 +3,6 @@ import logging
 from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.common.interactor import Interactor
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.subscriptions import SubscriptionNotFound
 from fanfan.core.models.subscription import SubscriptionId
@@ -11,7 +10,7 @@ from fanfan.core.models.subscription import SubscriptionId
 logger = logging.getLogger(__name__)
 
 
-class DeleteSubscription(Interactor[SubscriptionId, None]):
+class DeleteSubscription:
     def __init__(
         self,
         subscriptions_repo: SubscriptionsRepository,
