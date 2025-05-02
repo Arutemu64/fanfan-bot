@@ -49,15 +49,27 @@ async def open_user_achievements_handler(
 
 user_info_window = Window(
     Title(Const(strings.titles.user_manager)),
-    Jinja("<b>Никнейм:</b> {{ managed_user.username|e }}"),
-    Jinja("<b>ID:</b> {{ managed_user.id }}"),
     Jinja(
-        "<b>Билет:</b> {{ managed_user.ticket.id "
-        "if managed_user.ticket else 'не привязан' }}"
+        "<b>👤 Никнейм:</b> {% if managed_user.username %}"
+        "@{{ managed_user.username|e }}"
+        "{% else %}"
+        "не задан"
+        "{% endif %}"
     ),
-    Jinja("<b>Роль:</b> {{ managed_user.role }}"),
+    Jinja("<b>🆔 ID:</b> <code>{{ managed_user.id }}</code>"),
+    Jinja(
+        "<b>🎫 Билет:</b> {% if managed_user.ticket %}"
+        "<code>{{ managed_user.ticket.id }}</code>"
+        "{% else %}"
+        "не привязан"
+        "{% endif %}"
+    ),
+    Jinja("<b>🧩 Роль:</b> {{ managed_user.role }}"),
     Const(" "),
-    Jinja("<b>Участие в квесте:</b> {{ '✅' if can_participate_in_quest else '❌' }}"),
+    Jinja(
+        "<b>⚔️ Может участвовать в квесте:</b> "
+        "{{ '✅' if can_participate_in_quest else '❌' }}"
+    ),
     Const(" "),
     Jinja("<b>💰 Очков</b>: {{ points }} "),
     Jinja(
@@ -82,7 +94,7 @@ user_info_window = Window(
         when=is_org,
     ),
     SwitchTo(
-        text=Const("✏️ Изменить роль"),
+        text=Const("🧩 Изменить роль"),
         id="change_user_role",
         state=states.UserManager.CHANGE_ROLE,
         when=is_org,

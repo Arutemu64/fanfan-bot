@@ -12,7 +12,6 @@ from fanfan.presentation.tgbot.dialogs import (
     schedule,
     settings,
     staff,
-    test_mode,
     user_manager,
     voting,
 )
@@ -30,7 +29,6 @@ def setup_router() -> Router:
         feedback.dialog,
         activities.dialog,
         quest.dialog,
-        test_mode.dialog,
         marketplace.dialog,
     )
 

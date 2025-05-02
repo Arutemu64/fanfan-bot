@@ -7,7 +7,6 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
-from fanfan.adapters.config.models import Configuration
 from fanfan.application.utils.get_random_quote import GetRandomQuote
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import UserFull, UserRole
@@ -33,7 +32,6 @@ async def main_menu_getter(
 ):
     get_random_quote: GetRandomQuote = await container.get(GetRandomQuote)
     access: AccessService = await container.get(AccessService)
-    config: Configuration = await container.get(Configuration)
 
     try:
         await access.ensure_can_vote(user)
@@ -52,9 +50,6 @@ async def main_menu_getter(
         # Access
         "can_vote": can_vote,
         "can_participate_in_quest": can_participate_in_quest,
-        # Test mode:
-        "can_access_test_mode": config.debug.test_mode
-        and user.role in [UserRole.HELPER, UserRole.ORG],
         # Customization
         "image_path": UI_IMAGES_DIR.joinpath("main_menu.png"),
         "quote": await get_random_quote(),
@@ -191,12 +186,6 @@ main_window = Window(
             text=Const(strings.titles.settings),
             id="open_settings",
             state=states.Settings.MAIN,
-        ),
-        Start(
-            text=Const(strings.titles.test_mode),
-            id="open_test_mode",
-            state=states.TestMode.MAIN,
-            when="can_access_test_mode",
         ),
         width=2,
     ),

@@ -38,7 +38,13 @@ class Schedule(StatesGroup):
 
 class Settings(StatesGroup):
     MAIN = State()
+
+    USER_SETTINGS = State()
     SET_ITEMS_PER_PAGE = State()
+
+    ORG_SETTINGS = State()
+    DEV_SETTINGS = State()
+    FEST_SETTINGS = State()
 
 
 class UserManager(StatesGroup):
@@ -66,10 +72,6 @@ class Quest(StatesGroup):
 class InlineQuerySearch(StatesGroup):
     EVENTS = State()
     VOTING_PARTICIPANTS = State()
-
-
-class TestMode(StatesGroup):
-    MAIN = State()
 
 
 class Staff(StatesGroup):

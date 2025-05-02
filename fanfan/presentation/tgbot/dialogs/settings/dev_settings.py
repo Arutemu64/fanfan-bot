@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING
+import typing
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel
+from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.text import Const
 
 from fanfan.application.quest.reset_quest import ResetQuest
@@ -10,7 +10,7 @@ from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from dishka import AsyncContainer
 
 
@@ -25,11 +25,13 @@ async def reset_quest_handler(
     await callback.answer("✅ Достижения сброшены, очки обнулены")
 
 
-test_mode_main_window = Window(
-    Title(Const(strings.titles.test_mode)),
+dev_settings_window = Window(
+    Title(Const(strings.titles.dev_settings)),
     Button(
-        Const("🏆 Сбросить достижения"), id="reset_quest", on_click=reset_quest_handler
+        Const("🏆 Сбросить свой прогресс квеста"),
+        id="reset_quest",
+        on_click=reset_quest_handler,
     ),
-    Cancel(Const(strings.buttons.back)),
-    state=states.TestMode.MAIN,
+    SwitchTo(Const(strings.buttons.back), state=states.Settings.MAIN, id="back"),
+    state=states.Settings.DEV_SETTINGS,
 )
