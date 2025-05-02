@@ -75,5 +75,24 @@ class TestMode(StatesGroup):
 class Staff(StatesGroup):
     MAIN = State()
 
+    CREATE_MARKET = State()
+
     CREATE_TICKET_PICK_ROLE = State()
     CREATE_TICKET_RESULT = State()
+
+
+class Marketplace(StatesGroup):
+    LIST_MARKETS = State()
+    VIEW_MARKET = State()
+    EDIT_MARKET_NAME = State()
+    EDIT_MARKET_DESCRIPTION = State()
+    EDIT_MARKET_IMAGE = State()
+    ADD_MANAGER = State()
+
+    LIST_PRODUCTS = State()
+    VIEW_PRODUCT = State()
+    EDIT_PRODUCT_NAME = State()
+    EDIT_PRODUCT_DESCRIPTION = State()
+    EDIT_PRODUCT_PRICE = State()
+    EDIT_PRODUCT_IMAGE = State()
+    CONFIRM_PRODUCT_DELETE = State()

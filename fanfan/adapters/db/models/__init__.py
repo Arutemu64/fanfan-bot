@@ -5,8 +5,10 @@ from .code import CodeORM
 from .contest import ContestEntryORM
 from .event import EventORM
 from .feedback import FeedbackORM
+from .market import MarketManagerORM, MarketORM
 from .nomination import NominationORM
 from .participant import ParticipantORM
+from .product import ProductORM
 from .quote import QuoteORM
 from .received_achievement import ReceivedAchievementORM
 from .schedule_change import ScheduleChangeORM
@@ -40,4 +42,7 @@ __all__ = [
     "ScheduleChangeORM",
     "CodeORM",
     "ContestEntryORM",
+    "MarketORM",
+    "MarketManagerORM",
+    "ProductORM",
 ]

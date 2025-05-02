@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass
-from typing import NewType
+from typing import Any, NewType
 
 UserId = NewType("UserId", int)
 
@@ -31,6 +31,9 @@ class User:
     first_name: str | None
     last_name: str | None
     role: UserRole
+
+    def __eq__(self, other: User | Any) -> bool:
+        return bool(isinstance(other, User) and self.id == other.id)
 
 
 @dataclass(slots=True, kw_only=True)

@@ -1,0 +1,7 @@
+{% for product in products %}
+/{{ product.id }} <b>{{ product.name}}</b>
+💵 Стоимость: {{ product.price }}₽
+{% if not loop.last %}
+
+{% endif %}
+{% endfor %}

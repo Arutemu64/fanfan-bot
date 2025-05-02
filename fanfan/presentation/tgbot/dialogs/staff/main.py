@@ -80,6 +80,12 @@ staff_main_window = Window(
             text=Const("🎫 Новый билет"),
             when=F["can_create_tickets"],
         ),
+        SwitchTo(
+            Const("🛍️ Создать магазин на основе заявки C2"),
+            id="new_market",
+            state=states.Staff.CREATE_MARKET,
+            when=F["is_org"],
+        ),
         Start(
             state=states.Mailing.MAIN,
             id="new_notification",
@@ -113,7 +119,7 @@ staff_main_window = Window(
             url=Format("{docs_link}"),
             when=F["docs_link"],
         ),
-        width=2,
+        width=1,
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Staff.MAIN,

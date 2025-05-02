@@ -1,5 +1,5 @@
-from sqlalchemy import Float, Sequence, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Sequence, UniqueConstraint
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 
 class OrderMixin:
@@ -14,13 +14,13 @@ class OrderMixin:
 
     __tablename__ = None
 
-    order_sequence = Sequence(f"{__tablename__}_order_seq", start=1)
-    order: Mapped[float] = mapped_column(
-        "order",
-        Float(),
-        order_sequence,
-        unique=True,
-        nullable=False,
-        server_default=order_sequence.next_value(),
-    )
-    UniqueConstraint(order, deferrable=True, initially="DEFERRED")
+    @declared_attr
+    def order(self) -> Mapped[float]:
+        order_sequence = Sequence(f"{self.__tablename__}_order_seq", start=1)
+        return mapped_column(
+            unique=True,
+            nullable=False,
+            server_default=order_sequence.next_value(),
+        )
+
+    UniqueConstraint("order", deferrable=True, initially="DEFERRED")

@@ -13,6 +13,16 @@ from fanfan.application.feedback.send_feedback import SendFeedback
 from fanfan.application.mailing.cancel_mailing import CancelMailing
 from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
+from fanfan.application.marketplace.create_market_by_participant import (
+    CreateMarketByParticipant,
+)
+from fanfan.application.marketplace.create_product import CreateProduct
+from fanfan.application.marketplace.get_market import GetMarket
+from fanfan.application.marketplace.get_product import GetProduct
+from fanfan.application.marketplace.list_markets import ListMarkets
+from fanfan.application.marketplace.list_products import GetProducts
+from fanfan.application.marketplace.update_market import UpdateMarket
+from fanfan.application.marketplace.update_product import UpdateProduct
 from fanfan.application.nominations.get_nomination_by_id import GetNominationById
 from fanfan.application.nominations.get_nominations_page import GetNominationsPage
 from fanfan.application.quest.add_points import AddPoints
@@ -118,3 +128,13 @@ class InteractorsProvider(Provider):
 
     get_user_code = provide(GetUserCode)
     proceed_code = provide(ProceedCode)
+
+    list_markets = provide(ListMarkets)
+    get_market = provide(GetMarket)
+    update_market = provide(UpdateMarket)
+
+    add_product = provide(CreateProduct)
+    list_products = provide(GetProducts)
+    get_product = provide(GetProduct)
+    update_product = provide(UpdateProduct)
+    create_market_by_participant = provide(CreateMarketByParticipant)

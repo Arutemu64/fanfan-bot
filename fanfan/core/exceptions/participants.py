@@ -1,4 +1,5 @@
 from fanfan.core.exceptions.base import AppException
+from fanfan.core.models.participant import ParticipantId
 
 
 class ParticipantsException(AppException):
@@ -6,4 +7,5 @@ class ParticipantsException(AppException):
 
 
 class ParticipantNotFound(ParticipantsException):
-    message = "⚠️ Участник не найден"
+    def __init__(self, participant_id: ParticipantId):
+        self.message = f"⚠️ Участник {participant_id} не найден"
