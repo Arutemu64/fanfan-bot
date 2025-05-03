@@ -1,21 +1,21 @@
 from aiogram_dialog import DialogManager
 from dishka import AsyncContainer
 
-from fanfan.application.events.get_current_event import GetCurrentEvent
-from fanfan.application.events.get_page_number_by_event import (
+from fanfan.application.schedule.get_current_event import GetCurrentEvent
+from fanfan.application.schedule.get_page_number_by_event import (
     GetPageNumberByEvent,
     GetPageNumberByEventDTO,
 )
-from fanfan.application.events.get_schedule_page import (
+from fanfan.application.schedule.get_schedule_page import (
     GetSchedulePage,
     GetSchedulePageDTO,
 )
 from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.schedule import NoCurrentEvent
-from fanfan.core.models.event import EventId
-from fanfan.core.models.user import UserFull
-from fanfan.core.services.access import AccessService
+from fanfan.core.models.schedule_event import ScheduleEventId
+from fanfan.core.models.user import UserData
+from fanfan.core.services.access import UserAccessValidator
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 DATA_SELECTED_EVENT_ID = "selected_event_id"
@@ -27,7 +27,7 @@ CAN_EDIT_SCHEDULE = "can_edit_schedule"
 async def schedule_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     get_schedule_page: GetSchedulePage = await container.get(GetSchedulePage)
@@ -53,12 +53,12 @@ async def schedule_getter(
     }
 
 
-async def show_event_page(manager: DialogManager, event_id: EventId) -> None:
+async def show_event_page(manager: DialogManager, event_id: ScheduleEventId) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
     get_page_number_by_event: GetPageNumberByEvent = await container.get(
         GetPageNumberByEvent
     )
-    user: UserFull = manager.middleware_data["user"]
+    user: UserData = manager.middleware_data["user"]
 
     page_number = await get_page_number_by_event(
         GetPageNumberByEventDTO(
@@ -88,10 +88,10 @@ async def current_event_getter(
 async def can_edit_schedule_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
-    access: AccessService = await container.get(AccessService)
+    access: UserAccessValidator = await container.get(UserAccessValidator)
 
     try:
         access.ensure_can_edit_schedule(user)

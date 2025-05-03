@@ -16,11 +16,11 @@ from dishka import AsyncContainer
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.static.templates import achievements_list
+from fanfan.presentation.tgbot.templates import achievements_list
 
 ID_ACHIEVEMENTS_SCROLL = "achievements_scroll"
 ID_ADD_ACHIEVEMENT_INPUT = "add_achievement_input"
@@ -30,7 +30,7 @@ DATA_USER_ID = "user_id"
 async def list_achievements_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ) -> dict:
     get_achievements_page: GetAchievementsPage = await container.get(

@@ -15,4 +15,4 @@ class GetQuestRating:
         self.quest_repo = quest_repo
 
     async def __call__(self, data: GetQuestRatingDTO) -> Page[PlayerRatingDTO]:
-        return await self.quest_repo.get_quest_rating(pagination=data.pagination)
+        return await self.quest_repo.read_quest_rating_page(pagination=data.pagination)

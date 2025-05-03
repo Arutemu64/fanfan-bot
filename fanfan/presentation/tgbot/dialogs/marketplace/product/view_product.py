@@ -64,7 +64,10 @@ view_product_window = Window(
         Const(" "),
         when="product_description",
     ),
-    Jinja("💵 Стоимость: {{ product_price }}₽"),
+    Jinja(
+        "💵 Стоимость: "
+        "{{ '%.2f' % product_price if product_price % 1 != 0 else product_price|int }}₽"
+    ),
     Group(
         SwitchTo(
             Const("✏️ Изменить название"),

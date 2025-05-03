@@ -7,7 +7,7 @@ class LimiterException(AppException):
     message = "⚠️ Неизвестная ошибка при запуске задачи"
 
 
-class TooFast(LimiterException):
+class RateLimitCooldown(LimiterException):
     def __init__(self, cooldown_period: float, timestamp: float):
         self.limit_timeout = cooldown_period
         self.current_timestamp = timestamp
@@ -17,5 +17,5 @@ class TooFast(LimiterException):
         )
 
 
-class LimitLocked(LimiterException):
+class RateLimiterInUse(LimiterException):
     message = "⚠️ Задача уже выполняется"

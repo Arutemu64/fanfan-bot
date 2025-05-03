@@ -5,17 +5,17 @@ from openpyxl import load_workbook
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import EventORM, ParticipantORM
-from fanfan.adapters.db.models.block import BlockORM
+from fanfan.adapters.db.models import ParticipantORM, ScheduleEventORM
+from fanfan.adapters.db.models.schedule_block import ScheduleBlockORM
 
 logger = logging.getLogger(__name__)
 
 
 async def parse_schedule(file: typing.BinaryIO, session: AsyncSession) -> None:
     # Delete orphaned events later
-    events_to_delete = list(await session.scalars(select(EventORM)))
+    events_to_delete = list(await session.scalars(select(ScheduleEventORM)))
     # Delete all blocks
-    await session.execute(delete(BlockORM))
+    await session.execute(delete(ScheduleBlockORM))
     await session.flush()
     # Get everything ready
     wb = load_workbook(file)
@@ -39,7 +39,7 @@ async def parse_schedule(file: typing.BinaryIO, session: AsyncSession) -> None:
                     card,
                 )
             event = await session.merge(
-                EventORM(
+                ScheduleEventORM(
                     id=id_,
                     title=event_title,
                     order=order,
@@ -49,9 +49,9 @@ async def parse_schedule(file: typing.BinaryIO, session: AsyncSession) -> None:
             for e in events_to_delete:
                 if e.id == event.id:
                     events_to_delete.remove(e)
-        elif row[0].value and row[0].font.italic:  # Block
+        elif row[0].value and row[0].font.italic:  # ScheduleBlock
             title = str(row[0].value)
-            block = BlockORM(title=title, start_order=order)
+            block = ScheduleBlockORM(title=title, start_order=order)
             session.add(block)
             await session.flush([block])
             logger.info("New block %s added", title)

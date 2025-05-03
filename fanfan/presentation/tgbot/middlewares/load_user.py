@@ -8,7 +8,7 @@ from dishka.integrations.aiogram import CONTAINER_NAME
 
 from fanfan.adapters.config.models import DebugConfig
 from fanfan.application.users.authenticate import Authenticate, AuthenticateDTO
-from fanfan.application.users.update_user_commands import UpdateUserCommands
+from fanfan.presentation.tgbot.utils.cmd_updater import CMDUpdater
 
 if TYPE_CHECKING:
     from aiogram.types import User
@@ -26,9 +26,7 @@ class LoadDataMiddleware(BaseMiddleware):
             tg_user: User = data["event_from_user"]
             container: AsyncContainer = data[CONTAINER_NAME]
             authenticate: Authenticate = await container.get(Authenticate)
-            update_user_commands: UpdateUserCommands = await container.get(
-                UpdateUserCommands
-            )
+            update_user_commands: CMDUpdater = await container.get(CMDUpdater)
 
             # Setup Sentry logging
             debug_config: DebugConfig = await container.get(DebugConfig)

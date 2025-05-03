@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from sqlalchemy import func, select
-from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
+from sqlalchemy.orm import Mapped, column_property, mapped_column
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.participant import ParticipantORM
@@ -14,24 +12,15 @@ from fanfan.core.models.nomination import (
     NominationId,
 )
 
-if TYPE_CHECKING:
-    from fanfan.adapters.db.models.vote import VoteORM
-
 
 class NominationORM(Base):
     __tablename__ = "nominations"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[NominationId] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(unique=True)
     title: Mapped[str] = mapped_column(unique=True)
     is_votable: Mapped[bool] = mapped_column(server_default="False")
 
-    # Relationships
-    user_vote: Mapped[VoteORM | None] = relationship(
-        secondary="participants",
-        viewonly=True,
-        lazy="noload",
-    )
     participants_count = column_property(
         select(func.count(ParticipantORM.id))
         .where(ParticipantORM.nomination_id == id)
@@ -64,5 +53,4 @@ class NominationORM(Base):
             code=self.code,
             title=self.title,
             is_votable=self.is_votable,
-            user_vote=self.user_vote.to_model() if self.user_vote else None,
         )

@@ -43,7 +43,7 @@ class ProcessFeedback:
         async with self.uow:
             try:
                 feedback = await self.feedback_repo.get_feedback_by_id(
-                    feedback_id=data.feedback_id, lock=True
+                    feedback_id=data.feedback_id
                 )
                 if feedback is None:
                     raise FeedbackNotFound

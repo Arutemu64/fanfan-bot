@@ -1,6 +1,6 @@
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.auth import NoUserContextError
-from fanfan.core.models.user import UserFull, UserId
+from fanfan.core.models.user import UserData, UserId
 
 
 class SystemIdProvider(IdProvider):
@@ -17,5 +17,5 @@ class SystemIdProvider(IdProvider):
     def get_current_user_id(self) -> UserId:
         raise NoUserContextError
 
-    async def get_current_user(self) -> UserFull:
+    async def get_current_user(self) -> UserData:
         raise NoUserContextError

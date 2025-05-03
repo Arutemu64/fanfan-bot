@@ -27,7 +27,7 @@ from fanfan.application.marketplace.list_products import GetProducts
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.market import MarketId
 from fanfan.core.models.product import ProductId
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.marketplace.common import (
@@ -35,7 +35,7 @@ from fanfan.presentation.tgbot.dialogs.marketplace.common import (
     DATA_SELECTED_PRODUCT_ID,
 )
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.static.templates import product_list
+from fanfan.presentation.tgbot.templates import product_list
 
 ID_PRODUCTS_SCROLL = "products_scroll"
 
@@ -46,7 +46,7 @@ if typing.TYPE_CHECKING:
 async def view_market_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     market_id = MarketId(dialog_manager.dialog_data[DATA_SELECTED_MARKET_ID])

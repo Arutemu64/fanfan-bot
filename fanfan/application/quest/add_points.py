@@ -11,7 +11,7 @@ from fanfan.core.events.notifications import NewNotificationEvent
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.transaction import Transaction
 from fanfan.core.models.user import UserId
-from fanfan.core.services.access import AccessService
+from fanfan.core.services.access import UserAccessValidator
 from fanfan.core.utils.notifications import create_points_notification
 
 logger = logging.getLogger(__name__)
@@ -24,14 +24,14 @@ class AddPointsDTO:
     comment: str | None
 
 
-class AddPoints:
+class AddPointsToUser:
     def __init__(
         self,
         users_repo: UsersRepository,
         quest_repo: QuestRepository,
         transactions_repo: TransactionsRepository,
         uow: UnitOfWork,
-        access: AccessService,
+        access: UserAccessValidator,
         id_provider: IdProvider,
         stream_broker_adapter: EventsBroker,
     ) -> None:

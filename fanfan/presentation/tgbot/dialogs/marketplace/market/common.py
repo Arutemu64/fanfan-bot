@@ -5,14 +5,14 @@ from dishka import AsyncContainer
 
 from fanfan.application.marketplace.get_market import GetMarket
 from fanfan.core.models.market import MarketId
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot.dialogs.marketplace.common import DATA_SELECTED_MARKET_ID
 
 
 async def market_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     market_id = MarketId(dialog_manager.dialog_data[DATA_SELECTED_MARKET_ID])

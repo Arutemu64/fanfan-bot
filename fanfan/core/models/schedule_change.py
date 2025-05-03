@@ -2,8 +2,8 @@ import enum
 from dataclasses import dataclass
 from typing import NewType
 
-from fanfan.core.models.event import EventFull, EventId
 from fanfan.core.models.mailing import MailingId
+from fanfan.core.models.schedule_event import ScheduleEventFull, ScheduleEventId
 from fanfan.core.models.user import User, UserId
 
 ScheduleChangeId = NewType("ScheduleChangeId", int)
@@ -33,8 +33,8 @@ class ScheduleChange:
     type: ScheduleChangeType
 
     # Arguments
-    changed_event_id: EventId
-    argument_event_id: EventId | None
+    changed_event_id: ScheduleEventId
+    argument_event_id: ScheduleEventId | None
 
     # Mailing
     mailing_id: MailingId | None
@@ -44,6 +44,6 @@ class ScheduleChange:
 
 @dataclass(slots=True, kw_only=True)
 class ScheduleChangeFull(ScheduleChange):
-    changed_event: EventFull
-    argument_event: EventFull | None
+    changed_event: ScheduleEventFull
+    argument_event: ScheduleEventFull | None
     user: User | None

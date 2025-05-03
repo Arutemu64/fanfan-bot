@@ -18,11 +18,8 @@ class Participant:
 @dataclass(slots=True, kw_only=True)
 class ParticipantFull(Participant):
     nomination: Nomination
-    votes_count: int
-    event: Event | None
-    user_vote: Vote | None
+    event: ScheduleEvent | None
 
 
-from fanfan.core.models.event import Event  # noqa: E402
 from fanfan.core.models.nomination import Nomination, NominationId  # noqa: E402
-from fanfan.core.models.vote import Vote  # noqa: E402
+from fanfan.core.models.schedule_event import ScheduleEvent  # noqa: E402

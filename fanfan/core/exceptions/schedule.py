@@ -1,5 +1,6 @@
 import time
 
+from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.utils.pluralize import SECONDS_PLURALS, pluralize
 
@@ -54,3 +55,7 @@ class ScheduleChangeNotFound(ScheduleException):
 
 class OutdatedScheduleChange(ScheduleException):
     message = "⚠️ Это изменение уже неактуально."
+
+
+class NoScheduleEditingPermission(ScheduleException, AccessDenied):
+    message = "⚠️ У вас нет прав для редактирования расписания"

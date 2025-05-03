@@ -1,4 +1,4 @@
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import undefer
 
@@ -30,7 +30,7 @@ class QuestRepository:
         return UserORM(id=model.id, points=model.points)
 
     async def get_player(self, user_id: UserId) -> PlayerFull | None:
-        query = (
+        stmt = (
             select(UserORM)
             .where(UserORM.id == user_id)
             .options(
@@ -40,30 +40,31 @@ class QuestRepository:
             .execution_options(populate_existing=True)
             .with_for_update(of=[UserORM.points])
         )
-        player = await self.session.scalar(query)
+        player = await self.session.scalar(stmt)
         return self._to_full_model(player) if player else None
 
-    async def get_quest_rating(
+    async def read_quest_rating_page(
         self, pagination: Pagination | None = None
     ) -> Page[PlayerRatingDTO]:
-        order_rule = [UserORM.points.desc(), UserORM.achievements_count.desc()]
-        query = (
+        order_rule = (UserORM.points + UserORM.achievements_count).desc()
+        where_rule = (UserORM.points + UserORM.achievements_count) > 0
+        stmt = (
             select(
+                func.row_number().over(order_by=order_rule).label("position"),
                 UserORM.username,
                 UserORM.points,
                 UserORM.achievements_count,
-                func.row_number().over(order_by=order_rule).label("position"),
             )
-            .where(or_(UserORM.points > 0, UserORM.achievements_count > 0))
-            .order_by(*order_rule)
+            .where(where_rule)
+            .order_by(order_rule)
         )
-        total_query = select(func.count(UserORM.id)).where(UserORM.points > 0)
+        total_stmt = select(func.count(UserORM.id)).where(where_rule)
 
         if pagination:
-            query = query.limit(pagination.limit).offset(pagination.offset)
+            stmt = stmt.limit(pagination.limit).offset(pagination.offset)
 
-        results = (await self.session.execute(query)).all()
-        total = await self.session.scalar(total_query)
+        results = (await self.session.execute(stmt)).all()
+        total = await self.session.scalar(total_stmt)
 
         return Page(
             items=[
@@ -78,7 +79,6 @@ class QuestRepository:
             total=total,
         )
 
-    async def save_player(self, model: Player) -> Player:
-        participant = self._from_model(model)
-        await self.session.flush([participant])
-        return self._to_model(participant)
+    async def save_player(self, player: Player) -> Player:
+        user_orm = await self.session.merge(self._from_model(player))
+        return self._to_model(user_orm)

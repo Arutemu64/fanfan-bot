@@ -16,9 +16,9 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
-from fanfan.application.nominations.get_nomination_by_id import GetNominationById
 from fanfan.application.voting.add_vote import AddVote, AddVoteDTO
 from fanfan.application.voting.cancel_vote import CancelVote, CancelVoteDTO
+from fanfan.application.voting.get_nomination_for_user import GetNominationForUser
 from fanfan.application.voting.get_participants_page import (
     GetParticipantsPage,
     GetParticipantsPageDTO,
@@ -26,7 +26,7 @@ from fanfan.application.voting.get_participants_page import (
 from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.votes import VoteNotFound
 from fanfan.core.models.participant import ParticipantVotingNumber
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
@@ -36,7 +36,7 @@ from fanfan.presentation.tgbot.dialogs.voting.common import (
     DATA_SELECTED_NOMINATION_ID,
 )
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.static.templates import voting_list
+from fanfan.presentation.tgbot.templates import voting_list
 
 ID_VOTING_SCROLL = "voting_scroll"
 DATA_USER_VOTE_ID = "user_vote_id"
@@ -44,11 +44,13 @@ DATA_USER_VOTE_ID = "user_vote_id"
 
 async def participants_getter(
     dialog_manager: DialogManager,
-    user: UserFull,
+    user: UserData,
     container: AsyncContainer,
     **kwargs,
 ) -> dict:
-    get_nomination_by_id: GetNominationById = await container.get(GetNominationById)
+    get_nomination_by_id: GetNominationForUser = await container.get(
+        GetNominationForUser
+    )
     get_participants_page: GetParticipantsPage = await container.get(
         GetParticipantsPage
     )
@@ -58,7 +60,6 @@ async def participants_getter(
     )
     page = await get_participants_page(
         GetParticipantsPageDTO(
-            only_votable=True,
             pagination=Pagination(
                 limit=user.settings.items_per_page,
                 offset=await dialog_manager.find(ID_VOTING_SCROLL).get_page()
@@ -68,14 +69,14 @@ async def participants_getter(
         ),
     )
     dialog_manager.dialog_data[DATA_USER_VOTE_ID] = (
-        nomination.user_vote.id if nomination.user_vote else None
+        nomination.vote.id if nomination.vote else None
     )
     return {
         "nomination_title": nomination.title,
         "participants": page.items,
         "pages": page.total // user.settings.items_per_page
         + bool(page.total % user.settings.items_per_page),
-        "voted": bool(dialog_manager.dialog_data[DATA_USER_VOTE_ID]),
+        "is_voted": bool(dialog_manager.dialog_data[DATA_USER_VOTE_ID]),
     }
 
 
@@ -114,7 +115,7 @@ async def cancel_vote_handler(
 voting_window = Window(
     Title(Format("🌟 Номинация {nomination_title}")),
     Jinja(voting_list),
-    Const("👆 Чтобы проголосовать, нажми на номер участника", when=~F["voted"]),
+    Const("👆 Чтобы проголосовать, нажми на номер участника", when=~F["is_voted"]),
     SwitchInlineQueryCurrentChat(
         text=Const(strings.buttons.search),
         switch_inline_query=Const(""),
@@ -134,7 +135,7 @@ voting_window = Window(
     Button(
         Const("🗑️ Отменить голос"),
         id="cancel_vote",
-        when="voted",
+        when="is_voted",
         on_click=cancel_vote_handler,
     ),
     SwitchTo(

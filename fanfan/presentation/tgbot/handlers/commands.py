@@ -7,15 +7,17 @@ from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.models.user import UserFull, UserRole
-from fanfan.core.services.access import AccessService
+from fanfan.core.models.user import UserData, UserRole
+from fanfan.core.services.access import UserAccessValidator
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.filters import RoleFilter
 from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,
     FEEDBACK_CMD,
     LINK_TICKET_CMD,
+    MARKETPLACE_CMD,
     NOTIFICATIONS_CMD,
+    QR_CMD,
     QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
@@ -42,7 +44,7 @@ async def start_cmd(
 async def link_ticket_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: UserFull,
+    user: UserData,
 ) -> None:
     if not user.ticket:
         await dialog_manager.start(states.Main.LINK_TICKET)
@@ -68,8 +70,8 @@ async def notifications_cmd(message: Message, dialog_manager: DialogManager) -> 
 async def quest_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: UserFull,
-    access: FromDishka[AccessService],
+    user: UserData,
+    access: FromDishka[UserAccessValidator],
 ) -> None:
     try:
         access.ensure_can_participate_in_quest(user)
@@ -83,8 +85,8 @@ async def quest_cmd(
 async def voting_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: UserFull,
-    access: FromDishka[AccessService],
+    user: UserData,
+    access: FromDishka[UserAccessValidator],
 ) -> None:
     try:
         await access.ensure_can_vote(user)
@@ -103,8 +105,8 @@ async def staff_cmd(message: Message, dialog_manager: DialogManager) -> None:
 async def feedback_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: UserFull,
-    access: FromDishka[AccessService],
+    user: UserData,
+    access: FromDishka[UserAccessValidator],
 ) -> None:
     try:
         access.ensure_can_send_feedback(user)
@@ -116,3 +118,13 @@ async def feedback_cmd(
 @router.message(Command(SETTINGS_CMD))
 async def settings_cmd(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(states.Settings.MAIN)
+
+
+@router.message(Command(MARKETPLACE_CMD))
+async def marketplace_cmd(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(states.Marketplace.LIST_MARKETS)
+
+
+@router.message(Command(QR_CMD))
+async def qr_cmd(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(states.Main.QR_CODE)

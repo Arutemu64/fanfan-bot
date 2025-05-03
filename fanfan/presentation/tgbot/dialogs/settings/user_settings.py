@@ -6,7 +6,7 @@ from dishka import AsyncContainer
 
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.update_user_settings import UpdateUserSettings
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
@@ -16,7 +16,7 @@ ID_ITEMS_PER_PAGE_INPUT = "items_per_page_input"
 
 async def user_settings_getter(
     dialog_manager: DialogManager,
-    user: UserFull,
+    user: UserData,
     container: AsyncContainer,
     **kwargs,
 ):
@@ -30,7 +30,7 @@ async def update_counter_value_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: UserFull = manager.middleware_data["user"]
+    user: UserData = manager.middleware_data["user"]
     await manager.find(ID_ITEMS_PER_PAGE_INPUT).set_value(user.settings.items_per_page)
 
 
@@ -42,7 +42,7 @@ async def items_per_page_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
     get_user_by_id: GetUserById = await container.get(GetUserById)
-    user: UserFull = manager.middleware_data["user"]
+    user: UserData = manager.middleware_data["user"]
     counter: ManagedCounter = manager.find(ID_ITEMS_PER_PAGE_INPUT)
 
     await update_user_settings.set_items_per_page(int(counter.get_value()))

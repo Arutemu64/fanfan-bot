@@ -18,7 +18,7 @@ class DeleteTicket:
         if ticket is None:
             raise TicketNotFound
         async with self.uow:
-            await self.tickets_repo.delete_ticket(ticket_id)
+            await self.tickets_repo.delete_ticket(ticket)
             await self.uow.commit()
             logger.info("Ticket %s was deleted", ticket_id, extra={"ticket": ticket})
             return

@@ -14,19 +14,16 @@ from fanfan.core.models.user import UserId
 class CodeORM(Base):
     __tablename__ = "codes"
 
-    id: Mapped[str] = mapped_column(primary_key=True)
+    id: Mapped[CodeId] = mapped_column(primary_key=True)
 
     achievement_id: Mapped[int | None] = mapped_column(
         ForeignKey("achievements.id", ondelete="CASCADE"),
-        unique=True,
     )
     user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
-        unique=True,
     )
     ticket_id: Mapped[str | None] = mapped_column(
         ForeignKey("tickets.id", ondelete="CASCADE"),
-        unique=True,
     )
 
     achievement: Mapped[AchievementORM | None] = relationship(

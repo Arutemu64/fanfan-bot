@@ -18,8 +18,8 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.adapters.config.models import Configuration
-from fanfan.application.schedule_mgmt.set_next_event import SetNextEvent
-from fanfan.core.models.event import EventId
+from fanfan.application.schedule.management.set_next_event import SetNextEvent
+from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
@@ -39,7 +39,7 @@ from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
 )
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.static.templates import schedule_list
+from fanfan.presentation.tgbot.templates import schedule_list
 
 if typing.TYPE_CHECKING:
     from aiogram_dialog.widgets.common import ManagedScroll
@@ -82,7 +82,7 @@ async def schedule_text_input_handler(
 ) -> None:
     schedule_scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
     if "/" in data and data.replace("/", "").isnumeric():
-        event_id = EventId(int(data.replace("/", "")))
+        event_id = ScheduleEventId(int(data.replace("/", "")))
         await show_event_details(dialog_manager, event_id)
     elif (
         data.isnumeric()

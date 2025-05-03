@@ -16,13 +16,15 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 
-from fanfan.application.subscriptions.get_subscriptions_page import GetSubscriptionsPage
+from fanfan.application.schedule.subscriptions.get_subscriptions_page import (
+    GetSubscriptionsPage,
+)
 from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
 )
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.event import EventId
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.schedule_event import ScheduleEventId
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
@@ -30,7 +32,7 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
 )
 from fanfan.presentation.tgbot.dialogs.schedule.event_details import show_event_details
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.static.templates import subscriptions_list
+from fanfan.presentation.tgbot.templates import subscriptions_list
 
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
 ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
@@ -39,7 +41,7 @@ ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 async def subscriptions_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     get_subscriptions_page: GetSubscriptionsPage = await container.get(
@@ -68,7 +70,7 @@ async def subscriptions_text_input_handler(
     data: str,
 ) -> None:
     if "/" in data and data.replace("/", "").isnumeric():
-        event_id = EventId(int(data.replace("/", "")))
+        event_id = ScheduleEventId(int(data.replace("/", "")))
         await show_event_details(dialog_manager, event_id)
 
 
@@ -77,7 +79,7 @@ async def toggle_all_notifications_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: UserFull = manager.middleware_data["user"]
+    user: UserData = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 

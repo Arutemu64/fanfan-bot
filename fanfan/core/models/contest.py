@@ -3,11 +3,11 @@ from typing import NewType
 
 from fanfan.core.models.user import UserId
 
-ContestEntryId = NewType("ContestEntryId", int)
+FlagId = NewType("FlagId", int)
 
 
 @dataclass(kw_only=True, slots=True)
-class ContestEntry:
-    id: ContestEntryId | None = None
-    contest_name: str
+class Flag:
+    id: FlagId | None = None
+    flag_name: str
     user_id: UserId

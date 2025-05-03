@@ -8,8 +8,11 @@ from aiogram_dialog.widgets.kbd.select import ManagedT
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
 
-from fanfan.application.tickets.generate_ticket import GenerateTicket, GenerateTicketDTO
-from fanfan.core.models.user import UserFull, UserRole
+from fanfan.application.tickets.generate_ticket import (
+    GenerateTicket,
+    GenerateTicketDTO,
+)
+from fanfan.core.models.user import UserData, UserRole
 from fanfan.core.utils.code import get_qr_code_image
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.static import strings
@@ -21,7 +24,7 @@ DATA_NEW_TICKET_ID = "new_ticket_id"
 DATA_TICKET_CODE_ID = "ticket_code_id"
 
 
-async def pick_role_getter(user: UserFull, **kwargs) -> dict:
+async def pick_role_getter(user: UserData, **kwargs) -> dict:
     roles = [UserRole.VISITOR, UserRole.PARTICIPANT]
     if user.role is UserRole.ORG:
         roles += [UserRole.HELPER, UserRole.ORG]

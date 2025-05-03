@@ -14,7 +14,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format
 
-from fanfan.application.events.get_current_event import GetCurrentEvent
+from fanfan.application.schedule.get_current_event import GetCurrentEvent
 from fanfan.core.exceptions.schedule import NoCurrentEvent
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,

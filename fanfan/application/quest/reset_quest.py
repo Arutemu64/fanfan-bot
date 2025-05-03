@@ -24,7 +24,7 @@ class ResetQuest:
             )
             participant.points = 0
             await self.quest_repo.save_player(participant)
-            await self.achievements_repo.delete_all_user_received_achievements(
+            await self.achievements_repo.delete_all_user_achievements(
                 user_id=self.id_provider.get_current_user_id()
             )
             await self.uow.commit()

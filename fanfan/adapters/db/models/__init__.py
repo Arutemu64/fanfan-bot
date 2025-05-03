@@ -2,9 +2,8 @@ from .achievement import AchievementORM
 from .activity import ActivityORM
 from .base import Base
 from .code import CodeORM
-from .contest import ContestEntryORM
-from .event import EventORM
 from .feedback import FeedbackORM
+from .flag import FlagORM
 from .market import MarketManagerORM, MarketORM
 from .nomination import NominationORM
 from .participant import ParticipantORM
@@ -12,6 +11,7 @@ from .product import ProductORM
 from .quote import QuoteORM
 from .received_achievement import ReceivedAchievementORM
 from .schedule_change import ScheduleChangeORM
+from .schedule_event import ScheduleEventORM
 from .settings import GlobalSettingsORM
 from .subscription import SubscriptionORM
 from .ticket import TicketORM
@@ -24,7 +24,7 @@ from .vote import VoteORM
 __all__ = [
     "AchievementORM",
     "Base",
-    "EventORM",
+    "ScheduleEventORM",
     "NominationORM",
     "ParticipantORM",
     "ReceivedAchievementORM",
@@ -41,7 +41,7 @@ __all__ = [
     "TransactionORM",
     "ScheduleChangeORM",
     "CodeORM",
-    "ContestEntryORM",
+    "FlagORM",
     "MarketORM",
     "MarketManagerORM",
     "ProductORM",

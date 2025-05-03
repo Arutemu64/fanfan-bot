@@ -38,7 +38,7 @@ class CancelVote:
         if vote.user_id != self.id_provider.get_current_user_id():
             raise AccessDenied
         async with self.uow:
-            await self.votes_repo.delete_vote(vote.id)
+            await self.votes_repo.delete_vote(vote)
             await self.uow.commit()
             logger.info(
                 "User %s cancelled their vote for %s",

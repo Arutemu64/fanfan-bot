@@ -20,9 +20,9 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
-from fanfan.application.nominations.get_nominations_page import GetNominationsPage
+from fanfan.application.voting.get_nominations_page import GetNominationsPage
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.voting.common import (
@@ -39,14 +39,13 @@ ID_NOMINATIONS_SCROLL = "nominations_scroll"
 
 async def nominations_getter(
     dialog_manager: DialogManager,
-    user: UserFull,
+    user: UserData,
     container: AsyncContainer,
     **kwargs,
 ) -> dict:
     get_nominations_page: GetNominationsPage = await container.get(GetNominationsPage)
 
     page = await get_nominations_page(
-        only_votable=True,
         pagination=Pagination(
             limit=user.settings.items_per_page,
             offset=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
@@ -84,7 +83,7 @@ nominations_window = Window(
     Const("Для голосования доступны следующие номинации"),
     Column(
         Select(
-            Jinja("{{item[1].title}} {% if item[1].user_vote %}✅{% endif %}"),
+            Jinja("{{item[1].title}} {% if item[1].vote %}✅{% endif %}"),
             id="nomination",
             item_id_getter=operator.itemgetter(0),
             items="nominations_list",

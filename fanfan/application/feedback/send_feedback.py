@@ -11,7 +11,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.events.feedback import NewFeedbackEvent
 from fanfan.core.exceptions.feedback import FeedbackException
 from fanfan.core.models.feedback import Feedback
-from fanfan.core.services.access import AccessService
+from fanfan.core.services.access import UserAccessValidator
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class SendFeedback:
     def __init__(
         self,
         feedback_repo: FeedbackRepository,
-        access: AccessService,
+        access: UserAccessValidator,
         id_provider: IdProvider,
         uow: UnitOfWork,
         mailing_repo: MailingRepository,

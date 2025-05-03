@@ -22,7 +22,7 @@ from dishka import AsyncContainer
 from fanfan.application.marketplace.list_markets import ListMarkets
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.market import MarketId
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.marketplace.common import DATA_SELECTED_MARKET_ID
@@ -38,7 +38,7 @@ if typing.TYPE_CHECKING:
 async def list_markets_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     list_markets: ListMarkets = await container.get(ListMarkets)
@@ -64,7 +64,7 @@ async def on_market_selected(
 
 
 list_markets_window = Window(
-    Title(Const(strings.titles.market)),
+    Title(Const(strings.titles.marketplace)),
     Const(
         "<b>🛍️ Маркет</b> — это раздел, где собраны товары участников аллеи авторов и "
         "ярмарки. "

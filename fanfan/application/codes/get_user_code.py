@@ -17,7 +17,7 @@ class GetUserCode:
 
     async def __call__(self) -> CodeId:
         user_id = self.id_provider.get_current_user_id()
-        user_code = await self.codes_repo.get_code_by_user(user_id)
+        user_code = await self.codes_repo.get_code_by_user_id(user_id)
         if user_code is None:
             # Try to generate unique user code
             for _ in range(10):

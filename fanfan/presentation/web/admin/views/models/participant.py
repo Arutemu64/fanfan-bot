@@ -20,7 +20,6 @@ class ParticipantView(ModelView, model=ParticipantORM):
     ]
     column_searchable_list = [ParticipantORM.title]
     column_sortable_list = [ParticipantORM.votes_count]
-    column_details_exclude_list = [ParticipantORM.user_vote, ParticipantORM.nomination]
     column_labels = {
         ParticipantORM.id: "ID",
         ParticipantORM.voting_number: "Номер для голосования",

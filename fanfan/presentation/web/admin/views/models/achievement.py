@@ -14,7 +14,6 @@ class AchievementView(ModelView, model=AchievementORM):
         AchievementORM.title,
         AchievementORM.description,
     ]
-    column_details_exclude_list = [AchievementORM.user_received]
     form_columns = [
         AchievementORM.order,
         AchievementORM.title,

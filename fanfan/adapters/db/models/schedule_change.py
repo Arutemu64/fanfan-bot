@@ -3,9 +3,8 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.adapters.db.models.event import EventORM
+from fanfan.adapters.db.models.schedule_event import ScheduleEventORM
 from fanfan.adapters.db.models.user import UserORM
-from fanfan.core.models.event import EventId
 from fanfan.core.models.mailing import MailingId
 from fanfan.core.models.schedule_change import (
     ScheduleChange,
@@ -13,6 +12,7 @@ from fanfan.core.models.schedule_change import (
     ScheduleChangeId,
     ScheduleChangeType,
 )
+from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.core.models.user import UserId
 
 
@@ -39,8 +39,10 @@ class ScheduleChangeORM(Base):
     mailing_id: Mapped[str | None] = mapped_column()
 
     # Relationships
-    changed_event: Mapped[EventORM | None] = relationship(foreign_keys=changed_event_id)
-    argument_event: Mapped[EventORM | None] = relationship(
+    changed_event: Mapped[ScheduleEventORM | None] = relationship(
+        foreign_keys=changed_event_id
+    )
+    argument_event: Mapped[ScheduleEventORM | None] = relationship(
         foreign_keys=argument_event_id
     )
     user: Mapped[UserORM | None] = relationship(foreign_keys=user_id)
@@ -63,8 +65,8 @@ class ScheduleChangeORM(Base):
             type=self.type,
             mailing_id=MailingId(self.mailing_id),
             user_id=UserId(self.user_id),
-            changed_event_id=EventId(self.changed_event_id),
-            argument_event_id=EventId(self.argument_event_id),
+            changed_event_id=ScheduleEventId(self.changed_event_id),
+            argument_event_id=ScheduleEventId(self.argument_event_id),
             send_global_announcement=self.send_global_announcement,
         )
 
@@ -74,8 +76,8 @@ class ScheduleChangeORM(Base):
             type=self.type,
             user_id=UserId(self.user_id),
             mailing_id=MailingId(self.mailing_id),
-            changed_event_id=EventId(self.changed_event_id),
-            argument_event_id=EventId(self.argument_event_id),
+            changed_event_id=ScheduleEventId(self.changed_event_id),
+            argument_event_id=ScheduleEventId(self.argument_event_id),
             user=self.user.to_model() if self.user else None,
             changed_event=self.changed_event.to_full_model()
             if self.changed_event

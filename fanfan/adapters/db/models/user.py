@@ -15,7 +15,7 @@ from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.received_achievement import ReceivedAchievementORM
 from fanfan.adapters.db.models.user_permissions import UserPermissionsORM
 from fanfan.adapters.db.models.user_settings import UserSettingsORM
-from fanfan.core.models.user import User, UserFull, UserId, UserRole
+from fanfan.core.models.user import User, UserData, UserId, UserRole
 
 if TYPE_CHECKING:
     from fanfan.adapters.db.models.ticket import TicketORM
@@ -73,8 +73,8 @@ class UserORM(Base):
             role=UserRole(self.role),
         )
 
-    def to_full_model(self) -> UserFull:
-        return UserFull(
+    def to_full_model(self) -> UserData:
+        return UserData(
             id=UserId(self.id),
             username=self.username,
             first_name=self.first_name,

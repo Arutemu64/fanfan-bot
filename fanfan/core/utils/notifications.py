@@ -77,9 +77,9 @@ def create_app_exception_notification(app_exception: AppException) -> UserNotifi
 def create_exception_notification(exception: Exception) -> UserNotification:
     return UserNotification(
         title="⚠️ НЕИЗВЕСТНАЯ ОШИБКА",
-        text=f"Возникла необработанная ошибка ({type(exception).__name__}). "
+        text=f"Возникла неизвестная ошибка ({type(exception).__name__}). "
         f"Мы постараемся исправить проблему в ближайшее время, а пока "
         f"можешь попробовать перезапустить бота командой /start "
-        f"и попробовать ещё раз",
+        f"и попробовать ещё раз. Это может помочь.",
         reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
     )

@@ -6,7 +6,7 @@ from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.text import Case, Const
 
 from fanfan.application.users.update_user_settings import UpdateUserSettings
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
 
 
 async def org_settings_getter(
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     return {
@@ -31,7 +31,7 @@ async def toggle_org_receive_feedback_notifications(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: UserFull = manager.middleware_data["user"]
+    user: UserData = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data["container"]
     update_user_settings: UpdateUserSettings = await container.get(UpdateUserSettings)
 

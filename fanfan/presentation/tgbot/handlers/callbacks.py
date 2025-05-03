@@ -9,7 +9,7 @@ from fanfan.application.feedback.process_feedback import (
     ProcessFeedback,
     ProcessFeedbackDTO,
 )
-from fanfan.application.schedule_mgmt.revert_change import RevertScheduleChange
+from fanfan.application.schedule.management.revert_change import RevertScheduleChange
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager

@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.db.models import GlobalSettingsORM
@@ -9,8 +10,9 @@ class SettingsRepository:
         self.session = session
 
     async def get_settings(self) -> GlobalSettings | None:
-        settings = await self.session.get(GlobalSettingsORM, 1)
-        return settings.to_model() if settings else None
+        stmt = select(GlobalSettingsORM).where(GlobalSettingsORM.id == 1)
+        settings_orm = await self.session.scalar(stmt)
+        return settings_orm.to_model() if settings_orm else None
 
-    async def save_settings(self, model: GlobalSettings):
-        await self.session.merge(GlobalSettingsORM.from_model(model))
+    async def save_settings(self, settings: GlobalSettings):
+        await self.session.merge(GlobalSettingsORM.from_model(settings))

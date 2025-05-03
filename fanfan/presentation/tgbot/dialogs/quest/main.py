@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.text import Const, Format, Multi, Progress
 from dishka import AsyncContainer
 
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -16,7 +16,7 @@ from fanfan.presentation.tgbot.static import strings
 
 async def quest_main_getter(
     dialog_manager: DialogManager,
-    user: UserFull,
+    user: UserData,
     container: AsyncContainer,
     **kwargs,
 ) -> dict:

@@ -2,7 +2,7 @@ from aiogram.filters import Filter
 from aiogram.types import CallbackQuery, Message
 
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.models.user import UserFull, UserRole
+from fanfan.core.models.user import UserData, UserRole
 
 
 class RoleFilter(Filter):
@@ -12,7 +12,7 @@ class RoleFilter(Filter):
     async def __call__(
         self,
         event: Message | CallbackQuery,
-        user: UserFull,
+        user: UserData,
     ) -> bool:
         allowed = user.role in self.allowed_roles
         if allowed is False:

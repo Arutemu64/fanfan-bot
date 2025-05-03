@@ -6,7 +6,7 @@ from dishka import AsyncContainer
 from fanfan.application.marketplace.get_market import GetMarket
 from fanfan.application.marketplace.get_product import GetProduct
 from fanfan.core.models.product import ProductId
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot.dialogs.marketplace.common import (
     DATA_SELECTED_PRODUCT_ID,
 )
@@ -15,7 +15,7 @@ from fanfan.presentation.tgbot.dialogs.marketplace.common import (
 async def product_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     product_id = ProductId(dialog_manager.dialog_data[DATA_SELECTED_PRODUCT_ID])

@@ -1,0 +1,24 @@
+{% macro events_pluralize(count) %}
+{% if (count % 10 == 1) and (count % 100 != 11) %}
+выступление
+{%- elif (2 <= count % 10 <= 4) and (count % 100 < 10 or count % 100 >= 20) %}
+выступления
+{%- else %}
+выступлений
+{%- endif %}
+{% endmacro %}
+<blockquote>{% if selected_event.is_skipped %}🚫 <s>{% endif %}{{ selected_event.title }}{% if selected_event.is_skipped %}</s>{% endif %}</blockquote>
+{% if selected_event.queue and current_event +%}
+    {% set queue_difference = selected_event.queue - current_event.queue %}
+    {% if queue_difference < 0 %}
+🏁 Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference|abs)}}</b> назад
+    {% elif queue_difference == 0 %}
+🔥 Выступление идёт <b>ПРЯМО СЕЙЧАС</b>
+    {% elif queue_difference > 0 %}
+🚀 До начала осталось <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b>
+    {% endif %}
+{% endif %}
+
+{% if selected_event.nomination %}<b>🌟 Номинация:</b> {{ selected_event.nomination.title }}{% endif +%}
+
+{% if selected_event.block %}<b>🗂️ Блок:</b> {{ selected_event.block.title }}{% endif %}

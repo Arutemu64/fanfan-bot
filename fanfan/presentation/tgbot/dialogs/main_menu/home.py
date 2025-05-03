@@ -9,8 +9,8 @@ from dishka.integrations.aiogram import CONTAINER_NAME
 
 from fanfan.application.utils.get_random_quote import GetRandomQuote
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.models.user import UserFull, UserRole
-from fanfan.core.services.access import AccessService
+from fanfan.core.models.user import UserData, UserRole
+from fanfan.core.services.access import UserAccessValidator
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
     CURRENT_USER,
@@ -26,12 +26,12 @@ from fanfan.presentation.tgbot.static import strings
 
 async def main_menu_getter(
     dialog_manager: DialogManager,
-    user: UserFull,
+    user: UserData,
     container: AsyncContainer,
     **kwargs,
 ):
     get_random_quote: GetRandomQuote = await container.get(GetRandomQuote)
-    access: AccessService = await container.get(AccessService)
+    access: UserAccessValidator = await container.get(UserAccessValidator)
 
     try:
         await access.ensure_can_vote(user)
@@ -62,10 +62,10 @@ async def open_voting_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    access: AccessService = await container.get(AccessService)
+    access: UserAccessValidator = await container.get(UserAccessValidator)
 
     # Backdoor for orgs
-    user: UserFull = manager.middleware_data["user"]
+    user: UserData = manager.middleware_data["user"]
     if user.role is UserRole.ORG:
         await manager.start(states.Voting.LIST_NOMINATIONS)
         return
@@ -79,9 +79,9 @@ async def open_feedback_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: UserFull = manager.middleware_data["user"]
+    user: UserData = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    access: AccessService = await container.get(AccessService)
+    access: UserAccessValidator = await container.get(UserAccessValidator)
 
     access.ensure_can_send_feedback(user)
     await manager.start(states.Feedback.SEND_FEEDBACK)
@@ -92,9 +92,9 @@ async def open_quest_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    user: UserFull = manager.middleware_data["user"]
+    user: UserData = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    access: AccessService = await container.get(AccessService)
+    access: UserAccessValidator = await container.get(UserAccessValidator)
 
     access.ensure_can_participate_in_quest(user)
     await manager.start(states.Quest.MAIN)
@@ -161,7 +161,7 @@ main_window = Window(
             on_click=open_voting_handler,
         ),
         Start(
-            text=Const(strings.titles.market),
+            text=Const(strings.titles.marketplace),
             id="open_markets",
             state=states.Marketplace.LIST_MARKETS,
         ),

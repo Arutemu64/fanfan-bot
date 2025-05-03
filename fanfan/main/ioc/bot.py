@@ -17,6 +17,8 @@ from fanfan.presentation.tgbot.middlewares import (
     LoadDataMiddleware,
     RetryRequestMiddleware,
 )
+from fanfan.presentation.tgbot.utils.cmd_updater import CMDUpdater
+from fanfan.presentation.tgbot.utils.code_processor import CodeProcessor
 
 BG_FACTORY_KEY = "dialog_bg_factory"
 
@@ -84,3 +86,8 @@ class DpProvider(Provider):
     @provide
     def get_bg_manager_factory(self, dp: Dispatcher) -> BgManagerFactory:
         return dp[BG_FACTORY_KEY]
+
+
+class BotUtilsProvider(Provider):
+    code_processor = provide(CodeProcessor, scope=Scope.REQUEST)
+    cmd_updater = provide(CMDUpdater, scope=Scope.REQUEST)

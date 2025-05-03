@@ -1,5 +1,6 @@
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
+from fanfan.core.exceptions.tickets import TicketsException
 
 
 class UsersException(AppException):
@@ -10,13 +11,5 @@ class UserNotFound(UsersException):
     message = "⚠️ Пользователь не найден"
 
 
-class UserAlreadyExist(UsersException):
-    message = "⚠️ Пользователь уже существует"
-
-
-class TicketNotLinked(AccessDenied):
-    message = "⚠️ Привяжите билет для доступа к этой функции"
-
-
-class OrgSettingsNotFound(UsersException):
-    pass
+class NoUserManagerPermission(TicketsException, AccessDenied):
+    message = "⚠️ Вы не можете просматривать информацию о других пользователях"

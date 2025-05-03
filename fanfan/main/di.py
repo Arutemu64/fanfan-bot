@@ -1,4 +1,6 @@
 from dishka import AsyncContainer, Provider, make_async_container
+from dishka.integrations.aiogram import AiogramProvider
+from dishka.integrations.fastapi import FastapiProvider
 
 from fanfan.main.ioc.auth import (
     JwtTokenProcessorProvider,
@@ -6,7 +8,7 @@ from fanfan.main.ioc.auth import (
     TelegramAuthProvider,
     WebAuthProvider,
 )
-from fanfan.main.ioc.bot import BotProvider, DpProvider
+from fanfan.main.ioc.bot import BotProvider, BotUtilsProvider, DpProvider
 from fanfan.main.ioc.config import ConfigProvider
 from fanfan.main.ioc.cosplay2 import Cosplay2Provider
 from fanfan.main.ioc.db import DbProvider
@@ -27,6 +29,7 @@ def get_common_providers() -> list[Provider]:
         DbProvider(),
         InteractorsProvider(),
         BotProvider(),
+        BotUtilsProvider(),
         DpProvider(),
         RedisProvider(),
         TimepadProvider(),
@@ -41,13 +44,13 @@ def get_common_providers() -> list[Provider]:
 
 def create_bot_container() -> AsyncContainer:
     providers = get_common_providers()
-    providers += [TelegramAuthProvider()]
+    providers += [AiogramProvider(), TelegramAuthProvider()]
     return make_async_container(*providers)
 
 
 def create_web_container() -> AsyncContainer:
     providers = get_common_providers()
-    providers += [WebAuthProvider()]
+    providers += [FastapiProvider(), WebAuthProvider()]
     return make_async_container(*providers)
 
 

@@ -15,7 +15,6 @@ class NominationView(ModelView, model=NominationORM):
     ]
     form_include_pk = True
     form_columns = [NominationORM.id, NominationORM.title, NominationORM.is_votable]
-    column_details_exclude_list = [NominationORM.user_vote]
 
     column_labels = {
         NominationORM.id: "ID",

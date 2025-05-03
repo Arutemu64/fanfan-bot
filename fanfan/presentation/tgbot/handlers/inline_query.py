@@ -5,7 +5,7 @@ from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessag
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.application.events.get_schedule_page import (
+from fanfan.application.schedule.get_schedule_page import (
     GetSchedulePage,
     GetSchedulePageDTO,
 )
@@ -65,7 +65,6 @@ async def search_voting_participants(
             ),
             nomination_id=await state.get_value(DATA_SELECTED_NOMINATION_ID),
             search_query=inline_query.query,
-            only_votable=True,
         ),
     )
     results = [

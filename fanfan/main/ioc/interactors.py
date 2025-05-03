@@ -2,12 +2,8 @@ from dishka import Provider, Scope, provide
 
 from fanfan.application.activities.get_activities_page import GetActivitiesPage
 from fanfan.application.activities.get_activity_by_id import GetActivityById
+from fanfan.application.codes.get_code_by_id import GetCodeById
 from fanfan.application.codes.get_user_code import GetUserCode
-from fanfan.application.codes.proceed_code import ProceedCode
-from fanfan.application.events.get_current_event import GetCurrentEvent
-from fanfan.application.events.get_event_by_id import GetEventById
-from fanfan.application.events.get_page_number_by_event import GetPageNumberByEvent
-from fanfan.application.events.get_schedule_page import GetSchedulePage
 from fanfan.application.feedback.process_feedback import ProcessFeedback
 from fanfan.application.feedback.send_feedback import SendFeedback
 from fanfan.application.mailing.cancel_mailing import CancelMailing
@@ -23,26 +19,35 @@ from fanfan.application.marketplace.list_markets import ListMarkets
 from fanfan.application.marketplace.list_products import GetProducts
 from fanfan.application.marketplace.update_market import UpdateMarket
 from fanfan.application.marketplace.update_product import UpdateProduct
-from fanfan.application.nominations.get_nomination_by_id import GetNominationById
-from fanfan.application.nominations.get_nominations_page import GetNominationsPage
-from fanfan.application.quest.add_points import AddPoints
+from fanfan.application.quest.add_points import AddPointsToUser
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.quest.get_quest_rating import GetQuestRating
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
+from fanfan.application.quest.receive_achievement import ReceiveAchievement
 from fanfan.application.quest.reset_quest import ResetQuest
-from fanfan.application.schedule_mgmt.move_event import MoveEvent
-from fanfan.application.schedule_mgmt.revert_change import RevertScheduleChange
-from fanfan.application.schedule_mgmt.set_current_event import SetCurrentEvent
-from fanfan.application.schedule_mgmt.set_next_event import SetNextEvent
-from fanfan.application.schedule_mgmt.skip_event import SkipEvent
-from fanfan.application.settings.get_settings import GetSettings
-from fanfan.application.settings.update_settings import UpdateSettings
-from fanfan.application.subscriptions.create_subscription import CreateSubscription
-from fanfan.application.subscriptions.delete_subscription import DeleteSubscription
-from fanfan.application.subscriptions.get_subscription_by_event import (
+from fanfan.application.schedule.get_current_event import GetCurrentEvent
+from fanfan.application.schedule.get_event_for_user import GetEventForUser
+from fanfan.application.schedule.get_page_number_by_event import GetPageNumberByEvent
+from fanfan.application.schedule.get_schedule_page import GetSchedulePage
+from fanfan.application.schedule.management.move_event import MoveEvent
+from fanfan.application.schedule.management.revert_change import RevertScheduleChange
+from fanfan.application.schedule.management.set_current_event import SetCurrentEvent
+from fanfan.application.schedule.management.set_next_event import SetNextEvent
+from fanfan.application.schedule.management.skip_event import SkipEvent
+from fanfan.application.schedule.subscriptions.create_subscription import (
+    CreateSubscription,
+)
+from fanfan.application.schedule.subscriptions.delete_subscription import (
+    DeleteSubscription,
+)
+from fanfan.application.schedule.subscriptions.get_subscription_by_event import (
     GetSubscriptionByEvent,
 )
-from fanfan.application.subscriptions.get_subscriptions_page import GetSubscriptionsPage
+from fanfan.application.schedule.subscriptions.get_subscriptions_page import (
+    GetSubscriptionsPage,
+)
+from fanfan.application.settings.get_settings import GetSettings
+from fanfan.application.settings.update_settings import UpdateSettings
 from fanfan.application.tickets.delete_ticket import DeleteTicket
 from fanfan.application.tickets.generate_ticket import GenerateTicket
 from fanfan.application.tickets.link_ticket import LinkTicket
@@ -51,7 +56,6 @@ from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.get_user_by_username import GetUserByUsername
 from fanfan.application.users.send_org_message import SendOrgMessage
 from fanfan.application.users.update_user import UpdateUser
-from fanfan.application.users.update_user_commands import UpdateUserCommands
 from fanfan.application.users.update_user_settings import UpdateUserSettings
 from fanfan.application.utils.get_random_quote import GetRandomQuote
 from fanfan.application.utils.import_from_c2 import ImportFromC2
@@ -59,6 +63,8 @@ from fanfan.application.utils.import_orders import ImportOrders
 from fanfan.application.utils.proceed_order import ProceedOrder
 from fanfan.application.voting.add_vote import AddVote
 from fanfan.application.voting.cancel_vote import CancelVote
+from fanfan.application.voting.get_nomination_for_user import GetNominationForUser
+from fanfan.application.voting.get_nominations_page import GetNominationsPage
 from fanfan.application.voting.get_participants_page import GetParticipantsPage
 
 
@@ -73,7 +79,7 @@ class InteractorsProvider(Provider):
     get_random_quote = provide(GetRandomQuote)
 
     get_current_event = provide(GetCurrentEvent)
-    get_event_by_id = provide(GetEventById)
+    get_event_by_id = provide(GetEventForUser)
     get_page_number_by_event = provide(GetPageNumberByEvent)
     get_schedule_page = provide(GetSchedulePage)
 
@@ -90,7 +96,7 @@ class InteractorsProvider(Provider):
     get_mailing_info = provide(GetMailingInfo)
     delete_mailing = provide(CancelMailing)
 
-    get_nomination_by_id = provide(GetNominationById)
+    get_nomination_by_id = provide(GetNominationForUser)
     get_nominations_page = provide(GetNominationsPage)
 
     get_settings = provide(GetSettings)
@@ -110,12 +116,12 @@ class InteractorsProvider(Provider):
     get_user_by_username = provide(GetUserByUsername)
     update_user = provide(UpdateUser)
     update_user_settings = provide(UpdateUserSettings)
-    update_user_commands = provide(UpdateUserCommands)
     send_message = provide(SendOrgMessage)
 
     get_user_quest_details = provide(GetUserQuestStats)
     get_quest_rating = provide(GetQuestRating)
-    add_points = provide(AddPoints)
+    add_points = provide(AddPointsToUser)
+    receive_achievement = provide(ReceiveAchievement)
     reset_quest = provide(ResetQuest)
 
     get_participants_page = provide(GetParticipantsPage)
@@ -126,8 +132,8 @@ class InteractorsProvider(Provider):
     import_tickets = provide(ImportOrders)
     proceed_timepad_order = provide(ProceedOrder)
 
+    get_code_by_id = provide(GetCodeById)
     get_user_code = provide(GetUserCode)
-    proceed_code = provide(ProceedCode)
 
     list_markets = provide(ListMarkets)
     get_market = provide(GetMarket)

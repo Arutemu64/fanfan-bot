@@ -1,12 +1,11 @@
-from sqlalchemy import Select, and_, func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager
 
 from fanfan.adapters.db.models import NominationORM, ParticipantORM, VoteORM
+from fanfan.core.dto.nomination import UserNominationDTO
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.nomination import (
     Nomination,
-    NominationFull,
     NominationId,
 )
 from fanfan.core.models.user import UserId
@@ -17,15 +16,27 @@ class NominationsRepository:
         self.session = session
 
     @staticmethod
-    def _filter_nominations(query: Select, only_votable: bool) -> Select:
-        if only_votable:
-            query = query.where(NominationORM.is_votable.is_(True))
-        return query
+    def _to_user_dto(
+        nomination: NominationORM, vote: VoteORM | None
+    ) -> UserNominationDTO:
+        return UserNominationDTO(
+            id=nomination.id,
+            title=nomination.title,
+            vote=vote.to_model() if vote else None,
+        )
 
-    @staticmethod
-    def _load_full(query: Select, user_id: UserId | None = None) -> Select:
-        if user_id:
-            query = query.options(contains_eager(NominationORM.user_vote)).outerjoin(
+    async def save_nomination(self, nomination: Nomination) -> Nomination:
+        nomination_orm = await self.session.merge(NominationORM.from_model(nomination))
+        await self.session.flush([nomination_orm])
+        return nomination_orm.to_model()
+
+    async def read_nomination_for_user(
+        self, nomination_id: NominationId, user_id: UserId
+    ) -> UserNominationDTO | None:
+        stmt = (
+            select(NominationORM, VoteORM)
+            .where(NominationORM.id == nomination_id)
+            .outerjoin(
                 VoteORM,
                 and_(
                     VoteORM.user_id == user_id,
@@ -34,38 +45,48 @@ class NominationsRepository:
                     ),
                 ),
             )
-        return query
+        )
 
-    async def save_nomination(self, model: Nomination) -> Nomination:
-        nomination = await self.session.merge(NominationORM.from_model(model))
-        await self.session.flush([nomination])
-        return nomination.to_model()
+        result = (await self.session.execute(stmt)).first()
+        nomination_orm, vote_orm = result
 
-    async def get_nomination_by_id(
-        self, nomination_id: NominationId, user_id: UserId | None = None
-    ) -> NominationFull | None:
-        query = select(NominationORM).where(NominationORM.id == nomination_id).limit(1)
-        query = self._load_full(query, user_id)
-        nomination = await self.session.scalar(query)
-        return nomination.to_full_model()
+        return (
+            self._to_user_dto(nomination=nomination_orm, vote=vote_orm)
+            if result
+            else None
+        )
 
-    async def list_nominations(
+    async def read_votable_nominations_list_for_user(
         self,
-        only_votable: bool,
-        user_id: UserId | None = None,
+        user_id: UserId,
         pagination: Pagination | None = None,
-    ) -> list[NominationFull]:
-        query = select(NominationORM)
-        query = self._load_full(query, user_id)
+    ) -> list[UserNominationDTO]:
+        stmt = (
+            select(NominationORM, VoteORM)
+            .where(NominationORM.is_votable.is_(True))
+            .outerjoin(
+                VoteORM,
+                and_(
+                    VoteORM.user_id == user_id,
+                    VoteORM.participant.has(
+                        ParticipantORM.nomination_id == NominationORM.id
+                    ),
+                ),
+            )
+        )
 
         if pagination:
-            query = query.limit(pagination.limit).offset(pagination.offset)
-        query = self._filter_nominations(query, only_votable)
+            stmt = stmt.limit(pagination.limit).offset(pagination.offset)
 
-        nominations = await self.session.scalars(query)
-        return [n.to_full_model() for n in nominations]
+        results = (await self.session.execute(stmt)).all()
 
-    async def count_nominations(self, only_votable: bool) -> int:
-        query = select(func.count(NominationORM.id))
-        query = self._filter_nominations(query, only_votable)
-        return await self.session.scalar(query)
+        return [
+            self._to_user_dto(nomination=nomination_orm, vote=vote_orm)
+            for nomination_orm, vote_orm in results
+        ]
+
+    async def count_votable_nominations(self) -> int:
+        stmt = select(func.count(NominationORM.id)).where(
+            NominationORM.is_votable.is_(True)
+        )
+        return await self.session.scalar(stmt)

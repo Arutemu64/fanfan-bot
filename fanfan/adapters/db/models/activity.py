@@ -13,7 +13,7 @@ from fanfan.core.models.activity import Activity, ActivityId
 class ActivityORM(Base, OrderMixin):
     __tablename__ = "activities"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[ActivityId] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
     image: Mapped[StorageImage | None] = mapped_column(
@@ -26,7 +26,7 @@ class ActivityORM(Base, OrderMixin):
 
     def to_model(self) -> Activity:
         return Activity(
-            id=ActivityId(self.id),
+            id=self.id,
             title=self.title,
             description=self.description,
             image_path=Path(self.image.path) if self.image else None,

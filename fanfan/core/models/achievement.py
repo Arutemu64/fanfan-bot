@@ -9,8 +9,3 @@ class Achievement:
     id: AchievementId
     title: str
     description: str | None
-
-
-@dataclass(slots=True, kw_only=True)
-class AchievementFull(Achievement):
-    received: bool

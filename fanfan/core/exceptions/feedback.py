@@ -1,3 +1,4 @@
+from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.base import AppException
 
 
@@ -11,3 +12,7 @@ class FeedbackNotFound(FeedbackException):
 
 class FeedbackAlreadyProcessed(FeedbackException):
     message = "⚠️ Обратная связь уже обработана"
+
+
+class NoFeedbackPermission(FeedbackException, AccessDenied):
+    message = "⚠️ У вас нет прав для отправки обратной связи"

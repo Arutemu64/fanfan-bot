@@ -13,8 +13,8 @@ from dishka import AsyncContainer
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
 from fanfan.adapters.config.models import Configuration
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.models.user import UserFull, UserRole
-from fanfan.core.services.access import AccessService
+from fanfan.core.models.user import UserData, UserRole
+from fanfan.core.services.access import UserAccessValidator
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
@@ -23,11 +23,11 @@ from fanfan.presentation.tgbot.static import strings
 async def staff_main_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     config: Configuration = await container.get(Configuration)
-    access: AccessService = await container.get(AccessService)
+    access: UserAccessValidator = await container.get(UserAccessValidator)
     token_processor: JwtTokenProcessor = await container.get(JwtTokenProcessor)
 
     try:

@@ -7,7 +7,7 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.core.models.user import User, UserFull, UserId, UserRole
+from fanfan.core.models.user import User, UserData, UserId, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class Authenticate:
         self.users_repo = users_repo
         self.uow = uow
 
-    async def __call__(self, data: AuthenticateDTO) -> UserFull:
+    async def __call__(self, data: AuthenticateDTO) -> UserData:
         try:
             user = await self.id_provider.get_current_user()
         except UserNotFound:

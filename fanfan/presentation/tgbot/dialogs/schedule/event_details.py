@@ -5,14 +5,16 @@ from aiogram_dialog.widgets.kbd import Button, Cancel, Group, SwitchTo
 from aiogram_dialog.widgets.text import Case, Const, Jinja
 from dishka import AsyncContainer
 
-from fanfan.application.events.get_event_by_id import GetEventById
-from fanfan.application.schedule_mgmt.set_current_event import SetCurrentEvent
-from fanfan.application.schedule_mgmt.skip_event import SkipEvent
-from fanfan.application.subscriptions.delete_subscription import DeleteSubscription
-from fanfan.application.subscriptions.get_subscription_by_event import (
+from fanfan.application.schedule.get_event_for_user import GetEventForUser
+from fanfan.application.schedule.management.set_current_event import SetCurrentEvent
+from fanfan.application.schedule.management.skip_event import SkipEvent
+from fanfan.application.schedule.subscriptions.delete_subscription import (
+    DeleteSubscription,
+)
+from fanfan.application.schedule.subscriptions.get_subscription_by_event import (
     GetSubscriptionByEvent,
 )
-from fanfan.core.models.event import EventId
+from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
@@ -22,14 +24,14 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
     current_event_getter,
 )
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.static.templates import selected_event_info
+from fanfan.presentation.tgbot.templates import selected_event_info
 
 SELECTED_EVENT = "selected_event"
 
 
-async def show_event_details(manager: DialogManager, event_id: EventId) -> None:
+async def show_event_details(manager: DialogManager, event_id: ScheduleEventId) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_event_by_id: GetEventById = await container.get(GetEventById)
+    get_event_by_id: GetEventForUser = await container.get(GetEventForUser)
     await get_event_by_id(event_id)
     await manager.start(
         state=states.Schedule.EVENT_DETAILS, data={DATA_SELECTED_EVENT_ID: event_id}
@@ -41,7 +43,7 @@ async def selected_event_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    get_event_by_id: GetEventById = await container.get(GetEventById)
+    get_event_by_id: GetEventForUser = await container.get(GetEventForUser)
     return {
         SELECTED_EVENT: await get_event_by_id(
             dialog_manager.start_data[DATA_SELECTED_EVENT_ID],
@@ -118,13 +120,13 @@ selected_event_window = Window(
         text=Const("🔔 Подписаться"),
         id="subscribe",
         state=states.Schedule.ADD_SUBSCRIPTION,
-        when=~F[SELECTED_EVENT].user_subscription,
+        when=~F[SELECTED_EVENT].subscription,
     ),
     Button(
         text=Const("🔕 Отписаться"),
         id="unsubscribe",
         on_click=unsubscribe_button_handler,
-        when=F[SELECTED_EVENT].user_subscription,
+        when=F[SELECTED_EVENT].subscription,
     ),
     Group(
         Button(

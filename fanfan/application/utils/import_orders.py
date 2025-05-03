@@ -8,7 +8,7 @@ from datetime import timedelta
 from fanfan.adapters.config.models import TimepadConfig
 from fanfan.adapters.timepad.client import TimepadClient
 from fanfan.adapters.timepad.exceptions import NoTimepadConfigProvided
-from fanfan.adapters.utils.limit import LimitFactory
+from fanfan.adapters.utils.rate_limit import RateLimitFactory
 from fanfan.application.utils.proceed_order import (
     ProceedOrder,
 )
@@ -35,16 +35,16 @@ class ImportOrders:
         self,
         config: TimepadConfig | None,
         client: TimepadClient | None,
-        limiter: LimitFactory,
+        rate_limit_factory: RateLimitFactory,
         proceed_order: ProceedOrder,
     ):
         self.config = config
         self.client = client
-        self.limiter = limiter
+        self.rate_limit_factory = rate_limit_factory
         self.proceed_order = proceed_order
 
     async def __call__(self) -> ImportOrdersResult:
-        async with self.limiter(
+        async with self.rate_limit_factory(
             limit_name=IMPORT_ORDERS_LIMIT_NAME,
             cooldown_period=IMPORT_ORDERS_LIMIT_TIMEOUT,
             blocking=False,

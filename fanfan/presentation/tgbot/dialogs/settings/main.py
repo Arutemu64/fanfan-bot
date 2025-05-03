@@ -4,7 +4,7 @@ from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import AsyncContainer
 
 from fanfan.adapters.config.models import Configuration
-from fanfan.core.models.user import UserFull, UserRole
+from fanfan.core.models.user import UserData, UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_org
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -13,7 +13,7 @@ from fanfan.presentation.tgbot.static import strings
 
 async def current_user_info_getter(
     dialog_manager: DialogManager,
-    user: UserFull,
+    user: UserData,
     container: AsyncContainer,
     **kwargs,
 ):

@@ -11,19 +11,20 @@ class ActivitiesRepository:
         self.session = session
 
     async def get_activity_by_id(self, activity_id: ActivityId) -> Activity | None:
-        activity = await self.session.get(ActivityORM, activity_id)
-        return activity.to_model() if activity else None
+        stmt = select(ActivityORM).where(ActivityORM.id == activity_id)
+        activity_orm = await self.session.scalar(stmt)
+        return activity_orm.to_model() if activity_orm else None
 
     async def list_activities(
         self, pagination: Pagination | None = None
     ) -> list[Activity]:
-        query = select(ActivityORM).order_by(ActivityORM.order)
+        stmt = select(ActivityORM).order_by(ActivityORM.order)
 
         if pagination:
-            query = query.limit(pagination.limit).offset(pagination.offset)
+            stmt = stmt.limit(pagination.limit).offset(pagination.offset)
 
-        activities = await self.session.scalars(query)
-        return [a.to_model() for a in activities]
+        activities_orm = await self.session.scalars(stmt)
+        return [a.to_model() for a in activities_orm]
 
     async def count_activities(self) -> int:
         return await self.session.scalar(select(func.count(ActivityORM.id)))

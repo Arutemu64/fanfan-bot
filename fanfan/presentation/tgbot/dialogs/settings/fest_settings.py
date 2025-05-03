@@ -43,8 +43,8 @@ fest_settings_window = Window(
     Button(
         Case(
             {
-                True: Const("Голосование: ✅"),
-                False: Const("Голосование: ❌"),
+                True: Const("📣 Голосование: ✅"),
+                False: Const("📣 Голосование: ❌"),
             },
             selector="voting_enabled",
         ),

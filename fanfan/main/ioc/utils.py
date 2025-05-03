@@ -1,9 +1,9 @@
 from dishka import Provider, Scope, provide
 
-from fanfan.adapters.utils.limit import LimitFactory
 from fanfan.adapters.utils.notifier import BotNotifier
+from fanfan.adapters.utils.rate_limit import RateLimitFactory
 
 
 class UtilsProvider(Provider):
-    limiter = provide(LimitFactory, scope=Scope.APP)
+    rate_limit_factory = provide(RateLimitFactory, scope=Scope.APP)
     notifier = provide(BotNotifier, scope=Scope.APP)

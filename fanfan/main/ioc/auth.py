@@ -1,8 +1,4 @@
-from aiogram.types import (
-    TelegramObject,
-)
-from dishka import Provider, Scope, from_context, provide
-from fastapi import Request
+from dishka import Provider, Scope, provide
 
 from fanfan.adapters.auth.providers.system import SystemIdProvider
 from fanfan.adapters.auth.providers.telegram import TelegramIdProvider
@@ -17,17 +13,12 @@ class JwtTokenProcessorProvider(Provider):
 
 class TelegramAuthProvider(Provider):
     scope = Scope.REQUEST
-    obj = from_context(
-        provides=TelegramObject,
-        scope=Scope.REQUEST,
-    )
 
     telegram_id_provider = provide(TelegramIdProvider, provides=IdProvider)
 
 
 class WebAuthProvider(Provider):
     scope = Scope.REQUEST
-    request = from_context(Request, scope=Scope.REQUEST)
 
     web_id_provider = provide(WebIdProvider, provides=IdProvider)
 

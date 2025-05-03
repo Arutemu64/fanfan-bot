@@ -6,8 +6,8 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 
-from fanfan.application.schedule_mgmt.move_event import MoveEvent, MoveEventDTO
-from fanfan.core.models.event import EventId
+from fanfan.application.schedule.management.move_event import MoveEvent, MoveEventDTO
+from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
@@ -23,7 +23,7 @@ from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
 )
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.static.templates import schedule_list
+from fanfan.presentation.tgbot.templates import schedule_list
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -41,8 +41,10 @@ async def move_event_handler(
     if "/" in data and data.replace("/", "").isnumeric():
         data = await move_event(
             MoveEventDTO(
-                event_id=EventId(dialog_manager.start_data[DATA_SELECTED_EVENT_ID]),
-                place_after_event_id=EventId(int(data.replace("/", ""))),
+                event_id=ScheduleEventId(
+                    dialog_manager.start_data[DATA_SELECTED_EVENT_ID]
+                ),
+                place_after_event_id=ScheduleEventId(int(data.replace("/", ""))),
             )
         )
         await message.reply(
@@ -54,7 +56,7 @@ async def move_event_handler(
             show_mode=ShowMode.DELETE_AND_SEND,
         )
     elif data.isnumeric():
-        await show_event_page(dialog_manager, EventId(int(data)))
+        await show_event_page(dialog_manager, ScheduleEventId(int(data)))
 
 
 move_event_window = Window(

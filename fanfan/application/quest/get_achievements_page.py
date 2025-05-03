@@ -2,8 +2,8 @@ from fanfan.adapters.db.repositories.achievements import (
     AchievementsRepository,
 )
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.dto.achievement import UserAchievementDTO
 from fanfan.core.dto.page import Page, Pagination
-from fanfan.core.models.achievement import AchievementFull
 from fanfan.core.models.user import UserId
 
 
@@ -18,8 +18,8 @@ class GetAchievementsPage:
         self,
         pagination: Pagination | None = None,
         for_user_id: UserId | None = None,
-    ) -> Page[AchievementFull]:
-        achievements = await self.achievements_repo.list_achievements(
+    ) -> Page[UserAchievementDTO]:
+        achievements = await self.achievements_repo.read_achievements_for_user(
             user_id=for_user_id or self.id_provider.get_current_user_id(),
             pagination=pagination,
         )

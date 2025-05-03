@@ -2,9 +2,9 @@ from sqlalchemy import Select, and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, undefer
 
-from fanfan.adapters.db.models import EventORM, SubscriptionORM
+from fanfan.adapters.db.models import ScheduleEventORM, SubscriptionORM
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.event import EventId
+from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.core.models.subscription import (
     Subscription,
     SubscriptionFull,
@@ -18,57 +18,57 @@ class SubscriptionsRepository:
         self.session = session
 
     @staticmethod
-    def _load_full(query: Select) -> Select:
-        return query.options(
+    def _load_full(stmt: Select) -> Select:
+        return stmt.options(
             joinedload(SubscriptionORM.event).options(
-                undefer(EventORM.queue),
-                joinedload(EventORM.nomination),
-                joinedload(EventORM.block),
+                undefer(ScheduleEventORM.queue),
+                joinedload(ScheduleEventORM.nomination),
+                joinedload(ScheduleEventORM.block),
             ),
         )
 
-    async def add_subscription(self, model: Subscription) -> Subscription:
-        subscription = SubscriptionORM.from_model(model)
-        self.session.add(subscription)
-        await self.session.flush([subscription])
-        return subscription.to_model()
+    async def add_subscription(self, subscription: Subscription) -> Subscription:
+        subscription_orm = SubscriptionORM.from_model(subscription)
+        self.session.add(subscription_orm)
+        await self.session.flush([subscription_orm])
+        return subscription_orm.to_model()
 
     async def get_subscription_by_id(
         self, subscription_id: SubscriptionId
     ) -> SubscriptionFull | None:
-        query = select(SubscriptionORM).where(SubscriptionORM.id == subscription_id)
-        query = self._load_full(query)
-        subscription = await self.session.scalar(query)
-        return subscription.to_full_model() if subscription else None
+        stmt = select(SubscriptionORM).where(SubscriptionORM.id == subscription_id)
+        stmt = self._load_full(stmt)
+        subscription_orm = await self.session.scalar(stmt)
+        return subscription_orm.to_full_model() if subscription_orm else None
 
     async def get_user_subscription_by_event(
-        self, user_id: UserId, event_id: EventId
+        self, user_id: UserId, event_id: ScheduleEventId
     ) -> SubscriptionFull | None:
-        query = select(SubscriptionORM).where(
+        stmt = select(SubscriptionORM).where(
             and_(
                 SubscriptionORM.user_id == user_id,
                 SubscriptionORM.event_id == event_id,
             )
         )
-        query = self._load_full(query)
-        subscription = await self.session.scalar(query)
-        return subscription.to_full_model() if subscription else None
+        stmt = self._load_full(stmt)
+        subscription_orm = await self.session.scalar(stmt)
+        return subscription_orm.to_full_model() if subscription_orm else None
 
     async def list_subscriptions(
         self, user_id: UserId, pagination: Pagination | None = None
     ) -> list[SubscriptionFull]:
-        query = (
+        stmt = (
             select(SubscriptionORM)
             .where(SubscriptionORM.user_id == user_id)
             .order_by(SubscriptionORM.event_id)
         )
-        query = self._load_full(query)
+        stmt = self._load_full(stmt)
 
         if pagination:
-            query = query.limit(pagination.limit).offset(pagination.offset)
+            stmt = stmt.limit(pagination.limit).offset(pagination.offset)
 
-        subscriptions = (await self.session.scalars(query)).all()
-        return [s.to_full_model() for s in subscriptions]
+        subscriptions_orm = (await self.session.scalars(stmt)).all()
+        return [s.to_full_model() for s in subscriptions_orm]
 
     async def count_subscriptions(self, user_id: UserId) -> int:
         return await self.session.scalar(
@@ -78,21 +78,21 @@ class SubscriptionsRepository:
         )
 
     async def get_upcoming_subscriptions(self, queue: int) -> list[SubscriptionFull]:
-        query = select(SubscriptionORM).where(
+        stmt = select(SubscriptionORM).where(
             SubscriptionORM.event.has(
                 and_(
-                    EventORM.is_skipped.isnot(True),
-                    SubscriptionORM.counter >= (EventORM.queue - queue),
-                    (EventORM.queue - queue) >= 0,
+                    ScheduleEventORM.is_skipped.isnot(True),
+                    SubscriptionORM.counter >= (ScheduleEventORM.queue - queue),
+                    (ScheduleEventORM.queue - queue) >= 0,
                 ),
             ),
         )
-        query = self._load_full(query)
+        stmt = self._load_full(stmt)
 
-        subscriptions = await self.session.scalars(query)
-        return [s.to_full_model() for s in subscriptions]
+        subscriptions_orm = await self.session.scalars(stmt)
+        return [s.to_full_model() for s in subscriptions_orm]
 
-    async def delete_subscription(self, subscription_id: SubscriptionId) -> None:
+    async def delete_subscription(self, subscription: Subscription) -> None:
         await self.session.execute(
-            delete(SubscriptionORM).where(SubscriptionORM.id == subscription_id)
+            delete(SubscriptionORM).where(SubscriptionORM.id == subscription.id)
         )

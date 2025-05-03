@@ -5,8 +5,8 @@ from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import AsyncContainer
 
-from fanfan.application.quest.add_points import AddPoints, AddPointsDTO
-from fanfan.core.exceptions.users import TicketNotLinked
+from fanfan.application.quest.add_points import AddPointsDTO, AddPointsToUser
+from fanfan.core.exceptions.tickets import TicketNotLinked
 from fanfan.core.utils.pluralize import POINTS_PLURALS, pluralize
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.user_manager.common import (
@@ -63,7 +63,7 @@ async def add_points_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    add_points: AddPoints = await container.get(AddPoints)
+    add_points: AddPointsToUser = await container.get(AddPointsToUser)
 
     try:
         await add_points(

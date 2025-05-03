@@ -17,11 +17,11 @@ from dishka import AsyncContainer
 
 from fanfan.application.quest.get_quest_rating import GetQuestRating, GetQuestRatingDTO
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.static.templates import rating_list
+from fanfan.presentation.tgbot.templates import rating_list
 
 if typing.TYPE_CHECKING:
     from aiogram_dialog.widgets.common import ManagedScroll
@@ -32,7 +32,7 @@ ID_RATING_SCROLL = "rating_scroll"
 async def rating_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ) -> dict:
     scroll: ManagedScroll = dialog_manager.find(ID_RATING_SCROLL)

@@ -13,8 +13,8 @@ class GetRandomQuote:
         self.id_provider = id_provider
 
     async def __call__(self) -> str | None:
-        query = select(QuoteORM.text).order_by(func.random()).limit(1)
-        quote = await self.session.scalar(query)
+        stmt = select(QuoteORM.text).order_by(func.random()).limit(1)
+        quote = await self.session.scalar(stmt)
 
         # Personalize quote
         if quote:

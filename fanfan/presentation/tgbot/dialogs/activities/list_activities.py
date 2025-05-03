@@ -20,7 +20,7 @@ from dishka import AsyncContainer
 
 from fanfan.application.activities.get_activities_page import GetActivitiesPage
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.user import UserFull
+from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.activities.common import (
     DATA_SELECTED_ACTIVITY_ID,
@@ -34,7 +34,7 @@ ID_ACTIVITIES_SCROLL = "activities_scroll"
 async def list_activities_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
-    user: UserFull,
+    user: UserData,
     **kwargs,
 ):
     get_activities_page: GetActivitiesPage = await container.get(GetActivitiesPage)

@@ -12,13 +12,16 @@ SubscriptionId = NewType("SubscriptionId", int)
 class Subscription:
     id: SubscriptionId | None = None
     user_id: UserId
-    event_id: EventId
+    event_id: ScheduleEventId
     counter: int
 
 
 @dataclass(slots=True, kw_only=True)
 class SubscriptionFull(Subscription):
-    event: EventFull
+    event: ScheduleEventFull
 
 
-from fanfan.core.models.event import EventFull, EventId  # noqa: E402
+from fanfan.core.models.schedule_event import (  # noqa: E402
+    ScheduleEventFull,
+    ScheduleEventId,
+)

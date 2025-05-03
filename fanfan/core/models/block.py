@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import NewType
 
-BlockId = NewType("BlockId", int)
+ScheduleBlockId = NewType("ScheduleBlockId", int)
 
 
 @dataclass(slots=True, kw_only=True)
-class Block:
-    id: BlockId
+class ScheduleBlock:
+    id: ScheduleBlockId
     title: str

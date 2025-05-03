@@ -6,7 +6,7 @@ from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.core.models.event import EventId
+from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.core.models.subscription import (
     Subscription,
     SubscriptionFull,
@@ -15,7 +15,7 @@ from fanfan.core.models.subscription import (
 from fanfan.core.models.user import UserId
 
 if typing.TYPE_CHECKING:
-    from fanfan.adapters.db.models import EventORM, UserORM
+    from fanfan.adapters.db.models import ScheduleEventORM, UserORM
 
 
 class SubscriptionORM(Base):
@@ -30,7 +30,7 @@ class SubscriptionORM(Base):
 
     # Event relation
     event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id", ondelete="CASCADE"))
-    event: Mapped[EventORM] = relationship()
+    event: Mapped[ScheduleEventORM] = relationship()
 
     # Constraint
     UniqueConstraint(event_id, user_id)
@@ -48,7 +48,7 @@ class SubscriptionORM(Base):
         return Subscription(
             id=SubscriptionId(self.id),
             user_id=UserId(self.user_id),
-            event_id=EventId(self.event_id),
+            event_id=ScheduleEventId(self.event_id),
             counter=self.counter,
         )
 
@@ -56,7 +56,7 @@ class SubscriptionORM(Base):
         return SubscriptionFull(
             id=SubscriptionId(self.id),
             user_id=UserId(self.user_id),
-            event_id=EventId(self.event_id),
+            event_id=ScheduleEventId(self.event_id),
             counter=self.counter,
             event=self.event.to_full_model() if self.event else None,
         )

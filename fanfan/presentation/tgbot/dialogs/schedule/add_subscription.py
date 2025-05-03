@@ -6,7 +6,7 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
-from fanfan.application.subscriptions.create_subscription import (
+from fanfan.application.schedule.subscriptions.create_subscription import (
     CreateSubscription,
     CreateSubscriptionDTO,
 )

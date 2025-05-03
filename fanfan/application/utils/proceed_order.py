@@ -39,26 +39,25 @@ class ProceedOrder:
         added_tickets, deleted_tickets = 0, 0
         try:
             async with self.uow:
-                for ticket in data.tickets:
-                    existing_ticket = await self.tickets_repo.get_ticket_by_id(
-                        TicketId(ticket.number)
+                for ticket_response in data.tickets:
+                    ticket = await self.tickets_repo.get_ticket_by_id(
+                        TicketId(ticket_response.number)
                     )
-                    if (data.status.name in GOOD_STATUSES) and (
-                        existing_ticket is None
-                    ):
+                    if (data.status.name in GOOD_STATUSES) and (ticket is None):
                         await self.tickets_repo.add_ticket(
                             Ticket(
-                                id=TicketId(ticket.number),
+                                id=TicketId(ticket_response.number),
                                 role=UserRole.PARTICIPANT
-                                if ticket.ticket_type.name in PARTICIPANT_NOMINATIONS
+                                if ticket_response.ticket_type.name
+                                in PARTICIPANT_NOMINATIONS
                                 else UserRole.VISITOR,
                                 used_by_id=None,
                                 issued_by_id=None,
                             )
                         )
                         added_tickets += 1
-                    elif (data.status.name not in GOOD_STATUSES) and existing_ticket:
-                        await self.tickets_repo.delete_ticket(TicketId(ticket.number))
+                    elif (data.status.name not in GOOD_STATUSES) and ticket:
+                        await self.tickets_repo.delete_ticket(ticket)
                         deleted_tickets += 1
                 await self.uow.commit()
             logger.info("Timepad order %s processed", data.id, extra={"order": data})

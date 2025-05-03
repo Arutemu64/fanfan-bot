@@ -10,7 +10,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.models.code import Code, CodeId
 from fanfan.core.models.ticket import Ticket, TicketId
 from fanfan.core.models.user import UserRole
-from fanfan.core.services.access import AccessService
+from fanfan.core.services.access import UserAccessValidator
 from fanfan.core.utils.code import generate_unique_code
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class GenerateTicket:
         codes_repo: CodesRepository,
         uow: UnitOfWork,
         id_provider: IdProvider,
-        access: AccessService,
+        access: UserAccessValidator,
     ) -> None:
         self.tickets_repo = tickets_repo
         self.codes_repo = codes_repo

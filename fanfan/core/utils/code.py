@@ -11,7 +11,7 @@ from fanfan.common.paths import COMMON_STATIC_DIR, QR_CODES_TEMP_DIR
 from fanfan.core.models.code import CodeId
 
 
-def generate_unique_code(length: int = 10) -> str:
+def generate_unique_code(length: int = 8) -> str:
     alphabet = string.ascii_uppercase + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(length))
 

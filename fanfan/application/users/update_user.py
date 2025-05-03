@@ -7,7 +7,7 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.core.models.user import UserFull, UserId, UserRole
+from fanfan.core.models.user import UserData, UserId, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class UpdateUser:
         self.users_repo = users_repo
         self.uow = uow
 
-    async def _get_user(self, user_id: UserId) -> UserFull:
+    async def _get_user(self, user_id: UserId) -> UserData:
         user = await self.users_repo.get_user_by_id(user_id)
         if user is None:
             raise UserNotFound

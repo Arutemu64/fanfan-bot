@@ -8,7 +8,7 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import UserId
-from fanfan.core.services.access import AccessService
+from fanfan.core.services.access import UserAccessValidator
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,7 +26,7 @@ class GetUserQuestStats:
         users_repo: UsersRepository,
         quest_repo: QuestRepository,
         achievements: AchievementsRepository,
-        access: AccessService,
+        access: UserAccessValidator,
     ) -> None:
         self.users_repo = users_repo
         self.quest_repo = quest_repo

@@ -16,8 +16,8 @@ from fanfan.core.models.participant import (
 )
 
 if TYPE_CHECKING:
-    from fanfan.adapters.db.models.event import EventORM
     from fanfan.adapters.db.models.nomination import NominationORM
+    from fanfan.adapters.db.models.schedule_event import ScheduleEventORM
 
 
 class ParticipantORM(Base):
@@ -39,10 +39,9 @@ class ParticipantORM(Base):
     )
 
     # Relationships
-    event: Mapped[EventORM | None] = relationship(
+    event: Mapped[ScheduleEventORM | None] = relationship(
         back_populates="participant", single_parent=True
     )
-    user_vote: Mapped[VoteORM | None] = relationship(lazy="noload", viewonly=True)
     votes_count = column_property(
         select(func.count(VoteORM.id))
         .where(VoteORM.participant_id == id)
@@ -79,6 +78,4 @@ class ParticipantORM(Base):
             voting_number=ParticipantVotingNumber(self.voting_number),
             event=self.event.to_model() if self.event else None,
             nomination=self.nomination.to_model() if self.nomination else None,
-            votes_count=self.votes_count,
-            user_vote=self.user_vote.to_model() if self.user_vote else None,
         )

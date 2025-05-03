@@ -26,4 +26,4 @@ class CodeView(ModelView, model=CodeORM):
     )
     async def show_qr_code(self, request: Request) -> FileResponse:
         pk: str = request.query_params.get("pks", "").split(",")[0]
-        return FileResponse(get_qr_code_image(CodeId(pk)))
+        return FileResponse(get_qr_code_image(CodeId(pk)), filename=f"code_{pk}.png")
