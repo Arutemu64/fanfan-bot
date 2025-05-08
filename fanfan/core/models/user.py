@@ -32,14 +32,15 @@ class User:
     last_name: str | None
     role: UserRole
 
+    permissions: UserPermissions
+    settings: UserSettings
+
     def __eq__(self, other: User | Any) -> bool:
         return bool(isinstance(other, User) and self.id == other.id)
 
 
 @dataclass(slots=True, kw_only=True)
 class UserData(User):
-    permissions: UserPermissions
-    settings: UserSettings
     ticket: Ticket | None
 
 

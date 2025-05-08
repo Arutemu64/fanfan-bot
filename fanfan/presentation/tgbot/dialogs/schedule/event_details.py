@@ -8,11 +8,8 @@ from dishka import AsyncContainer
 from fanfan.application.schedule.get_event_for_user import GetEventForUser
 from fanfan.application.schedule.management.set_current_event import SetCurrentEvent
 from fanfan.application.schedule.management.skip_event import SkipEvent
-from fanfan.application.schedule.subscriptions.delete_subscription import (
-    DeleteSubscription,
-)
-from fanfan.application.schedule.subscriptions.get_subscription_by_event import (
-    GetSubscriptionByEvent,
+from fanfan.application.schedule.subscriptions.delete_subscription_by_event import (
+    DeleteSubscriptionByEvent,
 )
 from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.presentation.tgbot import states
@@ -101,15 +98,13 @@ async def unsubscribe_button_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_subscription_by_event: GetSubscriptionByEvent = await container.get(
-        GetSubscriptionByEvent
+    delete_subscription: DeleteSubscriptionByEvent = await container.get(
+        DeleteSubscriptionByEvent
     )
-    delete_subscription: DeleteSubscription = await container.get(DeleteSubscription)
 
-    subscription = await get_subscription_by_event(
-        manager.start_data[DATA_SELECTED_EVENT_ID]
+    await delete_subscription(
+        ScheduleEventId(manager.start_data[DATA_SELECTED_EVENT_ID])
     )
-    await delete_subscription(subscription.id)
     await callback.answer("🗑️ Подписка удалена!")
 
 

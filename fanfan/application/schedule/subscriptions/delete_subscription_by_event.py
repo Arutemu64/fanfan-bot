@@ -5,12 +5,12 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.subscriptions import SubscriptionNotFound
-from fanfan.core.models.subscription import SubscriptionId
+from fanfan.core.models.schedule_event import ScheduleEventId
 
 logger = logging.getLogger(__name__)
 
 
-class DeleteSubscription:
+class DeleteSubscriptionByEvent:
     def __init__(
         self,
         subscriptions_repo: SubscriptionsRepository,
@@ -21,9 +21,9 @@ class DeleteSubscription:
         self.id_provider = id_provider
         self.uow = uow
 
-    async def __call__(self, subscription_id: SubscriptionId) -> None:
-        subscription = await self.subscriptions_repo.get_subscription_by_id(
-            subscription_id
+    async def __call__(self, event_id: ScheduleEventId) -> None:
+        subscription = await self.subscriptions_repo.get_user_subscription_by_event(
+            user_id=self.id_provider.get_current_user_id(), event_id=event_id
         )
         if subscription is None:
             raise SubscriptionNotFound

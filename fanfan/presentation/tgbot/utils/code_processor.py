@@ -7,7 +7,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.quest.receive_achievement import ReceiveAchievement
 from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.core.dto.notification import UserNotification
-from fanfan.core.models.code import Code, CodeId
+from fanfan.core.models.code import CodeId
 from fanfan.core.services.access import UserAccessValidator
 from fanfan.core.utils.notifications import create_achievement_notification
 from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
@@ -34,7 +34,7 @@ class CodeProcessor:
         self.link_ticket = link_ticket
         self.receive_achievement = receive_achievement
 
-    async def __call__(self, code_id: CodeId) -> Code:
+    async def __call__(self, code_id: CodeId) -> None:
         code = await self.get_code_by_id(code_id)
         user = await self.id_provider.get_current_user()
 
@@ -66,5 +66,3 @@ class CodeProcessor:
                     "Теперь тебе доступны все функции бота!"
                 ),
             )
-
-        return code

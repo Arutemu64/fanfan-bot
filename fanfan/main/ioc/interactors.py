@@ -9,6 +9,7 @@ from fanfan.application.feedback.send_feedback import SendFeedback
 from fanfan.application.mailing.cancel_mailing import CancelMailing
 from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
+from fanfan.application.mailing.send_personal_message import SendPersonalMessage
 from fanfan.application.marketplace.create_market_by_participant import (
     CreateMarketByParticipant,
 )
@@ -37,11 +38,8 @@ from fanfan.application.schedule.management.skip_event import SkipEvent
 from fanfan.application.schedule.subscriptions.create_subscription import (
     CreateSubscription,
 )
-from fanfan.application.schedule.subscriptions.delete_subscription import (
-    DeleteSubscription,
-)
-from fanfan.application.schedule.subscriptions.get_subscription_by_event import (
-    GetSubscriptionByEvent,
+from fanfan.application.schedule.subscriptions.delete_subscription_by_event import (
+    DeleteSubscriptionByEvent,
 )
 from fanfan.application.schedule.subscriptions.get_subscriptions_page import (
     GetSubscriptionsPage,
@@ -54,7 +52,6 @@ from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.application.users.authenticate import Authenticate
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.get_user_by_username import GetUserByUsername
-from fanfan.application.users.send_org_message import SendOrgMessage
 from fanfan.application.users.update_user import UpdateUser
 from fanfan.application.users.update_user_settings import UpdateUserSettings
 from fanfan.application.utils.get_random_quote import GetRandomQuote
@@ -63,7 +60,7 @@ from fanfan.application.utils.import_orders import ImportOrders
 from fanfan.application.utils.proceed_order import ProceedOrder
 from fanfan.application.voting.add_vote import AddVote
 from fanfan.application.voting.cancel_vote import CancelVote
-from fanfan.application.voting.get_nomination_for_user import GetNominationForUser
+from fanfan.application.voting.get_nomination_for_user import GetNomination
 from fanfan.application.voting.get_nominations_page import GetNominationsPage
 from fanfan.application.voting.get_participants_page import GetParticipantsPage
 
@@ -96,15 +93,14 @@ class InteractorsProvider(Provider):
     get_mailing_info = provide(GetMailingInfo)
     delete_mailing = provide(CancelMailing)
 
-    get_nomination_by_id = provide(GetNominationForUser)
+    get_nomination_by_id = provide(GetNomination)
     get_nominations_page = provide(GetNominationsPage)
 
     get_settings = provide(GetSettings)
     update_settings = provide(UpdateSettings)
 
     create_subscription = provide(CreateSubscription)
-    delete_subscription = provide(DeleteSubscription)
-    get_subscription_by_event = provide(GetSubscriptionByEvent)
+    delete_subscription = provide(DeleteSubscriptionByEvent)
     get_subscriptions_page = provide(GetSubscriptionsPage)
 
     generate_ticket = provide(GenerateTicket)
@@ -116,7 +112,7 @@ class InteractorsProvider(Provider):
     get_user_by_username = provide(GetUserByUsername)
     update_user = provide(UpdateUser)
     update_user_settings = provide(UpdateUserSettings)
-    send_message = provide(SendOrgMessage)
+    send_message = provide(SendPersonalMessage)
 
     get_user_quest_details = provide(GetUserQuestStats)
     get_quest_rating = provide(GetQuestRating)

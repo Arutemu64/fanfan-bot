@@ -69,7 +69,7 @@ list_achievements_window = Window(
         Case(
             texts={
                 True: Const("🏆 Мои достижения"),
-                False: Format("🏆 Достижения @{username}"),
+                False: Jinja("🏆 Достижения @{{ username }}"),
             },
             selector="showing_self",
         ),

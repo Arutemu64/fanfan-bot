@@ -39,13 +39,10 @@ async def move_event_handler(
     move_event: MoveEvent = await container.get(MoveEvent)
 
     if "/" in data and data.replace("/", "").isnumeric():
+        event_id = ScheduleEventId(dialog_manager.start_data[DATA_SELECTED_EVENT_ID])
+        place_after_event_id = ScheduleEventId(int(data.replace("/", "")))
         data = await move_event(
-            MoveEventDTO(
-                event_id=ScheduleEventId(
-                    dialog_manager.start_data[DATA_SELECTED_EVENT_ID]
-                ),
-                place_after_event_id=ScheduleEventId(int(data.replace("/", ""))),
-            )
+            MoveEventDTO(event_id=event_id, place_after_event_id=place_after_event_id)
         )
         await message.reply(
             f"✅ Выступление <b>{data.event.title}</b> поставлено "

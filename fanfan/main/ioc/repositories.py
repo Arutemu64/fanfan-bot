@@ -12,41 +12,46 @@ from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import (
     ParticipantsRepository,
 )
+from fanfan.adapters.db.repositories.products import ProductsRepository
 from fanfan.adapters.db.repositories.quest import QuestRepository
 from fanfan.adapters.db.repositories.schedule import ScheduleRepository
+from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
 from fanfan.adapters.db.repositories.settings import (
     SettingsRepository,
 )
 from fanfan.adapters.db.repositories.subscriptions import (
     SubscriptionsRepository,
 )
-from fanfan.adapters.db.repositories.tickets import TicketsRepository
+from fanfan.adapters.db.repositories.tickets import TicketsWriter
 from fanfan.adapters.db.repositories.transactions import TransactionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 
 
 class RepositoriesProvider(Provider):
     scope = Scope.REQUEST
 
     # RDB
+
     achievements = provide(AchievementsRepository)
     activities = provide(ActivitiesRepository)
-    events = provide(ScheduleRepository)
+    codes = provide(CodesRepository)
     feedback = provide(FeedbackRepository)
+    markets = provide(MarketsRepository)
     nominations = provide(NominationsRepository)
     participants = provide(ParticipantsRepository)
+    products = provide(ProductsRepository)
     quest = provide(QuestRepository)
+    schedule = provide(ScheduleRepository)
+    schedule_changes = provide(ScheduleChangesRepository)
     settings = provide(SettingsRepository)
     subscriptions = provide(SubscriptionsRepository)
-    tickets = provide(TicketsRepository)
+    tickets = provide(TicketsWriter)
     users = provide(UsersRepository)
     votes = provide(VotesRepository)
     transactions = provide(TransactionsRepository)
-    codes = provide(CodesRepository)
     flags = provide(FlagsRepository)
-    markets = provide(MarketsRepository)
 
     # Redis
-    mailing = provide(MailingRepository)
+    mailing = provide(MailingDAO)

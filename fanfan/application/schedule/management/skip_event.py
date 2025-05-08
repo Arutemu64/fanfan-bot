@@ -4,19 +4,19 @@ from dataclasses import dataclass
 from fanfan.adapters.config.models import LimitsConfig
 from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.events_broker import EventsBroker
-from fanfan.adapters.utils.rate_limit import RateLimitFactory
+from fanfan.adapters.utils.rate_lock import RateLockFactory
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.schedule.management.common import ANNOUNCE_LIMIT_NAME
-from fanfan.core.events.schedule import ScheduleChangedEvent
-from fanfan.core.exceptions.limiter import RateLimitCooldown
+from fanfan.core.events.schedule import ScheduleChanged
+from fanfan.core.exceptions.limiter import RateLockCooldown
 from fanfan.core.exceptions.schedule import (
     CurrentEventNotAllowed,
     EventNotFound,
     ScheduleEditTooFast,
 )
-from fanfan.core.models.schedule_change import ScheduleChange, ScheduleChangeType
+from fanfan.core.models.schedule_change import ScheduleChangeType
 from fanfan.core.models.schedule_event import ScheduleEvent, ScheduleEventId
 from fanfan.core.services.access import UserAccessValidator
 
@@ -35,16 +35,16 @@ class SkipEvent:
         limits: LimitsConfig,
         access: UserAccessValidator,
         uow: UnitOfWork,
-        rate_limit_factory: RateLimitFactory,
+        rate_lock_factory: RateLockFactory,
         id_provider: IdProvider,
         events_broker: EventsBroker,
-        mailing_repo: MailingRepository,
+        mailing_repo: MailingDAO,
     ) -> None:
         self.schedule_repo = schedule_repo
         self.limits = limits
         self.access = access
         self.uow = uow
-        self.rate_limit_factory = rate_limit_factory
+        self.rate_lock_factory = rate_lock_factory
         self.events_broker = events_broker
         self.id_provider = id_provider
         self.mailing_repo = mailing_repo
@@ -52,14 +52,12 @@ class SkipEvent:
     async def __call__(self, event_id: ScheduleEventId) -> SkipEventResult:
         user = await self.id_provider.get_current_user()
         self.access.ensure_can_edit_schedule(user)
+        lock = self.rate_lock_factory(
+            ANNOUNCE_LIMIT_NAME,
+            cooldown_period=self.limits.announcement_timeout,
+        )
         try:
-            async with (
-                self.uow,
-                self.rate_limit_factory(
-                    ANNOUNCE_LIMIT_NAME,
-                    cooldown_period=self.limits.announcement_timeout,
-                ),
-            ):
+            async with self.uow, lock:
                 # Get and check event
                 event = await self.schedule_repo.get_event_by_id(event_id)
                 if event is None:
@@ -68,32 +66,32 @@ class SkipEvent:
                     raise CurrentEventNotAllowed
 
                 # Get next event at this point
-                next_event_before = await self.schedule_repo.get_next_event()
+                next_event_before = await self.schedule_repo.read_next_event()
 
                 # Toggle event skip
                 event.is_skipped = not event.is_skipped
                 await self.schedule_repo.save_event(event)
 
-                next_event_after = await self.schedule_repo.get_next_event()
-
-                schedule_change = ScheduleChange(
-                    changed_event_id=event.id,
-                    argument_event_id=None,
-                    type=ScheduleChangeType.SKIPPED
-                    if event.is_skipped
-                    else ScheduleChangeType.UNSKIPPED,
-                    user_id=user.id,
-                    mailing_id=None,
-                    send_global_announcement=(next_event_before != next_event_after),
-                )
-                schedule_change = await self.schedule_repo.add_schedule_change(
-                    schedule_change
-                )
+                next_event_after = await self.schedule_repo.read_next_event()
 
                 # Commit and proceed
                 await self.uow.commit()
+                mailing_id = await self.mailing_repo.create_new_mailing(
+                    by_user_id=user.id,
+                )
                 await self.events_broker.publish(
-                    ScheduleChangedEvent(schedule_change_id=schedule_change.id)
+                    ScheduleChanged(
+                        changed_event_id=event.id,
+                        argument_event_id=None,
+                        type=ScheduleChangeType.SKIPPED
+                        if event.is_skipped
+                        else ScheduleChangeType.UNSKIPPED,
+                        user_id=user.id,
+                        mailing_id=mailing_id,
+                        send_global_announcement=(
+                            next_event_before != next_event_after
+                        ),
+                    )
                 )
 
                 # Update event after commit
@@ -108,7 +106,7 @@ class SkipEvent:
                 return SkipEventResult(
                     event=event,
                 )
-        except RateLimitCooldown as e:
+        except RateLockCooldown as e:
             raise ScheduleEditTooFast(
                 announcement_timeout=e.limit_timeout, old_timestamp=e.current_timestamp
             ) from e

@@ -42,11 +42,9 @@ class CreateMarketByParticipant:
                 image_id=None,
                 is_visible=False,
             )
+            market.add_manager(user.id)
 
             market = await self.markets_repo.add_market(market)
-            await self.markets_repo.add_user_to_market_managers(
-                user=user, market=market
-            )
             await self.uow.commit()
 
             return market

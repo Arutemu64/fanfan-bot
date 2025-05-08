@@ -3,9 +3,8 @@ from dataclasses import dataclass
 
 from sqlalchemy.exc import IntegrityError
 
-from fanfan.adapters.db.repositories.participants import (
-    ParticipantsRepository,
-)
+from fanfan.adapters.db.repositories.participants import ParticipantsRepository
+from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
@@ -33,6 +32,7 @@ class AddVote:
     def __init__(
         self,
         participants_repo: ParticipantsRepository,
+        schedule_repo: ScheduleRepository,
         votes_repo: VotesRepository,
         uow: UnitOfWork,
         access: UserAccessValidator,
@@ -40,6 +40,7 @@ class AddVote:
         events_broker: EventsBroker,
     ) -> None:
         self.participants_repo = participants_repo
+        self.schedule_repo = schedule_repo
         self.votes_repo = votes_repo
         self.uow = uow
         self.access = access
@@ -56,7 +57,10 @@ class AddVote:
         )
         if not participant:
             raise ParticipantNotFound
-        if participant.event and participant.event.is_skipped:
+        event = await self.schedule_repo.get_event_by_participant_id(
+            participant_id=participant.id
+        )
+        if event and event.is_skipped:
             raise ParticipantNotFound
 
         # Checking user

@@ -15,10 +15,8 @@ class GetNominationsPage:
         self,
         pagination: Pagination | None = None,
     ) -> Page[NominationFull]:
-        nominations = (
-            await self.nominations_repo.read_votable_nominations_list_for_user(
-                user_id=self.id_provider.get_current_user_id(), pagination=pagination
-            )
+        nominations = await self.nominations_repo.read_votable_nominations_for_user(
+            user_id=self.id_provider.get_current_user_id(), pagination=pagination
         )
         total = await self.nominations_repo.count_votable_nominations()
 

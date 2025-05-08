@@ -6,6 +6,7 @@ from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
+from fanfan.core.models.achievement import ReceivedAchievement
 
 if typing.TYPE_CHECKING:
     from fanfan.adapters.db.models.achievement import AchievementORM
@@ -35,3 +36,11 @@ class ReceivedAchievementORM(Base):
 
     # Constraint
     UniqueConstraint(user_id, achievement_id)
+
+    @classmethod
+    def from_model(cls, model: ReceivedAchievement) -> ReceivedAchievementORM:
+        return ReceivedAchievementORM(
+            id=model.id,
+            achievement_id=model.achievement_id,
+            user_id=model.user_id,
+        )

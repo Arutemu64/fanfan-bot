@@ -39,5 +39,5 @@ async def product_getter(
         # Don't use market_getter with product_getter
         # cause it uses market_id from dialog data, not from product
         "market_name": market.name,
-        "market_is_manager": user in market.managers,
+        "market_is_manager": user.id in (u.id for u in market.managers),
     }

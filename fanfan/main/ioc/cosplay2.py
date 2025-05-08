@@ -5,8 +5,8 @@ from aiohttp import ClientSession
 from dishka import Provider, Scope, provide
 from redis.asyncio import Redis
 
+from fanfan.adapters.api.cosplay2.client import Cosplay2Client
 from fanfan.adapters.config.models import Cosplay2Config
-from fanfan.adapters.cosplay2.client import Cosplay2Client
 
 Cosplay2Session = NewType("Cosplay2Session", ClientSession)
 

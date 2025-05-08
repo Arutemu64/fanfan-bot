@@ -17,8 +17,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class BotMode(enum.StrEnum):
-    POLLING = enum.auto()
-    WEBHOOK = enum.auto()
+    POLLING = "polling"
+    WEBHOOK = "webhook"
 
 
 class WebhookConfig(BaseModel):

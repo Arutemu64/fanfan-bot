@@ -66,7 +66,7 @@ async def send_mailing_handler(
 
     mailing_id = await create_mailing(
         CreateRoleMailingDTO(
-            text=manager.dialog_data[DATA_TEXT],
+            message_text=manager.dialog_data[DATA_TEXT],
             roles=roles_picker.get_checked(),
             image_id=manager.dialog_data.get(DATA_IMAGE_ID),
         )

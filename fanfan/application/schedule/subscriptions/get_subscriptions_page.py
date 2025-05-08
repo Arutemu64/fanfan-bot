@@ -1,9 +1,7 @@
-from fanfan.adapters.db.repositories.subscriptions import (
-    SubscriptionsRepository,
-)
+from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.dto.page import Page, Pagination
-from fanfan.core.models.subscription import SubscriptionFull
+from fanfan.core.dto.subscription import SubscriptionDTO
 
 
 class GetSubscriptionsPage:
@@ -18,13 +16,12 @@ class GetSubscriptionsPage:
     async def __call__(
         self,
         pagination: Pagination | None = None,
-    ) -> Page[SubscriptionFull]:
+    ) -> Page[SubscriptionDTO]:
         user_id = self.id_provider.get_current_user_id()
-        subscriptions = await self.subscriptions_repo.list_subscriptions(
-            user_id=user_id,
-            pagination=pagination,
+        subscriptions = await self.subscriptions_repo.list_user_subscriptions(
+            user_id=user_id, pagination=pagination
         )
-        total = await self.subscriptions_repo.count_subscriptions(user_id)
+        total = await self.subscriptions_repo.count_user_subscriptions(user_id)
         return Page(
             items=subscriptions,
             total=total,

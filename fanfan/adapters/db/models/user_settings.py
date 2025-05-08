@@ -4,7 +4,6 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
-from fanfan.core.models.user import UserId
 from fanfan.core.models.user_settings import UserSettings
 
 if typing.TYPE_CHECKING:
@@ -33,7 +32,6 @@ class UserSettingsORM(Base):
     @classmethod
     def from_model(cls, model: UserSettings):
         return UserSettingsORM(
-            user_id=model.user_id,
             items_per_page=model.items_per_page,
             receive_all_announcements=model.receive_all_announcements,
             org_receive_feedback_notifications=model.org_receive_feedback_notifications,
@@ -41,7 +39,6 @@ class UserSettingsORM(Base):
 
     def to_model(self) -> UserSettings:
         return UserSettings(
-            user_id=UserId(self.user_id),
             items_per_page=self.items_per_page,
             receive_all_announcements=self.receive_all_announcements,
             org_receive_feedback_notifications=self.org_receive_feedback_notifications,

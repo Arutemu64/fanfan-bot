@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.mixins.order import OrderMixin
 from fanfan.adapters.db.models.user import UserORM
-from fanfan.core.models.market import Market, MarketFull, MarketId
+from fanfan.core.models.market import Market, MarketId
 from fanfan.core.value_objects import TelegramFileId
 
 
@@ -28,10 +28,7 @@ class MarketORM(Base, OrderMixin):
 
     is_visible: Mapped[bool] = mapped_column(server_default="False")
 
-    managers: Mapped[list[UserORM]] = relationship(
-        secondary="market_managers",
-        viewonly=True,
-    )
+    managers: Mapped[list[UserORM]] = relationship(secondary="market_managers")
 
     @classmethod
     def from_model(cls, model: Market):
@@ -41,6 +38,7 @@ class MarketORM(Base, OrderMixin):
             description=model.description,
             image_id=model.image_id,
             is_visible=model.is_visible,
+            managers=[UserORM(id=id_) for id_ in model.manager_ids],
         )
 
     def to_model(self) -> Market:
@@ -50,14 +48,5 @@ class MarketORM(Base, OrderMixin):
             description=self.description,
             image_id=self.image_id,
             is_visible=self.is_visible,
-        )
-
-    def to_full_model(self) -> MarketFull:
-        return MarketFull(
-            id=self.id,
-            name=self.name,
-            description=self.description,
-            image_id=self.image_id,
-            is_visible=self.is_visible,
-            managers=[u.to_model() for u in self.managers],
+            manager_ids=[u.id for u in self.managers],
         )

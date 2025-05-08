@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 
-from fanfan.adapters.db.repositories.tickets import TicketsRepository
+from fanfan.adapters.db.repositories.tickets import TicketsWriter
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class LinkTicket:
     def __init__(
         self,
-        tickets_repo: TicketsRepository,
+        tickets_repo: TicketsWriter,
         users_repo: UsersRepository,
         uow: UnitOfWork,
         id_provider: IdProvider,
@@ -35,7 +35,7 @@ class LinkTicket:
         async with self.uow:
             try:
                 # Get user
-                user = await self.users_repo.get_user_by_id(user_id)
+                user = await self.users_repo.get_user_data(user_id)
                 if user is None:
                     raise UserNotFound
                 if user.ticket:
@@ -58,7 +58,7 @@ class LinkTicket:
                 await self.uow.rollback()
                 raise
             else:
-                user = await self.users_repo.get_user_by_id(user_id)
+                user = await self.users_repo.get_user_data(user_id)
                 logger.info(
                     "Ticket %s was linked to user %s",
                     ticket_id,

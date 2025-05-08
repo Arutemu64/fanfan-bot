@@ -3,7 +3,7 @@ import math
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
-from aiogram_dialog.widgets.text import Const, Format, Multi, Progress
+from aiogram_dialog.widgets.text import Const, Jinja, Multi, Progress
 from dishka import AsyncContainer
 
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
@@ -54,8 +54,10 @@ main_quest_window = Window(
     ),
     Const(" "),
     Multi(
-        Format("<b>💰 Очков:</b> {points}"),
-        Format("<b>🎯 Достижений:</b> {achievements_count} из {total_achievements}"),
+        Jinja("<b>💰 Очков:</b> {{ points }}"),
+        Jinja(
+            "<b>🎯 Достижений:</b> {{ achievements_count }} из {{ total_achievements }}"
+        ),
         Progress(field="achievements_progress", filled="🟩", empty="⬜"),
     ),
     Button(

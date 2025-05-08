@@ -14,7 +14,7 @@
         {% if current_event and subscription.event.queue %}
             {% set events_left = subscription.event.queue - current_event.queue %}
             {% if events_left > 0 %}
-                {% set tag %}🚀 До начала осталось {{events_left}} {{events_pluralize(events_left)}}{% endset %}
+                {% set tag %}🚀 До начала: {{events_left}} {{events_pluralize(events_left)}}{% endset %}
             {% elif events_left == 0 %}
                 {% set tag %}🔥 Идёт сейчас{% endset %}
             {% elif events_left < 0 %}

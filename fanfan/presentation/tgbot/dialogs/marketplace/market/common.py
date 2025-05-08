@@ -31,6 +31,6 @@ async def market_getter(
         "market_description": market.description,
         "market_image": market_image,
         "market_is_visible": market.is_visible,
-        "market_is_manager": user in market.managers,
+        "market_is_manager": user.id in (u.id for u in market.managers),
         "market_managers": market.managers,
     }

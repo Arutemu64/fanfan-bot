@@ -1,17 +1,14 @@
-from sqlalchemy.exc import IntegrityError
-
 from fanfan.adapters.db.repositories.markets import MarketsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.dto.user import UserDTO
 from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.exceptions.market import (
     MarketNotFound,
-    UserIsAlreadyMarketManager,
 )
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.market import Market, MarketId
-from fanfan.core.models.user import User
 from fanfan.core.value_objects import TelegramFileId
 
 
@@ -34,7 +31,7 @@ class UpdateMarket:
             raise MarketNotFound
 
         user = await self.id_provider.get_current_user()
-        if user not in market.managers:
+        if user.id not in market.manager_ids:
             raise AccessDenied
 
         return market
@@ -42,7 +39,7 @@ class UpdateMarket:
     async def update_market_name(self, market_id: MarketId, new_name: str) -> None:
         async with self.uow:
             market = await self._get_market(market_id)
-            market.set_market_name(new_name)
+            market.set_name(new_name)
             await self.markets_repo.save_market(market)
             await self.uow.commit()
 
@@ -51,7 +48,7 @@ class UpdateMarket:
     ) -> None:
         async with self.uow:
             market = await self._get_market(market_id)
-            market.set_market_description(new_description)
+            market.set_description(new_description)
             await self.markets_repo.save_market(market)
             await self.uow.commit()
 
@@ -73,18 +70,15 @@ class UpdateMarket:
             await self.markets_repo.save_market(market)
             await self.uow.commit()
 
-    async def add_manager_by_username(self, market_id: MarketId, username: str) -> User:
+    async def add_manager_by_username(
+        self, market_id: MarketId, username: str
+    ) -> UserDTO:
         async with self.uow:
             market = await self._get_market(market_id)
-            user = await self.users_repo.get_user_by_username(username.lower())
+            user = await self.users_repo.read_user_by_username(username.lower())
             if user is None:
                 raise UserNotFound
-
-            try:
-                await self.markets_repo.add_user_to_market_managers(user, market)
-                await self.uow.commit()
-            except IntegrityError as e:
-                await self.uow.rollback()
-                raise UserIsAlreadyMarketManager from e
-            else:
-                return user
+            market.add_manager(user.id)
+            await self.markets_repo.save_market(market)
+            await self.uow.commit()
+            return user

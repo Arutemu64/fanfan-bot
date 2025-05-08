@@ -1,84 +1,84 @@
-from sqlalchemy import func, select
+from sqlalchemy import Row, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import undefer
 
 from fanfan.adapters.db.models import UserORM
-from fanfan.core.dto.page import Page, Pagination
-from fanfan.core.dto.quest import PlayerRatingDTO
-from fanfan.core.models.quest import Player, PlayerFull
+from fanfan.core.dto.page import Pagination
+from fanfan.core.dto.quest import QuestPlayerDTO
+from fanfan.core.models.quest import QuestPlayer
 from fanfan.core.models.user import UserId
+
+ORDER_RULE = (UserORM.points + UserORM.achievements_count).desc()
+WHERE_RULE = (UserORM.points + UserORM.achievements_count) > 0
+
+
+def _user_orm_to_quest_player(user: UserORM) -> QuestPlayer:
+    return QuestPlayer(id=UserId(user.id), points=user.points)
+
+
+def _quest_player_to_user_orm(model: QuestPlayer) -> UserORM:
+    return UserORM(id=model.id, points=model.points)
+
+
+def _select_quest_player_dto() -> Select:
+    return select(
+        UserORM.id.label("user_id"),
+        UserORM.username.label("username"),
+        UserORM.points.label("points"),
+        UserORM.achievements_count.label("achievements_count"),
+        func.row_number().over(order_by=ORDER_RULE).label("rank"),
+    )
+
+
+def _parse_quest_player_dto(row: Row) -> QuestPlayerDTO:
+    return QuestPlayerDTO(
+        user_id=row.user_id,
+        rank=row.rank,
+        username=row.username,
+        points=row.points,
+        achievements_count=row.achievements_count,
+    )
 
 
 class QuestRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    @staticmethod
-    def _to_model(user: UserORM) -> Player:
-        return Player(id=UserId(user.id), points=user.points)
-
-    @staticmethod
-    def _to_full_model(user: UserORM) -> PlayerFull:
-        return PlayerFull(
-            id=UserId(user.id),
-            points=user.points,
-            achievements_count=user.achievements_count,
-        )
-
-    @staticmethod
-    def _from_model(model: Player) -> UserORM:
-        return UserORM(id=model.id, points=model.points)
-
-    async def get_player(self, user_id: UserId) -> PlayerFull | None:
+    async def get_player(self, user_id: UserId) -> QuestPlayer | None:
         stmt = (
             select(UserORM)
             .where(UserORM.id == user_id)
             .options(
-                undefer(UserORM.achievements_count),
                 undefer(UserORM.points),
             )
             .execution_options(populate_existing=True)
             .with_for_update(of=[UserORM.points])
         )
-        player = await self.session.scalar(stmt)
-        return self._to_full_model(player) if player else None
+        user_orm = await self.session.scalar(stmt)
+        return _user_orm_to_quest_player(user_orm) if user_orm else None
 
-    async def read_quest_rating_page(
+    async def save_player(self, player: QuestPlayer) -> QuestPlayer:
+        user_orm = await self.session.merge(_quest_player_to_user_orm(player))
+        return _user_orm_to_quest_player(user_orm)
+
+    async def read_quest_player(self, user_id: UserId) -> QuestPlayerDTO | None:
+        stmt = _select_quest_player_dto().where(UserORM.id == user_id)
+        result = (await self.session.execute(stmt)).first()
+        return _parse_quest_player_dto(result) if result else None
+
+    async def list_quest_players(
         self, pagination: Pagination | None = None
-    ) -> Page[PlayerRatingDTO]:
-        order_rule = (UserORM.points + UserORM.achievements_count).desc()
-        where_rule = (UserORM.points + UserORM.achievements_count) > 0
-        stmt = (
-            select(
-                func.row_number().over(order_by=order_rule).label("position"),
-                UserORM.username,
-                UserORM.points,
-                UserORM.achievements_count,
-            )
-            .where(where_rule)
-            .order_by(order_rule)
-        )
-        total_stmt = select(func.count(UserORM.id)).where(where_rule)
+    ) -> list[QuestPlayerDTO]:
+        stmt = _select_quest_player_dto().where(WHERE_RULE).order_by(ORDER_RULE)
 
         if pagination:
             stmt = stmt.limit(pagination.limit).offset(pagination.offset)
 
         results = (await self.session.execute(stmt)).all()
-        total = await self.session.scalar(total_stmt)
 
-        return Page(
-            items=[
-                PlayerRatingDTO(
-                    position=row.position,
-                    username=row.username,
-                    points=row.points,
-                    achievements_count=row.achievements_count,
-                )
-                for row in results
-            ],
-            total=total,
+        return [_parse_quest_player_dto(row) for row in results]
+
+    async def count_quest_players(self) -> int:
+        return await self.session.scalar(
+            select(func.count(UserORM.id)).where(WHERE_RULE)
         )
-
-    async def save_player(self, player: Player) -> Player:
-        user_orm = await self.session.merge(self._from_model(player))
-        return self._to_model(user_orm)

@@ -11,9 +11,9 @@ class ListMarkets:
 
     async def __call__(self, pagination: Pagination) -> Page[Market]:
         user_id = self.id_provider.get_current_user_id()
-        markets = await self.markets_repo.list_markets(
-            pagination=pagination,
+        markets = await self.markets_repo.read_markets(
             is_visible=True,
+            pagination=pagination,
             user_id=self.id_provider.get_current_user_id(),
         )
         total = await self.markets_repo.count_markets(is_visible=True, user_id=user_id)

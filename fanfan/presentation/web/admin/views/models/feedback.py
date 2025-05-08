@@ -10,12 +10,12 @@ class FeedbackView(ModelView, model=FeedbackORM):
     column_list = [
         FeedbackORM.id,
         FeedbackORM.text,
-        FeedbackORM.user,
+        FeedbackORM.reported_by,
         FeedbackORM.processed_by,
     ]
     column_labels = {
         FeedbackORM.id: "ID",
         FeedbackORM.text: "Текст",
-        FeedbackORM.user: "Пользователь",
+        FeedbackORM.reported_by: "Пользователь",
         FeedbackORM.processed_by: "Обработано",
     }

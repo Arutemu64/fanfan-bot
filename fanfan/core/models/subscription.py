@@ -16,12 +16,6 @@ class Subscription:
     counter: int
 
 
-@dataclass(slots=True, kw_only=True)
-class SubscriptionFull(Subscription):
-    event: ScheduleEventFull
-
-
 from fanfan.core.models.schedule_event import (  # noqa: E402
-    ScheduleEventFull,
     ScheduleEventId,
 )

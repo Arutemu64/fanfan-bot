@@ -5,15 +5,15 @@ from datetime import timedelta
 
 from sqlalchemy.exc import IntegrityError
 
-from fanfan.adapters.cosplay2.client import Cosplay2Client
-from fanfan.adapters.cosplay2.dto.requests import Request, RequestStatus
-from fanfan.adapters.cosplay2.exceptions import (
+from fanfan.adapters.api.cosplay2.client import Cosplay2Client
+from fanfan.adapters.api.cosplay2.dto.requests import Request, RequestStatus
+from fanfan.adapters.api.cosplay2.exceptions import (
     NoCosplay2ConfigProvided,
 )
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.utils.rate_limit import RateLimitFactory
+from fanfan.adapters.utils.rate_lock import RateLockFactory
 from fanfan.core.models.nomination import Nomination, NominationId
 from fanfan.core.models.participant import Participant, ParticipantId
 
@@ -39,7 +39,7 @@ class ImportFromC2:
         participants_repo: ParticipantsRepository,
         nominations_repo: NominationsRepository,
         uow: UnitOfWork,
-        rate_limit_factory: RateLimitFactory,
+        rate_limit_factory: RateLockFactory,
     ):
         self.cosplay2 = cosplay2
         self.participants_repo = participants_repo
@@ -63,6 +63,7 @@ class ImportFromC2:
             topics = await self.cosplay2.get_topics_list()
             for topic in topics:
                 async with self.uow:
+                    # TODO Query nomination before saving
                     await self.nominations_repo.save_nomination(
                         Nomination(
                             id=NominationId(topic.id),
@@ -81,6 +82,7 @@ class ImportFromC2:
                     )
                     async with self.uow:
                         try:
+                            # TODO Query participant before saving
                             participant = await self.participants_repo.save_participant(
                                 Participant(
                                     id=ParticipantId(request.id),

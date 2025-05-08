@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.dto.page import Page, Pagination
-from fanfan.core.dto.participant import UserParticipantDTO
+from fanfan.core.dto.participant import ParticipantUserDTO
 from fanfan.core.models.nomination import NominationId
 
 
@@ -24,15 +24,13 @@ class GetParticipantsPage:
     async def __call__(
         self,
         data: GetParticipantsPageDTO,
-    ) -> Page[UserParticipantDTO]:
+    ) -> Page[ParticipantUserDTO]:
         user_id = self.id_provider.get_current_user_id()
-        participants = (
-            await self.participants_repo.read_votable_participants_list_for_user(
-                user_id=user_id,
-                nomination_id=data.nomination_id,
-                search_query=data.search_query,
-                pagination=data.pagination,
-            )
+        participants = await self.participants_repo.read_votable_participants_for_user(
+            user_id=user_id,
+            nomination_id=data.nomination_id,
+            search_query=data.search_query,
+            pagination=data.pagination,
         )
         total = await self.participants_repo.count_votable_participants(
             nomination_id=data.nomination_id, search_query=data.search_query

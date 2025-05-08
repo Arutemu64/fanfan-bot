@@ -12,7 +12,7 @@ from fanfan.core.services.access import UserAccessValidator
 
 
 @dataclass(frozen=True, slots=True)
-class QuestStatsDTO:
+class UserQuestStatsDTO:
     user_id: UserId
     can_participate_in_quest: bool
     points: int
@@ -25,32 +25,32 @@ class GetUserQuestStats:
         self,
         users_repo: UsersRepository,
         quest_repo: QuestRepository,
-        achievements: AchievementsRepository,
+        achievements_repo: AchievementsRepository,
         access: UserAccessValidator,
     ) -> None:
         self.users_repo = users_repo
         self.quest_repo = quest_repo
-        self.achievements = achievements
+        self.achievements_repo = achievements_repo
         self.access = access
 
-    async def __call__(self, user_id: UserId) -> QuestStatsDTO:
-        participant = await self.quest_repo.get_player(user_id=user_id)
-        if participant is None:
+    async def __call__(self, user_id: UserId) -> UserQuestStatsDTO:
+        player = await self.quest_repo.read_quest_player(user_id=user_id)
+        if player is None:
             raise UserNotFound
 
-        total = await self.achievements.count_achievements()
+        total = await self.achievements_repo.count_achievements()
 
         try:
-            user = await self.users_repo.get_user_by_id(user_id)
+            user = await self.users_repo.get_user_data(user_id)
             self.access.ensure_can_participate_in_quest(user)
             can_participate_in_quest = True
         except AppException:
             can_participate_in_quest = False
 
-        return QuestStatsDTO(
-            user_id=participant.id,
+        return UserQuestStatsDTO(
+            user_id=player.user_id,
             can_participate_in_quest=can_participate_in_quest,
-            points=participant.points,
-            achievements_count=participant.achievements_count,
+            points=player.points,
+            achievements_count=player.achievements_count,
             total_achievements=total,
         )

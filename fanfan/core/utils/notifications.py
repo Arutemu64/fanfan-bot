@@ -2,10 +2,10 @@ import html
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from fanfan.core.dto.feedback import FeedbackDTO
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import Achievement
-from fanfan.core.models.feedback import FeedbackFull
 from fanfan.core.utils.pluralize import Plurals, pluralize
 from fanfan.presentation.tgbot.keyboards.buttons import (
     DELETE_BUTTON,
@@ -33,7 +33,7 @@ def create_points_notification(points: int, comment: str | None) -> UserNotifica
     )
 
 
-def create_feedback_notification(feedback: FeedbackFull) -> UserNotification:
+def create_feedback_notification(feedback: FeedbackDTO) -> UserNotification:
     bottom_text = (
         "⚙️ Уведомления можно отключить в личных настройках.\n"
         "⚠️ Пользователю можно ограничить доступ к обратной связи, "
@@ -44,7 +44,7 @@ def create_feedback_notification(feedback: FeedbackFull) -> UserNotification:
         reply_markup = InlineKeyboardBuilder(
             [
                 [process_feedback_button(feedback_id=feedback.id)],
-                [show_user_info_button(user_id=feedback.user_id)],
+                [show_user_info_button(user_id=feedback.reported_by.id)],
                 [PULL_DOWN_DIALOG],
             ]
         ).as_markup()
@@ -52,14 +52,14 @@ def create_feedback_notification(feedback: FeedbackFull) -> UserNotification:
         bottom_text += f"✅ @{feedback.processed_by.username} взял отзыв в работу."
         reply_markup = InlineKeyboardBuilder(
             [
-                [show_user_info_button(user_id=feedback.user_id)],
+                [show_user_info_button(user_id=feedback.reported_by.id)],
                 [PULL_DOWN_DIALOG],
             ]
         ).as_markup()
     return UserNotification(
         title="💬 ОБРАТНАЯ СВЯЗЬ",
         text=f"Поступила обратная связь "
-        f"от @{feedback.user.username} ({feedback.user_id}):\n\n"
+        f"от @{feedback.reported_by.username} ({feedback.reported_by.id}):\n\n"
         f"<blockquote>{html.escape(feedback.text)}</blockquote>",
         bottom_text=bottom_text,
         reply_markup=reply_markup,

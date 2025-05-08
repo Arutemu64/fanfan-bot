@@ -83,7 +83,7 @@ nominations_window = Window(
     Const("Для голосования доступны следующие номинации"),
     Column(
         Select(
-            Jinja("{{item[1].title}} {% if item[1].vote %}✅{% endif %}"),
+            Jinja("{{item[1].title}} {% if item[1].vote_id %}✅{% endif %}"),
             id="nomination",
             item_id_getter=operator.itemgetter(0),
             items="nominations_list",

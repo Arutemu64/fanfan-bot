@@ -3,10 +3,10 @@ from dataclasses import dataclass
 
 from sqlalchemy.exc import IntegrityError
 
-from fanfan.adapters.db.repositories.tickets import TicketsRepository
+from fanfan.adapters.api.timepad.dto.order import OrderStatus, RegistrationOrderResponse
+from fanfan.adapters.api.timepad.exceptions import TimepadOrderProcessFailed
+from fanfan.adapters.db.repositories.tickets import TicketsWriter
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.timepad.dto.order import OrderStatus, RegistrationOrderResponse
-from fanfan.adapters.timepad.exceptions import TimepadOrderProcessFailed
 from fanfan.core.models.ticket import Ticket, TicketId
 from fanfan.core.models.user import UserRole
 
@@ -31,7 +31,7 @@ class ProceedOrderResult:
 
 
 class ProceedOrder:
-    def __init__(self, tickets_repo: TicketsRepository, uow: UnitOfWork):
+    def __init__(self, tickets_repo: TicketsWriter, uow: UnitOfWork):
         self.tickets_repo = tickets_repo
         self.uow = uow
 

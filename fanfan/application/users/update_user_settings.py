@@ -19,7 +19,7 @@ class UpdateUserSettings:
         user = await self.id_provider.get_current_user()
         async with self.uow:
             user.settings.items_per_page = items_per_page
-            await self.users_repo.save_user_settings(user.settings)
+            await self.users_repo.save_user(user)
             await self.uow.commit()
 
     async def toggle_receive_all_announcements(
@@ -28,7 +28,7 @@ class UpdateUserSettings:
         user = await self.id_provider.get_current_user()
         async with self.uow:
             user.settings.receive_all_announcements = receive_all_announcements
-            await self.users_repo.save_user_settings(user.settings)
+            await self.users_repo.save_user(user)
             await self.uow.commit()
 
     async def toggle_org_receive_feedback_notifications(
@@ -39,5 +39,5 @@ class UpdateUserSettings:
             user.settings.org_receive_feedback_notifications = (
                 receive_feedback_notifications
             )
-            await self.users_repo.save_user_settings(user.settings)
+            await self.users_repo.save_user(user)
             await self.uow.commit()

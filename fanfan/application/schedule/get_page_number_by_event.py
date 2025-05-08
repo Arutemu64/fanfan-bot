@@ -11,13 +11,13 @@ class GetPageNumberByEventDTO:
 
 
 class GetPageNumberByEvent:
-    def __init__(self, events_repo: ScheduleRepository) -> None:
-        self.events_repo = events_repo
+    def __init__(self, schedule_repo: ScheduleRepository) -> None:
+        self.schedule_repo = schedule_repo
 
     async def __call__(
         self,
         data: GetPageNumberByEventDTO,
     ) -> int | None:
-        return await self.events_repo.get_page_number_by_event(
+        return await self.schedule_repo.get_page_number_by_event(
             data.event_id, data.events_per_page
         )

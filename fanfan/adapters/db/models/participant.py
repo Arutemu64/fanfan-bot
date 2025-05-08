@@ -10,7 +10,6 @@ from fanfan.adapters.db.models.vote import VoteORM
 from fanfan.core.models.nomination import NominationId
 from fanfan.core.models.participant import (
     Participant,
-    ParticipantFull,
     ParticipantId,
     ParticipantVotingNumber,
 )
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 class ParticipantORM(Base):
     __tablename__ = "participants"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[ParticipantId] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(index=True)
 
     # Nomination relation
@@ -68,14 +67,4 @@ class ParticipantORM(Base):
             title=self.title,
             nomination_id=NominationId(self.nomination_id),
             voting_number=ParticipantVotingNumber(self.voting_number),
-        )
-
-    def to_full_model(self) -> ParticipantFull:
-        return ParticipantFull(
-            id=ParticipantId(self.id),
-            title=self.title,
-            nomination_id=NominationId(self.nomination_id),
-            voting_number=ParticipantVotingNumber(self.voting_number),
-            event=self.event.to_model() if self.event else None,
-            nomination=self.nomination.to_model() if self.nomination else None,
         )

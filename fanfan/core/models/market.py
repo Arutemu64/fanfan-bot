@@ -1,8 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import NewType
 
-from fanfan.core.exceptions.market import MarketDescTooLong, MarketNameTooLong
-from fanfan.core.models.user import User
+from fanfan.core.exceptions.market import (
+    MarketDescTooLong,
+    MarketNameTooLong,
+    UserIsAlreadyMarketManager,
+)
+from fanfan.core.models.user import UserId
 from fanfan.core.value_objects import TelegramFileId
 
 MarketId = NewType("MarketId", int)
@@ -19,17 +23,19 @@ class Market:
     image_id: TelegramFileId | None
     is_visible: bool
 
-    def set_market_name(self, new_name: str) -> None:
+    manager_ids: list[UserId] = field(default_factory=list)
+
+    def set_name(self, new_name: str) -> None:
         if len(new_name) > MAX_MARKET_NAME_LENGTH:
             raise MarketNameTooLong
         self.name = new_name
 
-    def set_market_description(self, new_description: str) -> None:
+    def set_description(self, new_description: str) -> None:
         if len(new_description) > MAX_MARKET_DESCRIPTION_LENGTH:
             raise MarketDescTooLong
         self.description = new_description
 
-
-@dataclass(kw_only=True, slots=True)
-class MarketFull(Market):
-    managers: list[User]
+    def add_manager(self, user_id: UserId) -> None:
+        if user_id in self.manager_ids:
+            raise UserIsAlreadyMarketManager
+        self.manager_ids.append(user_id)

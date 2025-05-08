@@ -16,7 +16,6 @@ from fanfan.adapters.db.models.mixins.order import OrderMixin
 from fanfan.adapters.db.models.schedule_block import ScheduleBlockORM
 from fanfan.core.models.schedule_event import (
     ScheduleEvent,
-    ScheduleEventFull,
     ScheduleEventId,
 )
 
@@ -28,7 +27,7 @@ if TYPE_CHECKING:
 class ScheduleEventORM(Base, OrderMixin):
     __tablename__ = "schedule"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[ScheduleEventId] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(index=True)
 
     # Event status
@@ -111,16 +110,4 @@ class ScheduleEventORM(Base, OrderMixin):
             is_current=self.is_current,
             is_skipped=self.is_skipped,
             order=self.order,
-        )
-
-    def to_full_model(self) -> ScheduleEventFull:
-        return ScheduleEventFull(
-            id=ScheduleEventId(self.id),
-            title=self.title,
-            is_current=self.is_current,
-            is_skipped=self.is_skipped,
-            order=self.order,
-            queue=self.queue,
-            nomination=self.nomination.to_model() if self.nomination else None,
-            block=self.block.to_model() if self.block else None,
         )

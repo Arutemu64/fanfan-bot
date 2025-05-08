@@ -9,12 +9,12 @@ from fanfan.adapters.db.repositories.subscriptions import (
 )
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.dto.subscription import SubscriptionDTO
 from fanfan.core.exceptions.schedule import EventNotFound
 from fanfan.core.exceptions.subscriptions import SubscriptionAlreadyExist
 from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.core.models.subscription import (
     Subscription,
-    SubscriptionFull,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,23 +31,24 @@ class CreateSubscription:
         self,
         subscriptions_repo: SubscriptionsRepository,
         id_provider: IdProvider,
-        events_repo: ScheduleRepository,
+        schedule_repo: ScheduleRepository,
         uow: UnitOfWork,
     ) -> None:
         self.subscriptions_repo = subscriptions_repo
-        self.events_repo = events_repo
+        self.schedule_repo = schedule_repo
         self.id_provider = id_provider
         self.uow = uow
 
     async def __call__(
         self,
         data: CreateSubscriptionDTO,
-    ) -> SubscriptionFull:
+    ) -> SubscriptionDTO:
+        user_id = self.id_provider.get_current_user_id()
         async with self.uow:
             try:
                 subscription = await self.subscriptions_repo.add_subscription(
                     Subscription(
-                        user_id=self.id_provider.get_current_user_id(),
+                        user_id=user_id,
                         event_id=data.event_id,
                         counter=data.counter,
                     )
@@ -55,8 +56,7 @@ class CreateSubscription:
                 await self.uow.commit()
             except IntegrityError as e:
                 await self.uow.rollback()
-                await self.id_provider.get_current_user()
-                if await self.events_repo.get_event_by_id(data.event_id) is None:
+                if await self.schedule_repo.read_event_by_id(data.event_id) is None:
                     raise EventNotFound from e
                 raise SubscriptionAlreadyExist from e
             else:
@@ -65,6 +65,6 @@ class CreateSubscription:
                     subscription.id,
                     extra={"subscription": subscription},
                 )
-                return await self.subscriptions_repo.get_subscription_by_id(
+                return await self.subscriptions_repo.read_user_subscription(
                     subscription.id
                 )

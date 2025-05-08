@@ -8,7 +8,7 @@ from dishka.integrations.faststream import inject
 from faststream import Logger
 from faststream.nats import NatsMessage, NatsRouter, PullSub
 
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.notifier import BotNotifier
 from fanfan.core.events.notifications import EditNotificationEvent
 from fanfan.presentation.stream.jstream import stream
@@ -25,7 +25,7 @@ router = NatsRouter()
 @inject
 async def edit_notification(
     data: EditNotificationEvent,
-    mailing_repo: FromDishka[MailingRepository],
+    mailing_repo: FromDishka[MailingDAO],
     msg: FromDishka[NatsMessage],
     notifier: FromDishka[BotNotifier],
     logger: Logger,

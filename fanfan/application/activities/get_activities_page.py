@@ -1,6 +1,6 @@
 from fanfan.adapters.db.repositories.activities import ActivitiesRepository
+from fanfan.core.dto.activity import ActivityDTO
 from fanfan.core.dto.page import Page, Pagination
-from fanfan.core.models.activity import Activity
 
 
 class GetActivitiesPage:
@@ -10,7 +10,7 @@ class GetActivitiesPage:
     async def __call__(
         self,
         pagination: Pagination | None = None,
-    ) -> Page[Activity]:
+    ) -> Page[ActivityDTO]:
         return Page(
             items=await self.activities_repo.list_activities(pagination),
             total=await self.activities_repo.count_activities(),

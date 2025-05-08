@@ -15,7 +15,7 @@ from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.received_achievement import ReceivedAchievementORM
 from fanfan.adapters.db.models.user_permissions import UserPermissionsORM
 from fanfan.adapters.db.models.user_settings import UserSettingsORM
-from fanfan.core.models.user import User, UserData, UserId, UserRole
+from fanfan.core.models.user import User, UserId, UserRole
 
 if TYPE_CHECKING:
     from fanfan.adapters.db.models.ticket import TicketORM
@@ -24,7 +24,9 @@ if TYPE_CHECKING:
 class UserORM(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    id: Mapped[UserId] = mapped_column(
+        BigInteger, primary_key=True, autoincrement=False
+    )
     username: Mapped[str | None] = mapped_column(index=True, unique=True)
 
     first_name: Mapped[str | None] = mapped_column()
@@ -62,6 +64,8 @@ class UserORM(Base):
             first_name=model.first_name,
             last_name=model.last_name,
             role=model.role,
+            permissions=UserPermissionsORM.from_model(model.permissions),
+            settings=UserSettingsORM.from_model(model.settings),
         )
 
     def to_model(self) -> User:
@@ -71,16 +75,6 @@ class UserORM(Base):
             first_name=self.first_name,
             last_name=self.last_name,
             role=UserRole(self.role),
-        )
-
-    def to_full_model(self) -> UserData:
-        return UserData(
-            id=UserId(self.id),
-            username=self.username,
-            first_name=self.first_name,
-            last_name=self.last_name,
-            role=UserRole(self.role),
             permissions=self.permissions.to_model(),
             settings=self.settings.to_model(),
-            ticket=self.ticket.to_model() if self.ticket else None,
         )

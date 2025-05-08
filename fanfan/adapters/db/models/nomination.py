@@ -8,7 +8,6 @@ from fanfan.adapters.db.models.participant import ParticipantORM
 from fanfan.core.models.nomination import (
     UNSET_IS_VOTABLE,
     Nomination,
-    NominationFull,
     NominationId,
 )
 
@@ -41,14 +40,6 @@ class NominationORM(Base):
 
     def to_model(self) -> Nomination:
         return Nomination(
-            id=NominationId(self.id),
-            code=self.code,
-            title=self.title,
-            is_votable=self.is_votable,
-        )
-
-    def to_full_model(self) -> NominationFull:
-        return NominationFull(
             id=NominationId(self.id),
             code=self.code,
             title=self.title,

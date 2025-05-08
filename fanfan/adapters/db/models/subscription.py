@@ -7,11 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.schedule_event import ScheduleEventId
-from fanfan.core.models.subscription import (
-    Subscription,
-    SubscriptionFull,
-    SubscriptionId,
-)
+from fanfan.core.models.subscription import Subscription, SubscriptionId
 from fanfan.core.models.user import UserId
 
 if typing.TYPE_CHECKING:
@@ -21,11 +17,11 @@ if typing.TYPE_CHECKING:
 class SubscriptionORM(Base):
     __tablename__ = "subscriptions"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[SubscriptionId] = mapped_column(primary_key=True)
     counter: Mapped[int] = mapped_column()
 
     # User relation
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[UserId] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped[UserORM] = relationship()
 
     # Event relation
@@ -50,13 +46,4 @@ class SubscriptionORM(Base):
             user_id=UserId(self.user_id),
             event_id=ScheduleEventId(self.event_id),
             counter=self.counter,
-        )
-
-    def to_full_model(self) -> SubscriptionFull:
-        return SubscriptionFull(
-            id=SubscriptionId(self.id),
-            user_id=UserId(self.user_id),
-            event_id=ScheduleEventId(self.event_id),
-            counter=self.counter,
-            event=self.event.to_full_model() if self.event else None,
         )

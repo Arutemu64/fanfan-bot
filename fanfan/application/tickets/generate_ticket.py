@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.adapters.db.repositories.codes import CodesRepository
-from fanfan.adapters.db.repositories.tickets import TicketsRepository
+from fanfan.adapters.db.repositories.tickets import TicketsWriter
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.models.code import Code, CodeId
@@ -30,7 +30,7 @@ class GenerateTicketResult:
 class GenerateTicket:
     def __init__(
         self,
-        tickets_repo: TicketsRepository,
+        tickets_repo: TicketsWriter,
         codes_repo: CodesRepository,
         uow: UnitOfWork,
         id_provider: IdProvider,

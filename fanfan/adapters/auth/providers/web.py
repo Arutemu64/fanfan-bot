@@ -25,6 +25,6 @@ class WebIdProvider(IdProvider):
         raise AuthenticationError
 
     async def get_current_user(self) -> UserData:
-        if user := await self.users_repo.get_user_by_id(self.get_current_user_id()):
+        if user := await self.users_repo.get_user_data(self.get_current_user_id()):
             return user
         raise UserNotFound

@@ -1,11 +1,11 @@
 import logging
 
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.dto.mailing import MailingDTO, MailingId
 from fanfan.core.events.notifications import CancelMailingEvent
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.models.mailing import Mailing, MailingId
 from fanfan.core.models.user import UserRole
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class CancelMailing:
     def __init__(
         self,
-        mailing_repo: MailingRepository,
+        mailing_repo: MailingDAO,
         id_provider: IdProvider,
         stream_broker_adapter: EventsBroker,
     ):
@@ -22,7 +22,7 @@ class CancelMailing:
         self.id_provider = id_provider
         self.stream_broker_adapter = stream_broker_adapter
 
-    async def __call__(self, mailing_id: MailingId) -> Mailing:
+    async def __call__(self, mailing_id: MailingId) -> MailingDTO:
         mailing_info = await self.mailing_repo.get_mailing_data(mailing_id)
         user = await self.id_provider.get_current_user()
         if (mailing_info.by_user_id == user.id) or (user.role is UserRole.ORG):

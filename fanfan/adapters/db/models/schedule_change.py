@@ -5,10 +5,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.schedule_event import ScheduleEventORM
 from fanfan.adapters.db.models.user import UserORM
-from fanfan.core.models.mailing import MailingId
+from fanfan.core.dto.mailing import MailingId
 from fanfan.core.models.schedule_change import (
     ScheduleChange,
-    ScheduleChangeFull,
     ScheduleChangeId,
     ScheduleChangeType,
 )
@@ -67,23 +66,5 @@ class ScheduleChangeORM(Base):
             user_id=UserId(self.user_id),
             changed_event_id=ScheduleEventId(self.changed_event_id),
             argument_event_id=ScheduleEventId(self.argument_event_id),
-            send_global_announcement=self.send_global_announcement,
-        )
-
-    def to_full_model(self) -> ScheduleChangeFull:
-        return ScheduleChangeFull(
-            id=ScheduleChangeId(self.id),
-            type=self.type,
-            user_id=UserId(self.user_id),
-            mailing_id=MailingId(self.mailing_id),
-            changed_event_id=ScheduleEventId(self.changed_event_id),
-            argument_event_id=ScheduleEventId(self.argument_event_id),
-            user=self.user.to_model() if self.user else None,
-            changed_event=self.changed_event.to_full_model()
-            if self.changed_event
-            else None,
-            argument_event=self.argument_event.to_full_model()
-            if self.argument_event
-            else None,
             send_global_announcement=self.send_global_announcement,
         )

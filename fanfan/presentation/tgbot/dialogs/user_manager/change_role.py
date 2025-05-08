@@ -5,7 +5,7 @@ from typing import Any
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Column, Select, SwitchTo
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Jinja
 
 from fanfan.application.users.update_user import UpdateUser
 from fanfan.core.models.user import UserRole
@@ -37,7 +37,7 @@ change_role_window = Window(
     Const("✔️ Выберите роль для пользователя:"),
     Column(
         Select(
-            Format("{item[1]}"),
+            Jinja("{{ item[1] }}"),
             id="user_role_picker",
             item_id_getter=operator.itemgetter(0),
             items="roles",

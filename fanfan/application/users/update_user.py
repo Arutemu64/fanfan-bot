@@ -21,7 +21,7 @@ class UpdateUser:
         self.uow = uow
 
     async def _get_user(self, user_id: UserId) -> UserData:
-        user = await self.users_repo.get_user_by_id(user_id)
+        user = await self.users_repo.get_user_data(user_id)
         if user is None:
             raise UserNotFound
         current_user = await self.id_provider.get_current_user()

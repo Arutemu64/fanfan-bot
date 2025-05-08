@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class VoteORM(Base):
     __tablename__ = "votes"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[VoteId] = mapped_column(primary_key=True)
 
     # User relation
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))

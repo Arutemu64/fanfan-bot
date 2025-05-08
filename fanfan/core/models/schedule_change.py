@@ -2,28 +2,28 @@ import enum
 from dataclasses import dataclass
 from typing import NewType
 
-from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.schedule_event import ScheduleEventFull, ScheduleEventId
-from fanfan.core.models.user import User, UserId
+from fanfan.core.dto.mailing import MailingId
+from fanfan.core.models.schedule_event import ScheduleEventId
+from fanfan.core.models.user import UserId
 
 ScheduleChangeId = NewType("ScheduleChangeId", int)
 
 
 class ScheduleChangeType(enum.StrEnum):
-    SET_AS_CURRENT = enum.auto()
-    # Changed event: current event, None if current was unset
+    SET_AS_CURRENT = "set_as_current"
+    # Changed event: current event
     # Argument event: previously current event
 
-    MOVED = enum.auto()
+    MOVED = "moved"
     # Argument event: previous event by order before moving
     # So if you want to undo this change, you should place
     # changed_event AFTER argument event
     # And if argument_event is None - place changed_event to the top
 
-    SKIPPED = enum.auto()
+    SKIPPED = "skipped"
     # Argument event: None
 
-    UNSKIPPED = enum.auto()
+    UNSKIPPED = "unskipped"
     # Argument event: None
 
 
@@ -40,10 +40,3 @@ class ScheduleChange:
     mailing_id: MailingId | None
     user_id: UserId | None
     send_global_announcement: bool
-
-
-@dataclass(slots=True, kw_only=True)
-class ScheduleChangeFull(ScheduleChange):
-    changed_event: ScheduleEventFull
-    argument_event: ScheduleEventFull | None
-    user: User | None

@@ -3,7 +3,7 @@ from dishka.integrations.faststream import inject
 from faststream.nats import NatsRouter, PullSub
 
 from fanfan.adapters.db.repositories.users import UsersRepository
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.core.events.notifications import (
     NewNotificationEvent,
@@ -24,10 +24,10 @@ router = NatsRouter()
 async def send_to_roles(
     data: NewRolesNotificationEvent,
     users_repo: FromDishka[UsersRepository],
-    mailing: FromDishka[MailingRepository],
+    mailing_dao: FromDishka[MailingDAO],
     broker_adapter: FromDishka[EventsBroker],
 ) -> None:
-    users = await users_repo.get_all_by_roles(*data.roles)
+    users = await users_repo.read_all_by_roles(*data.roles)
     for u in users:
         await broker_adapter.publish(
             NewNotificationEvent(
@@ -36,5 +36,5 @@ async def send_to_roles(
                 mailing_id=data.mailing_id,
             )
         )
-    await mailing.update_total(data.mailing_id, len(users))
+    await mailing_dao.update_total(data.mailing_id, len(users))
     return

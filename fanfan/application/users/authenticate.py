@@ -7,7 +7,9 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.users import UserNotFound
+from fanfan.core.models.permissions import UserPermissions
 from fanfan.core.models.user import User, UserData, UserId, UserRole
+from fanfan.core.models.user_settings import UserSettings
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,8 @@ class Authenticate:
                     first_name=data.first_name,
                     last_name=data.last_name,
                     role=UserRole.VISITOR,
+                    settings=UserSettings(),
+                    permissions=UserPermissions(),
                 )
                 await self.users_repo.add_user(user)
                 await self.uow.commit()

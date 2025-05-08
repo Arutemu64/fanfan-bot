@@ -9,3 +9,10 @@ class NewFeedbackEvent(AppEvent):
     subject: str = "feedback.new"
 
     feedback_id: FeedbackId
+
+
+@dataclass(kw_only=True, slots=True)
+class FeedbackProcessedEvent(AppEvent):
+    subject: str = "feedback.processed"
+
+    feedback_id: FeedbackId

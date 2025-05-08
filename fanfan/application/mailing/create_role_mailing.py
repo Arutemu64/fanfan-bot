@@ -1,13 +1,13 @@
 import logging
 from dataclasses import dataclass
 
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.dto.mailing import MailingId
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.notifications import NewRolesNotificationEvent
 from fanfan.core.exceptions.access import AccessDenied
-from fanfan.core.models.mailing import MailingId
 from fanfan.core.models.user import UserRole
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True, slots=True)
 class CreateRoleMailingDTO:
-    text: str
+    message_text: str
     roles: list[UserRole]
     image_id: str | None = None
 
@@ -24,7 +24,7 @@ class CreateRoleMailing:
     def __init__(
         self,
         id_provider: IdProvider,
-        mailing_repo: MailingRepository,
+        mailing_repo: MailingDAO,
         stream_broker_adapter: EventsBroker,
     ):
         self.id_provider = id_provider
@@ -42,7 +42,8 @@ class CreateRoleMailing:
         await self.stream_broker_adapter.publish(
             NewRolesNotificationEvent(
                 notification=UserNotification(
-                    text=data.text,
+                    title="📣 Сообщение от организаторов",
+                    text=f"<blockquote>{data.message_text}</blockquote>",
                     bottom_text=f"Отправил @{sender.username}",
                     image_id=data.image_id,
                 ),

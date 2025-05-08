@@ -3,10 +3,10 @@ import datetime
 from redis.asyncio import Redis
 from redis.asyncio.lock import Lock
 
-from fanfan.core.exceptions.limiter import RateLimitCooldown, RateLimiterInUse
+from fanfan.core.exceptions.limiter import RateLockCooldown, RateLockInUse
 
 
-class RateLimit:
+class RateLock:
     def __init__(
         self, redis: Redis, lock: Lock, timestamp_key: str, cooldown_period: float
     ):
@@ -25,16 +25,14 @@ class RateLimit:
 
     async def __aenter__(self) -> None:
         if not await self.lock.acquire():
-            raise RateLimiterInUse
+            raise RateLockInUse
 
         now = await self._get_redis_time()
         last = await self._get_last_timestamp() or 0
 
         if (now - last) < self.cooldown_period:
             await self.lock.release()
-            raise RateLimitCooldown(
-                cooldown_period=self.cooldown_period, timestamp=last
-            )
+            raise RateLockCooldown(cooldown_period=self.cooldown_period, timestamp=last)
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         if exc_type is None:
@@ -51,7 +49,7 @@ class RateLimit:
         return None
 
 
-class RateLimitFactory:
+class RateLockFactory:
     def __init__(self, redis: Redis):
         self.redis = redis
 
@@ -61,8 +59,8 @@ class RateLimitFactory:
         cooldown_period: float = 60,
         blocking: bool = True,
         lock_timeout: float = 60,
-    ) -> RateLimit:
-        return RateLimit(
+    ) -> RateLock:
+        return RateLock(
             redis=self.redis,
             lock=self.redis.lock(
                 name=f"rate_limit:{limit_name}:lock",

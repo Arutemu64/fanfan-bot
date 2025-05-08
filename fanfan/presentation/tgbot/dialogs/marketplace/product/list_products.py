@@ -66,7 +66,7 @@ async def view_market_getter(
         "products": page.items,
         "total": page.total,
         "market_name": market.name,
-        "is_manager": user in market.managers,
+        "is_manager": user.id in (u.id for u in market.managers),
     }
 
 

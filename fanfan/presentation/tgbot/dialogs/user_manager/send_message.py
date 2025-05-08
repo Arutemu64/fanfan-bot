@@ -6,7 +6,10 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 
-from fanfan.application.users.send_org_message import SendOrgMessage, SendOrgMessageDTO
+from fanfan.application.mailing.send_personal_message import (
+    SendPersonalMessage,
+    SendPersonalMessageDTO,
+)
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.user_manager.common import (
@@ -44,10 +47,10 @@ async def send_message_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    send_message: SendOrgMessage = await container.get(SendOrgMessage)
+    send_message: SendPersonalMessage = await container.get(SendPersonalMessage)
 
     await send_message(
-        SendOrgMessageDTO(
+        SendPersonalMessageDTO(
             user_id=manager.start_data[DATA_USER_ID],
             message_text=manager.dialog_data[MESSAGE_TEXT],
         )

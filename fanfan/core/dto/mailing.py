@@ -23,9 +23,9 @@ class MailingStatus(enum.StrEnum):
 
 
 @dataclass(slots=True, kw_only=True, frozen=True)
-class Mailing:
+class MailingDTO:
     id: MailingId
-    total: int
-    processed: int
-    cancelled: bool
+    total_messages: int
+    messages_processed: int
+    is_cancelled: bool
     by_user_id: UserId

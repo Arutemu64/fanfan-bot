@@ -18,7 +18,7 @@ from dishka import AsyncContainer
 
 from fanfan.application.voting.add_vote import AddVote, AddVoteDTO
 from fanfan.application.voting.cancel_vote import CancelVote, CancelVoteDTO
-from fanfan.application.voting.get_nomination_for_user import GetNominationForUser
+from fanfan.application.voting.get_nomination_for_user import GetNomination
 from fanfan.application.voting.get_participants_page import (
     GetParticipantsPage,
     GetParticipantsPageDTO,
@@ -48,9 +48,7 @@ async def participants_getter(
     container: AsyncContainer,
     **kwargs,
 ) -> dict:
-    get_nomination_by_id: GetNominationForUser = await container.get(
-        GetNominationForUser
-    )
+    get_nomination_by_id: GetNomination = await container.get(GetNomination)
     get_participants_page: GetParticipantsPage = await container.get(
         GetParticipantsPage
     )
@@ -69,7 +67,7 @@ async def participants_getter(
         ),
     )
     dialog_manager.dialog_data[DATA_USER_VOTE_ID] = (
-        nomination.vote.id if nomination.vote else None
+        nomination.vote_id if nomination.vote_id else None
     )
     return {
         "nomination_title": nomination.title,
@@ -113,7 +111,7 @@ async def cancel_vote_handler(
 
 
 voting_window = Window(
-    Title(Format("🌟 Номинация {nomination_title}")),
+    Title(Jinja("🌟 Номинация {{ nomination_title }}")),
     Jinja(voting_list),
     Const("👆 Чтобы проголосовать, нажми на номер участника", when=~F["is_voted"]),
     SwitchInlineQueryCurrentChat(

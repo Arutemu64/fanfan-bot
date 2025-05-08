@@ -7,8 +7,8 @@ from adaptix.load_error import LoadError
 from aiogram.types import Message
 from redis.asyncio import Redis
 
+from fanfan.core.dto.mailing import MailingDTO, MailingId
 from fanfan.core.exceptions.mailing import MailingNotFound
-from fanfan.core.models.mailing import Mailing, MailingId
 from fanfan.core.models.user import UserId
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 MAILING_TTL = timedelta(days=2)  # Telegram message can be modified for 2 days
 
 
-class MailingRepository:
+class MailingDAO:
     def __init__(self, redis: Redis):
         self.redis = redis
         self.retort = Retort(
@@ -37,11 +37,11 @@ class MailingRepository:
 
     async def create_new_mailing(self, by_user_id: UserId) -> MailingId:
         mailing_id = MailingId(uuid.uuid4().hex)
-        mailing = Mailing(
+        mailing = MailingDTO(
             id=mailing_id,
-            total=0,
-            processed=0,
-            cancelled=False,
+            total_messages=0,
+            messages_processed=0,
+            is_cancelled=False,
             by_user_id=by_user_id,
         )
         key = self._build_info_key(mailing.id)
@@ -52,10 +52,10 @@ class MailingRepository:
         await self.redis.expire(key, time=MAILING_TTL)
         return mailing.id
 
-    async def get_mailing_data(self, mailing_id: MailingId) -> Mailing:
+    async def get_mailing_data(self, mailing_id: MailingId) -> MailingDTO:
         info_key = self._build_info_key(mailing_id)
         try:
-            return self.retort.load(await self.redis.hgetall(info_key), Mailing)
+            return self.retort.load(await self.redis.hgetall(info_key), MailingDTO)
         except LoadError as e:
             raise MailingNotFound from e
 
@@ -82,10 +82,10 @@ class MailingRepository:
                 message.model_dump_json(exclude_none=True),
             )
             await self.redis.expire(sent_key, time=MAILING_TTL)
-        # Incr processed by 1
+        # Incr messages_processed by 1
         await self.redis.hincrby(
             name=info_key,
-            key="processed",
+            key="messages_processed",
             amount=1,
         )
         await self.redis.expire(info_key, time=MAILING_TTL)
@@ -93,13 +93,13 @@ class MailingRepository:
     async def update_total(self, mailing_id: MailingId, total_count: int) -> None:
         await self.redis.hset(
             name=self._build_info_key(mailing_id),
-            key="total",
+            key="total_messages",
             value=str(total_count),
         )
 
     async def set_as_cancelled(self, mailing_id: MailingId) -> None:
         await self.redis.hset(
             name=self._build_info_key(mailing_id),
-            key="cancelled",
+            key="is_cancelled",
             value=str(int(True)),
         )

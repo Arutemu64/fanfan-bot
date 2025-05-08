@@ -8,6 +8,6 @@ class GetUserById:
         self.users_repo = users_repo
 
     async def __call__(self, user_id: UserId) -> UserData:
-        if user := await self.users_repo.get_user_by_id(user_id):
+        if user := await self.users_repo.get_user_data(user_id):
             return user
         raise UserNotFound

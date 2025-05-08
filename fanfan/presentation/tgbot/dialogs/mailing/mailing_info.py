@@ -8,7 +8,7 @@ from dishka import AsyncContainer
 from fanfan.application.mailing.cancel_mailing import CancelMailing
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
 from fanfan.application.users.get_user_by_id import GetUserById
-from fanfan.core.models.mailing import MailingId, MailingStatus
+from fanfan.core.dto.mailing import MailingId, MailingStatus
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.mailing.common import DATA_MAILING_ID
@@ -28,8 +28,8 @@ async def mailing_info_getter(
 
     return {
         "id": mailing_info.data.id,
-        "total": mailing_info.data.total,
-        "processed": mailing_info.data.processed,
+        "total_messages": mailing_info.data.total_messages,
+        "messages_processed": mailing_info.data.messages_processed,
         "status": mailing_info.status,
         "sent": mailing_info.sent,
         "sender": sender,
@@ -50,7 +50,7 @@ async def cancel_mailing_handler(
 mailing_info_window = Window(
     Title(Const("📨 Информация о рассылке")),
     Jinja("<b>ID:</b> <code>{{ id }}</code>"),
-    Jinja("<b>Обработано:</b> {{ processed }} из {{ total }}"),
+    Jinja("<b>Обработано:</b> {{ messages_processed }} из {{ total_messages }}"),
     Jinja("<b>Сообщений в БД:</b> {{ sent }}"),
     Jinja("<b>Статус:</b> {{ status }}"),
     Jinja("<b>Отправил:</b> @{{ sender.username }} ({{ sender.id }})"),

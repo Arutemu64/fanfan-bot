@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.markets import MarketsRepository
+from fanfan.adapters.db.repositories.products import ProductsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.access import AccessDenied
@@ -21,9 +22,14 @@ class CreateProductDTO:
 
 class CreateProduct:
     def __init__(
-        self, markets_repo: MarketsRepository, id_provider: IdProvider, uow: UnitOfWork
+        self,
+        markets_repo: MarketsRepository,
+        products_repo: ProductsRepository,
+        id_provider: IdProvider,
+        uow: UnitOfWork,
     ):
         self.markets_repo = markets_repo
+        self.products_repo = products_repo
         self.id_provider = id_provider
         self.uow = uow
 
@@ -34,7 +40,7 @@ class CreateProduct:
 
         user = await self.id_provider.get_current_user()
 
-        if user not in market.managers:
+        if user.id not in market.manager_ids:
             raise AccessDenied
 
         return market
@@ -49,5 +55,5 @@ class CreateProduct:
                 image_id=data.image_id,
                 market_id=market.id,
             )
-            await self.markets_repo.add_product(product)
+            await self.products_repo.add_product(product)
             await self.uow.commit()

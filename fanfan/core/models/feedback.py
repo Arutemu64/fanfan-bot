@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import NewType
 
-from fanfan.core.models.mailing import MailingId
-from fanfan.core.models.user import User, UserId
+from fanfan.core.dto.mailing import MailingId
+from fanfan.core.models.user import UserId
 
 FeedbackId = NewType("FeedbackId", int)
 
@@ -13,10 +13,7 @@ class Feedback:
     text: str
     user_id: UserId | None
     processed_by_id: UserId | None
-    mailing_id: MailingId | None
+    mailing_id: MailingId
 
-
-@dataclass(slots=True, kw_only=True)
-class FeedbackFull(Feedback):
-    user: User
-    processed_by: User
+    def set_mailing_id(self, mailing_id: MailingId) -> None:
+        self.mailing_id = mailing_id

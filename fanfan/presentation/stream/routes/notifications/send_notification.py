@@ -10,10 +10,10 @@ from dishka.integrations.faststream import inject
 from faststream import Logger, Path
 from faststream.nats import NatsMessage, NatsRouter, PullSub
 
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.notifier import BotNotifier
+from fanfan.core.dto.mailing import MailingId
 from fanfan.core.events.notifications import NewNotificationEvent
-from fanfan.core.models.mailing import MailingId
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
@@ -38,7 +38,7 @@ async def send_notification(
     notifier: FromDishka[BotNotifier],
     bot: FromDishka[Bot],
     bgm_factory: FromDishka[BgManagerFactory],
-    mailing_repo: FromDishka[MailingRepository],
+    mailing_repo: FromDishka[MailingDAO],
     logger: Logger,
     mailing_id: MailingId | None = Path(default=None),  # noqa: B008
 ) -> None:

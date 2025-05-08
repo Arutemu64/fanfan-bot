@@ -9,9 +9,12 @@ from fanfan.core.utils.code import generate_unique_code
 
 class GetUserCode:
     def __init__(
-        self, codes_repo: CodesRepository, id_provider: IdProvider, uow: UnitOfWork
+        self,
+        codes_writer: CodesRepository,
+        id_provider: IdProvider,
+        uow: UnitOfWork,
     ):
-        self.codes_repo = codes_repo
+        self.codes_repo = codes_writer
         self.id_provider = id_provider
         self.uow = uow
 

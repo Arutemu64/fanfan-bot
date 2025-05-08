@@ -1,6 +1,6 @@
 {% for product in products %}
 /{{ product.id }} <b>{{ product.name}}</b>
-💵 Стоимость: {{ product.price }}₽
+💵 Стоимость: {{ '%.2f' % product.price if product.price % 1 != 0 else product.price|int }}₽
 {% if not loop.last %}
 
 {% endif %}

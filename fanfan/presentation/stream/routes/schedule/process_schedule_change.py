@@ -9,17 +9,17 @@ from pytz import timezone
 
 from fanfan.adapters.config.models import Configuration
 from fanfan.adapters.db.repositories.schedule import ScheduleRepository
+from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
 from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.notifications import NewNotificationEvent
-from fanfan.core.events.schedule import ScheduleChangedEvent
-from fanfan.core.exceptions.schedule import ScheduleChangeNotFound
+from fanfan.core.events.schedule import ScheduleChanged
 from fanfan.core.models.schedule_change import (
-    ScheduleChangeFull,
+    ScheduleChange,
     ScheduleChangeType,
 )
 from fanfan.presentation.stream.jstream import stream
@@ -36,47 +36,40 @@ ANNOUNCEMENT_REPLY_MARKUP = InlineKeyboardBuilder(
 router = NatsRouter()
 
 
-def resolve_change_reason(schedule_change: ScheduleChangeFull) -> str | None:
+def resolve_change_reason(schedule_change: ScheduleChange) -> str | None:
     if schedule_change.type is ScheduleChangeType.SET_AS_CURRENT:
-        if schedule_change.changed_event:
-            return f"🔥 Выступление №{schedule_change.changed_event.id} началось"
-        return f"🚫 С выступления №{schedule_change.argument_event.id} снята отметка"
+        return f"🔥 Выступление №{schedule_change.changed_event_id} началось"
     if schedule_change.type is ScheduleChangeType.MOVED:
-        return f"🔀 Выступление №{schedule_change.changed_event.id} перенесено"
+        return f"🔀 Выступление №{schedule_change.changed_event_id} перенесено"
     if schedule_change.type is ScheduleChangeType.SKIPPED:
-        return f"🚫 Выступление №{schedule_change.changed_event.id} было снято"
+        return f"🚫 Выступление №{schedule_change.changed_event_id} было снято"
     if schedule_change.type is ScheduleChangeType.UNSKIPPED:
-        return f"🙉 Выступление №{schedule_change.changed_event.id} вернулось"
+        return f"🙉 Выступление №{schedule_change.changed_event_id} вернулось"
     return None
 
 
 @router.subscriber(
-    "schedule.changed",
+    "schedule.change.new",
     stream=stream,
     pull_sub=PullSub(),
-    durable="schedule_changed",
+    durable="schedule_change_new",
 )
 @inject
-async def send_announcements(  # noqa: C901
-    data: ScheduleChangedEvent,
+async def proceed_schedule_change(
+    data: ScheduleChanged,
     schedule_repo: FromDishka[ScheduleRepository],
+    changes_repo: FromDishka[ScheduleChangesRepository],
     users_repo: FromDishka[UsersRepository],
     subscriptions_repo: FromDishka[SubscriptionsRepository],
     uow: FromDishka[UnitOfWork],
-    mailing_repo: FromDishka[MailingRepository],
+    mailing_repo: FromDishka[MailingDAO],
     config: FromDishka[Configuration],
     jinja: FromDishka[Environment],
     events_broker: FromDishka[EventsBroker],
 ) -> None:
+    # Prepare timers
     time = datetime.now(tz=timezone(config.timezone)).strftime("%H:%M")
     counter = 0
-
-    # Get schedule change
-    schedule_change = await schedule_repo.get_schedule_change(
-        schedule_change_id=data.schedule_change_id
-    )
-    if schedule_change is None:
-        raise ScheduleChangeNotFound
 
     # Prepare templates
     global_announcement_template = jinja.get_template(
@@ -86,93 +79,94 @@ async def send_announcements(  # noqa: C901
         "subscription_notification.jinja2",
     )
 
-    # Create and save mailing ID
-    if schedule_change.mailing_id:
-        mailing_id = schedule_change.mailing_id
-    else:
-        mailing_id = await mailing_repo.create_new_mailing(
-            by_user_id=schedule_change.user_id
+    # Save schedule change into DB
+    async with uow:
+        change = ScheduleChange(
+            type=data.type,
+            changed_event_id=data.changed_event_id,
+            argument_event_id=data.argument_event_id,
+            mailing_id=data.mailing_id,
+            user_id=data.user_id,
+            send_global_announcement=data.send_global_announcement,
         )
-        async with uow:
-            schedule_change.mailing_id = mailing_id
-            await schedule_repo.save_schedule_change(schedule_change)
-            await uow.commit()
+        change = await changes_repo.add_schedule_change(change)
+        await uow.commit()
 
     # Notify schedule editors first
+    editor = await users_repo.read_user_by_id(change.user_id)
     editors_notification = UserNotification(
         title="✏️ ИЗМЕНЕНИЕ РАСПИСАНИЯ",
-        text=f"@{schedule_change.user.username} сделал изменение в расписании:\n"
-        f"{resolve_change_reason(schedule_change)}",
+        text=f"@{editor.username} сделал изменение в расписании:\n"
+        f"{resolve_change_reason(change)}",
         reply_markup=InlineKeyboardBuilder(
             [
-                [undo_schedule_change_button(schedule_change_id=schedule_change.id)],
+                [undo_schedule_change_button(schedule_change_id=change.id)],
                 [PULL_DOWN_DIALOG],
             ]
         ).as_markup(),
     )
-    for editor in await users_repo.get_schedule_editors():
+    for e in await users_repo.get_schedule_editors():
         await events_broker.publish(
             NewNotificationEvent(
-                user_id=editor.id,
+                user_id=e.id,
                 notification=editors_notification,
-                mailing_id=mailing_id,
+                mailing_id=change.mailing_id,
             )
         )
 
     # Get current and next event
-    current_event = await schedule_repo.get_current_event()
+    current_event = await schedule_repo.read_current_event()
     if not current_event:
         return
-    next_event = await schedule_repo.get_next_event()
+    next_event = await schedule_repo.read_next_event()
 
     # Send global announcement
-    if schedule_change.send_global_announcement:
+    if change.send_global_announcement:
         text = await global_announcement_template.render_async(
             {
                 "current_event": current_event,
                 "next_event": next_event,
-            },
+            }
         )
         notification = UserNotification(
             title=f"📣 НА СЦЕНЕ ({time})",
             text=text,
             reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
         )
-        for u in await users_repo.get_users_by_receive_all_announcements():
+        for u in await users_repo.read_users_by_receive_all_announcements():
             await events_broker.publish(
                 NewNotificationEvent(
-                    user_id=u.id, notification=notification, mailing_id=mailing_id
+                    user_id=u.id,
+                    notification=notification,
+                    mailing_id=change.mailing_id,
                 )
             )
             counter += 1
 
     # Checking subscriptions
-    for subscription in await subscriptions_repo.get_upcoming_subscriptions(
-        queue=current_event.queue
-    ):
-        if (
-            current_event.order
-            <= schedule_change.changed_event.order
-            <= subscription.event.order
-        ):
+    changed_event = await schedule_repo.read_event_by_id(change.changed_event_id)
+    for s in await subscriptions_repo.read_upcoming_subscriptions(current_event.queue):
+        if current_event.order <= changed_event.order <= s.event.order:
             text = await subscription_template.render_async(
                 {
-                    "event": subscription.event,
-                    "current_event": current_event,
+                    "event_id": s.event.id,
+                    "event_title": s.event.title,
+                    "event_queue": s.event.queue,
+                    "current_queue": current_event.queue,
                 },
             )
             await events_broker.publish(
                 NewNotificationEvent(
-                    user_id=subscription.user_id,
+                    user_id=s.user_id,
                     notification=UserNotification(
                         title=f"🔔 УВЕДОМЛЕНИЕ О ПОДПИСКЕ ({time})",
                         text=text,
-                        bottom_text=resolve_change_reason(schedule_change),
+                        bottom_text=resolve_change_reason(change),
                         reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
                     ),
-                    mailing_id=mailing_id,
+                    mailing_id=change.mailing_id,
                 )
             )
             counter += 1
-    await mailing_repo.update_total(mailing_id, counter)
+    await mailing_repo.update_total(change.mailing_id, counter)
     return

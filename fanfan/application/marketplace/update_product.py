@@ -1,4 +1,5 @@
 from fanfan.adapters.db.repositories.markets import MarketsRepository
+from fanfan.adapters.db.repositories.products import ProductsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.access import AccessDenied
@@ -11,20 +12,25 @@ from fanfan.core.value_objects import TelegramFileId
 
 class UpdateProduct:
     def __init__(
-        self, markets_repo: MarketsRepository, id_provider: IdProvider, uow: UnitOfWork
+        self,
+        products_repo: ProductsRepository,
+        markets_repo: MarketsRepository,
+        id_provider: IdProvider,
+        uow: UnitOfWork,
     ):
+        self.products_repo = products_repo
         self.markets_repo = markets_repo
         self.id_provider = id_provider
         self.uow = uow
 
     async def _get_product(self, product_id: ProductId) -> Product:
-        product = await self.markets_repo.get_product_by_id(product_id)
+        product = await self.products_repo.get_product_by_id(product_id)
         if product is None:
             raise ProductNotFound
 
         market = await self.markets_repo.get_market_by_id(product.market_id)
         user = await self.id_provider.get_current_user()
-        if user not in market.managers:
+        if user.id not in market.manager_ids:
             raise AccessDenied
 
         return product
@@ -33,7 +39,7 @@ class UpdateProduct:
         async with self.uow:
             product = await self._get_product(product_id)
             product.set_name(new_name)
-            await self.markets_repo.save_product(product)
+            await self.products_repo.save_product(product)
             await self.uow.commit()
 
     async def update_product_description(
@@ -42,7 +48,7 @@ class UpdateProduct:
         async with self.uow:
             product = await self._get_product(product_id)
             product.set_description(new_description)
-            await self.markets_repo.save_product(product)
+            await self.products_repo.save_product(product)
             await self.uow.commit()
 
     async def update_product_price(
@@ -51,7 +57,7 @@ class UpdateProduct:
         async with self.uow:
             product = await self._get_product(product_id)
             product.set_price(new_price)
-            await self.markets_repo.save_product(product)
+            await self.products_repo.save_product(product)
             await self.uow.commit()
 
     async def update_product_image(
@@ -60,11 +66,11 @@ class UpdateProduct:
         async with self.uow:
             product = await self._get_product(product_id)
             product.image_id = new_image_id
-            await self.markets_repo.save_product(product)
+            await self.products_repo.save_product(product)
             await self.uow.commit()
 
     async def delete_product(self, product_id: ProductId) -> None:
         async with self.uow:
             product = await self._get_product(product_id)
-            await self.markets_repo.delete_product(product)
+            await self.products_repo.delete_product(product)
             await self.uow.commit()

@@ -1,7 +1,7 @@
 import enum
 from dataclasses import dataclass
 
-from fanfan.adapters.timepad.dto.ticket import TicketResponse
+from fanfan.adapters.api.timepad.dto.ticket import TicketResponse
 
 # https://dev.timepad.ru/api/get-v1-events-event-id-orders/
 

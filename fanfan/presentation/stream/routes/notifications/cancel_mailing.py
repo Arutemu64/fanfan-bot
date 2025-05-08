@@ -7,7 +7,7 @@ from faststream import Logger
 from faststream.nats import NatsRouter, PullSub
 from nats.js import JetStreamContext
 
-from fanfan.adapters.redis.repositories.mailing import MailingRepository
+from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.core.events.notifications import CancelMailingEvent
 from fanfan.presentation.stream.jstream import stream
 
@@ -23,7 +23,7 @@ router = NatsRouter()
 @inject
 async def cancel_mailing(
     data: CancelMailingEvent,
-    mailing_repo: FromDishka[MailingRepository],
+    mailing_repo: FromDishka[MailingDAO],
     bot: FromDishka[Bot],
     bgm_factory: FromDishka[BgManagerFactory],
     js: FromDishka[JetStreamContext],
