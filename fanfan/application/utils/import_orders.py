@@ -44,12 +44,13 @@ class ImportOrders:
         self.proceed_order = proceed_order
 
     async def __call__(self) -> ImportOrdersResult:
-        async with self.rate_limit_factory(
+        lock = self.rate_limit_factory(
             limit_name=IMPORT_ORDERS_LIMIT_NAME,
             cooldown_period=IMPORT_ORDERS_LIMIT_TIMEOUT,
             blocking=False,
             lock_timeout=timedelta(minutes=10).seconds,
-        ):
+        )
+        async with lock:
             if self.client is None:
                 raise NoTimepadConfigProvided
             added_tickets, deleted_tickets, step = 0, 0, 0

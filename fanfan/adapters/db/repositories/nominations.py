@@ -32,6 +32,23 @@ class NominationsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def add_nomination(self, nomination: Nomination) -> Nomination:
+        nomination_orm = NominationORM.from_model(nomination)
+        self.session.add(nomination_orm)
+        await self.session.flush([nomination_orm])
+        return nomination_orm.to_model()
+
+    async def get_nomination_by_id(
+        self, nomination_id: NominationId
+    ) -> Nomination | None:
+        stmt = (
+            select(NominationORM)
+            .where(NominationORM.id == nomination_id)
+            .with_for_update()
+        )
+        nomination_orm = await self.session.scalar(stmt)
+        return nomination_orm.to_model() if nomination_orm else None
+
     async def save_nomination(self, nomination: Nomination) -> Nomination:
         nomination_orm = await self.session.merge(NominationORM.from_model(nomination))
         await self.session.flush([nomination_orm])

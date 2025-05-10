@@ -57,7 +57,6 @@ class UsersRepository:
                 joinedload(UserORM.settings),
                 joinedload(UserORM.permissions),
             )
-            .execution_options(populate_existing=True)
         )
         user_orm = await self.session.scalar(stmt)
         return _parse_user_data(user_orm) if user_orm else None

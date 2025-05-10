@@ -24,5 +24,7 @@ class Cosplay2Provider(Provider):
         self, session: Cosplay2Session, config: Cosplay2Config | None, redis: Redis
     ) -> Cosplay2Client | None:
         if config:
-            return Cosplay2Client(session, config, redis)
+            client = Cosplay2Client(session, config, redis)
+            await client.auth()
+            return client
         return None

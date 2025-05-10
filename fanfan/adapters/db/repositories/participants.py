@@ -85,10 +85,20 @@ class ParticipantsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def add_participant(self, participant: Participant) -> Participant:
+        participant_orm = ParticipantORM.from_model(participant)
+        self.session.add(participant_orm)
+        await self.session.flush([participant_orm])
+        return participant_orm.to_model()
+
     async def get_participant_by_id(
         self, participant_id: ParticipantId
     ) -> Participant | None:
-        stmt = select(ParticipantORM).where(ParticipantORM.id == participant_id)
+        stmt = (
+            select(ParticipantORM)
+            .where(ParticipantORM.id == participant_id)
+            .with_for_update()
+        )
         participant_orm = await self.session.scalar(stmt)
         return participant_orm.to_model() if participant_orm else None
 

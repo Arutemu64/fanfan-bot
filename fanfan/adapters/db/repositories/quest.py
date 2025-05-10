@@ -51,7 +51,6 @@ class QuestRepository:
             .options(
                 undefer(UserORM.points),
             )
-            .execution_options(populate_existing=True)
             .with_for_update(of=[UserORM.points])
         )
         user_orm = await self.session.scalar(stmt)

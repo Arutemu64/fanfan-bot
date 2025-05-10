@@ -6,7 +6,6 @@ from sqlalchemy.orm import Mapped, column_property, mapped_column
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.participant import ParticipantORM
 from fanfan.core.models.nomination import (
-    UNSET_IS_VOTABLE,
     Nomination,
     NominationId,
 )
@@ -33,10 +32,12 @@ class NominationORM(Base):
 
     @classmethod
     def from_model(cls, model: Nomination):
-        data = {"id": model.id, "code": model.code, "title": model.title}
-        if model.is_votable is not UNSET_IS_VOTABLE:
-            data.update(is_votable=model.is_votable)
-        return NominationORM(**data)
+        return NominationORM(
+            id=model.id,
+            code=model.code,
+            title=model.title,
+            is_votable=model.is_votable,
+        )
 
     def to_model(self) -> Nomination:
         return Nomination(

@@ -44,10 +44,11 @@ class AddPointsToUser:
         self.stream_broker_adapter = stream_broker_adapter
 
     async def __call__(self, data: AddPointsDTO) -> None:
-        user = await self.users_repo.get_user_data(data.user_id)
-        if user is None:
-            raise UserNotFound
-        self.access.ensure_can_participate_in_quest(user)
+        async with self.uow:
+            user = await self.users_repo.get_user_data(data.user_id)
+            if user is None:
+                raise UserNotFound
+            self.access.ensure_can_participate_in_quest(user)
         async with self.uow:
             participant = await self.quest_repo.get_player(user_id=user.id)
             participant.add_points(data.points)

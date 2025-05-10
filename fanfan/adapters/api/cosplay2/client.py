@@ -1,72 +1,102 @@
+import json
 import logging
-from typing import Any
+from typing import TypeVar
 
 from adaptix import Retort
-from aiohttp import ClientSession
-from dataclass_rest import get
-from dataclass_rest.http_request import HttpRequest
+from aiohttp import ClientResponseError, ClientSession, ContentTypeError
 from redis.asyncio import Redis
 
-from fanfan.adapters.api.cosplay2.aiohttp_client import (
-    C2AiohttpClient,
-)
 from fanfan.adapters.api.cosplay2.dto.requests import Request
 from fanfan.adapters.api.cosplay2.dto.topics import Topic
 from fanfan.adapters.config.models import Cosplay2Config
 
 logger = logging.getLogger(__name__)
 
-COSPLAY2_AUTH_SSID_KEY = "cosplay2:auth_ssid"
+OutputType = TypeVar("OutputType")
 
 
-class Cosplay2Client(C2AiohttpClient):
+class Cosplay2Client:
+    _COSPLAY2_AUTH_COOKIES_KEY = "cosplay2:cookies"
+
     def __init__(self, session: ClientSession, config: Cosplay2Config, redis: Redis):
+        self.session = session
         self.config = config
         self.redis = redis
-        super().__init__(
-            base_url=config.build_api_base_url(),
-            session=session,
+        self.retort = Retort(strict_coercion=False)
+        self.base_url = config.build_api_base_url()
+
+    async def auth(self) -> None:
+        # Try to load cached cookies from Redis
+        if cached_cookies := await self.redis.get(self._COSPLAY2_AUTH_COOKIES_KEY):
+            cookies = json.loads(cached_cookies)
+            self.session.cookie_jar.update_cookies(cookies)
+
+            # Check if cookies are still valid
+            test_response = await self.session.get(
+                f"{self.base_url}events/get_settings"
+            )
+            if test_response.ok:
+                logger.info("Using cached cookies")
+                return
+            logger.info("Cached cookies are invalid, will re-authenticate")
+            await self.redis.delete(self._COSPLAY2_AUTH_COOKIES_KEY)
+
+        # If no valid cookies, log in and store fresh cookies
+        login_response = await self.session.post(
+            url=f"{self.base_url}users/login",
+            data={
+                "name": self.config.login,
+                "password": self.config.password.get_secret_value(),
+            },
         )
 
-    async def do_request(self, request: HttpRequest) -> Any:
-        # Get cached auth_ssid from Redis
-        auth_ssid = await self.redis.get(COSPLAY2_AUTH_SSID_KEY)
-        # Check if it fails
-        if auth_ssid:
-            test = await self.session.get(
-                url=f"{self.base_url}events/get_settings",
-                cookies={"auth_ssid": auth_ssid},
-            )
-            if test.ok:
-                logger.info("Using cached auth_ssid")
-            else:
-                logger.info("auth_ssid has expired, will be renewed")
-                auth_ssid = None
-        if auth_ssid is None:
-            # Login into C2 and grab fresh auth_ssid
-            login_response = await self.session.post(
-                url=f"{self.base_url}users/login",
-                data={
-                    "name": self.config.login,
-                    "password": self.config.password.get_secret_value(),
-                },
-            )
-            auth_ssid = login_response.cookies.get("auth_ssid").value
-            logger.info("auth_ssid was renewed")
-            # And don't forget to update cached auth_ssid
-            await self.redis.set(COSPLAY2_AUTH_SSID_KEY, auth_ssid)
-        # Update cookie jar
-        self.session.cookie_jar.update_cookies(cookies={"auth_ssid": auth_ssid})
-        # Now let's make a request!
-        return await super().do_request(request)
+        if login_response.status != 200:
+            login_response.raise_for_status()
 
-    def _init_response_body_factory(self) -> Retort:
-        return Retort(strict_coercion=False)
+        # Update cookies from the login response
+        cookies = {key: morsel.value for key, morsel in login_response.cookies.items()}
+        self.session.cookie_jar.update_cookies(cookies)
+        await self.redis.set(self._COSPLAY2_AUTH_COOKIES_KEY, json.dumps(cookies))
+        logger.info("Cookies were renewed and cached")
 
-    @get("topics/get_all_requests")
+    async def _do_request(self, path: str, output_type: type[OutputType]) -> OutputType:
+        url = self.base_url + path
+        try:
+            response = await self.session.get(url=url)
+
+            if response.status != 200:
+                error_text = await response.text()
+                logger.error(
+                    "Request to % failed with status %s: %s",
+                    url,
+                    response.status,
+                    error_text,
+                )
+                response.raise_for_status()
+
+            try:
+                data = await response.json(
+                    content_type="text/html"
+                )  # This can raise ContentTypeError
+            except ContentTypeError as e:
+                text = await response.text()
+                logger.exception(
+                    "Failed to parse JSON from %s, got text instead: %s", url, text
+                )
+                msg = "Invalid JSON response"
+                raise ValueError(msg) from e
+
+            return self.retort.load(data, output_type)
+
+        except ClientResponseError:
+            logger.exception("HTTP error while requesting %s", url)
+            raise
+        except Exception:
+            logger.exception("Unexpected error during request to %s", url)
+            raise
+
     async def get_all_requests(self) -> list[Request]:
-        pass
+        return await self._do_request("topics/get_all_requests", list[Request])
 
-    @get("topics/get_list")
     async def get_topics_list(self) -> list[Topic]:
-        pass
+        return await self._do_request("topics/get_list", list[Topic])

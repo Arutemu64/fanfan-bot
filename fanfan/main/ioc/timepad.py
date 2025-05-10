@@ -14,24 +14,16 @@ class TimepadProvider(Provider):
     scope = Scope.REQUEST
 
     @provide
-    async def get_timepad_session(
-        self,
-        config: TimepadConfig | None,
-    ) -> AsyncIterable[TimepadSession | None]:
-        if config:
-            async with ClientSession(
-                headers={
-                    "Authorization": f"Bearer {config.client_id.get_secret_value()}"
-                },
-            ) as session:
-                yield session
-        else:
-            yield None
+    async def get_timepad_session(self) -> AsyncIterable[TimepadSession]:
+        async with ClientSession() as session:
+            yield session
 
     @provide
     async def get_timepad_client(
-        self, session: TimepadSession | None
+        self, session: TimepadSession, config: TimepadConfig | None = None
     ) -> TimepadClient | None:
-        if session:
-            return TimepadClient(session)
+        if config:
+            client = TimepadClient(session, config)
+            await client.auth()
+            return client
         return None

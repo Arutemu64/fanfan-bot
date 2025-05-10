@@ -5,15 +5,13 @@ from typing import NewType
 
 NominationId = NewType("NominationId", int)
 
-UNSET_IS_VOTABLE = object()
-
 
 @dataclass(slots=True, kw_only=True)
 class Nomination:
     id: NominationId
     code: str
     title: str
-    is_votable: bool = UNSET_IS_VOTABLE
+    is_votable: bool
 
 
 @dataclass(slots=True, kw_only=True)
