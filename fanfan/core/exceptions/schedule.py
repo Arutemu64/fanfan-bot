@@ -17,10 +17,6 @@ class EventNotFound(ScheduleException):
             self.message = f"⚠️ Выступление под номером {event_id} не найдено"
 
 
-class NoCurrentEvent(EventNotFound):
-    message = "⚠️ Текущее выступление не найдено"
-
-
 class NoNextEvent(EventNotFound):
     message = "👏 Выступления закончились, спасибо за работу! Увидимся! 😉"
 

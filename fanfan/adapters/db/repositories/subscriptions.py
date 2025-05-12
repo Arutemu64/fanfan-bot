@@ -18,7 +18,9 @@ def _select_subscription_dto():
         select(SubscriptionORM)
         .join(ScheduleEventORM)
         .options(
-            joinedload(SubscriptionORM.event).options(undefer(ScheduleEventORM.queue))
+            joinedload(SubscriptionORM.event).options(
+                undefer(ScheduleEventORM.queue), undefer(ScheduleEventORM.time_until)
+            )
         )
     )
 
@@ -33,6 +35,7 @@ def _parse_subscription_dto(subscription_orm: SubscriptionORM) -> SubscriptionDT
             title=subscription_orm.event.title,
             order=subscription_orm.event.order,
             queue=subscription_orm.event.queue,
+            time_until=subscription_orm.event.time_until,
             is_skipped=subscription_orm.event.is_skipped,
         ),
     )

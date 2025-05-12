@@ -10,6 +10,7 @@ ScheduleEventId = NewType("ScheduleEventId", int)
 class ScheduleEvent:
     id: ScheduleEventId
     title: str
+    duration: int
     order: float
     is_current: bool | None
     is_skipped: bool

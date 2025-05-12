@@ -7,18 +7,20 @@
 выступлений
 {%- endif %}
 {% endmacro %}
-<blockquote>{% if selected_event.is_skipped %}🚫 <s>{% endif %}{{ selected_event.title }}{% if selected_event.is_skipped %}</s>{% endif %}</blockquote>
-{% if selected_event.queue and current_event +%}
-    {% set queue_difference = selected_event.queue - current_event.queue %}
+{% set duration_minutes = (event_duration % 3600) // 60 %}
+{% set duration_seconds = event_duration % 60 %}
+<blockquote>{% if event_is_skipped %}🚫 <s>{% endif %}{{ event_title }}{% if event_is_skipped %}</s>{% endif %}</blockquote>
+{% if nomination_title %}<b>🌟 {{ nomination_title }}</b>{% endif +%}
+<b>🕒 {{"%02d" | format(duration_minutes)}} мин. {{"%02d" | format(duration_seconds)}} сек.</b>
+{% if current_event_queue and event_queue +%}
+    {% set queue_difference = event_queue - current_event_queue %}
     {% if queue_difference < 0 %}
 🏁 Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference|abs)}}</b> назад
     {% elif queue_difference == 0 %}
 🔥 Выступление идёт <b>ПРЯМО СЕЙЧАС</b>
     {% elif queue_difference > 0 %}
-🚀 До начала осталось <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b>
+{% set hours_left = event_time_until // 3600 %}
+{% set minutes_left = (event_time_until % 3600) // 60 %}
+🚀 До начала: <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b> <i>(≈ {{"%02d" | format(hours_left)}} час. {{"%02d" | format(minutes_left)}} мин.)</i>
     {% endif %}
 {% endif %}
-
-{% if selected_event.nomination %}<b>🌟 Номинация:</b> {{ selected_event.nomination.title }}{% endif +%}
-
-{% if selected_event.block %}<b>🗂️ Блок:</b> {{ selected_event.block.title }}{% endif %}

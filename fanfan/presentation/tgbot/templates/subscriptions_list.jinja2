@@ -11,10 +11,12 @@
 У вас нет подписок 🔕
 {% else %}
     {% for subscription in subscriptions %}
-        {% if current_event and subscription.event.queue %}
-            {% set events_left = subscription.event.queue - current_event.queue %}
+        {% if current_event_queue and subscription.event.queue %}
+            {% set events_left = subscription.event.queue - current_event_queue %}
             {% if events_left > 0 %}
-                {% set tag %}🚀 До начала: {{events_left}} {{events_pluralize(events_left)}}{% endset %}
+                {% set hours = subscription.event.time_until // 3600 %}
+                {% set minutes = (subscription.event.time_until % 3600) // 60 %}
+                {% set tag %}🚀 До начала: {{events_left}} {{events_pluralize(events_left)}} <i>(≈ {{"%02d" | format(hours)}} час. {{"%02d" | format(minutes)}} мин.)</i>{% endset %}
             {% elif events_left == 0 %}
                 {% set tag %}🔥 Идёт сейчас{% endset %}
             {% elif events_left < 0 %}

@@ -92,12 +92,13 @@ async def proceed_schedule_change(
         change = await changes_repo.add_schedule_change(change)
         await uow.commit()
 
+    reason_msg = resolve_change_reason(change)
+
     # Notify schedule editors first
     editor = await users_repo.read_user_by_id(change.user_id)
     editors_notification = UserNotification(
         title="✏️ ИЗМЕНЕНИЕ РАСПИСАНИЯ",
-        text=f"@{editor.username} сделал изменение в расписании:\n"
-        f"{resolve_change_reason(change)}",
+        text=f"@{editor.username} сделал изменение в расписании:\n{reason_msg}",
         reply_markup=InlineKeyboardBuilder(
             [
                 [undo_schedule_change_button(schedule_change_id=change.id)],
@@ -151,8 +152,9 @@ async def proceed_schedule_change(
                 {
                     "event_id": s.event.id,
                     "event_title": s.event.title,
-                    "event_queue": s.event.queue,
-                    "current_queue": current_event.queue,
+                    "queue_difference": s.event.queue - current_event.queue,
+                    "time_until": s.event.time_until,
+                    "reason_msg": reason_msg,
                 },
             )
             await events_broker.publish(
@@ -161,7 +163,6 @@ async def proceed_schedule_change(
                     notification=UserNotification(
                         title=f"🔔 УВЕДОМЛЕНИЕ О ПОДПИСКЕ ({time})",
                         text=text,
-                        bottom_text=resolve_change_reason(change),
                         reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
                     ),
                     mailing_id=change.mailing_id,

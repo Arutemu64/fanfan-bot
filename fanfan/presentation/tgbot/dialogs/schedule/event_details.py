@@ -13,7 +13,6 @@ from fanfan.application.schedule.subscriptions.delete_subscription_by_event impo
 )
 from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
     CAN_EDIT_SCHEDULE,
     DATA_SELECTED_EVENT_ID,
@@ -22,8 +21,6 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
 )
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.templates import selected_event_info
-
-SELECTED_EVENT = "selected_event"
 
 
 async def show_event_details(manager: DialogManager, event_id: ScheduleEventId) -> None:
@@ -35,16 +32,25 @@ async def show_event_details(manager: DialogManager, event_id: ScheduleEventId) 
     )
 
 
-async def selected_event_getter(
+async def event_details_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
     **kwargs,
 ):
     get_event_by_id: GetEventForUser = await container.get(GetEventForUser)
+
+    event = await get_event_by_id(dialog_manager.start_data[DATA_SELECTED_EVENT_ID])
     return {
-        SELECTED_EVENT: await get_event_by_id(
-            dialog_manager.start_data[DATA_SELECTED_EVENT_ID],
-        ),
+        "event_id": event.id,
+        "event_title": event.title,
+        "event_is_current": event.is_current,
+        "event_is_skipped": event.is_skipped,
+        "event_time_until": event.time_until,
+        "event_duration": event.duration,
+        "event_queue": event.queue,
+        "nomination_title": event.nomination.title if event.nomination else None,
+        "block_title": event.block.title if event.block else None,
+        "user_is_subscribed": bool(event.subscription),
     }
 
 
@@ -109,32 +115,34 @@ async def unsubscribe_button_handler(
 
 
 selected_event_window = Window(
-    Title(Jinja("🎭 Выступление №{{ selected_event.id }}")),
+    Jinja("<b>🎭 ВЫСТУПЛЕНИЕ №{{ event_id }}</b>"),
+    Jinja(" └─ <i>🗂️ {{ block_title }}</i>", when="block_title"),
+    Const(" "),
     Jinja(selected_event_info),
     SwitchTo(
         text=Const("🔔 Подписаться"),
         id="subscribe",
         state=states.Schedule.ADD_SUBSCRIPTION,
-        when=~F[SELECTED_EVENT].subscription,
+        when=~F["user_is_subscribed"],
     ),
     Button(
         text=Const("🔕 Отписаться"),
         id="unsubscribe",
         on_click=unsubscribe_button_handler,
-        when=F[SELECTED_EVENT].subscription,
+        when=F["user_is_subscribed"],
     ),
     Group(
         Button(
             text=Const("🎬 Отметить текущим"),
             id="set_as_current",
             on_click=set_as_current,
-            when=~F[SELECTED_EVENT].is_current & ~F[SELECTED_EVENT].is_skipped,
+            when=~F["event_is_current"] & ~F["event_is_skipped"],
         ),
         Button(
             text=Const("⛔ Снять отметку Текущее"),
             id="unset_current",
             on_click=unset_current,
-            when=F[SELECTED_EVENT].is_current,
+            when=F["event_is_current"],
         ),
         SwitchTo(
             text=Const("🔀 Переместить"),
@@ -144,15 +152,15 @@ selected_event_window = Window(
         Button(
             text=Case(
                 texts={False: Const("🙈 Пропустить"), True: Const("🙉 Вернуть")},
-                selector=F[SELECTED_EVENT].is_skipped,
+                selector=F["event_is_skipped"],
             ),
             id="skip_event",
             on_click=skip_event_handler,
-            when=~F[SELECTED_EVENT].is_current,
+            when=~F["event_is_current"],
         ),
         when=F[CAN_EDIT_SCHEDULE],
     ),
     Cancel(Const(strings.buttons.back), id="back"),
-    getter=[selected_event_getter, current_event_getter, can_edit_schedule_getter],
+    getter=[event_details_getter, current_event_getter, can_edit_schedule_getter],
     state=states.Schedule.EVENT_DETAILS,
 )

@@ -29,6 +29,7 @@ class ScheduleEventORM(Base, OrderMixin):
 
     id: Mapped[ScheduleEventId] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(index=True)
+    duration: Mapped[int] = mapped_column(server_default="0")
 
     # Event status
     is_current: Mapped[bool | None] = mapped_column(unique=True)
@@ -90,6 +91,24 @@ class ScheduleEventORM(Base, OrderMixin):
             deferred=True,
         )
 
+    @declared_attr
+    @classmethod
+    def time_until(cls) -> Mapped[int]:
+        current_event_order = (
+            select(cls.order).where(cls.is_current.is_(True)).limit(1).scalar_subquery()
+        )
+
+        return column_property(
+            select(func.coalesce(func.sum(cls.duration), 0))
+            .where(
+                cls.order >= current_event_order,
+                cls.is_skipped.is_(False),
+            )
+            .scalar_subquery(),
+            expire_on_flush=True,
+            deferred=True,
+        )
+
     def __str__(self) -> str:
         return self.title
 
@@ -98,6 +117,7 @@ class ScheduleEventORM(Base, OrderMixin):
         return ScheduleEventORM(
             id=model.id,
             title=model.title,
+            duration=model.duration,
             is_current=model.is_current,
             is_skipped=model.is_skipped,
             order=model.order,
@@ -107,6 +127,7 @@ class ScheduleEventORM(Base, OrderMixin):
         return ScheduleEvent(
             id=ScheduleEventId(self.id),
             title=self.title,
+            duration=self.duration,
             is_current=self.is_current,
             is_skipped=self.is_skipped,
             order=self.order,

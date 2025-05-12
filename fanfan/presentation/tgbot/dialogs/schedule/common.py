@@ -12,7 +12,6 @@ from fanfan.application.schedule.get_schedule_page import (
 )
 from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.exceptions.schedule import NoCurrentEvent
 from fanfan.core.models.schedule_event import ScheduleEventId
 from fanfan.core.models.user import UserData
 from fanfan.core.services.access import UserAccessValidator
@@ -74,14 +73,10 @@ async def current_event_getter(
     **kwargs,
 ):
     get_current_event: GetCurrentEvent = await container.get(GetCurrentEvent)
-
-    try:
-        current_event = await get_current_event()
-    except NoCurrentEvent:
-        current_event = None
+    current_event = await get_current_event()
 
     return {
-        "current_event": current_event,
+        "current_event_queue": current_event.queue if current_event else None,
     }
 
 

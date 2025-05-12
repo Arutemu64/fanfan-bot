@@ -16,7 +16,6 @@ from fanfan.presentation.tgbot.dialogs.common.widgets import (
 from fanfan.presentation.tgbot.dialogs.schedule import show_event_page
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
     DATA_SELECTED_EVENT_ID,
-    current_event_getter,
     schedule_getter,
 )
 from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
@@ -77,6 +76,6 @@ move_event_window = Window(
         id="back",
         state=states.Schedule.EVENT_DETAILS,
     ),
-    getter=[schedule_getter, current_event_getter],
+    getter=schedule_getter,
     state=states.Schedule.MOVE_EVENT,
 )

@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from aiogram_dialog import Dialog, DialogManager
 
 from fanfan.application.schedule.get_current_event import GetCurrentEvent
-from fanfan.core.exceptions.schedule import NoCurrentEvent
 from fanfan.presentation.tgbot import states
 
 from .add_subscription import set_subscription_counter_window
@@ -26,11 +25,9 @@ async def on_start_schedule(start_data: dict, manager: DialogManager) -> None:
     # Enable search
     await state.set_state(states.InlineQuerySearch.EVENTS)
 
-    try:
-        current_event = await get_current_event()
+    current_event = await get_current_event()
+    if current_event:
         await show_event_page(manager, current_event.id)
-    except NoCurrentEvent:
-        pass
 
 
 dialog = Dialog(

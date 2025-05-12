@@ -12,6 +12,7 @@ class SubscriptionEventDTO:
     is_skipped: bool
     order: int
     queue: int | None
+    time_until: int
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

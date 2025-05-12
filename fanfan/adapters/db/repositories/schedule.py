@@ -1,5 +1,4 @@
 import math
-from dataclasses import asdict
 
 from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +28,7 @@ from fanfan.core.models.user import UserId
 def _select_schedule_event_dto() -> Select:
     return select(ScheduleEventORM).options(
         undefer(ScheduleEventORM.queue),
+        undefer(ScheduleEventORM.time_until),
         joinedload(ScheduleEventORM.nomination),
         joinedload(ScheduleEventORM.block),
     )
@@ -41,17 +41,15 @@ def _parse_schedule_event_dto(event_orm: ScheduleEventORM) -> ScheduleEventDTO:
         is_current=event_orm.is_current,
         is_skipped=event_orm.is_skipped,
         order=event_orm.order,
+        duration=event_orm.duration,
         queue=event_orm.queue,
+        time_until=event_orm.time_until,
         nomination=ScheduleEventNominationDTO(
-            id=event_orm.nomination.id,
-            title=event_orm.nomination.title,
+            id=event_orm.nomination.id, title=event_orm.nomination.title
         )
         if event_orm.nomination
         else None,
-        block=ScheduleEventBlockDTO(
-            id=event_orm.block.id,
-            title=event_orm.block.title,
-        )
+        block=ScheduleEventBlockDTO(id=event_orm.block.id, title=event_orm.block.title)
         if event_orm.block
         else None,
     )
@@ -69,6 +67,7 @@ def _select_schedule_event_user_dto(user_id: UserId | None) -> Select:
         )
         .options(
             undefer(ScheduleEventORM.queue),
+            undefer(ScheduleEventORM.time_until),
             joinedload(ScheduleEventORM.nomination),
             joinedload(ScheduleEventORM.block),
         )
@@ -79,7 +78,22 @@ def _parse_schedule_event_user_dto(
     event_orm: ScheduleEventORM, subscription_orm: SubscriptionORM | None
 ) -> ScheduleEventUserDTO:
     return ScheduleEventUserDTO(
-        **asdict(_parse_schedule_event_dto(event_orm)),
+        id=event_orm.id,
+        title=event_orm.title,
+        is_current=event_orm.is_current,
+        is_skipped=event_orm.is_skipped,
+        order=event_orm.order,
+        duration=event_orm.duration,
+        queue=event_orm.queue,
+        time_until=event_orm.time_until,
+        nomination=ScheduleEventNominationDTO(
+            id=event_orm.nomination.id, title=event_orm.nomination.title
+        )
+        if event_orm.nomination
+        else None,
+        block=ScheduleEventBlockDTO(id=event_orm.block.id, title=event_orm.block.title)
+        if event_orm.block
+        else None,
         subscription=ScheduleEventSubscriptionDTO(
             id=subscription_orm.id, counter=subscription_orm.counter
         )

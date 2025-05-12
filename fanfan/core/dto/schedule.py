@@ -31,7 +31,9 @@ class ScheduleEventDTO:
     is_current: bool | None
     is_skipped: bool
     order: float
+    duration: int
     queue: int | None
+    time_until: int
     nomination: ScheduleEventNominationDTO | None
     block: ScheduleEventBlockDTO | None
 
