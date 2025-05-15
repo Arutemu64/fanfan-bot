@@ -6,5 +6,6 @@ ScheduleBlockId = NewType("ScheduleBlockId", int)
 
 @dataclass(slots=True, kw_only=True)
 class ScheduleBlock:
-    id: ScheduleBlockId
+    id: ScheduleBlockId | None = None
     title: str
+    start_order: float

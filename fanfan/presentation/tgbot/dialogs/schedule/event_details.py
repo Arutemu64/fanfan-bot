@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.kbd import Button, Cancel, Group, SwitchTo
 from aiogram_dialog.widgets.text import Case, Const, Jinja
 from dishka import AsyncContainer
 
-from fanfan.application.schedule.get_event_for_user import GetEventForUser
+from fanfan.application.schedule.get_event_by_id import GetScheduleEventForUser
 from fanfan.application.schedule.management.set_current_event import SetCurrentEvent
 from fanfan.application.schedule.management.skip_event import SkipEvent
 from fanfan.application.schedule.subscriptions.delete_subscription_by_event import (
@@ -24,9 +24,6 @@ from fanfan.presentation.tgbot.templates import selected_event_info
 
 
 async def show_event_details(manager: DialogManager, event_id: ScheduleEventId) -> None:
-    container: AsyncContainer = manager.middleware_data["container"]
-    get_event_by_id: GetEventForUser = await container.get(GetEventForUser)
-    await get_event_by_id(event_id)
     await manager.start(
         state=states.Schedule.EVENT_DETAILS, data={DATA_SELECTED_EVENT_ID: event_id}
     )
@@ -37,11 +34,15 @@ async def event_details_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    get_event_by_id: GetEventForUser = await container.get(GetEventForUser)
+    get_event_by_id: GetScheduleEventForUser = await container.get(
+        GetScheduleEventForUser
+    )
 
-    event = await get_event_by_id(dialog_manager.start_data[DATA_SELECTED_EVENT_ID])
+    event_id = ScheduleEventId(dialog_manager.start_data[DATA_SELECTED_EVENT_ID])
+    event = await get_event_by_id(event_id)
     return {
         "event_id": event.id,
+        "event_public_id": event.public_id,
         "event_title": event.title,
         "event_is_current": event.is_current,
         "event_is_skipped": event.is_skipped,
@@ -115,7 +116,7 @@ async def unsubscribe_button_handler(
 
 
 selected_event_window = Window(
-    Jinja("<b>🎭 ВЫСТУПЛЕНИЕ №{{ event_id }}</b>"),
+    Jinja("<b>🎭 ВЫСТУПЛЕНИЕ №{{ event_public_id }}</b>"),
     Jinja(" └─ <i>🗂️ {{ block_title }}</i>", when="block_title"),
     Const(" "),
     Jinja(selected_event_info),

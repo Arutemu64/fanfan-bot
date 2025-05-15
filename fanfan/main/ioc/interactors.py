@@ -26,11 +26,17 @@ from fanfan.application.quest.get_quest_rating import GetQuestRating
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.application.quest.receive_achievement import ReceiveAchievement
 from fanfan.application.quest.reset_quest import ResetQuest
-from fanfan.application.schedule.get_current_event import GetCurrentEvent
-from fanfan.application.schedule.get_event_for_user import GetEventForUser
-from fanfan.application.schedule.get_page_number_by_event import GetPageNumberByEvent
+from fanfan.application.schedule.get_current_event import GetCurrentScheduleEvent
+from fanfan.application.schedule.get_event_by_id import GetScheduleEventForUser
+from fanfan.application.schedule.get_event_by_public_id import (
+    GetScheduleEventByPublicId,
+)
+from fanfan.application.schedule.get_page_number_by_event import (
+    GetPageNumberByScheduleEvent,
+)
 from fanfan.application.schedule.get_schedule_page import GetSchedulePage
 from fanfan.application.schedule.management.move_event import MoveEvent
+from fanfan.application.schedule.management.replace_schedule import ReplaceSchedule
 from fanfan.application.schedule.management.revert_change import RevertScheduleChange
 from fanfan.application.schedule.management.set_current_event import SetCurrentEvent
 from fanfan.application.schedule.management.set_next_event import SetNextEvent
@@ -75,9 +81,10 @@ class InteractorsProvider(Provider):
 
     get_random_quote = provide(GetRandomQuote)
 
-    get_current_event = provide(GetCurrentEvent)
-    get_event_by_id = provide(GetEventForUser)
-    get_page_number_by_event = provide(GetPageNumberByEvent)
+    get_current_event = provide(GetCurrentScheduleEvent)
+    get_event_by_id = provide(GetScheduleEventForUser)
+    get_event_by_public_id = provide(GetScheduleEventByPublicId)
+    get_page_number_by_event = provide(GetPageNumberByScheduleEvent)
     get_schedule_page = provide(GetSchedulePage)
 
     move_event = provide(MoveEvent)
@@ -85,6 +92,7 @@ class InteractorsProvider(Provider):
     set_next_event = provide(SetNextEvent)
     skip_event = provide(SkipEvent)
     revert_change = provide(RevertScheduleChange)
+    replace_schedule = provide(ReplaceSchedule)
 
     send_feedback = provide(SendFeedback)
     process_feedback = provide(ProcessFeedback)

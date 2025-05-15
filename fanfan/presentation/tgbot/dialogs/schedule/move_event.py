@@ -6,8 +6,11 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 
+from fanfan.application.schedule.get_event_by_public_id import (
+    GetScheduleEventByPublicId,
+)
 from fanfan.application.schedule.management.move_event import MoveEvent, MoveEventDTO
-from fanfan.core.models.schedule_event import ScheduleEventId
+from fanfan.core.models.schedule_event import ScheduleEventId, ScheduleEventPublicId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
@@ -35,13 +38,15 @@ async def move_event_handler(
     data: str,
 ) -> None:
     container: AsyncContainer = dialog_manager.middleware_data["container"]
+    get_event_by_public_id = await container.get(GetScheduleEventByPublicId)
     move_event: MoveEvent = await container.get(MoveEvent)
 
     if "/" in data and data.replace("/", "").isnumeric():
         event_id = ScheduleEventId(dialog_manager.start_data[DATA_SELECTED_EVENT_ID])
-        place_after_event_id = ScheduleEventId(int(data.replace("/", "")))
+        place_after_event_public_id = ScheduleEventPublicId(int(data.replace("/", "")))
+        place_after_event = await get_event_by_public_id(place_after_event_public_id)
         data = await move_event(
-            MoveEventDTO(event_id=event_id, place_after_event_id=place_after_event_id)
+            MoveEventDTO(event_id=event_id, place_after_event_id=place_after_event.id)
         )
         await message.reply(
             f"✅ Выступление <b>{data.event.title}</b> поставлено "

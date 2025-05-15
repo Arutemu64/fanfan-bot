@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from fanfan.core.models.block import ScheduleBlockId
 from fanfan.core.models.nomination import NominationId
-from fanfan.core.models.schedule_event import ScheduleEventId
+from fanfan.core.models.schedule_event import ScheduleEventId, ScheduleEventPublicId
 from fanfan.core.models.subscription import SubscriptionId
 
 
@@ -27,6 +27,7 @@ class ScheduleEventSubscriptionDTO:
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ScheduleEventDTO:
     id: ScheduleEventId
+    public_id: ScheduleEventPublicId
     title: str
     is_current: bool | None
     is_skipped: bool

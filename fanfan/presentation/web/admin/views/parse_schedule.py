@@ -5,7 +5,10 @@ from fastapi import Request, UploadFile
 from sqladmin import BaseView, expose
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fanfan.adapters.db.repositories.nominations import NominationsRepository
+from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.utils.parsers.parse_schedule import parse_schedule
+from fanfan.application.schedule.management.replace_schedule import ReplaceSchedule
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer
@@ -27,7 +30,12 @@ class ParseScheduleView(BaseView):
         session = await container.get(AsyncSession)
         async with session:
             try:
-                await parse_schedule(file.file, session)
+                await parse_schedule(
+                    file.file,
+                    replace_schedule=await container.get(ReplaceSchedule),
+                    participants_repo=await container.get(ParticipantsRepository),
+                    nominations_repo=await container.get(NominationsRepository),
+                )
             except Exception as e:
                 await container.close()
                 logger.exception("Error when parsing plan", exc_info=e)

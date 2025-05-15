@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from aiogram_dialog import Dialog, DialogManager
 
-from fanfan.application.schedule.get_current_event import GetCurrentEvent
+from fanfan.application.schedule.get_current_event import GetCurrentScheduleEvent
 from fanfan.presentation.tgbot import states
 
 from .add_subscription import set_subscription_counter_window
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 async def on_start_schedule(start_data: dict, manager: DialogManager) -> None:
     state: FSMContext = manager.middleware_data["state"]
     container: AsyncContainer = manager.middleware_data["container"]
-    get_current_event = await container.get(GetCurrentEvent)
+    get_current_event = await container.get(GetCurrentScheduleEvent)
 
     # Enable search
     await state.set_state(states.InlineQuerySearch.EVENTS)

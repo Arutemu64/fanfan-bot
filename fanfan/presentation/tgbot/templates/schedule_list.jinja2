@@ -12,7 +12,7 @@
 <b>🌟 {{event.nomination.title}}</b>
             {% endif %}
         {% endif %}
-<b>/{{event.id}}</b> {% if event.is_skipped %}<s>{% endif %}{% if event.is_current %}<b>{% endif %}{{ event.title }}
+<b>/{{event.public_id}}</b> {% if event.is_skipped %}<s>{% endif %}{% if event.is_current %}<b>{% endif %}{{ event.title }}
         {%- if event.is_current %} 🔥</b>{% endif %}
         {%- if event.is_skipped %}</s> 🚫{% endif %}
         {%- if event.subscription %} 🔔{% endif +%}

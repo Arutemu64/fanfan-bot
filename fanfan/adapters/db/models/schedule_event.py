@@ -17,6 +17,7 @@ from fanfan.adapters.db.models.schedule_block import ScheduleBlockORM
 from fanfan.core.models.schedule_event import (
     ScheduleEvent,
     ScheduleEventId,
+    ScheduleEventPublicId,
 )
 
 if TYPE_CHECKING:
@@ -28,6 +29,8 @@ class ScheduleEventORM(Base, OrderMixin):
     __tablename__ = "schedule"
 
     id: Mapped[ScheduleEventId] = mapped_column(primary_key=True)
+
+    public_id: Mapped[ScheduleEventPublicId] = mapped_column(unique=True)
     title: Mapped[str] = mapped_column(index=True)
     duration: Mapped[int] = mapped_column(server_default="0")
 
@@ -116,19 +119,23 @@ class ScheduleEventORM(Base, OrderMixin):
     def from_model(cls, model: ScheduleEvent):
         return ScheduleEventORM(
             id=model.id,
+            public_id=model.public_id,
             title=model.title,
             duration=model.duration,
             is_current=model.is_current,
             is_skipped=model.is_skipped,
             order=model.order,
+            participant_id=model.participant_id,
         )
 
     def to_model(self) -> ScheduleEvent:
         return ScheduleEvent(
             id=ScheduleEventId(self.id),
+            public_id=self.public_id,
             title=self.title,
             duration=self.duration,
             is_current=self.is_current,
             is_skipped=self.is_skipped,
             order=self.order,
+            participant_id=self.participant_id,
         )

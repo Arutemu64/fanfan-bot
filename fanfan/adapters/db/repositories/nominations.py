@@ -49,6 +49,15 @@ class NominationsRepository:
         nomination_orm = await self.session.scalar(stmt)
         return nomination_orm.to_model() if nomination_orm else None
 
+    async def get_nomination_by_code(self, nomination_code: str) -> Nomination | None:
+        stmt = (
+            select(NominationORM)
+            .where(NominationORM.code == nomination_code)
+            .with_for_update()
+        )
+        nomination_orm = await self.session.scalar(stmt)
+        return nomination_orm.to_model() if nomination_orm else None
+
     async def save_nomination(self, nomination: Nomination) -> Nomination:
         nomination_orm = await self.session.merge(NominationORM.from_model(nomination))
         await self.session.flush([nomination_orm])

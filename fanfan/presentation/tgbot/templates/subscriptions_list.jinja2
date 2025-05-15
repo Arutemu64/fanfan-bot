@@ -23,7 +23,7 @@
                 {% set tag %}🏁 Закончилось {{events_left|abs}} {{events_pluralize(events_left|abs)}} назад{% endset %}
             {% endif -%}
         {% endif %}
-<b>/{{ subscription.event.id }}</b> {% if subscription.event.is_skipped %}<s>{% endif %}{{ subscription.event.title }}{% if subscription.event.is_skipped %}</s>{% endif %}
+<b>/{{ subscription.event.public_id }}</b> {% if subscription.event.is_skipped %}<s>{% endif %}{{ subscription.event.title }}{% if subscription.event.is_skipped %}</s>{% endif %}
 {% if tag +%}
 {{ tag }}{% endif +%}
 🔔 Напоминания: за {{subscription.counter}} {{events_pluralize(subscription.counter)}}

@@ -18,8 +18,11 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.adapters.config.models import Configuration
+from fanfan.application.schedule.get_event_by_public_id import (
+    GetScheduleEventByPublicId,
+)
 from fanfan.application.schedule.management.set_next_event import SetNextEvent
-from fanfan.core.models.schedule_event import ScheduleEventId
+from fanfan.core.models.schedule_event import ScheduleEventPublicId
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
@@ -81,9 +84,13 @@ async def schedule_text_input_handler(
     data: str,
 ) -> None:
     schedule_scroll: ManagedScroll = dialog_manager.find(ID_SCHEDULE_SCROLL)
+    container: AsyncContainer = dialog_manager.middleware_data["container"]
     if "/" in data and data.replace("/", "").isnumeric():
-        event_id = ScheduleEventId(int(data.replace("/", "")))
-        await show_event_details(dialog_manager, event_id)
+        # User clicked public ID
+        public_event_id = ScheduleEventPublicId(int(data.replace("/", "")))
+        get_event_id_by_public_id = await container.get(GetScheduleEventByPublicId)
+        event = await get_event_id_by_public_id(public_event_id)
+        await show_event_details(dialog_manager, event.id)
     elif (
         data.isnumeric()
         and 1 <= int(data) <= dialog_manager.dialog_data[DATA_TOTAL_PAGES]

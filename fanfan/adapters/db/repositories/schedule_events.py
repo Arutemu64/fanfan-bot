@@ -1,6 +1,6 @@
 import math
 
-from sqlalchemy import Select, and_, func, or_, select
+from sqlalchemy import Select, and_, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, undefer
 
@@ -21,6 +21,7 @@ from fanfan.core.models.participant import ParticipantId
 from fanfan.core.models.schedule_event import (
     ScheduleEvent,
     ScheduleEventId,
+    ScheduleEventPublicId,
 )
 from fanfan.core.models.user import UserId
 
@@ -37,6 +38,7 @@ def _select_schedule_event_dto() -> Select:
 def _parse_schedule_event_dto(event_orm: ScheduleEventORM) -> ScheduleEventDTO:
     return ScheduleEventDTO(
         id=event_orm.id,
+        public_id=event_orm.public_id,
         title=event_orm.title,
         is_current=event_orm.is_current,
         is_skipped=event_orm.is_skipped,
@@ -79,6 +81,7 @@ def _parse_schedule_event_user_dto(
 ) -> ScheduleEventUserDTO:
     return ScheduleEventUserDTO(
         id=event_orm.id,
+        public_id=event_orm.public_id,
         title=event_orm.title,
         is_current=event_orm.is_current,
         is_skipped=event_orm.is_skipped,
@@ -120,9 +123,15 @@ def _filter_schedule_events(
     return stmt.where(or_(*filters))
 
 
-class ScheduleRepository:
+class ScheduleEventsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
+
+    async def add_event(self, event: ScheduleEvent) -> ScheduleEvent:
+        event_orm = ScheduleEventORM.from_model(event)
+        self.session.add(event_orm)
+        await self.session.flush([event_orm])
+        return event_orm.to_model()
 
     async def get_event_by_id(self, event_id: ScheduleEventId) -> ScheduleEvent | None:
         stmt = select(ScheduleEventORM).where(ScheduleEventORM.id == event_id)
@@ -142,6 +151,11 @@ class ScheduleRepository:
         stmt = select(ScheduleEventORM).where(ScheduleEventORM.is_current.is_(True))
         event_orm = await self.session.scalar(stmt)
         return event_orm.to_model() if event_orm else None
+
+    async def get_all_events(self) -> list[ScheduleEvent]:
+        stmt = select(ScheduleEventORM)
+        event_orm = await self.session.scalars(stmt)
+        return [e.to_model() for e in event_orm]
 
     async def read_next_event(self) -> ScheduleEventDTO | None:
         current_event_order = (
@@ -188,6 +202,11 @@ class ScheduleRepository:
         await self.session.flush([event_orm])
         return event_orm.to_model()
 
+    async def delete_event(self, event: ScheduleEvent) -> None:
+        await self.session.execute(
+            delete(ScheduleEventORM).where(ScheduleEventORM.id == event.id)
+        )
+
     async def read_event_by_id(
         self, event_id: ScheduleEventId
     ) -> ScheduleEventDTO | None:
@@ -195,7 +214,7 @@ class ScheduleRepository:
         event_orm = await self.session.scalar(stmt)
         return _parse_schedule_event_dto(event_orm) if event_orm else None
 
-    async def read_event_for_user(
+    async def read_event_user_by_id(
         self, event_id: ScheduleEventId, user_id: UserId | None = None
     ) -> ScheduleEventUserDTO | None:
         stmt = _select_schedule_event_user_dto(user_id).where(
@@ -208,6 +227,15 @@ class ScheduleRepository:
                 event_orm=event_orm, subscription_orm=subscription_orm
             )
         return None
+
+    async def read_event_by_public_id(
+        self, event_public_id: ScheduleEventPublicId
+    ) -> ScheduleEventDTO | None:
+        stmt = _select_schedule_event_dto().where(
+            ScheduleEventORM.public_id == event_public_id
+        )
+        event_orm = await self.session.scalar(stmt)
+        return _parse_schedule_event_dto(event_orm) if event_orm else None
 
     async def read_event_by_queue(self, queue: int) -> ScheduleEventDTO | None:
         stmt = _select_schedule_event_dto().where(ScheduleEventORM.queue == queue)

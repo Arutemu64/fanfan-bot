@@ -32,6 +32,7 @@ def _parse_subscription_dto(subscription_orm: SubscriptionORM) -> SubscriptionDT
         counter=subscription_orm.counter,
         event=SubscriptionEventDTO(
             id=subscription_orm.event.id,
+            public_id=subscription_orm.event.public_id,
             title=subscription_orm.event.title,
             order=subscription_orm.event.order,
             queue=subscription_orm.event.queue,

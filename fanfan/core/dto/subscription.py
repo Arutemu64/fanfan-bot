@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from fanfan.core.models.schedule_event import ScheduleEventId
+from fanfan.core.models.schedule_event import ScheduleEventId, ScheduleEventPublicId
 from fanfan.core.models.subscription import SubscriptionId
 from fanfan.core.models.user import UserId
 
@@ -8,6 +8,7 @@ from fanfan.core.models.user import UserId
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SubscriptionEventDTO:
     id: ScheduleEventId
+    public_id: ScheduleEventPublicId
     title: str
     is_skipped: bool
     order: int

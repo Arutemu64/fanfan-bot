@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from sqlalchemy.exc import IntegrityError
 
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
-from fanfan.adapters.db.repositories.schedule import ScheduleRepository
+from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
@@ -32,7 +32,7 @@ class AddVote:
     def __init__(
         self,
         participants_repo: ParticipantsRepository,
-        schedule_repo: ScheduleRepository,
+        schedule_repo: ScheduleEventsRepository,
         votes_repo: VotesRepository,
         uow: UnitOfWork,
         access: UserAccessValidator,

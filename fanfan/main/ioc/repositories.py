@@ -14,8 +14,9 @@ from fanfan.adapters.db.repositories.participants import (
 )
 from fanfan.adapters.db.repositories.products import ProductsRepository
 from fanfan.adapters.db.repositories.quest import QuestRepository
-from fanfan.adapters.db.repositories.schedule import ScheduleRepository
+from fanfan.adapters.db.repositories.schedule_blocks import ScheduleBlocksRepository
 from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
+from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.repositories.settings import (
     SettingsRepository,
 )
@@ -43,7 +44,8 @@ class RepositoriesProvider(Provider):
     participants = provide(ParticipantsRepository)
     products = provide(ProductsRepository)
     quest = provide(QuestRepository)
-    schedule = provide(ScheduleRepository)
+    schedule_events = provide(ScheduleEventsRepository)
+    schedule_blocks = provide(ScheduleBlocksRepository)
     schedule_changes = provide(ScheduleChangesRepository)
     settings = provide(SettingsRepository)
     subscriptions = provide(SubscriptionsRepository)

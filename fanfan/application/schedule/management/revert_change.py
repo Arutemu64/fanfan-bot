@@ -1,7 +1,7 @@
 import logging
 
-from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
+from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
@@ -21,7 +21,7 @@ class RevertScheduleChange:
         self,
         uow: UnitOfWork,
         schedule_changes_repo: ScheduleChangesRepository,
-        schedule_repo: ScheduleRepository,
+        schedule_repo: ScheduleEventsRepository,
         events_broker: EventsBroker,
         id_provider: IdProvider,
         access: UserAccessValidator,

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.exc import IntegrityError
 
-from fanfan.adapters.db.repositories.schedule import ScheduleRepository
+from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.repositories.subscriptions import (
     SubscriptionsRepository,
 )
@@ -31,7 +31,7 @@ class CreateSubscription:
         self,
         subscriptions_repo: SubscriptionsRepository,
         id_provider: IdProvider,
-        schedule_repo: ScheduleRepository,
+        schedule_repo: ScheduleEventsRepository,
         uow: UnitOfWork,
     ) -> None:
         self.subscriptions_repo = subscriptions_repo

@@ -3,9 +3,11 @@ from typing import TYPE_CHECKING, BinaryIO
 
 import click
 from dishka.integrations.click import CONTAINER_NAME
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from fanfan.adapters.db.repositories.nominations import NominationsRepository
+from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.utils.parsers.parse_schedule import parse_schedule
+from fanfan.application.schedule.management.replace_schedule import ReplaceSchedule
 from fanfan.application.utils.import_from_c2 import ImportFromC2
 from fanfan.presentation.cli.commands.common import async_command
 
@@ -22,8 +24,12 @@ logger = logging.getLogger(__name__)
 async def parse_schedule_command(context: click.Context, schedule: BinaryIO):
     container: AsyncContainer = context.meta[CONTAINER_NAME]
     async with container() as r_container:
-        session: AsyncSession = await r_container.get(AsyncSession)
-        await parse_schedule(file=schedule, session=session)
+        await parse_schedule(
+            file=schedule,
+            replace_schedule=await r_container.get(ReplaceSchedule),
+            participants_repo=await r_container.get(ParticipantsRepository),
+            nominations_repo=await r_container.get(NominationsRepository),
+        )
 
 
 @click.command(name="import_from_c2")

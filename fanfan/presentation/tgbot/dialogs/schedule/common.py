@@ -1,10 +1,10 @@
 from aiogram_dialog import DialogManager
 from dishka import AsyncContainer
 
-from fanfan.application.schedule.get_current_event import GetCurrentEvent
+from fanfan.application.schedule.get_current_event import GetCurrentScheduleEvent
 from fanfan.application.schedule.get_page_number_by_event import (
-    GetPageNumberByEvent,
     GetPageNumberByEventDTO,
+    GetPageNumberByScheduleEvent,
 )
 from fanfan.application.schedule.get_schedule_page import (
     GetSchedulePage,
@@ -54,8 +54,8 @@ async def schedule_getter(
 
 async def show_event_page(manager: DialogManager, event_id: ScheduleEventId) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_page_number_by_event: GetPageNumberByEvent = await container.get(
-        GetPageNumberByEvent
+    get_page_number_by_event: GetPageNumberByScheduleEvent = await container.get(
+        GetPageNumberByScheduleEvent
     )
     user: UserData = manager.middleware_data["user"]
 
@@ -72,7 +72,9 @@ async def current_event_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    get_current_event: GetCurrentEvent = await container.get(GetCurrentEvent)
+    get_current_event: GetCurrentScheduleEvent = await container.get(
+        GetCurrentScheduleEvent
+    )
     current_event = await get_current_event()
 
     return {

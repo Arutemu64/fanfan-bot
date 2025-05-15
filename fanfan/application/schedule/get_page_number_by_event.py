@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from fanfan.adapters.db.repositories.schedule import ScheduleRepository
+from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.core.models.schedule_event import ScheduleEventId
 
 
@@ -10,8 +10,8 @@ class GetPageNumberByEventDTO:
     events_per_page: int
 
 
-class GetPageNumberByEvent:
-    def __init__(self, schedule_repo: ScheduleRepository) -> None:
+class GetPageNumberByScheduleEvent:
+    def __init__(self, schedule_repo: ScheduleEventsRepository) -> None:
         self.schedule_repo = schedule_repo
 
     async def __call__(

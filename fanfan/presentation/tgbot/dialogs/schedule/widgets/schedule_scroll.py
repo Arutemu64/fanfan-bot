@@ -14,7 +14,7 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format
 
-from fanfan.application.schedule.get_current_event import GetCurrentEvent
+from fanfan.application.schedule.get_current_event import GetCurrentScheduleEvent
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
     show_event_page,
@@ -30,7 +30,9 @@ async def update_schedule_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data["container"]
-    get_current_event: GetCurrentEvent = await container.get(GetCurrentEvent)
+    get_current_event: GetCurrentScheduleEvent = await container.get(
+        GetCurrentScheduleEvent
+    )
 
     if current_event := await get_current_event():
         await show_event_page(manager, current_event.id)

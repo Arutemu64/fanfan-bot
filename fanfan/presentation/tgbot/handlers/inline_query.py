@@ -37,10 +37,12 @@ async def search_events(
     )
     results = [
         InlineQueryResultArticle(
-            id=str(e.id),
-            title=str(e.id),
+            id=str(e.public_id),
+            title=str(e.public_id),
             description=e.title,
-            input_message_content=InputTextMessageContent(message_text=f"/{e.id}"),
+            input_message_content=InputTextMessageContent(
+                message_text=f"/{e.public_id}"
+            ),
         )
         for e in page.items
     ]

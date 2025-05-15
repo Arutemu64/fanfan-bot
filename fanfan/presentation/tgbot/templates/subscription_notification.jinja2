@@ -8,11 +8,11 @@
 {%- endif %}
 {% endmacro %}
 {% if queue_difference == 0 %}
-🔥 Выступление {{ event_id }}. {{ event_title }} <b>НАЧАЛОСЬ!</b>
+🔥 Выступление {{ event_public_id }}. {{ event_title }} <b>НАЧАЛОСЬ!</b>
 {%- else %}
 {% set hours_left = time_until // 3600 %}
 {% set minutes_left = (time_until % 3600) // 60 %}
-🚀 До начала выступления {{ event_id }}. {{ event_title }} осталось <b>{{ queue_difference }} {{ events_pluralize(queue_difference) }}</b> <i>(≈ {{"%02d"|format(hours_left)}} час. {{"%02d"|format(minutes_left)}} мин.)</i>
+🚀 До начала выступления {{ event_public_id }}. {{ event_title }} осталось <b>{{ queue_difference }} {{ events_pluralize(queue_difference) }}</b> <i>(≈ {{"%02d"|format(hours_left)}} час. {{"%02d"|format(minutes_left)}} мин.)</i>
 
 <i>[{{ reason_msg }}]</i>
 {%- endif %}

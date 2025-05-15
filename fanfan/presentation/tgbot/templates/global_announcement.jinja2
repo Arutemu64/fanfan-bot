@@ -1,9 +1,9 @@
-{% if current_event %}<b>🔥 Сейчас — № {{ current_event.id }}</b>
+{% if current_event %}<b>🔥 Сейчас — № {{ current_event.public_id }}</b>
 <blockquote>{{ current_event.title }}</blockquote>
 {% if current_event.nomination %}<b>🌟 {{ current_event.nomination.title }}</b>{% endif +%}
 {% if current_event.block %}<b>🗂️ {{ current_event.block.title }}</b>{% endif %}{% endif +%}
 
-{%+ if next_event %}<b>🚀 Затем — № {{ next_event.id }}</b>
+{%+ if next_event %}<b>🚀 Затем — № {{ next_event.public_id }}</b>
 <blockquote>{{ next_event.title }}</blockquote>
 {% if next_event.nomination %}<b>🌟 {{ next_event.nomination.title }}</b>{% endif +%}
 {% if next_event.block %}<b>🗂️ {{ next_event.block.title }}</b>{% endif %}{% endif %}

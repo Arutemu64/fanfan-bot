@@ -1,62 +1,88 @@
 import logging
 import typing
 
-from openpyxl import load_workbook
-from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
+import numpy as np
+import pandas as pd
+from adaptix import Retort
 
-from fanfan.adapters.db.models import ParticipantORM, ScheduleEventORM
-from fanfan.adapters.db.models.schedule_block import ScheduleBlockORM
+from fanfan.adapters.db.repositories.nominations import NominationsRepository
+from fanfan.adapters.db.repositories.participants import ParticipantsRepository
+from fanfan.application.schedule.management.replace_schedule import (
+    NewSchedule,
+    ReplaceSchedule,
+    ScheduleBlockEntry,
+    ScheduleEventEntry,
+)
+from fanfan.core.models.participant import ParticipantId, ParticipantVotingNumber
+from fanfan.core.models.schedule_event import ScheduleEventPublicId
 
 logger = logging.getLogger(__name__)
 
 
-async def parse_schedule(file: typing.BinaryIO, session: AsyncSession) -> None:
-    # Delete orphaned events later
-    events_to_delete = list(await session.scalars(select(ScheduleEventORM)))
-    # Delete all blocks
-    await session.execute(delete(ScheduleBlockORM))
-    await session.flush()
-    # Get everything ready
-    wb = load_workbook(file)
-    ws = wb.worksheets[0]
-    order = 1.0
-    for row in ws.iter_rows(min_row=2):
-        if row[4].value:  # Event
-            card = int(row[3].value)  # Card number
-            id_ = int(row[4].value)  # Number
-            event_title = str(row[5].value)  # Title
-            # Try to find a participant
-            participant = await session.scalar(
-                select(ParticipantORM).where(ParticipantORM.voting_number == card)
-            )
-            if participant:
-                logger.info("Found a linked participant for %s", event_title)
-            else:
-                logger.warning(
-                    "Orphaned event, as participant with "
-                    "voting number %s was not found",
-                    card,
+async def parse_schedule(
+    file: typing.BinaryIO,
+    replace_schedule: ReplaceSchedule,
+    participants_repo: ParticipantsRepository,
+    nominations_repo: NominationsRepository,
+) -> None:
+    """
+    Parses schedule from Excel file.
+    Use "converters" dict from down below as a reference
+    (those keys must be header)
+    Each line - single schedule entry (block or event)
+    :param file:
+    :param replace_schedule:
+    :param participants_repo:
+    :param nominations_repo:
+    :return:
+    """
+    # Use adaptix to safely parse types
+    retort = Retort()
+    entries: list[ScheduleEventEntry | ScheduleBlockEntry] = []
+    schedule_df = pd.read_excel(
+        file,
+        converters={
+            # Event
+            "event_public_id": ScheduleEventPublicId,
+            "event_title": str,
+            "event_duration": int,
+            "event_participant_id": ParticipantId,
+            "event_participant_voting_number": ParticipantVotingNumber,
+            "event_participant_nomination_code": str,
+            # Block
+            "block_title": str,
+        },
+    )
+    schedule_df = schedule_df.replace({np.nan: None})
+    for _index, row in schedule_df.iterrows():
+        if row.get("event_public_id"):
+            # Event line
+            participant_id = row.get("event_participant_id")
+            if row.get("event_participant_voting_number"):
+                nomination = await nominations_repo.get_nomination_by_code(
+                    nomination_code=row["event_participant_nomination_code"]
                 )
-            event = await session.merge(
-                ScheduleEventORM(
-                    id=id_,
-                    title=event_title,
-                    order=order,
-                    participant_id=participant.id if participant else None,
-                )
+                if nomination:
+                    participant = (
+                        await participants_repo.get_participant_by_voting_number(
+                            nomination_id=nomination.id,
+                            voting_number=row["event_participant_voting_number"],
+                        )
+                    )
+                    if participant:
+                        participant_id = participant.id
+            event = retort.load(
+                {
+                    "public_id": row["event_public_id"],
+                    "title": row["event_title"],
+                    "duration": row["event_duration"],
+                    "participant_id": participant_id,
+                },
+                ScheduleEventEntry,
             )
-            for e in events_to_delete:
-                if e.id == event.id:
-                    events_to_delete.remove(e)
-        elif row[0].value and row[0].font.italic:  # ScheduleBlock
-            title = str(row[0].value)
-            block = ScheduleBlockORM(title=title, start_order=order)
-            session.add(block)
-            await session.flush([block])
-            logger.info("New block %s added", title)
-        order += 1.0
-    for e in events_to_delete:
-        await session.delete(e)
-    # Commit
-    await session.commit()
+            entries.append(event)
+        elif row.get("block_title"):
+            block = retort.load({"title": row["block_title"]}, ScheduleBlockEntry)
+            entries.append(block)
+    schedule = NewSchedule(entries=entries)
+    await replace_schedule(schedule)

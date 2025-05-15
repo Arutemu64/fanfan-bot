@@ -8,8 +8,8 @@ from jinja2 import Environment
 from pytz import timezone
 
 from fanfan.adapters.config.models import Configuration
-from fanfan.adapters.db.repositories.schedule import ScheduleRepository
 from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
+from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
@@ -22,6 +22,7 @@ from fanfan.core.models.schedule_change import (
     ScheduleChange,
     ScheduleChangeType,
 )
+from fanfan.core.models.schedule_event import ScheduleEvent
 from fanfan.presentation.stream.jstream import stream
 from fanfan.presentation.tgbot.keyboards.buttons import (
     OPEN_SUBSCRIPTIONS_BUTTON,
@@ -36,15 +37,17 @@ ANNOUNCEMENT_REPLY_MARKUP = InlineKeyboardBuilder(
 router = NatsRouter()
 
 
-def resolve_change_reason(schedule_change: ScheduleChange) -> str | None:
+def get_schedule_change_reason_msg(
+    schedule_change: ScheduleChange, changed_event: ScheduleEvent
+) -> str | None:
     if schedule_change.type is ScheduleChangeType.SET_AS_CURRENT:
-        return f"🔥 Выступление №{schedule_change.changed_event_id} началось"
+        return f"🔥 Выступление №{changed_event.public_id} началось"
     if schedule_change.type is ScheduleChangeType.MOVED:
-        return f"🔀 Выступление №{schedule_change.changed_event_id} перенесено"
+        return f"🔀 Выступление №{changed_event.public_id} перенесено"
     if schedule_change.type is ScheduleChangeType.SKIPPED:
-        return f"🚫 Выступление №{schedule_change.changed_event_id} было снято"
+        return f"🚫 Выступление №{changed_event.public_id} было снято"
     if schedule_change.type is ScheduleChangeType.UNSKIPPED:
-        return f"🙉 Выступление №{schedule_change.changed_event_id} вернулось"
+        return f"🙉 Выступление №{changed_event.public_id} вернулось"
     return None
 
 
@@ -57,7 +60,7 @@ def resolve_change_reason(schedule_change: ScheduleChange) -> str | None:
 @inject
 async def proceed_schedule_change(
     data: ScheduleChanged,
-    schedule_repo: FromDishka[ScheduleRepository],
+    schedule_repo: FromDishka[ScheduleEventsRepository],
     changes_repo: FromDishka[ScheduleChangesRepository],
     users_repo: FromDishka[UsersRepository],
     subscriptions_repo: FromDishka[SubscriptionsRepository],
@@ -92,7 +95,8 @@ async def proceed_schedule_change(
         change = await changes_repo.add_schedule_change(change)
         await uow.commit()
 
-    reason_msg = resolve_change_reason(change)
+    changed_event = await schedule_repo.get_event_by_id(data.changed_event_id)
+    reason_msg = get_schedule_change_reason_msg(change, changed_event)
 
     # Notify schedule editors first
     editor = await users_repo.read_user_by_id(change.user_id)
@@ -150,7 +154,7 @@ async def proceed_schedule_change(
         if current_event.order <= changed_event.order <= s.event.order:
             text = await subscription_template.render_async(
                 {
-                    "event_id": s.event.id,
+                    "event_public_id": s.event.public_id,
                     "event_title": s.event.title,
                     "queue_difference": s.event.queue - current_event.queue,
                     "time_until": s.event.time_until,

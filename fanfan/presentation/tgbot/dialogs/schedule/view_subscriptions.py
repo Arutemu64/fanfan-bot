@@ -16,6 +16,9 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 
+from fanfan.application.schedule.get_event_by_public_id import (
+    GetScheduleEventByPublicId,
+)
 from fanfan.application.schedule.subscriptions.get_subscriptions_page import (
     GetSubscriptionsPage,
 )
@@ -23,7 +26,7 @@ from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
 )
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.schedule_event import ScheduleEventId
+from fanfan.core.models.schedule_event import ScheduleEventPublicId
 from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -69,9 +72,12 @@ async def subscriptions_text_input_handler(
     dialog_manager: DialogManager,
     data: str,
 ) -> None:
+    container: AsyncContainer = dialog_manager.middleware_data["container"]
     if "/" in data and data.replace("/", "").isnumeric():
-        event_id = ScheduleEventId(int(data.replace("/", "")))
-        await show_event_details(dialog_manager, event_id)
+        public_event_id = ScheduleEventPublicId(int(data.replace("/", "")))
+        get_event_id_by_public_id = await container.get(GetScheduleEventByPublicId)
+        event = await get_event_id_by_public_id(public_event_id)
+        await show_event_details(dialog_manager, event.id)
 
 
 async def toggle_all_notifications_handler(

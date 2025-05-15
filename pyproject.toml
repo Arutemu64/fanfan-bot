@@ -25,7 +25,7 @@ dependencies = [
     "numpy>=2.1.2",
     "openpyxl>=3.1.5",
     "pandas>=2.2.3",
-    "psycopg[binary]==3.2.7", # 3.2.8 - "Process finished with exit code -1073741819 (0xC0000005)" crash at launch
+    "psycopg[binary]>=3.2.9",
     "pydantic[timezone]>=2.9.2",
     "pydantic-extra-types>=2.9.0",
     "pydantic-settings>=2.6.1",

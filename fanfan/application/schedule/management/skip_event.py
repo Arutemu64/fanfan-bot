@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 
 from fanfan.adapters.config.models import LimitsConfig
-from fanfan.adapters.db.repositories.schedule import ScheduleRepository
+from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.events_broker import EventsBroker
@@ -31,7 +31,7 @@ class SkipEventResult:
 class SkipEvent:
     def __init__(
         self,
-        schedule_repo: ScheduleRepository,
+        schedule_repo: ScheduleEventsRepository,
         limits: LimitsConfig,
         access: UserAccessValidator,
         uow: UnitOfWork,
