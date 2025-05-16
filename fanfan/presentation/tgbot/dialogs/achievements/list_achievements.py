@@ -1,4 +1,3 @@
-from aiogram import F
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import (
     Cancel,
@@ -85,7 +84,6 @@ list_achievements_window = Window(
         ),
         NextPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_ACHIEVEMENTS_SCROLL, text=Const("⏭️")),
-        when=F["pages"] > 1,
     ),
     Cancel(text=Const(strings.buttons.back)),
     state=states.Achievements.LIST_ACHIEVEMENTS,

@@ -1,7 +1,6 @@
 import operator
 from typing import Any
 
-from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import (
@@ -89,7 +88,6 @@ list_activities_window = Window(
         ),
         NextPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_ACTIVITIES_SCROLL, text=Const("⏭️")),
-        when=F["pages"] > 1,
     ),
     Cancel(Const(strings.buttons.back)),
     getter=list_activities_getter,

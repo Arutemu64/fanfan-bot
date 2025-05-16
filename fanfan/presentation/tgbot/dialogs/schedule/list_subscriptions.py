@@ -33,7 +33,7 @@ from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
     current_event_getter,
 )
-from fanfan.presentation.tgbot.dialogs.schedule.event_details import show_event_details
+from fanfan.presentation.tgbot.dialogs.schedule.view_event import show_event_details
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.templates import subscriptions_list
 
@@ -128,7 +128,6 @@ subscriptions_main_window = Window(
         ),
         NextPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_SUBSCRIPTIONS_SCROLL, text=Const("⏭️")),
-        when=F["pages"] > 1,
     ),
     SwitchTo(
         text=Const(strings.buttons.back),

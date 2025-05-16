@@ -1,6 +1,5 @@
 import typing
 
-from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
@@ -43,7 +42,7 @@ if typing.TYPE_CHECKING:
     from aiogram_dialog.widgets.common import ManagedScroll
 
 
-async def view_market_getter(
+async def list_products_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
     user: UserData,
@@ -64,7 +63,8 @@ async def view_market_getter(
     )
     return {
         "products": page.items,
-        "total": page.total,
+        "pages": page.total // user.settings.items_per_page
+        + bool(page.total % user.settings.items_per_page),
         "market_name": market.name,
         "is_manager": user.id in (u.id for u in market.managers),
     }
@@ -116,12 +116,11 @@ view_products_window = Window(
         ),
         NextPage(scroll=ID_PRODUCTS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_PRODUCTS_SCROLL, text=Const("⏭️")),
-        when=F["pages"] > 1,
     ),
     SwitchTo(
         Const(strings.buttons.back), state=states.Marketplace.VIEW_MARKET, id="back"
     ),
     TextInput(id="product_id_input", on_success=product_id_input_handler),
-    getter=view_market_getter,
+    getter=list_products_getter,
     state=states.Marketplace.LIST_PRODUCTS,
 )

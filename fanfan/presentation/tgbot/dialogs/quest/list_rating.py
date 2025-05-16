@@ -1,8 +1,9 @@
 import typing
 
-from aiogram import F
+from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import (
+    Button,
     CurrentPage,
     FirstPage,
     LastPage,
@@ -16,6 +17,9 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.quest.get_quest_rating import GetQuestRating, GetQuestRatingDTO
+from fanfan.application.quest.get_rating_page_number_by_user import (
+    GetRatingPageNumberByUser,
+)
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
@@ -49,12 +53,34 @@ async def rating_getter(
         "players": rating.items,
         "pages": rating.total // user.settings.items_per_page
         + bool(rating.total % user.settings.items_per_page),
+        "current_user_id": user.id,
     }
+
+
+async def find_me_handler(
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+) -> None:
+    scroll: ManagedScroll = manager.find(ID_RATING_SCROLL)
+    container: AsyncContainer = manager.middleware_data["container"]
+    get_rating_page = await container.get(GetRatingPageNumberByUser)
+    page = await get_rating_page()
+    if isinstance(page, int):
+        await scroll.set_page(page - 1)
+    else:
+        await callback.answer("😢 Не нашли тебя в рейтинге")
 
 
 rating_window = Window(
     Title(Const(strings.titles.rating)),
     Jinja(rating_list),
+    Const("⌛ Рейтинг обновляется раз в минуту"),
+    Button(
+        Const("🔍 Где я?"),
+        id="find_me_button",
+        on_click=find_me_handler,
+    ),
     Row(
         StubScroll(ID_RATING_SCROLL, pages="pages"),
         FirstPage(scroll=ID_RATING_SCROLL, text=Const("⏪")),
@@ -65,7 +91,6 @@ rating_window = Window(
         ),
         NextPage(scroll=ID_RATING_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_RATING_SCROLL, text=Const("⏭️")),
-        when=F["pages"] > 1,
     ),
     SwitchTo(Const(strings.buttons.back), state=states.Quest.MAIN, id="back"),
     getter=rating_getter,

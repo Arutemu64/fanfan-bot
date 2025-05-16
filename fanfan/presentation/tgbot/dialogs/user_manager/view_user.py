@@ -1,9 +1,7 @@
-import math
-
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
-from aiogram_dialog.widgets.text import Const, Jinja, Progress
+from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
@@ -16,25 +14,19 @@ from fanfan.presentation.tgbot.static import strings
 from .common import DATA_USER_ID, managed_user_getter
 
 
-async def user_info_getter(
+async def view_user_getter(
     dialog_manager: DialogManager,
     container: AsyncContainer,
     **kwargs,
 ):
     managed_user_id = dialog_manager.start_data[DATA_USER_ID]
     get_user_quest_details: GetUserQuestStats = await container.get(GetUserQuestStats)
-
     user_stats = await get_user_quest_details(managed_user_id)
-    achievements_progress = 0
-    if user_stats.total_achievements > 0:
-        achievements_progress = math.floor(
-            user_stats.achievements_count * 100 / user_stats.total_achievements,
-        )
     return {
         "points": user_stats.points,
         "achievements_count": user_stats.achievements_count,
-        "achievements_progress": achievements_progress,
         "total_achievements_count": user_stats.total_achievements,
+        "rank": user_stats.rank,
         "can_participate_in_quest": user_stats.can_participate_in_quest,
     }
 
@@ -47,7 +39,7 @@ async def open_user_achievements_handler(
     await start_achievements(manager, manager.start_data[DATA_USER_ID])
 
 
-user_info_window = Window(
+view_user_window = Window(
     Title(Const(strings.titles.user_manager)),
     Jinja(
         "<b>👤 Никнейм:</b> {% if managed_user.username %}"
@@ -70,13 +62,12 @@ user_info_window = Window(
         "<b>⚔️ Может участвовать в квесте:</b> "
         "{{ '✅' if can_participate_in_quest else '❌' }}"
     ),
-    Const(" "),
     Jinja("<b>💰 Очков</b>: {{ points }} "),
     Jinja(
         "<b>🎯 Достижений</b>: {{ achievements_count }} "
         "из {{ total_achievements_count }}",
     ),
-    Progress("achievements_progress", filled="🟩", empty="⬜"),
+    Jinja("🏆 На <b>№{{rank}}</b> месте в рейтинге", when="rank"),
     Button(
         text=Const("🎯 Достижения"),
         id="show_achievements",
@@ -101,5 +92,5 @@ user_info_window = Window(
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.UserManager.USER_INFO,
-    getter=[user_info_getter, managed_user_getter],
+    getter=[view_user_getter, managed_user_getter],
 )

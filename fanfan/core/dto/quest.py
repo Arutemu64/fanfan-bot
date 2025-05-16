@@ -6,7 +6,13 @@ from fanfan.core.models.user import UserId
 @dataclass(frozen=True, slots=True)
 class QuestPlayerDTO:
     user_id: UserId
-    username: str
+    username: str | None
     points: int
     achievements_count: int
-    rank: int
+    rank: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class QuestRatingDTO:
+    players: list[QuestPlayerDTO]
+    total: int

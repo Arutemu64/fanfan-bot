@@ -23,6 +23,9 @@ from fanfan.application.marketplace.update_product import UpdateProduct
 from fanfan.application.quest.add_points import AddPointsToUser
 from fanfan.application.quest.get_achievements_page import GetAchievementsPage
 from fanfan.application.quest.get_quest_rating import GetQuestRating
+from fanfan.application.quest.get_rating_page_number_by_user import (
+    GetRatingPageNumberByUser,
+)
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
 from fanfan.application.quest.receive_achievement import ReceiveAchievement
 from fanfan.application.quest.reset_quest import ResetQuest
@@ -124,6 +127,7 @@ class InteractorsProvider(Provider):
 
     get_user_quest_details = provide(GetUserQuestStats)
     get_quest_rating = provide(GetQuestRating)
+    get_rating_page_by_user = provide(GetRatingPageNumberByUser)
     add_points = provide(AddPointsToUser)
     receive_achievement = provide(ReceiveAchievement)
     reset_quest = provide(ResetQuest)

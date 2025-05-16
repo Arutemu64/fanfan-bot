@@ -24,7 +24,7 @@ from fanfan.core.models.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
+from fanfan.presentation.tgbot.dialogs.mailing.view_mailing import show_mailing_info
 from fanfan.presentation.tgbot.static import strings
 
 if typing.TYPE_CHECKING:

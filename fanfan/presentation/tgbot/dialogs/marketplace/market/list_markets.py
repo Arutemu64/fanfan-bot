@@ -1,7 +1,6 @@
 import typing
 from typing import Any
 
-from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import (
@@ -93,7 +92,6 @@ list_markets_window = Window(
         ),
         NextPage(scroll=ID_MARKETS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_MARKETS_SCROLL, text=Const("⏭️")),
-        when=F["pages"] > 1,
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Marketplace.LIST_MARKETS,

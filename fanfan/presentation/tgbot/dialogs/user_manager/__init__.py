@@ -8,7 +8,7 @@ from .change_role import change_role_window
 from .common import DATA_USER_ID
 from .search_user import manual_user_search_window
 from .send_message import send_message_window
-from .user_info import user_info_window
+from .view_user import view_user_window
 
 
 async def start_user_manager(
@@ -20,7 +20,7 @@ async def start_user_manager(
 
 
 dialog = Dialog(
-    user_info_window,
+    view_user_window,
     manual_user_search_window,
     change_role_window,
     send_message_window,

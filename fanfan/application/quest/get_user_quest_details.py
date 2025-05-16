@@ -17,6 +17,7 @@ class UserQuestStatsDTO:
     can_participate_in_quest: bool
     points: int
     achievements_count: int
+    rank: int | None
     total_achievements: int
 
 
@@ -53,4 +54,5 @@ class GetUserQuestStats:
             points=player.points,
             achievements_count=player.achievements_count,
             total_achievements=total,
+            rank=player.rank,
         )

@@ -9,7 +9,7 @@ from aiogram_dialog.widgets.text import Const
 from fanfan.application.mailing.get_mailing_info import GetMailingInfo
 from fanfan.core.dto.mailing import MailingId
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.mailing.mailing_info import show_mailing_info
+from fanfan.presentation.tgbot.dialogs.mailing.view_mailing import show_mailing_info
 from fanfan.presentation.tgbot.static import strings
 
 if TYPE_CHECKING:

@@ -5,12 +5,12 @@ from aiogram_dialog import Dialog, DialogManager
 from fanfan.application.schedule.get_current_event import GetCurrentScheduleEvent
 from fanfan.presentation.tgbot import states
 
-from .add_subscription import set_subscription_counter_window
 from .common import show_event_page
-from .event_details import selected_event_window
+from .create_subscription import set_subscription_counter_window
+from .list_schedule import schedule_main_window
+from .list_subscriptions import subscriptions_main_window
 from .move_event import move_event_window
-from .view_schedule import schedule_main_window
-from .view_subscriptions import subscriptions_main_window
+from .view_event import selected_event_window
 
 if TYPE_CHECKING:
     from aiogram.fsm.context import FSMContext

@@ -128,7 +128,6 @@ voting_window = Window(
         ),
         NextPage(scroll=ID_VOTING_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_VOTING_SCROLL, text=Const("⏭️")),
-        when=F["pages"] > 1,
     ),
     Button(
         Const("🗑️ Отменить голос"),

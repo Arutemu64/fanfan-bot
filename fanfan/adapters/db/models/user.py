@@ -7,6 +7,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import (
     Mapped,
     column_property,
+    declared_attr,
     mapped_column,
     relationship,
 )
@@ -52,6 +53,26 @@ class UserORM(Base):
         .scalar_subquery(),
         deferred=True,
     )
+
+    @declared_attr
+    @classmethod
+    def rank(cls) -> Mapped[int | None]:
+        order_rule = (cls.points + cls.achievements_count).desc()
+        where_rule = (cls.points + cls.achievements_count) > 0
+        rank_subquery = (
+            select(
+                cls.id,
+                func.row_number().over(order_by=order_rule).label("rank"),
+            )
+            .where(where_rule)
+            .subquery()
+        )
+        stmt = select(rank_subquery.c.rank).where(rank_subquery.c.id == cls.id)
+        return column_property(
+            stmt.scalar_subquery(),
+            expire_on_flush=True,
+            deferred=True,
+        )
 
     def __str__(self) -> str:
         return f"{self.username} ({self.id})"

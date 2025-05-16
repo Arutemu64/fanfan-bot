@@ -37,7 +37,7 @@ from fanfan.presentation.tgbot.dialogs.schedule.common import (
     current_event_getter,
     schedule_getter,
 )
-from fanfan.presentation.tgbot.dialogs.schedule.event_details import show_event_details
+from fanfan.presentation.tgbot.dialogs.schedule.view_event import show_event_details
 from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
 )

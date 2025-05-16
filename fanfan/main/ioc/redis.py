@@ -6,6 +6,8 @@ from dishka import AnyOf, Provider, Scope, provide
 from redis.asyncio import Redis
 
 from fanfan.adapters.config.models import RedisConfig
+from fanfan.adapters.redis.dao.cache import CacheAdapter
+from fanfan.adapters.redis.utils import RedisRetort, get_redis_retort
 
 
 class RedisProvider(Provider):
@@ -37,3 +39,9 @@ class RedisProvider(Provider):
         storage: RedisStorage,
     ) -> AnyOf[RedisEventIsolation, BaseEventIsolation]:
         return storage.create_isolation()
+
+    @provide
+    def get_redis_retort(self) -> RedisRetort:
+        return get_redis_retort()
+
+    cache_adapter = provide(CacheAdapter)

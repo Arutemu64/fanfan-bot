@@ -1,15 +1,12 @@
-from sqlalchemy import Row, Select, func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import undefer
 
 from fanfan.adapters.db.models import UserORM
-from fanfan.core.dto.page import Pagination
-from fanfan.core.dto.quest import QuestPlayerDTO
+from fanfan.adapters.redis.dao.cache import CacheAdapter
+from fanfan.core.dto.quest import QuestPlayerDTO, QuestRatingDTO
 from fanfan.core.models.quest import QuestPlayer
 from fanfan.core.models.user import UserId
-
-ORDER_RULE = (UserORM.points + UserORM.achievements_count).desc()
-WHERE_RULE = (UserORM.points + UserORM.achievements_count) > 0
 
 
 def _user_orm_to_quest_player(user: UserORM) -> QuestPlayer:
@@ -21,28 +18,27 @@ def _quest_player_to_user_orm(model: QuestPlayer) -> UserORM:
 
 
 def _select_quest_player_dto() -> Select:
-    return select(
-        UserORM.id.label("user_id"),
-        UserORM.username.label("username"),
-        UserORM.points.label("points"),
-        UserORM.achievements_count.label("achievements_count"),
-        func.row_number().over(order_by=ORDER_RULE).label("rank"),
+    return select(UserORM).options(
+        undefer(UserORM.points),
+        undefer(UserORM.achievements_count),
+        undefer(UserORM.rank),
     )
 
 
-def _parse_quest_player_dto(row: Row) -> QuestPlayerDTO:
+def _parse_quest_player_dto(user_orm: UserORM) -> QuestPlayerDTO:
     return QuestPlayerDTO(
-        user_id=row.user_id,
-        rank=row.rank,
-        username=row.username,
-        points=row.points,
-        achievements_count=row.achievements_count,
+        user_id=user_orm.id,
+        rank=user_orm.rank,
+        username=user_orm.username,
+        points=user_orm.points,
+        achievements_count=user_orm.achievements_count,
     )
 
 
 class QuestRepository:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, cache: CacheAdapter):
         self.session = session
+        self.cache = cache
 
     async def get_player(self, user_id: UserId) -> QuestPlayer | None:
         stmt = (
@@ -62,22 +58,29 @@ class QuestRepository:
 
     async def read_quest_player(self, user_id: UserId) -> QuestPlayerDTO | None:
         stmt = _select_quest_player_dto().where(UserORM.id == user_id)
-        result = (await self.session.execute(stmt)).first()
-        return _parse_quest_player_dto(result) if result else None
-
-    async def list_quest_players(
-        self, pagination: Pagination | None = None
-    ) -> list[QuestPlayerDTO]:
-        stmt = _select_quest_player_dto().where(WHERE_RULE).order_by(ORDER_RULE)
-
-        if pagination:
-            stmt = stmt.limit(pagination.limit).offset(pagination.offset)
-
-        results = (await self.session.execute(stmt)).all()
-
-        return [_parse_quest_player_dto(row) for row in results]
+        user_orm = await self.session.scalar(stmt)
+        return _parse_quest_player_dto(user_orm) if user_orm else None
 
     async def count_quest_players(self) -> int:
         return await self.session.scalar(
-            select(func.count(UserORM.id)).where(WHERE_RULE)
+            select(func.count(UserORM.id)).where(UserORM.rank.isnot(None))
         )
+
+    async def read_full_quest_rating(self) -> QuestRatingDTO:
+        cache_key = "quest_rating"
+        rating = await self.cache.get_cache(cache_key, QuestRatingDTO)
+        if rating is None:
+            stmt = (
+                _select_quest_player_dto()
+                .where(UserORM.rank.isnot(None))
+                .order_by(UserORM.rank)
+            )
+            users = await self.session.scalars(stmt)
+            players = [_parse_quest_player_dto(user_orm) for user_orm in users]
+            total = await self.count_quest_players()
+            rating = QuestRatingDTO(
+                players=players,
+                total=total,
+            )
+            await self.cache.set_cache(cache_key, rating, ttl=60)
+        return rating

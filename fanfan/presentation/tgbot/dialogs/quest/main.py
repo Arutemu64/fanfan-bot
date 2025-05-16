@@ -3,7 +3,7 @@ import math
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
-from aiogram_dialog.widgets.text import Const, Jinja, Multi, Progress
+from aiogram_dialog.widgets.text import Const, Jinja, Progress
 from dishka import AsyncContainer
 
 from fanfan.application.quest.get_user_quest_details import GetUserQuestStats
@@ -32,6 +32,7 @@ async def quest_main_getter(
     return {
         "points": user_stats.points,
         "achievements_count": user_stats.achievements_count,
+        "rank": user_stats.rank,
         "achievements_progress": achievements_progress,
         "total_achievements": user_stats.total_achievements,
     }
@@ -53,13 +54,10 @@ main_quest_window = Window(
         "и проверить глубину своего познания мира фантастики и анимации! "
     ),
     Const(" "),
-    Multi(
-        Jinja("<b>💰 Очков:</b> {{ points }}"),
-        Jinja(
-            "<b>🎯 Достижений:</b> {{ achievements_count }} из {{ total_achievements }}"
-        ),
-        Progress(field="achievements_progress", filled="🟩", empty="⬜"),
-    ),
+    Jinja("🏆 Ты на <b>№{{rank}}</b> месте в рейтинге", when="rank"),
+    Jinja("<b>💰 Очков:</b> {{ points }}"),
+    Jinja("<b>🎯 Достижений:</b> {{ achievements_count }} из {{ total_achievements }}"),
+    Progress(field="achievements_progress", filled="🟩", empty="⬜"),
     Button(
         text=Const("🏆 Мои достижения"),
         id="open_achievements",

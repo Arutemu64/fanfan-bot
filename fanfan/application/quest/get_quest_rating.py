@@ -15,7 +15,17 @@ class GetQuestRating:
         self.quest_repo = quest_repo
 
     async def __call__(self, data: GetQuestRatingDTO) -> Page[QuestPlayerDTO]:
+        rating = await self.quest_repo.read_full_quest_rating()
+
+        players = rating.players
+        total = rating.total
+
+        if data.pagination:
+            players = players[
+                data.pagination.offset : data.pagination.offset + data.pagination.limit
+            ]
+
         return Page(
-            items=await self.quest_repo.list_quest_players(data.pagination),
-            total=await self.quest_repo.count_quest_players(),
+            items=players,
+            total=total,
         )

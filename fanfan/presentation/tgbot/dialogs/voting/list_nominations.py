@@ -2,7 +2,6 @@ import operator
 import typing
 from typing import Any
 
-from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import (
@@ -101,7 +100,6 @@ nominations_window = Window(
         ),
         NextPage(scroll=ID_NOMINATIONS_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_NOMINATIONS_SCROLL, text=Const("⏭️")),
-        when=F["pages"] > 1,
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Voting.LIST_NOMINATIONS,

@@ -2,11 +2,11 @@ import logging
 import uuid
 from datetime import timedelta
 
-from adaptix import Retort, dumper, loader
 from adaptix.load_error import LoadError
 from aiogram.types import Message
 from redis.asyncio import Redis
 
+from fanfan.adapters.redis.utils import RedisRetort
 from fanfan.core.dto.mailing import MailingDTO, MailingId
 from fanfan.core.exceptions.mailing import MailingNotFound
 from fanfan.core.models.user import UserId
@@ -17,15 +17,9 @@ MAILING_TTL = timedelta(days=2)  # Telegram message can be modified for 2 days
 
 
 class MailingDAO:
-    def __init__(self, redis: Redis):
+    def __init__(self, redis: Redis, retort: RedisRetort):
         self.redis = redis
-        self.retort = Retort(
-            strict_coercion=False,
-            recipe=[
-                dumper(bool, lambda x: str(int(x))),  # Dumping bool to Redis
-                loader(bool, lambda x: bool(int(x))),  # Loading bool from Redis
-            ],
-        )
+        self.retort = retort
 
     @staticmethod
     def _build_info_key(mailing_id: MailingId) -> str:

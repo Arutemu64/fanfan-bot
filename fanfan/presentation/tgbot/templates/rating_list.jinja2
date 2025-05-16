@@ -1,6 +1,16 @@
 {% for player in players %}
+{% if player.username %}
+{% set original = player.username %}
+{% set length = original|length %}
+{% set num_mask = (length * 0.4) | int %}
+{% set start = ((length - num_mask) / 2) | int %}
+{% set masked = original[:start] ~ ('*' * num_mask) ~ original[start + num_mask:] %}
+{% else %}
+{% set original = "Неизвестный" %}
+{% set masked = "Неизвестный" %}
+{% endif %}
 {% if player.rank == 1 %}🥇
 {%- elif player.rank == 2 %}🥈
 {%- elif player.rank == 3 %}🥉
-{%- else %}  {{player.rank}}  {% endif %} <b>{{player.username}}</b> — {{player.points}} 💰 • {{player.achievements_count}} 🎯
+{%- else %}  {{player.rank}}  {% endif %} <b>{{ original if player.user_id == current_user_id else masked}}{% if player.user_id == current_user_id %} 💖{% endif %}</b> — {{player.points}} 💰 • {{player.achievements_count}} 🎯
 {% endfor %}
