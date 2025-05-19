@@ -1,0 +1,67 @@
+import logging
+from dataclasses import dataclass
+
+from sqlalchemy.exc import IntegrityError
+
+from fanfan.adapters.api.timepad.dto.order import OrderStatus, RegistrationOrderResponse
+from fanfan.adapters.api.timepad.exceptions import TimepadOrderProcessFailed
+from fanfan.adapters.db.repositories.tickets import TicketsWriter
+from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.core.models.ticket import Ticket
+from fanfan.core.vo.ticket import TicketId
+from fanfan.core.vo.user import UserRole
+
+logger = logging.getLogger(__name__)
+
+PARTICIPANT_NOMINATIONS = [
+    "Участник сценической программы",
+    "Участник не сценических конкурсов",
+]
+GOOD_STATUSES = [
+    OrderStatus.PAID,
+    OrderStatus.OK,
+    OrderStatus.PAID_OFFLINE,
+    OrderStatus.PAID_UR,
+]
+
+
+@dataclass(slots=True, frozen=True)
+class ProceedOrderResult:
+    added_tickets: int
+    deleted_tickets: int
+
+
+class ProceedOrder:
+    def __init__(self, tickets_repo: TicketsWriter, uow: UnitOfWork):
+        self.tickets_repo = tickets_repo
+        self.uow = uow
+
+    async def __call__(self, data: RegistrationOrderResponse) -> ProceedOrderResult:
+        added_tickets, deleted_tickets = 0, 0
+        try:
+            async with self.uow:
+                for ticket_response in data.tickets:
+                    ticket = await self.tickets_repo.get_ticket_by_id(
+                        TicketId(ticket_response.number)
+                    )
+                    if (data.status.name in GOOD_STATUSES) and (ticket is None):
+                        await self.tickets_repo.add_ticket(
+                            Ticket(
+                                id=TicketId(ticket_response.number),
+                                role=UserRole.PARTICIPANT
+                                if ticket_response.ticket_type.name
+                                in PARTICIPANT_NOMINATIONS
+                                else UserRole.VISITOR,
+                                used_by_id=None,
+                                issued_by_id=None,
+                            )
+                        )
+                        added_tickets += 1
+                    elif (data.status.name not in GOOD_STATUSES) and ticket:
+                        await self.tickets_repo.delete_ticket(ticket)
+                        deleted_tickets += 1
+                await self.uow.commit()
+            logger.info("Timepad order %s processed", data.id, extra={"order": data})
+            return ProceedOrderResult(added_tickets, deleted_tickets)
+        except IntegrityError as e:
+            raise TimepadOrderProcessFailed from e
