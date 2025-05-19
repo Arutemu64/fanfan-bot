@@ -21,6 +21,7 @@ dependencies = [
     "greenlet>=3.1.1",
     "itsdangerous>=2.2.0",
     "jinja2>=3.1.4",
+    "logfire[system-metrics,sqlalchemy,redis,aiohttp]>=3.16.0",
     "nh3>=0.2.21",
     "numpy>=2.1.2",
     "openpyxl>=3.1.5",
@@ -33,7 +34,6 @@ dependencies = [
     "qrcode[pil]>=8.0",
     "redis>=5.1.1",
     "rich>=13.9.3",
-    "sentry-sdk[sqlalchemy]>=2.17.0",
     "sqladmin>=0.20.0",
     "sqlalchemy>=2.0.36",
     "structlog>=24.4.0",
@@ -53,7 +53,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["fanfan"]
+packages = ["src/fanfan"]
 
 [project.scripts]
 migrate = "fanfan.main.migration:main"
