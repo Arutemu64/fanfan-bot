@@ -19,7 +19,8 @@ def _select_subscription_dto():
         .join(ScheduleEventORM)
         .options(
             joinedload(SubscriptionORM.event).options(
-                undefer(ScheduleEventORM.queue), undefer(ScheduleEventORM.time_until)
+                undefer(ScheduleEventORM.queue),
+                undefer(ScheduleEventORM.cumulative_duration),
             )
         )
     )
@@ -36,7 +37,7 @@ def _parse_subscription_dto(subscription_orm: SubscriptionORM) -> SubscriptionDT
             title=subscription_orm.event.title,
             order=subscription_orm.event.order,
             queue=subscription_orm.event.queue,
-            time_until=subscription_orm.event.time_until,
+            cumulative_duration=subscription_orm.event.cumulative_duration,
             is_skipped=subscription_orm.event.is_skipped,
         ),
     )

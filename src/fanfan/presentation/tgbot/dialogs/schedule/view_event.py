@@ -48,7 +48,7 @@ async def event_details_getter(
         "event_title": event.title,
         "event_is_current": event.is_current,
         "event_is_skipped": event.is_skipped,
-        "event_time_until": event.time_until,
+        "event_cumulative_duration": event.cumulative_duration,
         "event_duration": event.duration,
         "event_queue": event.queue,
         "nomination_title": event.nomination.title if event.nomination else None,

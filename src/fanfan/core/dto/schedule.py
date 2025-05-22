@@ -34,7 +34,7 @@ class ScheduleEventDTO:
     order: float
     duration: int
     queue: int | None
-    time_until: int
+    cumulative_duration: int | None
     nomination: ScheduleEventNominationDTO | None
     block: ScheduleEventBlockDTO | None
 

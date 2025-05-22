@@ -13,7 +13,7 @@ class SubscriptionEventDTO:
     is_skipped: bool
     order: int
     queue: int | None
-    time_until: int
+    cumulative_duration: int | None
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, case, func, select
+from sqlalchemy import ForeignKey, func, select
 from sqlalchemy.orm import (
     Mapped,
     column_property,
@@ -72,40 +72,39 @@ class ScheduleEventORM(Base, OrderMixin):
     @declared_attr
     @classmethod
     def queue(cls) -> Mapped[int | None]:
-        queue_subquery = select(
-            cls.id,
-            func.row_number()
-            .over(order_by=cls.order, partition_by=cls.is_skipped)
-            .label("queue"),
-        ).subquery()
-        query = select(
-            case(
-                (
-                    cls.is_skipped.isnot(True),
-                    queue_subquery.c.queue,
-                ),
-                else_=None,
+        queue_subquery = (
+            select(
+                cls.id,
+                func.row_number().over(order_by=cls.order).label("queue"),
             )
-        ).where(cls.id == queue_subquery.c.id)
+            .where(cls.is_skipped.isnot(True))
+            .subquery()
+        )
+        stmt = select(queue_subquery.c.queue).where(cls.id == queue_subquery.c.id)
         return column_property(
-            query.scalar_subquery(),
+            stmt.scalar_subquery(),
             expire_on_flush=True,
             deferred=True,
         )
 
     @declared_attr
     @classmethod
-    def time_until(cls) -> Mapped[int]:
-        current_event_order = (
-            select(cls.order).where(cls.is_current.is_(True)).limit(1).scalar_subquery()
+    def cumulative_duration(cls) -> Mapped[int | None]:
+        stmt = (
+            select(
+                cls.id,
+                func.coalesce(
+                    func.sum(cls.duration).over(order_by=cls.order, range_=(None, -1)),
+                    0,
+                ).label("cumulative_duration"),
+            )
+            .where(cls.is_skipped.isnot(True))
+            .subquery()
         )
 
         return column_property(
-            select(func.coalesce(func.sum(cls.duration), 0))
-            .where(
-                cls.order >= current_event_order,
-                cls.is_skipped.is_(False),
-            )
+            select(stmt.c.cumulative_duration)
+            .where(cls.id == stmt.c.id)
             .scalar_subquery(),
             expire_on_flush=True,
             deferred=True,

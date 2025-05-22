@@ -157,7 +157,8 @@ async def proceed_schedule_change(
                     "event_public_id": s.event.public_id,
                     "event_title": s.event.title,
                     "queue_difference": s.event.queue - current_event.queue,
-                    "time_until": s.event.time_until,
+                    "time_diff": s.event.cumulative_duration
+                    - current_event.cumulative_duration,
                     "reason_msg": reason_msg,
                 },
             )

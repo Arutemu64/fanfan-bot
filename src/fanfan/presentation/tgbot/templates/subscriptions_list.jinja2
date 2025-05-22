@@ -12,21 +12,22 @@
 {% else %}
     {% for subscription in subscriptions %}
         {% if current_event_queue and subscription.event.queue %}
+            {% set time_diff = (subscription.event.cumulative_duration - current_event_cumulative_duration)|abs %}
+            {% set hours = time_diff // 3600 %}
+            {% set minutes = (time_diff % 3600) // 60 %}
             {% set events_left = subscription.event.queue - current_event_queue %}
             {% if events_left > 0 %}
-                {% set hours = subscription.event.time_until // 3600 %}
-                {% set minutes = (subscription.event.time_until % 3600) // 60 %}
-                {% set tag %}🚀 До начала: {{events_left}} {{events_pluralize(events_left)}} <i>(≈ {{"%02d" | format(hours)}} час. {{"%02d" | format(minutes)}} мин.)</i>{% endset %}
+                {% set tag %}<b>🚀 До начала:</b> {{events_left}} {{events_pluralize(events_left)}} <i>(≈ {{"%02d" | format(hours)}} час. {{"%02d" | format(minutes)}} мин.)</i>{% endset %}
             {% elif events_left == 0 %}
-                {% set tag %}🔥 Идёт сейчас{% endset %}
+                {% set tag %}<b>🔥 Идёт сейчас</b>{% endset %}
             {% elif events_left < 0 %}
-                {% set tag %}🏁 Закончилось {{events_left|abs}} {{events_pluralize(events_left|abs)}} назад{% endset %}
+                {% set tag %}<b>🏁 Закончилось:</b> {{events_left|abs}} {{events_pluralize(events_left|abs)}} назад <i>(≈ {{"%02d" | format(hours)}} час. {{"%02d" | format(minutes)}} мин.)</i>{% endset %}
             {% endif -%}
         {% endif %}
 <b>/{{ subscription.event.public_id }}</b> {% if subscription.event.is_skipped %}<s>{% endif %}{{ subscription.event.title }}{% if subscription.event.is_skipped %}</s>{% endif %}
 {% if tag +%}
 {{ tag }}{% endif +%}
-🔔 Напоминания: за {{subscription.counter}} {{events_pluralize(subscription.counter)}}
+<b>🔔 Напоминания:</b> за {{subscription.counter}} {{events_pluralize(subscription.counter)}}
 
     {% endfor %}
 {% endif %}

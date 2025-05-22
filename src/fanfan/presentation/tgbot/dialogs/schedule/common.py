@@ -81,6 +81,7 @@ async def current_event_getter(
 
     return {
         "current_event_queue": current_event.queue if current_event else None,
+        "current_event_cumulative_duration": current_event.cumulative_duration,
     }
 
 

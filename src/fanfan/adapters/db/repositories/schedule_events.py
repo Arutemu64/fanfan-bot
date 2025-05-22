@@ -28,7 +28,7 @@ from fanfan.core.vo.user import UserId
 def _select_schedule_event_dto() -> Select:
     return select(ScheduleEventORM).options(
         undefer(ScheduleEventORM.queue),
-        undefer(ScheduleEventORM.time_until),
+        undefer(ScheduleEventORM.cumulative_duration),
         joinedload(ScheduleEventORM.nomination),
         joinedload(ScheduleEventORM.block),
     )
@@ -44,7 +44,7 @@ def _parse_schedule_event_dto(event_orm: ScheduleEventORM) -> ScheduleEventDTO:
         order=event_orm.order,
         duration=event_orm.duration,
         queue=event_orm.queue,
-        time_until=event_orm.time_until,
+        cumulative_duration=event_orm.cumulative_duration,
         nomination=ScheduleEventNominationDTO(
             id=event_orm.nomination.id, title=event_orm.nomination.title
         )
@@ -68,7 +68,7 @@ def _select_schedule_event_user_dto(user_id: UserId | None) -> Select:
         )
         .options(
             undefer(ScheduleEventORM.queue),
-            undefer(ScheduleEventORM.time_until),
+            undefer(ScheduleEventORM.cumulative_duration),
             joinedload(ScheduleEventORM.nomination),
             joinedload(ScheduleEventORM.block),
         )
@@ -87,7 +87,7 @@ def _parse_schedule_event_user_dto(
         order=event_orm.order,
         duration=event_orm.duration,
         queue=event_orm.queue,
-        time_until=event_orm.time_until,
+        cumulative_duration=event_orm.cumulative_duration,
         nomination=ScheduleEventNominationDTO(
             id=event_orm.nomination.id, title=event_orm.nomination.title
         )

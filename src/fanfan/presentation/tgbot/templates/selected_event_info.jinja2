@@ -13,14 +13,15 @@
 {% if nomination_title %}<b>🌟 {{ nomination_title }}</b>{% endif +%}
 <b>🕒 {{"%02d" | format(duration_minutes)}} мин. {{"%02d" | format(duration_seconds)}} сек.</b>
 {% if current_event_queue and event_queue +%}
+{% set time_diff = (event_cumulative_duration - current_event_cumulative_duration)|abs %}
+{% set hours_diff = time_diff // 3600 %}
+{% set minutes_diff = time_diff % 3600 // 60 %}
     {% set queue_difference = event_queue - current_event_queue %}
     {% if queue_difference < 0 %}
-🏁 Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference|abs)}}</b> назад
+🏁 Закончилось <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference|abs)}}</b> назад <i>(≈ {{"%02d" | format(hours_diff)}} час. {{"%02d" | format(minutes_diff)}} мин.)</i>
     {% elif queue_difference == 0 %}
 🔥 Выступление идёт <b>ПРЯМО СЕЙЧАС</b>
     {% elif queue_difference > 0 %}
-{% set hours_left = event_time_until // 3600 %}
-{% set minutes_left = (event_time_until % 3600) // 60 %}
-🚀 До начала: <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b> <i>(≈ {{"%02d" | format(hours_left)}} час. {{"%02d" | format(minutes_left)}} мин.)</i>
+🚀 До начала: <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b> <i>(≈ {{"%02d" | format(hours_diff)}} час. {{"%02d" | format(minutes_diff)}} мин.)</i>
     {% endif %}
 {% endif %}
