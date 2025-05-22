@@ -1,13 +1,13 @@
 from fanfan.core.exceptions.base import AppException
 
 
-class TimepadException(AppException):
+class TCloudException(AppException):
     pass
 
 
-class NoTimepadConfigProvided(TimepadException):
+class NoTCloudConfigProvided(TCloudException):
     message = "⚠️ Не предоставлены настройки TimePad"
 
 
-class TimepadOrderProcessFailed(TimepadException):
+class TCloudOrderProcessFailed(TCloudException):
     pass

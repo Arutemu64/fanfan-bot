@@ -6,7 +6,8 @@ from aiogram_dialog import BgManagerFactory
 from aiogram_dialog.manager.manager_middleware import BG_FACTORY_KEY
 from dishka import Provider, Scope, provide
 
-from fanfan.adapters.config.models import BotConfig
+from fanfan.adapters.config.models import Configuration
+from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.tgbot.factory import create_bot, create_dispatcher
 from fanfan.presentation.tgbot.utils.cmd_updater import CMDUpdater
 from fanfan.presentation.tgbot.utils.code_processor import CodeProcessor
@@ -14,6 +15,10 @@ from fanfan.presentation.tgbot.utils.code_processor import CodeProcessor
 
 class BotProvider(Provider):
     scope = Scope.APP
+
+    @provide
+    def get_bot_config(self, config: Configuration) -> BotConfig:
+        return config.bot
 
     @provide
     async def get_bot(self, config: BotConfig) -> AsyncIterable[Bot]:

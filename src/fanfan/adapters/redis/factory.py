@@ -1,7 +1,7 @@
 from opentelemetry.instrumentation.redis import RedisInstrumentor
 from redis.asyncio import Redis
 
-from fanfan.adapters.config.models import RedisConfig
+from fanfan.adapters.redis.config import RedisConfig
 
 
 def create_redis(config: RedisConfig) -> Redis:

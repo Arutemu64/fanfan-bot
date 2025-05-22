@@ -4,6 +4,7 @@ from fanfan.application.activities.read_activities_page import ReadActivitiesPag
 from fanfan.application.activities.read_activity_by_id import ReadActivityById
 from fanfan.application.codes.get_user_code_id import GetUserCodeId
 from fanfan.application.codes.read_code_by_id import ReadCodeById
+from fanfan.application.etc.read_random_quote import ReadRandomQuote
 from fanfan.application.feedback.proceed_feedback import ProceedFeedback
 from fanfan.application.feedback.send_feedback import SendFeedback
 from fanfan.application.mailing.cancel_mailing import CancelMailing
@@ -69,10 +70,6 @@ from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.read_user_by_username import ReadUserByUsername
 from fanfan.application.users.update_user import UpdateUser
 from fanfan.application.users.update_user_settings import UpdateUserSettings
-from fanfan.application.utils.import_from_c2 import ImportFromC2
-from fanfan.application.utils.import_orders import ImportOrders
-from fanfan.application.utils.proceed_order import ProceedOrder
-from fanfan.application.utils.read_random_quote import ReadRandomQuote
 from fanfan.application.voting.add_vote import AddVote
 from fanfan.application.voting.cancel_vote import CancelVote
 from fanfan.application.voting.read_nomination_for_user import ReadNominationForUser
@@ -145,10 +142,6 @@ class InteractorsProvider(Provider):
     get_participants_page = provide(ReadParticipantsPageForUser)
     add_vote = provide(AddVote)
     cancel_vote = provide(CancelVote)
-
-    import_from_c2 = provide(ImportFromC2)
-    import_tickets = provide(ImportOrders)
-    proceed_timepad_order = provide(ProceedOrder)
 
     get_code_by_id = provide(ReadCodeById)
     get_user_code = provide(GetUserCodeId)

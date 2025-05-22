@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
-from fanfan.application.utils.read_random_quote import ReadRandomQuote
+from fanfan.application.etc.read_random_quote import ReadRandomQuote
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.user import UserData
 from fanfan.core.services.access import UserAccessValidator

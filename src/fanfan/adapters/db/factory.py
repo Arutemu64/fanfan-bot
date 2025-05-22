@@ -1,7 +1,7 @@
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
-from fanfan.adapters.config.models import DatabaseConfig
+from fanfan.adapters.db.config import DatabaseConfig
 
 
 def create_engine(config: DatabaseConfig) -> AsyncEngine:

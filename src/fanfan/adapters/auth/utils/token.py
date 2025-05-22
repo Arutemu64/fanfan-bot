@@ -3,9 +3,9 @@ import datetime
 import jwt
 from jwt import InvalidSignatureError
 
-from fanfan.adapters.config.models import WebConfig
 from fanfan.core.exceptions.auth import AuthenticationError
 from fanfan.core.vo.user import UserId
+from fanfan.presentation.web.config import WebConfig
 
 TOKEN_TTL = datetime.timedelta(minutes=30)
 

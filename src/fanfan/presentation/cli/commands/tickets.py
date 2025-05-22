@@ -5,8 +5,8 @@ import click
 from dishka.integrations.click import CONTAINER_NAME
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fanfan.adapters.api.ticketscloud.importer import TCloudImporter
 from fanfan.adapters.utils.parsers.parse_tickets import parse_tickets
-from fanfan.application.utils.import_orders import ImportOrders
 from fanfan.presentation.cli.commands.common import async_command
 
 if TYPE_CHECKING:
@@ -15,15 +15,15 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@click.command(name="import_orders")
+@click.command(name="sync_tcloud")
 @click.pass_context
 @async_command
-async def import_orders_command(context: click.Context):
+async def sync_tcloud_command(context: click.Context):
     container: AsyncContainer = context.meta[CONTAINER_NAME]
     async with container() as r_container:
-        interactor: ImportOrders = await r_container.get(ImportOrders)
-        result = await interactor()
-        logger.info("Importing from C2 done!", extra={"result": result})
+        importer = await r_container.get(TCloudImporter)
+        await importer.sync_tickets()
+        logger.info("Importing from TCloud done!")
 
 
 @click.command(name="parse_tickets")

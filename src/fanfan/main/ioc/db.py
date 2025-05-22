@@ -7,12 +7,17 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 
-from fanfan.adapters.config.models import DatabaseConfig
+from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.db.config import DatabaseConfig
 from fanfan.adapters.db.factory import create_engine, create_session_pool
 from fanfan.adapters.db.uow import UnitOfWork
 
 
 class DbProvider(Provider):
+    @provide(scope=Scope.APP)
+    def get_db_config(self, config: Configuration) -> DatabaseConfig:
+        return config.db
+
     @provide(scope=Scope.APP)
     async def get_engine(self, config: DatabaseConfig) -> AsyncIterable[AsyncEngine]:
         engine = create_engine(config)

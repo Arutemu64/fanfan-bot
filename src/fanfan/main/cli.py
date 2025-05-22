@@ -8,13 +8,13 @@ from fanfan.adapters.config.parsers import get_config
 from fanfan.common.debug.logging import setup_logging
 from fanfan.common.debug.telemetry import setup_telemetry
 from fanfan.main.di import create_system_container
-from fanfan.presentation.cli.commands.participants import (
-    import_from_c2_command,
+from fanfan.presentation.cli.commands.program import (
     parse_schedule_command,
+    sync_cosplay2_command,
 )
 from fanfan.presentation.cli.commands.tickets import (
-    import_orders_command,
     parse_tickets_command,
+    sync_tcloud_command,
 )
 
 
@@ -41,8 +41,8 @@ def main():
 
     # Setup commands
     cli.add_command(parse_schedule_command)
-    cli.add_command(import_from_c2_command)
-    cli.add_command(import_orders_command)
+    cli.add_command(sync_cosplay2_command)
+    cli.add_command(sync_tcloud_command)
     cli.add_command(parse_tickets_command)
 
     # Fix running on Windows

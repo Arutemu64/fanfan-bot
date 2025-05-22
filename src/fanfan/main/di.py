@@ -17,7 +17,7 @@ from fanfan.main.ioc.redis import RedisProvider
 from fanfan.main.ioc.repositories import RepositoriesProvider
 from fanfan.main.ioc.services import ServicesProvider
 from fanfan.main.ioc.stream import StreamProvider
-from fanfan.main.ioc.timepad import TimepadProvider
+from fanfan.main.ioc.tcloud import TCloudProvider
 from fanfan.main.ioc.utils import UtilsProvider
 
 
@@ -31,7 +31,7 @@ def get_common_providers() -> list[Provider]:
         BotUtilsProvider(),
         DpProvider(),
         RedisProvider(),
-        TimepadProvider(),
+        TCloudProvider(),
         ServicesProvider(),
         RepositoriesProvider(),
         UtilsProvider(),

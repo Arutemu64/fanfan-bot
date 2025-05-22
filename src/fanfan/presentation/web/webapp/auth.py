@@ -5,7 +5,7 @@ from fastapi import Request
 from starlette.responses import JSONResponse
 
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
-from fanfan.adapters.config.models import BotConfig
+from fanfan.presentation.tgbot.config import BotConfig
 
 
 @inject

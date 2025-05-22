@@ -3,7 +3,7 @@ from typing import NewType
 import nats
 from nats.aio.client import Client
 
-from fanfan.adapters.config.models import NatsConfig
+from fanfan.adapters.nats.config import NatsConfig
 
 NATSClient = NewType("NATSClient", Client)
 

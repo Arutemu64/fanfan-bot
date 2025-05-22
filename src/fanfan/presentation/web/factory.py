@@ -7,11 +7,13 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from fanfan.adapters.config.models import Configuration, DebugConfig, WebConfig
+from fanfan.adapters.config.models import Configuration
+from fanfan.common.debug.config import DebugConfig
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
 from fanfan.presentation.web.admin.auth import admin_auth_router
 from fanfan.presentation.web.api import setup_api_router
+from fanfan.presentation.web.config import WebConfig
 from fanfan.presentation.web.webapp import setup_webapp_router
 
 if typing.TYPE_CHECKING:

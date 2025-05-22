@@ -6,9 +6,9 @@ from adaptix import Retort
 from aiohttp import ClientResponseError, ClientSession, ContentTypeError
 from redis.asyncio import Redis
 
+from fanfan.adapters.api.cosplay2.config import Cosplay2Config
 from fanfan.adapters.api.cosplay2.dto.requests import Request
 from fanfan.adapters.api.cosplay2.dto.topics import Topic
-from fanfan.adapters.config.models import Cosplay2Config
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 from faststream.nats import NatsBroker
 from faststream.nats.opentelemetry import NatsTelemetryMiddleware
 
-from fanfan.adapters.config.models import NatsConfig
+from fanfan.adapters.nats.config import NatsConfig
 from fanfan.presentation.stream.routes import setup_router
 
 

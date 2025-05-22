@@ -1,10 +1,11 @@
 from fastapi import APIRouter
 
+from fanfan.presentation.web.api.tcloud import tcloud_webhook_router
+
 
 def setup_api_router() -> APIRouter:
-    from .timepad import setup_timepad_router
-
     router = APIRouter(prefix="/api")
-    setup_timepad_router()
+
+    router.include_router(tcloud_webhook_router)
 
     return router

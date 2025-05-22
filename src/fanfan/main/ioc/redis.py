@@ -5,7 +5,8 @@ from aiogram.fsm.storage.redis import RedisEventIsolation, RedisStorage
 from dishka import AnyOf, Provider, Scope, provide
 from redis.asyncio import Redis
 
-from fanfan.adapters.config.models import RedisConfig
+from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.redis.config import RedisConfig
 from fanfan.adapters.redis.dao.cache import CacheAdapter
 from fanfan.adapters.redis.factory import create_redis
 from fanfan.adapters.redis.utils import RedisRetort, get_redis_retort
@@ -17,6 +18,10 @@ from fanfan.presentation.tgbot.factory import (
 
 class RedisProvider(Provider):
     scope = Scope.APP
+
+    @provide
+    def get_redis_config(self, config: Configuration) -> RedisConfig:
+        return config.redis
 
     @provide
     async def get_redis(self, config: RedisConfig) -> AsyncIterable[Redis]:

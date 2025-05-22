@@ -10,8 +10,9 @@ from aiogram_dialog.manager.manager_middleware import BG_FACTORY_KEY
 from dishka.integrations.aiogram import setup_dishka
 from redis.asyncio import Redis
 
-from fanfan.adapters.config.models import BotConfig, RedisConfig
+from fanfan.adapters.redis.config import RedisConfig
 from fanfan.presentation.tgbot import dialogs, handlers
+from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.tgbot.handlers.errors import register_error_handlers
 from fanfan.presentation.tgbot.middlewares import (
     LoadDataMiddleware,
