@@ -34,6 +34,9 @@ class User:
     permissions: UserPermissions
     settings: UserSettings
 
+    def set_role(self, role: UserRole):
+        self.role = role
+
     def __eq__(self, other: User | Any) -> bool:
         return isinstance(other, User) and self.id == other.id
 

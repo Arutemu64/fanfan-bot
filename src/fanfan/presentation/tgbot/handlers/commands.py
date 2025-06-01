@@ -48,7 +48,7 @@ async def link_ticket_cmd(
     user: UserData,
 ) -> None:
     if not user.ticket:
-        await dialog_manager.start(states.Main.LINK_TICKET)
+        await dialog_manager.start(states.LinkTicket.MAIN)
 
 
 @router.message(Command(ABOUT_CMD))

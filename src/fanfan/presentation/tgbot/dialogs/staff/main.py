@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.kbd import (
     Start,
     SwitchTo,
     Url,
+    WebApp,
 )
 from aiogram_dialog.widgets.text import Const, Format
 from dishka import AsyncContainer
@@ -17,6 +18,7 @@ from fanfan.core.models.user import UserData
 from fanfan.core.services.access import UserAccessValidator
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.qr import qr_scanner_url_getter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 
@@ -63,7 +65,7 @@ staff_main_window = Window(
             when=F["can_create_tickets"],
         ),
         SwitchTo(
-            Const("🛍️ Новый магазин на основе заявки"),
+            Const("🛍️ Новый магазин"),
             id="new_market",
             state=states.Staff.CREATE_MARKET,
             when=F["is_org"],
@@ -73,6 +75,10 @@ staff_main_window = Window(
             id="new_notification",
             text=Const("✉️ Рассылки"),
             when=F["is_org"],
+        ),
+        WebApp(
+            Const(strings.buttons.open_qr_scanner),
+            url=Format("{qr_scanner_url}"),
         ),
         Start(
             state=states.UserManager.MANUAL_USER_SEARCH,
@@ -89,9 +95,9 @@ staff_main_window = Window(
             url=Format("{docs_link}"),
             when=F["docs_link"],
         ),
-        width=1,
+        width=2,
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Staff.MAIN,
-    getter=staff_main_getter,
+    getter=[staff_main_getter, qr_scanner_url_getter],
 )

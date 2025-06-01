@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 
-from fanfan.adapters.db.repositories.tickets import TicketsWriter
+from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class LinkTicket:
     def __init__(
         self,
-        tickets_repo: TicketsWriter,
+        tickets_repo: TicketsRepository,
         users_repo: UsersRepository,
         uow: UnitOfWork,
         id_provider: IdProvider,
@@ -50,7 +50,7 @@ class LinkTicket:
 
                 # Link ticket
                 ticket.used_by_id = user_id
-                user.role = ticket.role
+                user.set_role(ticket.role)
                 await self.tickets_repo.save_ticket(ticket)
                 await self.users_repo.save_user(user)
                 await self.uow.commit()

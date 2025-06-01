@@ -27,7 +27,7 @@ def main():
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     with suppress(KeyboardInterrupt):
         uvicorn.run(
-            create_app(web_config=config.web_config, debug_config=config.debug_config),
+            create_app(web_config=config.web, debug_config=config.debug),
             host=config.web.host,
             port=config.web.port,
             root_path=config.web.path,

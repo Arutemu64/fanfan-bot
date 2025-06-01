@@ -16,7 +16,7 @@ class UserNotification:
     title: str | None = "📢 УВЕДОМЛЕНИЕ"
     text: str
     bottom_text: str | None = None
-    reply_markup: InlineKeyboardMarkup = DEFAULT_REPLY_MARKUP
+    reply_markup: InlineKeyboardMarkup | None = DEFAULT_REPLY_MARKUP
 
     def render_message_text(self) -> str:
         final_text = ""

@@ -10,7 +10,7 @@ from fanfan.adapters.config.models import Configuration
 from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.tgbot.factory import create_bot, create_dispatcher
 from fanfan.presentation.tgbot.utils.cmd_updater import CMDUpdater
-from fanfan.presentation.tgbot.utils.code_processor import CodeProcessor
+from fanfan.presentation.tgbot.utils.qr_reader import QRReader
 
 
 class BotProvider(Provider):
@@ -47,5 +47,5 @@ class DpProvider(Provider):
 
 
 class BotUtilsProvider(Provider):
-    code_processor = provide(CodeProcessor, scope=Scope.REQUEST)
+    code_processor = provide(QRReader, scope=Scope.REQUEST)
     cmd_updater = provide(CMDUpdater, scope=Scope.REQUEST)

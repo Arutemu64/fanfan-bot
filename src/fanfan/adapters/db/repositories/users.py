@@ -44,6 +44,11 @@ class UsersRepository:
         await self.session.flush([user_orm])
         return user_orm.to_model()
 
+    async def get_user_by_id(self, user_id: UserId) -> User | None:
+        stmt = select(UserORM).where(UserORM.id == user_id)
+        user_orm = await self.session.scalar(stmt)
+        return user_orm.to_model() if user_orm else None
+
     async def get_user_data(
         self,
         user_id: UserId,

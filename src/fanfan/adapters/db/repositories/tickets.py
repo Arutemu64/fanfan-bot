@@ -6,7 +6,7 @@ from fanfan.core.models.ticket import Ticket
 from fanfan.core.vo.ticket import TicketId
 
 
-class TicketsWriter:
+class TicketsRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 

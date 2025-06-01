@@ -28,7 +28,9 @@ async def change_role_handler(
     container: AsyncContainer = manager.middleware_data["container"]
     update_user: UpdateUser = await container.get(UpdateUser)
 
-    await update_user.change_role(user_id=manager.start_data[DATA_USER_ID], role=data)
+    await update_user.change_role(
+        user_id=manager.start_data[DATA_USER_ID], new_role=data
+    )
     await callback.answer(strings.common.success)
     await manager.switch_to(states.UserManager.USER_INFO)
 

@@ -43,3 +43,6 @@ class VotesRepository:
 
     async def delete_vote(self, vote: Vote):
         await self.session.execute(delete(VoteORM).where(VoteORM.id == vote.id))
+
+    async def delete_all_user_votes(self, user_id: UserId):
+        await self.session.execute(delete(VoteORM).where(VoteORM.user_id == user_id))

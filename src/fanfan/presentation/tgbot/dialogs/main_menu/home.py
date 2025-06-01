@@ -1,7 +1,7 @@
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Group, Start
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
@@ -104,7 +104,7 @@ async def open_quest_handler(
 main_window = Window(
     Title(Const(strings.titles.main_menu)),
     Jinja(
-        "🤙 Алоха, {{ first_name|e }}!\n"
+        "Привет, {{ first_name|e }}! 👋\n"
         "Мы рады, что ты сегодня с нами. Пусть этот день подарит "
         "тебе яркие впечатления, "
         "новые знакомства и тёплые воспоминания. Наслаждайся каждым моментом! 🎉🍉🌸"
@@ -120,7 +120,7 @@ main_window = Window(
     Start(
         Const(strings.titles.link_ticket),
         id="link_ticket",
-        state=states.Main.LINK_TICKET,
+        state=states.LinkTicket.MAIN,
         when=~F[CURRENT_USER].ticket,
     ),
     Group(
@@ -144,11 +144,6 @@ main_window = Window(
             ),
             id="open_quest",
             on_click=open_quest_handler,
-        ),
-        SwitchTo(
-            Const(strings.titles.qr_code),
-            id="open_qr_code",
-            state=states.Main.QR_CODE,
         ),
         Button(
             text=Case(

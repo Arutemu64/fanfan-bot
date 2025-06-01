@@ -2,8 +2,8 @@ from dishka import Provider, Scope, provide
 
 from fanfan.application.activities.read_activities_page import ReadActivitiesPage
 from fanfan.application.activities.read_activity_by_id import ReadActivityById
+from fanfan.application.codes.get_code_by_id import GetCodeById
 from fanfan.application.codes.get_user_code_id import GetUserCodeId
-from fanfan.application.codes.read_code_by_id import ReadCodeById
 from fanfan.application.etc.read_random_quote import ReadRandomQuote
 from fanfan.application.feedback.proceed_feedback import ProceedFeedback
 from fanfan.application.feedback.send_feedback import SendFeedback
@@ -143,7 +143,7 @@ class InteractorsProvider(Provider):
     add_vote = provide(AddVote)
     cancel_vote = provide(CancelVote)
 
-    get_code_by_id = provide(ReadCodeById)
+    get_code_by_id = provide(GetCodeById)
     get_user_code = provide(GetUserCodeId)
 
     list_markets = provide(ReadMarketsPage)

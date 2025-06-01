@@ -16,8 +16,12 @@ class Feedback(StatesGroup):
 
 class Main(StatesGroup):
     HOME = State()
-    LINK_TICKET = State()
-    QR_CODE = State()
+
+
+class LinkTicket(StatesGroup):
+    MAIN = State()
+    MANUAL_INPUT = State()
+    QR_SCAN = State()
 
 
 class Mailing(StatesGroup):

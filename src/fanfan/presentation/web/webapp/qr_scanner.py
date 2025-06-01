@@ -13,7 +13,7 @@ from fanfan.core.utils.notifications import (
     create_exception_notification,
 )
 from fanfan.core.vo.code import CodeId
-from fanfan.presentation.tgbot.utils.code_processor import CodeProcessor
+from fanfan.presentation.tgbot.utils.qr_reader import QRReader
 from fanfan.presentation.web.webapp.auth import webapp_auth
 
 QR_SCANNER_APP = Path(__file__).parent.joinpath("qr_scanner.html")
@@ -33,14 +33,14 @@ async def open_qr_scanner() -> FileResponse:
 @inject
 async def proceed_qr_post(
     request: Request,
-    proceed_code: FromDishka[CodeProcessor],
+    proceed_qr: FromDishka[QRReader],
     notifier: FromDishka[BotNotifier],
     id_provider: FromDishka[IdProvider],
 ) -> JSONResponse:
     user_id = id_provider.get_current_user_id()
     try:
         data = await request.json()
-        await proceed_code(CodeId(data["qr_data"]))
+        await proceed_qr(CodeId(data["qr_data"]))
     except AppException as e:
         await notifier.send_notification(
             user_id=user_id,

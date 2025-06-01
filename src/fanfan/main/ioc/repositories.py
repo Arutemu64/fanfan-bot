@@ -23,7 +23,7 @@ from fanfan.adapters.db.repositories.settings import (
 from fanfan.adapters.db.repositories.subscriptions import (
     SubscriptionsRepository,
 )
-from fanfan.adapters.db.repositories.tickets import TicketsWriter
+from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.transactions import TransactionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
@@ -49,7 +49,7 @@ class RepositoriesProvider(Provider):
     schedule_changes = provide(ScheduleChangesRepository)
     settings = provide(SettingsRepository)
     subscriptions = provide(SubscriptionsRepository)
-    tickets = provide(TicketsWriter)
+    tickets = provide(TicketsRepository)
     users = provide(UsersRepository)
     votes = provide(VotesRepository)
     transactions = provide(TransactionsRepository)

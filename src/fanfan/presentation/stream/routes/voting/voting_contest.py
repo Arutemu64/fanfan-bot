@@ -6,11 +6,10 @@ from fanfan.adapters.db.repositories.flags import FlagsRepository
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.core.constants.flags import VOTING_CONTEST_FLAG_NAME
 from fanfan.core.events.voting import VoteUpdatedEvent
 from fanfan.core.models.flag import Flag
 from fanfan.presentation.stream.jstream import stream
-
-VOTING_CONTEST_FLAG_NAME = "voting_contest"
 
 router = NatsRouter()
 

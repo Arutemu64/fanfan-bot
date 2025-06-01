@@ -30,9 +30,9 @@ class UpdateUser:
             raise AccessDenied
         return user
 
-    async def change_role(self, user_id: UserId, role: UserRole) -> None:
+    async def change_role(self, user_id: UserId, new_role: UserRole) -> None:
         user = await self._get_user(user_id)
         async with self.uow:
-            user.role = role
+            user.set_role(new_role)
             await self.users_repo.save_user(user)
             await self.uow.commit()

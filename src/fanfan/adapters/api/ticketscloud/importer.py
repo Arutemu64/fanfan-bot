@@ -5,9 +5,10 @@ from fanfan.adapters.api.ticketscloud.config import TCloudConfig
 from fanfan.adapters.api.ticketscloud.dto.order import Order, OrderStatus
 from fanfan.adapters.api.ticketscloud.dto.refund import Refund, RefundStatus
 from fanfan.adapters.api.ticketscloud.exceptions import NoTCloudConfigProvided
-from fanfan.adapters.db.repositories.tickets import TicketsWriter
+from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.core.models.ticket import Ticket
+from fanfan.core.services.tickets import TicketsService
 from fanfan.core.vo.ticket import TicketId
 from fanfan.core.vo.user import UserRole
 
@@ -21,12 +22,14 @@ class TCloudImporter:
         self,
         config: TCloudConfig | None,
         client: TCloudClient | None,
-        tickets_repo: TicketsWriter,
+        tickets_repo: TicketsRepository,
+        tickets_service: TicketsService,
         uow: UnitOfWork,
     ):
         self.config = config
         self.client = client
         self.tickets_repo = tickets_repo
+        self.tickets_service = tickets_service
         self.uow = uow
 
     async def proceed_order(self, order: Order) -> int:
@@ -63,6 +66,7 @@ class TCloudImporter:
                     TicketId(refund_ticket.barcode)
                 )
                 if refund.status == RefundStatus.APPROVED and ticket:
+                    await self.tickets_service.unlink_ticket(ticket)
                     await self.tickets_repo.delete_ticket(ticket)
                     logger.info(
                         "Ticket %s was refunded and deleted",

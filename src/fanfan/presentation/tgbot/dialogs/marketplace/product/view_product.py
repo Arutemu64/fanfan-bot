@@ -57,7 +57,7 @@ view_product_window = Window(
         when="product_image",
     ),
     Jinja("<b>📦 {{ product_name|upper }}</b>"),
-    Jinja(" └─ <i>(из магазина <b>{{ market_name }}</b>)</i>"),
+    Jinja(" └ <i>(из магазина <b>{{ market_name }}</b>)</i>"),
     Const(" "),
     Multi(
         Jinja("{{ product_description }}"),

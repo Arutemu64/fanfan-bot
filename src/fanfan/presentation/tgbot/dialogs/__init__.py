@@ -5,6 +5,7 @@ from fanfan.presentation.tgbot.dialogs import (
     achievements,
     activities,
     feedback,
+    link_ticket,
     mailing,
     main_menu,
     marketplace,
@@ -22,6 +23,7 @@ def setup_router() -> Router:
     common_router = Router(name="common_dialog_router")
     common_router.include_routers(
         main_menu.dialog,
+        link_ticket.dialog,
         schedule.dialog,
         achievements.dialog,
         voting.dialog,
