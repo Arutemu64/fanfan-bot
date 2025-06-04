@@ -9,6 +9,7 @@ from aiogram_dialog.context.media_storage import MediaIdStorage
 from aiogram_dialog.manager.manager_middleware import BG_FACTORY_KEY
 from dishka.integrations.aiogram import setup_dishka
 from redis.asyncio import Redis
+from sulguk import AiogramSulgukMiddleware
 
 from fanfan.adapters.redis.config import RedisConfig
 from fanfan.presentation.tgbot import dialogs, handlers
@@ -26,6 +27,7 @@ def create_bot(config: BotConfig) -> Bot:
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     bot.session.middleware(RetryRequestMiddleware())
+    bot.session.middleware(AiogramSulgukMiddleware())
     return bot
 
 
