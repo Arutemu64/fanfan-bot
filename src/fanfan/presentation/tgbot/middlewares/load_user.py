@@ -46,4 +46,6 @@ class LoadDataMiddleware(BaseMiddleware):
                 data["user"] = user
                 data["container"] = container
 
+                return await handler(event, data)
+
         return await handler(event, data)
