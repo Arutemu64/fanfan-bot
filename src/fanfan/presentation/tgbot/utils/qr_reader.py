@@ -10,7 +10,7 @@ from fanfan.core.dto.notification import UserNotification
 from fanfan.core.exceptions.codes import CodeNotFound
 from fanfan.core.models.code import Code
 from fanfan.core.models.user import User
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.user import UserService
 from fanfan.core.utils.notifications import create_achievement_notification
 from fanfan.core.vo.code import CodeId
 from fanfan.core.vo.ticket import TicketId
@@ -23,7 +23,7 @@ class QRReader:
         self,
         get_code_by_id: GetCodeById,
         id_provider: IdProvider,
-        access: UserAccessValidator,
+        access: UserService,
         bg_factory: BgManagerFactory,
         bot: Bot,
         notifier: BotNotifier,
@@ -69,7 +69,7 @@ class QRReader:
             )
 
         if code.user_id:
-            self.access.ensure_can_open_user_manager(user)
+            self.access.ensure_user_can_open_user_manager(user)
             await start_user_manager(bg, code.user_id)
 
         if code.ticket_id:

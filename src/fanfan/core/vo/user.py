@@ -4,7 +4,6 @@ import enum
 from typing import NewType
 
 UserId = NewType("UserId", int)
-Username = NewType("Username", str)
 
 
 class UserRole(enum.StrEnum):

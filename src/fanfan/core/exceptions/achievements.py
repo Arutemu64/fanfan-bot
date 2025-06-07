@@ -5,13 +5,13 @@ class AchievementsException(AppException):
     pass
 
 
-class UserAlreadyHasThisAchievement(AchievementsException):
-    message = "⚠️ Это достижение уже получено"
-
-
 class AchievementNotFound(AchievementsException):
-    message = "⚠️ Достижение не найдено"
+    user_message = "Достижение не найдено"
 
     def __init__(self, achievement_id: int | None = None) -> None:
         if achievement_id:
-            self.message = f"⚠️ Достижение под номером {achievement_id} не найдено"
+            self.message = f"Достижение {achievement_id} не найдено"
+
+
+class UserAlreadyHasThisAchievement(AchievementsException):
+    user_message = "Это достижение уже получено"

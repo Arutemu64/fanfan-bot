@@ -46,10 +46,13 @@ async def list_activities_getter(
         ),
     )
 
+    pages = page.total // user.settings.items_per_page + bool(
+        page.total % user.settings.items_per_page
+    )
+
     return {
         "activities_list": [(a.id, a.title) for a in page.items],
-        "pages": page.total // user.settings.items_per_page
-        + bool(page.total % user.settings.items_per_page),
+        "pages": pages or 1,
     }
 
 

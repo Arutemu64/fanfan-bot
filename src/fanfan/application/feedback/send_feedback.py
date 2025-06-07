@@ -11,7 +11,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.events.feedback import NewFeedbackEvent
 from fanfan.core.exceptions.feedback import FeedbackException
 from fanfan.core.models.feedback import Feedback
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.feedback import FeedbackService
 
 logger = logging.getLogger(__name__)
 
@@ -25,14 +25,14 @@ class SendFeedback:
     def __init__(
         self,
         feedback_repo: FeedbackRepository,
-        access: UserAccessValidator,
+        service: FeedbackService,
         id_provider: IdProvider,
         uow: UnitOfWork,
         mailing_repo: MailingDAO,
         stream_broker_adapter: EventsBroker,
     ) -> None:
         self.feedback_repo = feedback_repo
-        self.access = access
+        self.service = service
         self.id_provider = id_provider
         self.uow = uow
         self.mailing_repo = mailing_repo
@@ -40,7 +40,7 @@ class SendFeedback:
 
     async def __call__(self, data: SendFeedbackDTO) -> None:
         user = await self.id_provider.get_user_data()
-        self.access.ensure_can_send_feedback(user)
+        self.service.ensure_user_can_send_feedback(user)
         mailing_id = await self.mailing_repo.create_new_mailing(
             by_user_id=self.id_provider.get_current_user_id()
         )

@@ -3,8 +3,10 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 from pydantic_core import to_json
 
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.exceptions.base import AppException
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.exceptions.base import AccessDenied
+from fanfan.core.services.feedback import FeedbackService
+from fanfan.core.services.quest import QuestService
+from fanfan.core.services.voting import VotingService
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,
@@ -12,7 +14,6 @@ from fanfan.presentation.tgbot.filters.commands import (
     LINK_TICKET_CMD,
     MARKETPLACE_CMD,
     NOTIFICATIONS_CMD,
-    QR_CMD,
     QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
@@ -27,11 +28,15 @@ class CMDUpdater:
         self,
         bot: Bot,
         id_provider: IdProvider,
-        access: UserAccessValidator,
+        feedback_service: FeedbackService,
+        voting_service: VotingService,
+        quest_service: QuestService,
     ):
         self.bot = bot
         self.id_provider = id_provider
-        self.access = access
+        self.feedback_service = feedback_service
+        self.voting_service = voting_service
+        self.quest_service = quest_service
 
     async def __call__(self) -> None:
         user = await self.id_provider.get_user_data()
@@ -47,17 +52,19 @@ class CMDUpdater:
         commands_list.append(NOTIFICATIONS_CMD)
 
         try:
-            self.access.ensure_can_participate_in_quest(user=user, ticket=user.ticket)
+            self.quest_service.ensure_user_can_participate_in_quest(
+                user=user, ticket=user.ticket
+            )
             commands_list.append(QUEST_CMD)
-        except AppException:
+        except AccessDenied:
             pass
 
-        commands_list.append(QR_CMD)
-
         try:
-            await self.access.ensure_can_vote(user=user, ticket=user.ticket)
+            await self.voting_service.ensure_user_can_vote(
+                user=user, ticket=user.ticket
+            )
             commands_list.append(VOTING_CMD)
-        except AppException:
+        except AccessDenied:
             pass
 
         commands_list.append(MARKETPLACE_CMD)
@@ -66,9 +73,9 @@ class CMDUpdater:
             commands_list.append(STAFF_CMD)
 
         try:
-            self.access.ensure_can_send_feedback(user)
+            self.feedback_service.ensure_user_can_send_feedback(user)
             commands_list.append(FEEDBACK_CMD)
-        except AppException:
+        except AccessDenied:
             pass
 
         commands_list.append(SETTINGS_CMD)

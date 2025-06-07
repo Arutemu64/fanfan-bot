@@ -24,9 +24,9 @@ class LoadDataMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        with tracer.start_as_current_span("User action") as span:
-            if data.get("event_from_user"):
-                tg_user: User = data["event_from_user"]
+        if data.get("event_from_user"):
+            tg_user: User = data["event_from_user"]
+            with tracer.start_as_current_span(f"User {tg_user.id} action") as span:
                 span.set_attribute("user_id", tg_user.id)
 
                 # Logging
@@ -46,4 +46,4 @@ class LoadDataMiddleware(BaseMiddleware):
                 data["user"] = user
                 data["container"] = container
 
-            return await handler(event, data)
+        return await handler(event, data)

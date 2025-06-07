@@ -69,7 +69,7 @@ def create_feedback_notification(feedback: FeedbackDTO) -> UserNotification:
 def create_app_exception_notification(app_exception: AppException) -> UserNotification:
     return UserNotification(
         title="⚠️ ОШИБКА",
-        text=app_exception.message,
+        text=app_exception.user_message,
         reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
     )
 
@@ -80,6 +80,6 @@ def create_exception_notification(exception: Exception) -> UserNotification:
         text=f"Возникла неизвестная ошибка ({type(exception).__name__}). "
         f"Мы постараемся исправить проблему в ближайшее время, а пока "
         f"можешь попробовать перезапустить бота командой /start "
-        f"и попробовать ещё раз. Это может помочь.",
+        f"и попробовать ещё раз, это может помочь.",
         reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
     )

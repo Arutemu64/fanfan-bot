@@ -11,9 +11,9 @@ from fanfan.application.schedule.read_schedule_page_for_user import (
     ReadSchedulePageForUser,
 )
 from fanfan.core.dto.page import Pagination
-from fanfan.core.exceptions.base import AppException
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.user import UserData
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.schedule import ScheduleService
 from fanfan.core.vo.schedule_event import ScheduleEventId
 
 ID_SCHEDULE_SCROLL = "schedule_scroll"
@@ -42,15 +42,15 @@ async def schedule_getter(
             )
         ),
     )
-    dialog_manager.dialog_data[DATA_TOTAL_PAGES] = (
-        page.total // user.settings.items_per_page
-        + bool(page.total % user.settings.items_per_page)
+    pages = page.total // user.settings.items_per_page + bool(
+        page.total % user.settings.items_per_page
     )
+    dialog_manager.dialog_data[DATA_TOTAL_PAGES] = pages
 
     return {
         "events": page.items,
         "page_number": await dialog_manager.find(ID_SCHEDULE_SCROLL).get_page() + 1,
-        "pages": dialog_manager.dialog_data[DATA_TOTAL_PAGES],
+        "pages": pages or 1,
     }
 
 
@@ -93,11 +93,11 @@ async def can_edit_schedule_getter(
     user: UserData,
     **kwargs,
 ):
-    access: UserAccessValidator = await container.get(UserAccessValidator)
+    schedule_service: ScheduleService = await container.get(ScheduleService)
 
     try:
-        access.ensure_can_edit_schedule(user)
-    except AppException:
+        schedule_service.ensure_user_can_manage_schedule(user)
+    except AccessDenied:
         can_edit_schedule = False
     else:
         can_edit_schedule = True

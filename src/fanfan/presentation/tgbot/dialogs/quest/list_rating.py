@@ -49,10 +49,12 @@ async def rating_getter(
             )
         )
     )
+    pages = rating.total // user.settings.items_per_page + bool(
+        rating.total % user.settings.items_per_page
+    )
     return {
         "players": rating.items,
-        "pages": rating.total // user.settings.items_per_page
-        + bool(rating.total % user.settings.items_per_page),
+        "pages": pages or 1,
         "current_user_id": user.id,
     }
 

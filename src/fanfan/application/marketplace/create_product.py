@@ -7,7 +7,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.market import MarketNotFound
 from fanfan.core.models.market import Market
 from fanfan.core.models.product import Product
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.market import MarketService
 from fanfan.core.vo.market import MarketId
 from fanfan.core.vo.telegram import TelegramFileId
 
@@ -28,20 +28,20 @@ class CreateProduct:
         products_repo: ProductsRepository,
         id_provider: IdProvider,
         uow: UnitOfWork,
-        access: UserAccessValidator,
+        service: MarketService,
     ):
         self.markets_repo = markets_repo
         self.products_repo = products_repo
         self.id_provider = id_provider
         self.uow = uow
-        self.access = access
+        self.service = service
 
     async def _get_market(self, market_id: MarketId) -> Market:
         market = await self.markets_repo.get_market_by_id(market_id)
         if market is None:
             raise MarketNotFound
         user = await self.id_provider.get_user_data()
-        self.access.ensure_can_edit_market(market=market, manager=user)
+        self.service.ensure_user_can_manage_market(market=market, manager=user)
         return market
 
     async def __call__(self, data: CreateProductDTO):

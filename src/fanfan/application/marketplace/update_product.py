@@ -6,7 +6,7 @@ from fanfan.core.exceptions.market import (
     ProductNotFound,
 )
 from fanfan.core.models.product import Product
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.market import MarketService
 from fanfan.core.vo.product import ProductId
 from fanfan.core.vo.telegram import TelegramFileId
 
@@ -18,13 +18,13 @@ class UpdateProduct:
         markets_repo: MarketsRepository,
         id_provider: IdProvider,
         uow: UnitOfWork,
-        access: UserAccessValidator,
+        service: MarketService,
     ):
         self.products_repo = products_repo
         self.markets_repo = markets_repo
         self.id_provider = id_provider
         self.uow = uow
-        self.access = access
+        self.service = service
 
     async def _get_product(self, product_id: ProductId) -> Product:
         product = await self.products_repo.get_product_by_id(product_id)
@@ -32,7 +32,7 @@ class UpdateProduct:
             raise ProductNotFound
         market = await self.markets_repo.get_market_by_id(product.market_id)
         user = await self.id_provider.get_user_data()
-        self.access.ensure_can_edit_market(market=market, manager=user)
+        self.service.ensure_user_can_manage_market(market=market, manager=user)
         return product
 
     async def update_product_name(self, product_id: ProductId, new_name: str) -> None:

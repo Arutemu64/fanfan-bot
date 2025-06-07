@@ -2,36 +2,36 @@ from fanfan.core.exceptions.base import AppException
 
 
 class MarketException(AppException):
-    message = "⚠️ Неизвестная ошибка в сервисе маркетплейса"
+    pass
 
 
 class MarketNotFound(MarketException):
-    message = "⚠️ Магазин не найден"
+    user_message = "Магазин не найден"
 
 
 class ProductNotFound(MarketException):
-    message = "⚠️ Товар не найден"
+    user_message = "Товар не найден"
 
 
 class MarketNameTooLong(MarketException):
-    message = "⚠️ Слишком длинное название магазина"
+    user_message = "Слишком длинное название магазина"
 
 
 class MarketDescTooLong(MarketException):
-    message = "⚠️ Слишком длинное описание"
+    user_message = "Слишком длинное описание"
 
 
 class ProductNameTooLong(MarketException):
-    message = "⚠️ Слишком длинное название товара"
+    user_message = "Слишком длинное название товара"
 
 
 class ProductDescTooLong(MarketException):
-    message = "⚠️ Слишком длинное описание товара"
+    user_message = "Слишком длинное описание товара"
 
 
 class NegativeProductPrice(MarketException):
-    message = "⚠️ Стоимость не может быть отрицательная"
+    user_message = "Стоимость не может быть отрицательная"
 
 
 class UserIsAlreadyMarketManager(MarketException):
-    message = "⚠️ Пользователь уже является управляющим магазина"
+    user_message = "Пользователь уже является управляющим магазина"

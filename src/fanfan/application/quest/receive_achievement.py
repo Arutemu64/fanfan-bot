@@ -11,7 +11,7 @@ from fanfan.core.models.achievement import (
     Achievement,
     ReceivedAchievement,
 )
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.quest import QuestService
 from fanfan.core.vo.achievements import AchievementId
 
 
@@ -19,19 +19,21 @@ class ReceiveAchievement:
     def __init__(
         self,
         achievements_writer: AchievementsRepository,
-        access: UserAccessValidator,
+        service: QuestService,
         uow: UnitOfWork,
         id_provider: IdProvider,
     ):
         self.achievements_writer = achievements_writer
-        self.access = access
+        self.service = service
         self.uow = uow
         self.id_provider = id_provider
 
     async def __call__(self, achievement_id: AchievementId) -> Achievement:
         async with self.uow:
             user = await self.id_provider.get_user_data()
-            self.access.ensure_can_participate_in_quest(user=user, ticket=user.ticket)
+            self.service.ensure_user_can_participate_in_quest(
+                user=user, ticket=user.ticket
+            )
             achievement = await self.achievements_writer.get_achievement_by_id(
                 achievement_id
             )

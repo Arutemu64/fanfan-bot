@@ -58,10 +58,12 @@ async def subscriptions_getter(
             * user.settings.items_per_page,
         )
     )
+    pages = page.total // user.settings.items_per_page + bool(
+        page.total % user.settings.items_per_page
+    )
     return {
         "subscriptions": page.items,
-        "pages": page.total // user.settings.items_per_page
-        + bool(page.total % user.settings.items_per_page),
+        "pages": pages or 1,
         "receive_all_announcements": user.settings.receive_all_announcements,
     }
 

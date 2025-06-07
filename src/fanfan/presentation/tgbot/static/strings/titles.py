@@ -1,6 +1,5 @@
 main_menu = "☀️ Главное меню"
 link_ticket = "🎟️ Привязать билет"
-qr_code = "📸 QR-код"
 activities = "🌴 О фестивале"
 schedule = "🌊 Программа"
 quest = "🗺️ Квест"

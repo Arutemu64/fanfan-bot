@@ -5,7 +5,7 @@ from fanfan.adapters.config.models import (
     LimitsConfig,
 )
 from fanfan.adapters.config.parsers import get_config
-from fanfan.common.debug.config import DebugConfig
+from fanfan.adapters.debug.config import DebugConfig
 from fanfan.presentation.web.config import WebConfig
 
 

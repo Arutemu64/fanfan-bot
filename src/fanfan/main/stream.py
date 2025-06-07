@@ -5,7 +5,7 @@ from dishka.integrations.faststream import setup_dishka
 from faststream import FastStream
 
 from fanfan.adapters.config.parsers import get_config
-from fanfan.common.debug.telemetry import setup_telemetry
+from fanfan.adapters.debug.telemetry import setup_telemetry
 from fanfan.main.di import create_system_container
 from fanfan.presentation.stream.broker import create_broker
 

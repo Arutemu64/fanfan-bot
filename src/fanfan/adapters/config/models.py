@@ -9,9 +9,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from fanfan.adapters.api.cosplay2.config import Cosplay2Config
 from fanfan.adapters.api.ticketscloud.config import TCloudConfig
 from fanfan.adapters.db.config import DatabaseConfig
+from fanfan.adapters.debug.config import DebugConfig
 from fanfan.adapters.nats.config import NatsConfig
 from fanfan.adapters.redis.config import RedisConfig
-from fanfan.common.debug.config import DebugConfig
 from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.web.config import WebConfig
 

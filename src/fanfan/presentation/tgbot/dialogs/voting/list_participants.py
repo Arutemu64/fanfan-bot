@@ -68,14 +68,16 @@ async def participants_getter(
             nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
         ),
     )
+    pages = page.total // user.settings.items_per_page + bool(
+        page.total % user.settings.items_per_page
+    )
     dialog_manager.dialog_data[DATA_USER_VOTE_ID] = (
         nomination.vote_id if nomination.vote_id else None
     )
     return {
         "nomination_title": nomination.title,
         "participants": page.items,
-        "pages": page.total // user.settings.items_per_page
-        + bool(page.total % user.settings.items_per_page),
+        "pages": pages or 1,
         "is_voted": bool(dialog_manager.dialog_data[DATA_USER_VOTE_ID]),
     }
 

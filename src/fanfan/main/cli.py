@@ -5,8 +5,8 @@ import click
 from dishka.integrations.click import CONTAINER_NAME
 
 from fanfan.adapters.config.parsers import get_config
-from fanfan.common.debug.logging import setup_logging
-from fanfan.common.debug.telemetry import setup_telemetry
+from fanfan.adapters.debug.logging import setup_logging
+from fanfan.adapters.debug.telemetry import setup_telemetry
 from fanfan.main.di import create_system_container
 from fanfan.presentation.cli.commands.program import (
     parse_schedule_command,

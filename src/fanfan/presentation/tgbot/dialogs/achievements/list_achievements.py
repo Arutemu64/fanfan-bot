@@ -56,10 +56,13 @@ async def list_achievements_getter(
             await get_user_by_id(dialog_manager.start_data[DATA_USER_ID])
         ).username
 
+    pages = page.total // user.settings.items_per_page + bool(
+        page.total % user.settings.items_per_page
+    )
+
     return {
         "achievements": page.items,
-        "pages": page.total // user.settings.items_per_page
-        + bool(page.total % user.settings.items_per_page),
+        "pages": pages or 1,
         "showing_self": showing_self,
         "username": username,
     }

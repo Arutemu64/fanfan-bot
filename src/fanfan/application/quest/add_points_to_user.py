@@ -10,7 +10,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.events.notifications import NewNotificationEvent
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.transaction import Transaction
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.quest import QuestService
 from fanfan.core.utils.notifications import create_points_notification
 from fanfan.core.vo.user import UserId
 
@@ -31,14 +31,14 @@ class AddPointsToUser:
         quest_repo: QuestRepository,
         transactions_repo: TransactionsRepository,
         uow: UnitOfWork,
-        access: UserAccessValidator,
+        service: QuestService,
         id_provider: IdProvider,
         stream_broker_adapter: EventsBroker,
     ) -> None:
         self.users_repo = users_repo
         self.quest_repo = quest_repo
         self.transactions_repo = transactions_repo
-        self.access = access
+        self.service = service
         self.uow = uow
         self.id_provider = id_provider
         self.stream_broker_adapter = stream_broker_adapter
@@ -48,7 +48,9 @@ class AddPointsToUser:
             user = await self.users_repo.get_user_data(data.user_id)
             if user is None:
                 raise UserNotFound
-            self.access.ensure_can_participate_in_quest(user=user, ticket=user.ticket)
+            self.service.ensure_user_can_participate_in_quest(
+                user=user, ticket=user.ticket
+            )
         async with self.uow:
             participant = await self.quest_repo.get_player(user_id=user.id)
             participant.add_points(data.points)

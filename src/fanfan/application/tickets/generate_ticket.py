@@ -9,7 +9,7 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.models.code import Code
 from fanfan.core.models.ticket import Ticket
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.tickets import TicketsService
 from fanfan.core.utils.code import generate_unique_code
 from fanfan.core.vo.code import CodeId
 from fanfan.core.vo.ticket import TicketId
@@ -36,17 +36,17 @@ class GenerateTicket:
         codes_repo: CodesRepository,
         uow: UnitOfWork,
         id_provider: IdProvider,
-        access: UserAccessValidator,
+        service: TicketsService,
     ) -> None:
         self.tickets_repo = tickets_repo
         self.codes_repo = codes_repo
         self.uow = uow
         self.id_provider = id_provider
-        self.access = access
+        self.service = service
 
     async def __call__(self, data: GenerateTicketDTO) -> GenerateTicketResult:
         user = await self.id_provider.get_user_data()
-        self.access.ensure_can_create_tickets(user)
+        self.service.ensure_user_can_create_tickets(user)
 
         # Generate ticket
         for _ in range(10):

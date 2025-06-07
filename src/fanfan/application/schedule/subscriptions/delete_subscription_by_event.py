@@ -3,7 +3,7 @@ import logging
 from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.exceptions.subscriptions import SubscriptionNotFound
 from fanfan.core.vo.schedule_event import ScheduleEventId
 

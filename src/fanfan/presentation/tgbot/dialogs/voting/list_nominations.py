@@ -56,10 +56,12 @@ async def nominations_getter(
         ),
     )
     nominations_list = [(n.id, n) for n in page.items]
+    pages = page.total // user.settings.items_per_page + bool(
+        page.total % user.settings.items_per_page
+    )
     return {
         "nominations_list": nominations_list,
-        "pages": page.total // user.settings.items_per_page
-        + bool(page.total % user.settings.items_per_page),
+        "pages": pages or 1,
     }
 
 

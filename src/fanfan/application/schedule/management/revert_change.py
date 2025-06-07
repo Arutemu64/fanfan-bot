@@ -11,7 +11,7 @@ from fanfan.core.exceptions.schedule import (
     ScheduleChangeNotFound,
 )
 from fanfan.core.models.schedule_change import ScheduleChangeType
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.schedule import ScheduleService
 from fanfan.core.vo.schedule_change import ScheduleChangeId
 
 logger = logging.getLogger(__name__)
@@ -25,18 +25,18 @@ class RevertScheduleChange:
         schedule_repo: ScheduleEventsRepository,
         events_broker: EventsBroker,
         id_provider: IdProvider,
-        access: UserAccessValidator,
+        service: ScheduleService,
     ):
         self.uow = uow
         self.schedule_changes_repo = schedule_changes_repo
         self.schedule_repo = schedule_repo
         self.events_broker = events_broker
         self.id_provider = id_provider
-        self.access = access
+        self.service = service
 
     async def __call__(self, schedule_change_id: ScheduleChangeId) -> None:
         user = await self.id_provider.get_user_data()
-        self.access.ensure_can_edit_schedule(user)
+        self.service.ensure_user_can_manage_schedule(user)
         schedule_change = await self.schedule_changes_repo.get_schedule_change(
             schedule_change_id
         )

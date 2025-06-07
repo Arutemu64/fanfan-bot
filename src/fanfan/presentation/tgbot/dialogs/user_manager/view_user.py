@@ -4,7 +4,7 @@ from aiogram_dialog.widgets.kbd import Button, Cancel, SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import AsyncContainer
 
-from fanfan.application.quest.read_user_quest_details import GetUserQuestStats
+from fanfan.application.quest.read_user_quest_details import GetUserQuestStatus
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_org
@@ -20,7 +20,7 @@ async def view_user_getter(
     **kwargs,
 ):
     managed_user_id = dialog_manager.start_data[DATA_USER_ID]
-    get_user_quest_details: GetUserQuestStats = await container.get(GetUserQuestStats)
+    get_user_quest_details: GetUserQuestStatus = await container.get(GetUserQuestStatus)
     user_stats = await get_user_quest_details(managed_user_id)
     return {
         "points": user_stats.points,

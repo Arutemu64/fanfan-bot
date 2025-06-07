@@ -8,4 +8,4 @@ class ParticipantsException(AppException):
 
 class ParticipantNotFound(ParticipantsException):
     def __init__(self, participant_id: ParticipantId):
-        self.message = f"⚠️ Участник {participant_id} не найден"
+        self.message = f"Участник {participant_id} не найден"

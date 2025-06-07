@@ -14,7 +14,7 @@ from fanfan.core.exceptions.limiter import RateLockCooldown
 from fanfan.core.exceptions.schedule import EventNotFound, ScheduleEditTooFast
 from fanfan.core.models.schedule_change import ScheduleChangeType
 from fanfan.core.models.schedule_event import ScheduleEvent
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.schedule import ScheduleService
 from fanfan.core.vo.schedule_event import ScheduleEventId
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class SetCurrentScheduleEvent:
         self,
         schedule_repo: ScheduleEventsRepository,
         limits: LimitsConfig,
-        access: UserAccessValidator,
+        service: ScheduleService,
         uow: UnitOfWork,
         rate_lock_factory: RateLockFactory,
         id_provider: IdProvider,
@@ -39,7 +39,7 @@ class SetCurrentScheduleEvent:
     ) -> None:
         self.schedule_repo = schedule_repo
         self.limits = limits
-        self.access = access
+        self.service = service
         self.uow = uow
         self.rate_lock_factory = rate_lock_factory
         self.events_broker = events_broker
@@ -50,7 +50,7 @@ class SetCurrentScheduleEvent:
         self, event_id: ScheduleEventId | None
     ) -> SetCurrentScheduleEventResult:
         user = await self.id_provider.get_user_data()
-        self.access.ensure_can_edit_schedule(user)
+        self.service.ensure_user_can_manage_schedule(user)
         lock = self.rate_lock_factory(
             ANNOUNCE_LIMIT_NAME,
             cooldown_period=self.limits.announcement_timeout,

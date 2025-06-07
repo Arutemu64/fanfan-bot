@@ -7,7 +7,7 @@ from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.notifications import NewNotificationEvent
-from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.vo.user import UserId, UserRole
 

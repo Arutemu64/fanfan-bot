@@ -5,7 +5,7 @@ from adaptix import Retort, name_mapping
 from fanfan.adapters.db.repositories.settings import SettingsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.exceptions.settings import SettingsNotFound
 from fanfan.core.vo.user import UserRole
 

@@ -61,10 +61,12 @@ async def list_products_getter(
             offset=await scroll.get_page() * user.settings.items_per_page,
         ),
     )
+    pages = page.total // user.settings.items_per_page + bool(
+        page.total % user.settings.items_per_page
+    )
     return {
         "products": page.items,
-        "pages": page.total // user.settings.items_per_page
-        + bool(page.total % user.settings.items_per_page),
+        "pages": pages or 1,
         "market_name": market.name,
         "is_manager": user.id in (u.id for u in market.managers),
     }

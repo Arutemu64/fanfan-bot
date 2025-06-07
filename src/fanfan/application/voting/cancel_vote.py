@@ -6,7 +6,7 @@ from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.events.voting import VoteUpdatedEvent
-from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.exceptions.votes import VoteNotFound
 from fanfan.core.vo.vote import VoteId
 

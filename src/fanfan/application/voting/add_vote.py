@@ -15,7 +15,7 @@ from fanfan.core.exceptions.votes import (
     AlreadyVotedInThisNomination,
 )
 from fanfan.core.models.vote import Vote
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.voting import VotingService
 from fanfan.core.vo.nomination import NominationId
 from fanfan.core.vo.participant import ParticipantVotingNumber
 
@@ -35,7 +35,7 @@ class AddVote:
         schedule_repo: ScheduleEventsRepository,
         votes_repo: VotesRepository,
         uow: UnitOfWork,
-        access: UserAccessValidator,
+        service: VotingService,
         id_provider: IdProvider,
         events_broker: EventsBroker,
     ) -> None:
@@ -43,7 +43,7 @@ class AddVote:
         self.schedule_repo = schedule_repo
         self.votes_repo = votes_repo
         self.uow = uow
-        self.access = access
+        self.service = service
         self.id_provider = id_provider
         self.events_broker = events_broker
 
@@ -69,7 +69,7 @@ class AddVote:
             user.id, data.nomination_id
         ):
             raise AlreadyVotedInThisNomination
-        await self.access.ensure_can_vote(user=user, ticket=user.ticket)
+        await self.service.ensure_user_can_vote(user=user, ticket=user.ticket)
 
         async with self.uow:
             try:

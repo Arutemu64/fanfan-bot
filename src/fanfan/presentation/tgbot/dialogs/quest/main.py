@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format, Jinja, Progress
 from dishka import AsyncContainer
 
-from fanfan.application.quest.read_user_quest_details import GetUserQuestStats
+from fanfan.application.quest.read_user_quest_details import GetUserQuestStatus
 from fanfan.core.models.user import UserData
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
@@ -25,7 +25,7 @@ async def quest_main_getter(
     container: AsyncContainer,
     **kwargs,
 ) -> dict:
-    get_user_stats: GetUserQuestStats = await container.get(GetUserQuestStats)
+    get_user_stats: GetUserQuestStatus = await container.get(GetUserQuestStatus)
 
     achievements_progress = 0
     user_stats = await get_user_stats(user.id)

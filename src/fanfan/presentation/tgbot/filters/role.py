@@ -1,7 +1,6 @@
 from aiogram.filters import Filter
 from aiogram.types import CallbackQuery, Message
 
-from fanfan.core.exceptions.access import AccessDenied
 from fanfan.core.models.user import UserData
 from fanfan.core.vo.user import UserRole
 
@@ -18,7 +17,7 @@ class RoleFilter(Filter):
         allowed = user.role in self.allowed_roles
         if allowed is False:
             if isinstance(event, CallbackQuery):
-                await event.answer(AccessDenied.message, show_alert=True)
+                await event.answer("У вас нет доступа к этой функции", show_alert=True)
             else:
-                await event.answer(AccessDenied.message)
+                await event.answer("У вас нет доступа к этой функции")
         return allowed

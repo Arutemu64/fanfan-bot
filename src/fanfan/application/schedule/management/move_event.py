@@ -23,7 +23,7 @@ from fanfan.core.models.schedule_change import (
     ScheduleChangeType,
 )
 from fanfan.core.models.schedule_event import ScheduleEvent
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.schedule import ScheduleService
 from fanfan.core.vo.schedule_event import ScheduleEventId
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class MoveScheduleEvent:
         schedule_repo: ScheduleEventsRepository,
         mailing_repo: MailingDAO,
         limits: LimitsConfig,
-        access: UserAccessValidator,
+        service: ScheduleService,
         uow: UnitOfWork,
         id_provider: IdProvider,
         rate_lock_factory: RateLockFactory,
@@ -56,7 +56,7 @@ class MoveScheduleEvent:
         self.schedule_repo = schedule_repo
         self.mailing_repo = mailing_repo
         self.limits = limits
-        self.access = access
+        self.service = service
         self.uow = uow
         self.id_provider = id_provider
         self.rate_lock_factory = rate_lock_factory
@@ -64,7 +64,7 @@ class MoveScheduleEvent:
 
     async def __call__(self, data: MoveEventDTO) -> MoveScheduleEventResult:
         user = await self.id_provider.get_user_data()
-        self.access.ensure_can_edit_schedule(user)
+        self.service.ensure_user_can_manage_schedule(user)
         lock = self.rate_lock_factory(
             ANNOUNCE_LIMIT_NAME,
             cooldown_period=self.limits.announcement_timeout,

@@ -48,10 +48,12 @@ async def list_markets_getter(
             offset=await scroll.get_page() * user.settings.items_per_page,
         )
     )
+    pages = page.total // user.settings.items_per_page + bool(
+        page.total % user.settings.items_per_page
+    )
     return {
         "markets": page.items,
-        "pages": page.total // user.settings.items_per_page
-        + bool(page.total % user.settings.items_per_page),
+        "pages": pages or 1,
     }
 
 

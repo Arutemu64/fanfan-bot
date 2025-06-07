@@ -5,8 +5,8 @@ from contextlib import suppress
 import uvicorn
 
 from fanfan.adapters.config.parsers import get_config
-from fanfan.common.debug.logging import setup_logging
-from fanfan.common.debug.telemetry import setup_telemetry
+from fanfan.adapters.debug.logging import setup_logging
+from fanfan.adapters.debug.telemetry import setup_telemetry
 from fanfan.presentation.web.factory import create_app
 
 

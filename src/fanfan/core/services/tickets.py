@@ -3,7 +3,9 @@ from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.core.constants.flags import VOTING_CONTEST_FLAG_NAME
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.ticket import Ticket
+from fanfan.core.models.user import User
 from fanfan.core.vo.user import UserRole
 
 
@@ -19,6 +21,12 @@ class TicketsService:
         self.users_repo = users_repo
         self.votes_repo = votes_repo
         self.flags_repo = flags_repo
+
+    @staticmethod
+    def ensure_user_can_create_tickets(user: User):
+        if user.permissions.can_create_tickets is False:
+            reason = "У вас нет прав для выпуска новых билетов"
+            raise AccessDenied(reason)
 
     async def unlink_ticket(self, ticket: Ticket):
         if user_id := ticket.used_by_id:

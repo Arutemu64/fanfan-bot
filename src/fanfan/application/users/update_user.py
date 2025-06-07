@@ -5,7 +5,7 @@ import logging
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import UserData
 from fanfan.core.vo.user import UserId, UserRole

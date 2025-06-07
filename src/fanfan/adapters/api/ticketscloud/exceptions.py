@@ -6,8 +6,4 @@ class TCloudException(AppException):
 
 
 class NoTCloudConfigProvided(TCloudException):
-    message = "⚠️ Не предоставлены настройки TimePad"
-
-
-class TCloudOrderProcessFailed(TCloudException):
-    pass
+    user_message = "⚠️ Не предоставлены настройки TimePad"

@@ -4,7 +4,7 @@ from fanfan.core.exceptions.base import AppException
 
 
 class LimiterException(AppException):
-    message = "⚠️ Неизвестная ошибка при запуске задачи"
+    pass
 
 
 class RateLockCooldown(LimiterException):
@@ -13,9 +13,9 @@ class RateLockCooldown(LimiterException):
         self.current_timestamp = timestamp
         time_left = int(timestamp + cooldown_period - time.time())
         self.message = (
-            f"⚠️ Задача выполняется слишком часто.Попробуйте через {time_left} с."
+            f"Задача выполняется слишком часто.Попробуйте через {time_left} с."
         )
 
 
 class RateLockInUse(LimiterException):
-    message = "⚠️ Задача уже выполняется"
+    user_message = "Задача уже выполняется"

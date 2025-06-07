@@ -7,7 +7,7 @@ from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.dto.mailing import MailingId
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.notifications import NewRolesNotificationEvent
-from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.vo.user import UserRole
 
 logger = logging.getLogger(__name__)

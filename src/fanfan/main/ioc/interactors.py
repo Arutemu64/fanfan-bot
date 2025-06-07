@@ -29,7 +29,7 @@ from fanfan.application.quest.read_achievements_page_for_user import (
     GetAchievementsPageForUser,
 )
 from fanfan.application.quest.read_quest_rating import GetQuestRating
-from fanfan.application.quest.read_user_quest_details import GetUserQuestStats
+from fanfan.application.quest.read_user_quest_details import GetUserQuestStatus
 from fanfan.application.quest.receive_achievement import ReceiveAchievement
 from fanfan.application.quest.reset_quest import ResetQuest
 from fanfan.application.schedule.get_page_number_by_event import (
@@ -132,7 +132,7 @@ class InteractorsProvider(Provider):
     update_user_settings = provide(UpdateUserSettings)
     send_message = provide(SendPersonalMessage)
 
-    get_user_quest_details = provide(GetUserQuestStats)
+    get_user_quest_details = provide(GetUserQuestStatus)
     get_quest_rating = provide(GetQuestRating)
     get_rating_page_by_user = provide(GetRatingPageNumberByUser)
     add_points = provide(AddPointsToUser)

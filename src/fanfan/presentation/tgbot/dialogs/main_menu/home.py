@@ -8,10 +8,11 @@ from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
 from fanfan.application.etc.read_random_quote import ReadRandomQuote
-from fanfan.core.exceptions.base import AppException
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.user import UserData
-from fanfan.core.services.access import UserAccessValidator
-from fanfan.core.vo.user import UserRole
+from fanfan.core.services.feedback import FeedbackService
+from fanfan.core.services.quest import QuestService
+from fanfan.core.services.voting import VotingService
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
     CURRENT_USER,
@@ -32,18 +33,22 @@ async def main_menu_getter(
     **kwargs,
 ):
     get_random_quote: ReadRandomQuote = await container.get(ReadRandomQuote)
-    access: UserAccessValidator = await container.get(UserAccessValidator)
+    quest_service: QuestService = await container.get(QuestService)
+    voting_service: VotingService = await container.get(VotingService)
 
     try:
-        await access.ensure_can_vote(user=user, ticket=user.ticket)
-        can_vote = True
-    except AppException:
-        can_vote = False
-    try:
-        access.ensure_can_participate_in_quest(user=user, ticket=user.ticket)
+        quest_service.ensure_user_can_participate_in_quest(
+            user=user, ticket=user.ticket
+        )
         can_participate_in_quest = True
-    except AppException:
+    except AccessDenied:
         can_participate_in_quest = False
+
+    try:
+        await voting_service.ensure_user_can_vote(user=user, ticket=user.ticket)
+        can_vote = True
+    except AccessDenied:
+        can_vote = False
 
     return {
         # Info
@@ -63,15 +68,9 @@ async def open_voting_handler(
     manager: DialogManager,
 ) -> None:
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    access: UserAccessValidator = await container.get(UserAccessValidator)
-
-    # Backdoor for orgs
+    voting_service: VotingService = await container.get(VotingService)
     user: UserData = manager.middleware_data["user"]
-    if user.role is UserRole.ORG:
-        await manager.start(states.Voting.LIST_NOMINATIONS)
-        return
-
-    await access.ensure_can_vote(user=user, ticket=user.ticket)
+    await voting_service.ensure_user_can_vote(user=user, ticket=user.ticket)
     await manager.start(states.Voting.LIST_NOMINATIONS)
 
 
@@ -82,9 +81,8 @@ async def open_feedback_handler(
 ) -> None:
     user: UserData = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    access: UserAccessValidator = await container.get(UserAccessValidator)
-
-    access.ensure_can_send_feedback(user)
+    feedback_service: FeedbackService = await container.get(FeedbackService)
+    feedback_service.ensure_user_can_send_feedback(user)
     await manager.start(states.Feedback.SEND_FEEDBACK)
 
 
@@ -95,9 +93,8 @@ async def open_quest_handler(
 ) -> None:
     user: UserData = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    access: UserAccessValidator = await container.get(UserAccessValidator)
-
-    access.ensure_can_participate_in_quest(user=user, ticket=user.ticket)
+    quest_service: QuestService = await container.get(QuestService)
+    quest_service.ensure_user_can_participate_in_quest(user=user, ticket=user.ticket)
     await manager.start(states.Quest.MAIN)
 
 

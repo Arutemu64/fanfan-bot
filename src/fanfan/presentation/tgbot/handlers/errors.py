@@ -20,10 +20,10 @@ logger = logging.getLogger(__name__)
 async def on_app_exception(event: ErrorEvent, dialog_manager: DialogManager) -> None:
     exception: AppException = typing.cast("AppException", event.exception)
     if c := event.update.callback_query:
-        await c.answer(exception.message, show_alert=True)
+        await c.answer(f"⚠️ {exception.user_message}", show_alert=True)
         await dialog_manager.update(data={}, show_mode=ShowMode.EDIT)
     elif m := event.update.message:
-        await m.reply(exception.message)
+        await m.reply(f"⚠️ {exception.user_message}")
         await dialog_manager.update(data={}, show_mode=ShowMode.DELETE_AND_SEND)
 
 

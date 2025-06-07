@@ -13,9 +13,9 @@ from dishka import AsyncContainer
 
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
 from fanfan.adapters.config.models import Configuration
-from fanfan.core.exceptions.access import AccessDenied
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.user import UserData
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.tickets import TicketsService
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.qr import qr_scanner_url_getter
@@ -30,11 +30,11 @@ async def staff_main_getter(
     **kwargs,
 ):
     config: Configuration = await container.get(Configuration)
-    access: UserAccessValidator = await container.get(UserAccessValidator)
+    tickets_service: TicketsService = await container.get(TicketsService)
     token_processor: JwtTokenProcessor = await container.get(JwtTokenProcessor)
 
     try:
-        access.ensure_can_create_tickets(user)
+        tickets_service.ensure_user_can_create_tickets(user)
         can_create_tickets = True
     except AccessDenied:
         can_create_tickets = False

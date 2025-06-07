@@ -6,9 +6,11 @@ from aiogram_dialog import DialogManager, ShowMode, StartMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.core.exceptions.base import AppException
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.user import UserData
-from fanfan.core.services.access import UserAccessValidator
+from fanfan.core.services.feedback import FeedbackService
+from fanfan.core.services.quest import QuestService
+from fanfan.core.services.voting import VotingService
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.filters import RoleFilter
@@ -18,7 +20,6 @@ from fanfan.presentation.tgbot.filters.commands import (
     LINK_TICKET_CMD,
     MARKETPLACE_CMD,
     NOTIFICATIONS_CMD,
-    QR_CMD,
     QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
@@ -72,12 +73,14 @@ async def quest_cmd(
     message: Message,
     dialog_manager: DialogManager,
     user: UserData,
-    access: FromDishka[UserAccessValidator],
+    quest_service: FromDishka[QuestService],
 ) -> None:
     try:
-        access.ensure_can_participate_in_quest(user=user, ticket=user.ticket)
+        quest_service.ensure_user_can_participate_in_quest(
+            user=user, ticket=user.ticket
+        )
         await dialog_manager.start(states.Quest.MAIN)
-    except AppException:
+    except AccessDenied:
         await dialog_manager.update(data={})
 
 
@@ -87,12 +90,12 @@ async def voting_cmd(
     message: Message,
     dialog_manager: DialogManager,
     user: UserData,
-    access: FromDishka[UserAccessValidator],
+    voting_service: FromDishka[VotingService],
 ) -> None:
     try:
-        await access.ensure_can_vote(user=user, ticket=user.ticket)
+        await voting_service.ensure_user_can_vote(user=user, ticket=user.ticket)
         await dialog_manager.start(states.Voting.LIST_NOMINATIONS)
-    except AppException:
+    except AccessDenied:
         await dialog_manager.update(data={})
 
 
@@ -107,12 +110,12 @@ async def feedback_cmd(
     message: Message,
     dialog_manager: DialogManager,
     user: UserData,
-    access: FromDishka[UserAccessValidator],
+    feedback_service: FromDishka[FeedbackService],
 ) -> None:
     try:
-        access.ensure_can_send_feedback(user)
+        feedback_service.ensure_user_can_send_feedback(user)
         await dialog_manager.start(states.Feedback.SEND_FEEDBACK)
-    except AppException:
+    except AccessDenied:
         await dialog_manager.update(data={})
 
 
@@ -124,8 +127,3 @@ async def settings_cmd(message: Message, dialog_manager: DialogManager) -> None:
 @router.message(Command(MARKETPLACE_CMD))
 async def marketplace_cmd(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(states.Marketplace.LIST_MARKETS)
-
-
-@router.message(Command(QR_CMD))
-async def qr_cmd(message: Message, dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(states.Main.QR_CODE)
