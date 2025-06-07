@@ -6,4 +6,4 @@ class ActivitiesException(AppException):
 
 
 class ActivityNotFound(ActivitiesException):
-    user_message = "Активность не найдена"
+    default_message = "Активность не найдена"

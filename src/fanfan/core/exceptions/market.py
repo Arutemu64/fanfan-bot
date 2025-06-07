@@ -6,32 +6,32 @@ class MarketException(AppException):
 
 
 class MarketNotFound(MarketException):
-    user_message = "Магазин не найден"
+    default_message = "Магазин не найден"
 
 
 class ProductNotFound(MarketException):
-    user_message = "Товар не найден"
+    default_message = "Товар не найден"
 
 
 class MarketNameTooLong(MarketException):
-    user_message = "Слишком длинное название магазина"
+    default_message = "Слишком длинное название магазина"
 
 
 class MarketDescTooLong(MarketException):
-    user_message = "Слишком длинное описание"
+    default_message = "Слишком длинное описание"
 
 
 class ProductNameTooLong(MarketException):
-    user_message = "Слишком длинное название товара"
+    default_message = "Слишком длинное название товара"
 
 
 class ProductDescTooLong(MarketException):
-    user_message = "Слишком длинное описание товара"
+    default_message = "Слишком длинное описание товара"
 
 
 class NegativeProductPrice(MarketException):
-    user_message = "Стоимость не может быть отрицательная"
+    default_message = "Стоимость не может быть отрицательная"
 
 
 class UserIsAlreadyMarketManager(MarketException):
-    user_message = "Пользователь уже является управляющим магазина"
+    default_message = "Пользователь уже является управляющим магазина"

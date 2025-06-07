@@ -9,7 +9,7 @@ class ScheduleException(AppException):
 
 
 class EventNotFound(ScheduleException):
-    user_message = "Выступление не найдено"
+    default_message = "Выступление не найдено"
 
     def __init__(self, event_id: int | None = None) -> None:
         if isinstance(event_id, int):
@@ -17,7 +17,7 @@ class EventNotFound(ScheduleException):
 
 
 class NoNextEvent(EventNotFound):
-    user_message = "Выступления закончились, спасибо за работу!"
+    default_message = "Выступления закончились, спасибо за работу!"
 
 
 class ScheduleEditTooFast(ScheduleException):
@@ -33,16 +33,16 @@ class ScheduleEditTooFast(ScheduleException):
 
 
 class CurrentEventNotAllowed(ScheduleException):
-    user_message = "Это выступление является текущим"
+    default_message = "Это выступление является текущим"
 
 
 class SameEventsAreNotAllowed(ScheduleException):
-    user_message = "Выступления не могут совпадать"
+    default_message = "Выступления не могут совпадать"
 
 
 class ScheduleChangeNotFound(ScheduleException):
-    user_message = "Изменение расписания не найдено. Возможно, оно отменено."
+    default_message = "Изменение расписания не найдено. Возможно, оно отменено."
 
 
 class OutdatedScheduleChange(ScheduleException):
-    user_message = "Это изменение уже неактуально."
+    default_message = "Это изменение уже неактуально."

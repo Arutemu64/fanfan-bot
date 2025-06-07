@@ -6,8 +6,8 @@ class SubscriptionsException(AppException):
 
 
 class SubscriptionAlreadyExist(SubscriptionsException):
-    user_message = "Вы уже подписаны на это выступление"
+    default_message = "Вы уже подписаны на это выступление"
 
 
 class SubscriptionNotFound(SubscriptionsException):
-    user_message = "Подписка не найдена"
+    default_message = "Подписка не найдена"

@@ -1,12 +1,12 @@
 class AppException(Exception):
-    user_message = "Неизвестная ошибка"
+    default_message = "Неизвестная ошибка"
 
-    def __init__(self, user_message: str) -> None:
-        self.user_message = user_message
+    def __init__(self, message: str | None = None) -> None:
+        self.message = message or self.default_message
 
     def __str__(self) -> str:
-        return self.user_message
+        return self.message
 
 
 class AccessDenied(AppException):
-    user_message = "У вас нет доступа к этой функции"
+    default_message = "У вас нет доступа к этой функции"

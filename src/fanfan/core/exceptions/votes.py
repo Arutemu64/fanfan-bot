@@ -6,8 +6,8 @@ class VotesException(AppException):
 
 
 class AlreadyVotedInThisNomination(VotesException):
-    user_message = "Вы уже голосовали в этой номинации"
+    default_message = "Вы уже голосовали в этой номинации"
 
 
 class VoteNotFound(VotesException):
-    user_message = "Голос не найден"
+    default_message = "Голос не найден"

@@ -6,7 +6,7 @@ class AchievementsException(AppException):
 
 
 class AchievementNotFound(AchievementsException):
-    user_message = "Достижение не найдено"
+    default_message = "Достижение не найдено"
 
     def __init__(self, achievement_id: int | None = None) -> None:
         if achievement_id:
@@ -14,4 +14,4 @@ class AchievementNotFound(AchievementsException):
 
 
 class UserAlreadyHasThisAchievement(AchievementsException):
-    user_message = "Это достижение уже получено"
+    default_message = "Это достижение уже получено"

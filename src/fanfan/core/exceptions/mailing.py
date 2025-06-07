@@ -6,4 +6,4 @@ class MailingException(AppException):
 
 
 class MailingNotFound(MailingException):
-    user_message = "Рассылка не найдена"
+    default_message = "Рассылка не найдена"

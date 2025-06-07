@@ -69,7 +69,7 @@ def create_feedback_notification(feedback: FeedbackDTO) -> UserNotification:
 def create_app_exception_notification(app_exception: AppException) -> UserNotification:
     return UserNotification(
         title="⚠️ ОШИБКА",
-        text=app_exception.user_message,
+        text=app_exception.message,
         reply_markup=InlineKeyboardBuilder([[DELETE_BUTTON]]).as_markup(),
     )
 

@@ -6,4 +6,4 @@ class NominationsException(AppException):
 
 
 class NominationNotFound(NominationsException):
-    user_message = "Номинация не найдена"
+    default_message = "Номинация не найдена"

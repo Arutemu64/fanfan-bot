@@ -6,4 +6,4 @@ class CodesException(AppException):
 
 
 class CodeNotFound(CodesException):
-    user_message = "Неизвестный QR-код"
+    default_message = "Неизвестный QR-код"

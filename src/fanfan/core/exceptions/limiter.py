@@ -18,4 +18,4 @@ class RateLockCooldown(LimiterException):
 
 
 class RateLockInUse(LimiterException):
-    user_message = "Задача уже выполняется"
+    default_message = "Задача уже выполняется"

@@ -6,8 +6,8 @@ class FeedbackException(AppException):
 
 
 class FeedbackNotFound(FeedbackException):
-    user_message = "Обратная связь не найдена"
+    default_message = "Обратная связь не найдена"
 
 
 class FeedbackAlreadyProcessed(FeedbackException):
-    user_message = "Обратная связь уже обработана"
+    default_message = "Обратная связь уже обработана"

@@ -6,4 +6,4 @@ class UsersException(AppException):
 
 
 class UserNotFound(UsersException):
-    user_message = "Пользователь не найден"
+    default_message = "Пользователь не найден"
