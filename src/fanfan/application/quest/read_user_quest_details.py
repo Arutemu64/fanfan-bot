@@ -53,7 +53,7 @@ class GetUserQuestStatus:
             can_participate_in_quest = True
         except AccessDenied as e:
             can_participate_in_quest = False
-            reason = e.user_message
+            reason = e.message
 
         return UserQuestStatusDTO(
             user_id=player.user_id,
