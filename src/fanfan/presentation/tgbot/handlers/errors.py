@@ -48,7 +48,7 @@ async def on_unknown_error(event: ErrorEvent) -> None:
     logger.error(
         "Critical error caused by %s",
         type(event.exception).__name__,
-        exc_info=True,
+        exc_info=True,  # noqa: LOG014
     )
     notification = create_exception_notification(event.exception)
     if c := event.update.callback_query:

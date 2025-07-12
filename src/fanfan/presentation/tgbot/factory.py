@@ -7,6 +7,7 @@ from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
 from aiogram_dialog.context.media_storage import MediaIdStorage
 from aiogram_dialog.manager.manager_middleware import BG_FACTORY_KEY
+from dishka import AsyncContainer
 from dishka.integrations.aiogram import setup_dishka
 from redis.asyncio import Redis
 from sulguk import AiogramSulgukMiddleware
@@ -34,6 +35,7 @@ def create_bot(config: BotConfig) -> Bot:
 def create_dispatcher(
     storage: BaseStorage,
     event_isolation: BaseEventIsolation,
+    container: AsyncContainer,
 ) -> Dispatcher:
     dp = Dispatcher(
         storage=storage,
@@ -42,6 +44,9 @@ def create_dispatcher(
 
     # Bot only works in DM
     dp.message.filter(F.chat.type == "private")
+
+    # Setup DI
+    setup_dishka(container, dp)
 
     # Setup dialogs
     dp[BG_FACTORY_KEY] = setup_dialogs(
@@ -61,15 +66,6 @@ def create_dispatcher(
     dp.inline_query.outer_middleware(LoadDataMiddleware())
     dp.errors.outer_middleware(LoadDataMiddleware())
     dp.observers[DIALOG_EVENT_NAME].outer_middleware(LoadDataMiddleware())
-
-    # Setup DI
-    # We create another container here (instead of using external)
-    # cause external container may use different IdProvider
-    from fanfan.main.di import create_bot_container
-
-    container = create_bot_container()
-    setup_dishka(container, dp)
-    dp.shutdown.register(container.close)
 
     return dp
 

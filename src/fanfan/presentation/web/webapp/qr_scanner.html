@@ -12,6 +12,12 @@
     <title>QR Scanner WebApp for FAN FAN Telegram Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
+
+        function closeApp() {
+            Telegram.WebApp.closeScanQrPopup();
+            Telegram.WebApp.close();
+        }
+
         async function handleQrScan(qrData) {
             try {
                 const response = await fetch('qr_scanner', {
@@ -26,16 +32,19 @@
                 });
 
                 if (response.ok) {
-                    Telegram.WebApp.closeScanQrPopup();
-                    Telegram.WebApp.close();
+                    const data = await response.json();
+                    if (data.message != null) {
+                        Telegram.WebApp.showAlert(data.message, closeApp);
+                    } else {
+                        closeApp();
+                    }
                 } else {
                     const error = await response.text();
                     throw new Error(`Failed to process QR data: ${error}`);
                 }
             } catch (error) {
                 console.error(error);
-                Telegram.WebApp.closeScanQrPopup();
-                Telegram.WebApp.close();
+                Telegram.WebApp.showAlert(error, closeApp);
             }
         }
 
@@ -48,7 +57,7 @@
                 handleQrScan
             );
         } else if (isTelegramClient && !isTelegramApiUpdated) {
-            Telegram.WebApp.showAlert('⚠️ Ваш клиент Telegram не поддерживает Bot API 7.7.\nПожалуйста, обновите приложение.');
+            Telegram.WebApp.showAlert('Ваш клиент Telegram не поддерживает Bot API 7.7.\nПожалуйста, обновите приложение.');
             Telegram.WebApp.close();
         }
     </script>

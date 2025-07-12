@@ -31,7 +31,7 @@ broker = (
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup(state: TaskiqState) -> None:
-    from fanfan.main.di import create_system_container
+    from fanfan.main.di import create_system_container  # noqa: PLC0415
 
     container = create_system_container()
     config: Configuration = await container.get(Configuration)

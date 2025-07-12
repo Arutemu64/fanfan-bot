@@ -1,11 +1,11 @@
 from aiogram_dialog import Dialog
 
 from fanfan.presentation.tgbot.dialogs.link_ticket.main import link_ticket_window
-from fanfan.presentation.tgbot.dialogs.link_ticket.manual_input import (
-    manual_ticket_input_window,
-)
-from fanfan.presentation.tgbot.dialogs.link_ticket.qr_scan import (
+from fanfan.presentation.tgbot.dialogs.link_ticket.online_ticket import (
     qr_scan_ticket_window,
+)
+from fanfan.presentation.tgbot.dialogs.link_ticket.unique_code import (
+    manual_ticket_input_window,
 )
 
 dialog = Dialog(link_ticket_window, manual_ticket_input_window, qr_scan_ticket_window)

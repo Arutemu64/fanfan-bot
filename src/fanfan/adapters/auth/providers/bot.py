@@ -13,7 +13,7 @@ if typing.TYPE_CHECKING:
     from aiogram.types import User as TelegramUser
 
 
-class TelegramIdProvider(IdProvider):
+class BotIdProvider(IdProvider):
     def __init__(
         self,
         middleware_data: AiogramMiddlewareData,

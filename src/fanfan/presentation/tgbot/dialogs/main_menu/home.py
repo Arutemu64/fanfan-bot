@@ -142,6 +142,11 @@ main_window = Window(
             id="open_quest",
             on_click=open_quest_handler,
         ),
+        Start(
+            text=Const(strings.titles.qr),
+            id="open_qr",
+            state=states.QR.MAIN,
+        ),
         Button(
             text=Case(
                 texts={

@@ -20,6 +20,7 @@ from fanfan.presentation.tgbot.filters.commands import (
     LINK_TICKET_CMD,
     MARKETPLACE_CMD,
     NOTIFICATIONS_CMD,
+    QR_CMD,
     QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
@@ -127,3 +128,8 @@ async def settings_cmd(message: Message, dialog_manager: DialogManager) -> None:
 @router.message(Command(MARKETPLACE_CMD))
 async def marketplace_cmd(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(states.Marketplace.LIST_MARKETS)
+
+
+@router.message(Command(QR_CMD))
+async def qr_cmd(message: Message, dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(states.QR.MAIN)

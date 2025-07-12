@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 PageItem = TypeVar("PageItem")
 
@@ -11,6 +11,6 @@ class Pagination:
 
 
 @dataclass(frozen=True, slots=True)
-class Page(Generic[PageItem]):
+class Page[PageItem]:
     items: list[PageItem]
     total: int

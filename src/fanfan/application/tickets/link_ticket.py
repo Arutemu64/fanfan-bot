@@ -7,7 +7,6 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.tickets import (
-    TicketAlreadyUsed,
     TicketNotFound,
     UserAlreadyHasTicketLinked,
 )
@@ -45,11 +44,9 @@ class LinkTicket:
                 ticket = await self.tickets_repo.get_ticket_by_id(ticket_id)
                 if ticket is None:
                     raise TicketNotFound
-                if ticket.used_by_id:
-                    raise TicketAlreadyUsed
 
                 # Link ticket
-                ticket.used_by_id = user_id
+                ticket.set_as_used(user.id)
                 user.set_role(ticket.role)
                 await self.tickets_repo.save_ticket(ticket)
                 await self.users_repo.save_user(user)

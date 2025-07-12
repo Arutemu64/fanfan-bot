@@ -4,6 +4,9 @@ import logging
 import sys
 
 from aiogram import Bot, Dispatcher
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
+from aiohttp.web_runner import AppRunner, TCPSite
 
 from fanfan.adapters.config.models import Configuration
 from fanfan.adapters.config.parsers import get_config
@@ -28,10 +31,6 @@ async def on_startup(bot: Bot) -> None:
 
 
 async def run_webhook(bot: Bot, dp: Dispatcher, config: Configuration) -> None:
-    from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-    from aiohttp import web
-    from aiohttp.web_runner import AppRunner, TCPSite
-
     app = web.Application()
     webhook_requests_handler = SimpleRequestHandler(
         dispatcher=dp,

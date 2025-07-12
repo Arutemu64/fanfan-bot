@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from fanfan.adapters.config.models import Configuration
 from fanfan.presentation.web.admin.auth import AdminAuth
+from fanfan.presentation.web.admin.views import views
 
 
 def setup_admin(
@@ -21,8 +22,6 @@ def setup_admin(
         debug=config.debug.enabled,
         templates_dir=Path(__file__).parent.joinpath("templates").__str__(),
     )
-
-    from fanfan.presentation.web.admin.views import views
 
     for v in views:
         admin.add_view(v)

@@ -50,31 +50,22 @@ class GenerateTicket:
 
         # Generate ticket
         for _ in range(10):
+            unique_code = generate_unique_code(length=8)
             async with self.uow:
                 try:
-                    ticket = await self.tickets_repo.add_ticket(
-                        Ticket(
-                            id=TicketId(generate_unique_code(length=8)),
-                            role=data.role,
-                            used_by_id=None,
-                            issued_by_id=user.id,
-                        )
+                    ticket = Ticket(
+                        id=TicketId(unique_code),
+                        role=data.role,
+                        used_by_id=None,
+                        issued_by_id=user.id,
                     )
-                    await self.uow.commit()
-                    break
-                except IntegrityError:
-                    await self.uow.rollback()
-
-        # Generate code
-        for _ in range(10):
-            async with self.uow:
-                try:
                     user_code = Code(
-                        id=CodeId(generate_unique_code()),
+                        id=CodeId(unique_code),
                         achievement_id=None,
                         user_id=None,
                         ticket_id=ticket.id,
                     )
+                    await self.tickets_repo.add_ticket(ticket)
                     await self.codes_repo.add_code(user_code)
                     await self.uow.commit()
                     break

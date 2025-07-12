@@ -8,7 +8,7 @@ from fanfan.core.vo.schedule_event import ScheduleEventId, ScheduleEventPublicId
 
 
 @dataclass(slots=True, kw_only=True)
-class ScheduleEvent:
+class ScheduleEvent:  # noqa: PLW1641
     id: ScheduleEventId | None = None
     public_id: ScheduleEventPublicId
     title: str

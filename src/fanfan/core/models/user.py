@@ -24,7 +24,7 @@ class UserSettings:
 
 
 @dataclass(slots=True, kw_only=True)
-class User:
+class User:  # noqa: PLW1641
     id: UserId
     username: str | None
     first_name: str | None

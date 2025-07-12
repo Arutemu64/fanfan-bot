@@ -9,6 +9,7 @@ from fanfan.presentation.tgbot.dialogs import (
     mailing,
     main_menu,
     marketplace,
+    qr,
     quest,
     schedule,
     settings,
@@ -32,6 +33,7 @@ def setup_router() -> Router:
         activities.dialog,
         quest.dialog,
         marketplace.dialog,
+        qr.dialog,
     )
 
     helper_router = Router(name="helper_dialog_router")

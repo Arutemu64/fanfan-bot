@@ -1,7 +1,7 @@
 from dishka import Provider, Scope, provide
 
+from fanfan.adapters.auth.providers.bot import BotIdProvider
 from fanfan.adapters.auth.providers.system import SystemIdProvider
-from fanfan.adapters.auth.providers.telegram import TelegramIdProvider
 from fanfan.adapters.auth.providers.web import WebIdProvider
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
 from fanfan.application.common.id_provider import IdProvider
@@ -11,10 +11,10 @@ class JwtTokenProcessorProvider(Provider):
     token_processor = provide(JwtTokenProcessor, scope=Scope.APP)
 
 
-class TelegramAuthProvider(Provider):
+class BotAuthProvider(Provider):
     scope = Scope.REQUEST
 
-    telegram_id_provider = provide(TelegramIdProvider, provides=IdProvider)
+    bot_id_provider = provide(BotIdProvider, provides=IdProvider)
 
 
 class WebAuthProvider(Provider):

@@ -20,8 +20,8 @@ class Main(StatesGroup):
 
 class LinkTicket(StatesGroup):
     MAIN = State()
-    MANUAL_INPUT = State()
-    QR_SCAN = State()
+    ONLINE_TICKET = State()
+    UNIQUE_CODE = State()
 
 
 class Mailing(StatesGroup):
@@ -71,6 +71,10 @@ class Voting(StatesGroup):
 class Quest(StatesGroup):
     MAIN = State()
     RATING = State()
+
+
+class QR(StatesGroup):
+    MAIN = State()
 
 
 class InlineQuerySearch(StatesGroup):

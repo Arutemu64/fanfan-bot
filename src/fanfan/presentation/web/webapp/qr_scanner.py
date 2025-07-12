@@ -1,19 +1,20 @@
 from pathlib import Path
 
+from aiogram import Bot
+from aiogram_dialog import BgManagerFactory, ShowMode, StartMode
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Depends, Request
 from starlette.responses import FileResponse, JSONResponse
 
-from fanfan.adapters.utils.notifier import BotNotifier
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.application.tickets.link_ticket import LinkTicket
 from fanfan.core.exceptions.base import AppException
-from fanfan.core.utils.notifications import (
-    create_app_exception_notification,
-    create_exception_notification,
-)
+from fanfan.core.exceptions.codes import CodeNotFound
 from fanfan.core.vo.code import CodeId
-from fanfan.presentation.tgbot.utils.qr_reader import QRReader
+from fanfan.core.vo.ticket import TicketId
+from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.utils.code_processor import CodeProcessor
 from fanfan.presentation.web.webapp.auth import webapp_auth
 
 QR_SCANNER_APP = Path(__file__).parent.joinpath("qr_scanner.html")
@@ -33,25 +34,51 @@ async def open_qr_scanner() -> FileResponse:
 @inject
 async def proceed_qr_post(
     request: Request,
-    proceed_qr: FromDishka[QRReader],
-    notifier: FromDishka[BotNotifier],
+    code_processor: FromDishka[CodeProcessor],
+    link_ticket: FromDishka[LinkTicket],
+    bg_factory: FromDishka[BgManagerFactory],
+    bot: FromDishka[Bot],
     id_provider: FromDishka[IdProvider],
 ) -> JSONResponse:
-    user_id = id_provider.get_current_user_id()
     try:
-        data = await request.json()
-        await proceed_qr(CodeId(data["qr_data"]))
+        user_id = id_provider.get_current_user_id()
+        request_data = await request.json()
+        qr_data = request_data.get("qr_data")
+
+        # Assume user scanned CodeId
+        try:
+            result = await code_processor(CodeId(qr_data))
+            return JSONResponse({"ok": True, "message": result.message})
+        except CodeNotFound:
+            pass
+
+        # If CodeId not found, assume user scanned
+        # TCloud QR code (numeric, 16 digits)
+        if qr_data.isnumeric() and len(qr_data) == 16:
+            await link_ticket(ticket_id=TicketId(qr_data))
+            bg = bg_factory.bg(
+                bot=bot,
+                user_id=user_id,
+                chat_id=user_id,
+                load=True,
+            )
+            await bg.start(
+                state=states.Main.HOME,
+                mode=StartMode.RESET_STACK,
+                show_mode=ShowMode.DELETE_AND_SEND,
+            )
+            return JSONResponse(
+                {
+                    "ok": True,
+                    "message": "Билет успешно привязан! "
+                    "Теперь тебе доступны все функции бота!",
+                }
+            )
+
+    # Error handling
     except AppException as e:
-        await notifier.send_notification(
-            user_id=user_id,
-            notification=create_app_exception_notification(e),
-        )
-        return JSONResponse({"ok": False})
+        return JSONResponse({"ok": False, "message": e.message})
     except Exception as e:  # noqa: BLE001
-        await notifier.send_notification(
-            user_id=user_id,
-            notification=create_exception_notification(e),
-        )
-        return JSONResponse({"ok": False})
+        return JSONResponse({"ok": False, "message": e.__class__.__name__})
     else:
-        return JSONResponse({"ok": True})
+        return JSONResponse({"ok": False, "message": None})
