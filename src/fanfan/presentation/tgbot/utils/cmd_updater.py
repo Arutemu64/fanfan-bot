@@ -14,6 +14,7 @@ from fanfan.presentation.tgbot.filters.commands import (
     LINK_TICKET_CMD,
     MARKETPLACE_CMD,
     NOTIFICATIONS_CMD,
+    QR_CMD,
     QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
@@ -47,6 +48,7 @@ class CMDUpdater:
             commands_list.append(LINK_TICKET_CMD)
 
         commands_list.append(START_CMD)
+        commands_list.append(QR_CMD)
         commands_list.append(ABOUT_CMD)
         commands_list.append(SCHEDULE_CMD)
         commands_list.append(NOTIFICATIONS_CMD)
