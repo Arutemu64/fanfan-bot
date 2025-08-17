@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+from typing import Annotated
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Body, HTTPException
 from starlette.responses import JSONResponse
 
 from fanfan.adapters.api.ticketscloud.config import TCloudConfig
@@ -21,12 +22,18 @@ class TCloudWebhookPayload:
 @tcloud_webhook_router.post("/tcloud_webhook")
 @inject
 async def order_change(
-    payload: TCloudWebhookPayload,
     tcloud_importer: FromDishka[TCloudImporter],
     config: FromDishka[TCloudConfig | None],
+    payload: Annotated[TCloudWebhookPayload | None, Body()] = None,
 ) -> JSONResponse:
+    # если пришёл пустой POST
+    if payload is None:
+        return JSONResponse(
+            content={"status": "ignored empty webhook"}, status_code=200
+        )
+
     if config:
         added_tickets = await tcloud_importer.proceed_order(payload.data)
-        data = {"added_tickets": added_tickets}
-        return JSONResponse(content=data, status_code=200)
+        return JSONResponse(content={"added_tickets": added_tickets}, status_code=200)
+
     raise HTTPException(status_code=500, detail="TCloud config not provided")
