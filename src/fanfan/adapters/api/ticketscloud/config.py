@@ -1,6 +1,8 @@
 from pydantic import BaseModel, SecretStr
 
+from fanfan.core.vo.user import UserRole
+
 
 class TCloudConfig(BaseModel):
     api_key: SecretStr
-    participant_event_id: str | None = None
+    event_ids: dict[str, UserRole]

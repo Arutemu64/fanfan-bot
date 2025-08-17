@@ -10,6 +10,7 @@ class OrderStatus(StrEnum):
     DONE = "done"
     CANCELLED = "cancelled"
     EXPIRED = "expired"
+    IN_PROGRESS = "in_progress"
 
 
 @dataclass

@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from fanfan.adapters.api.ticketscloud.dto.pagination import Pagination
-from fanfan.adapters.api.ticketscloud.dto.ticket import Ticket
 
 
 class RefundStatus(StrEnum):
@@ -17,7 +16,7 @@ class Refund:
     id: str
     event: str
     status: RefundStatus
-    tickets: list[Ticket]
+    tickets: list[str]
 
 
 @dataclass(slots=True, frozen=True)
