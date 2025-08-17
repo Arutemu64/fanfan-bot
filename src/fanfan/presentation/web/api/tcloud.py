@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import StrEnum
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
@@ -13,18 +12,10 @@ from fanfan.adapters.api.ticketscloud.importer import TCloudImporter
 tcloud_webhook_router = APIRouter()
 
 
-class TCloudWebhookType(StrEnum):
-    ORDER_CREATED = "order_created"
-    ORDER_IN_PROGRESS = "order_in_progress"
-    ORDER_DONE = "order_done"
-    ORDER_CANCELLED = "order_cancelled"
-    ORDER_EXPIRED = "order_expired"
-
-
 @dataclass(slots=True, frozen=True)
 class TCloudWebhookPayload:
     data: Order
-    type: TCloudWebhookType
+    type: str  # TODO Enforce possible types later
 
 
 @tcloud_webhook_router.post("/tcloud_webhook")

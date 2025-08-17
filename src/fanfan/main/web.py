@@ -2,6 +2,7 @@ import asyncio
 import sys
 from contextlib import suppress
 
+import logfire
 import uvicorn
 
 from fanfan.adapters.config.parsers import get_config
@@ -25,9 +26,12 @@ def main():
     )
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    app = create_app(web_config=config.web, debug_config=config.debug)
+    logfire.instrument_fastapi(app)
     with suppress(KeyboardInterrupt):
         uvicorn.run(
-            create_app(web_config=config.web, debug_config=config.debug),
+            app,
             host=config.web.host,
             port=config.web.port,
             root_path=config.web.path,
