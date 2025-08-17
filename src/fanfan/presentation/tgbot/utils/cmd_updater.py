@@ -9,14 +9,7 @@ from fanfan.core.services.quest import QuestService
 from fanfan.core.services.voting import VotingService
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot.filters.commands import (
-    ABOUT_CMD,
-    FEEDBACK_CMD,
     LINK_TICKET_CMD,
-    MARKETPLACE_CMD,
-    NOTIFICATIONS_CMD,
-    QR_CMD,
-    QUEST_CMD,
-    SCHEDULE_CMD,
     SETTINGS_CMD,
     STAFF_CMD,
     START_CMD,
@@ -48,18 +41,6 @@ class CMDUpdater:
             commands_list.append(LINK_TICKET_CMD)
 
         commands_list.append(START_CMD)
-        commands_list.append(QR_CMD)
-        commands_list.append(ABOUT_CMD)
-        commands_list.append(SCHEDULE_CMD)
-        commands_list.append(NOTIFICATIONS_CMD)
-
-        try:
-            self.quest_service.ensure_user_can_participate_in_quest(
-                user=user, ticket=user.ticket
-            )
-            commands_list.append(QUEST_CMD)
-        except AccessDenied:
-            pass
 
         try:
             await self.voting_service.ensure_user_can_vote(
@@ -69,16 +50,8 @@ class CMDUpdater:
         except AccessDenied:
             pass
 
-        commands_list.append(MARKETPLACE_CMD)
-
         if user.role in [UserRole.HELPER, UserRole.ORG]:
             commands_list.append(STAFF_CMD)
-
-        try:
-            self.feedback_service.ensure_user_can_send_feedback(user)
-            commands_list.append(FEEDBACK_CMD)
-        except AccessDenied:
-            pass
 
         commands_list.append(SETTINGS_CMD)
 

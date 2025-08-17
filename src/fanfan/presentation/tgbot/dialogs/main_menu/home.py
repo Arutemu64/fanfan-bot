@@ -20,7 +20,6 @@ from fanfan.presentation.tgbot.dialogs.common.getters import (
 )
 from fanfan.presentation.tgbot.dialogs.common.predicates import (
     is_helper,
-    is_ticket_linked,
 )
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
@@ -107,11 +106,6 @@ main_window = Window(
         "новые знакомства и тёплые воспоминания. Наслаждайся каждым моментом! 🎉🍉🌸"
     ),
     Const(" "),
-    Const(
-        "🎟️ Не забудь привязать свой билет, чтобы получить доступ ко "
-        "всем функциям бота.\n",
-        when=~F[CURRENT_USER].ticket,
-    ),
     Format("<i>{quote}</i>", when=F["quote"]),
     StaticMedia(path=Format("{image_path}")),
     Start(
@@ -121,32 +115,6 @@ main_window = Window(
         when=~F[CURRENT_USER].ticket,
     ),
     Group(
-        Start(
-            Const(strings.titles.activities),
-            id="open_activities",
-            state=states.Activities.LIST_ACTIVITIES,
-        ),
-        Start(
-            text=Const(strings.titles.schedule),
-            id="open_schedule",
-            state=states.Schedule.MAIN,
-        ),
-        Button(
-            Case(
-                texts={
-                    True: Const(strings.titles.quest),
-                    False: Const(f"{strings.titles.quest} 🔒"),
-                },
-                selector=is_ticket_linked,
-            ),
-            id="open_quest",
-            on_click=open_quest_handler,
-        ),
-        Start(
-            text=Const(strings.titles.qr),
-            id="open_qr",
-            state=states.QR.MAIN,
-        ),
         Button(
             text=Case(
                 texts={
@@ -159,26 +127,10 @@ main_window = Window(
             on_click=open_voting_handler,
         ),
         Start(
-            text=Const(strings.titles.marketplace),
-            id="open_markets",
-            state=states.Marketplace.LIST_MARKETS,
-        ),
-        Start(
             text=Const(strings.titles.staff_menu),
             id="open_helper_menu",
             when=is_helper,
             state=states.Staff.MAIN,
-        ),
-        Button(
-            text=Case(
-                {
-                    True: Const(strings.titles.feedback),
-                    False: Const(f"{strings.titles.feedback} 🔒"),
-                },
-                selector=F[CURRENT_USER].permissions.can_send_feedback,
-            ),
-            id="open_feedback",
-            on_click=open_feedback_handler,
         ),
         Start(
             text=Const(strings.titles.settings),
