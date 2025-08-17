@@ -6,7 +6,7 @@ class Ticket:
     id: str
     serial: str
     number: int
-    barcode: str
+    barcode: str | None
     status: str
     price: str
     nominal: str
