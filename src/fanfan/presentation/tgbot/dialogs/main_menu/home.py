@@ -57,7 +57,7 @@ async def main_menu_getter(
         "can_vote": can_vote,
         "can_participate_in_quest": can_participate_in_quest,
         # Customization
-        "image_path": UI_IMAGES_DIR.joinpath("main_menu.png"),
+        "image_path": UI_IMAGES_DIR.joinpath("main_menu.jpg"),
         "quote": await get_random_quote(),
     }
 
