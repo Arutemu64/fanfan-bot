@@ -16,8 +16,8 @@ class OrderStatus(StrEnum):
 @dataclass
 class Order:
     id: str
-    event: str
     status: OrderStatus
+    event: str
     tickets: list[Ticket]
 
 
