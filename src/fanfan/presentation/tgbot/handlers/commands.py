@@ -10,7 +10,6 @@ from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.user import UserData
 from fanfan.core.services.feedback import FeedbackService
 from fanfan.core.services.quest import QuestService
-from fanfan.core.services.voting import VotingService
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.filters import RoleFilter
@@ -90,14 +89,8 @@ async def quest_cmd(
 async def voting_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: UserData,
-    voting_service: FromDishka[VotingService],
 ) -> None:
-    try:
-        await voting_service.ensure_user_can_vote(user=user, ticket=user.ticket)
-        await dialog_manager.start(states.Voting.LIST_NOMINATIONS)
-    except AccessDenied:
-        await dialog_manager.update(data={})
+    await dialog_manager.start(states.Voting.LIST_NOMINATIONS)
 
 
 @router.message(Command(STAFF_CMD), RoleFilter(UserRole.HELPER, UserRole.ORG))

@@ -52,20 +52,13 @@ class CMDUpdater:
         commands_list.append(ABOUT_CMD)
         commands_list.append(SCHEDULE_CMD)
         commands_list.append(NOTIFICATIONS_CMD)
+        commands_list.append(VOTING_CMD)
 
         try:
             self.quest_service.ensure_user_can_participate_in_quest(
                 user=user, ticket=user.ticket
             )
             commands_list.append(QUEST_CMD)
-        except AccessDenied:
-            pass
-
-        try:
-            await self.voting_service.ensure_user_can_vote(
-                user=user, ticket=user.ticket
-            )
-            commands_list.append(VOTING_CMD)
         except AccessDenied:
             pass
 
