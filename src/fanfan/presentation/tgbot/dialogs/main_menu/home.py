@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Group, Start
 from aiogram_dialog.widgets.media import StaticMedia
-from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
@@ -12,7 +12,6 @@ from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.user import UserData
 from fanfan.core.services.feedback import FeedbackService
 from fanfan.core.services.quest import QuestService
-from fanfan.core.services.voting import VotingService
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
     CURRENT_USER,
@@ -33,7 +32,6 @@ async def main_menu_getter(
 ):
     get_random_quote: ReadRandomQuote = await container.get(ReadRandomQuote)
     quest_service: QuestService = await container.get(QuestService)
-    voting_service: VotingService = await container.get(VotingService)
 
     try:
         quest_service.ensure_user_can_participate_in_quest(
@@ -43,34 +41,15 @@ async def main_menu_getter(
     except AccessDenied:
         can_participate_in_quest = False
 
-    try:
-        await voting_service.ensure_user_can_vote(user=user, ticket=user.ticket)
-        can_vote = True
-    except AccessDenied:
-        can_vote = False
-
     return {
         # Info
         "first_name": user.first_name,
         # Access
-        "can_vote": can_vote,
         "can_participate_in_quest": can_participate_in_quest,
         # Customization
         "image_path": UI_IMAGES_DIR.joinpath("main_menu.jpg"),
         "quote": await get_random_quote(),
     }
-
-
-async def open_voting_handler(
-    callback: CallbackQuery,
-    button: Button,
-    manager: DialogManager,
-) -> None:
-    container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    voting_service: VotingService = await container.get(VotingService)
-    user: UserData = manager.middleware_data["user"]
-    await voting_service.ensure_user_can_vote(user=user, ticket=user.ticket)
-    await manager.start(states.Voting.LIST_NOMINATIONS)
 
 
 async def open_feedback_handler(
@@ -115,16 +94,10 @@ main_window = Window(
         when=~F[CURRENT_USER].ticket,
     ),
     Group(
-        Button(
-            text=Case(
-                texts={
-                    True: Const(strings.titles.voting),
-                    False: Const(f"{strings.titles.voting} 🔒"),
-                },
-                selector="can_vote",
-            ),
+        Start(
+            text=Const(strings.titles.voting),
             id="open_voting",
-            on_click=open_voting_handler,
+            state=states.Voting.LIST_NOMINATIONS,
         ),
         Start(
             text=Const(strings.titles.staff_menu),
@@ -137,7 +110,7 @@ main_window = Window(
             id="open_settings",
             state=states.Settings.MAIN,
         ),
-        width=2,
+        width=1,
     ),
     state=states.Main.HOME,
     getter=[main_menu_getter, current_user_getter],

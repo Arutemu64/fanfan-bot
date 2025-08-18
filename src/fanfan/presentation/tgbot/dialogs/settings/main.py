@@ -33,7 +33,7 @@ async def current_user_info_getter(
 settings_main_window = Window(
     Title(Const(strings.titles.settings)),
     Const(
-        "ℹ️ В этом разделе ты можешь настроить некоторые настройки, "
+        "ℹ️ В этом разделе ты можешь изменить некоторые настройки, "
         "связанные со своим профилем или заданной ролью."
     ),
     Const(" "),

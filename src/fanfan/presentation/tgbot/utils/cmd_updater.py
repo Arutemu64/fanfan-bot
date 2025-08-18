@@ -3,7 +3,6 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 from pydantic_core import to_json
 
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.services.feedback import FeedbackService
 from fanfan.core.services.quest import QuestService
 from fanfan.core.services.voting import VotingService
@@ -41,14 +40,7 @@ class CMDUpdater:
             commands_list.append(LINK_TICKET_CMD)
 
         commands_list.append(START_CMD)
-
-        try:
-            await self.voting_service.ensure_user_can_vote(
-                user=user, ticket=user.ticket
-            )
-            commands_list.append(VOTING_CMD)
-        except AccessDenied:
-            pass
+        commands_list.append(VOTING_CMD)
 
         if user.role in [UserRole.HELPER, UserRole.ORG]:
             commands_list.append(STAFF_CMD)

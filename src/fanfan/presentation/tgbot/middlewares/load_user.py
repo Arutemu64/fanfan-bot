@@ -26,7 +26,8 @@ class LoadDataMiddleware(BaseMiddleware):
     ) -> Any:
         if data.get("event_from_user"):
             tg_user: User = data["event_from_user"]
-            with tracer.start_as_current_span(f"User {tg_user.id} action") as span:
+            trace_msg = f"User {tg_user.id} (@{tg_user.username}) action"
+            with tracer.start_as_current_span(trace_msg) as span:
                 span.set_attribute("user_id", tg_user.id)
 
                 # Logging

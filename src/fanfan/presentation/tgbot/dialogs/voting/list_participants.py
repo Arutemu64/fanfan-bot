@@ -13,7 +13,7 @@ from aiogram_dialog.widgets.kbd import (
     StubScroll,
     SwitchTo,
 )
-from aiogram_dialog.widgets.text import Const, Format, Jinja
+from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import AsyncContainer
 
 from fanfan.application.voting.add_vote import AddVote, AddVoteDTO
@@ -26,6 +26,7 @@ from fanfan.application.voting.read_participants_page_for_user import (
 from fanfan.core.dto.page import Pagination
 from fanfan.core.exceptions.votes import VoteNotFound
 from fanfan.core.models.user import UserData
+from fanfan.core.services.voting import VotingService, VotingState
 from fanfan.core.vo.participant import ParticipantVotingNumber
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
@@ -42,7 +43,7 @@ ID_VOTING_SCROLL = "voting_scroll"
 DATA_USER_VOTE_ID = "user_vote_id"
 
 
-async def participants_getter(
+async def voting_getter(
     dialog_manager: DialogManager,
     user: UserData,
     container: AsyncContainer,
@@ -54,6 +55,7 @@ async def participants_getter(
     get_participants_page: ReadParticipantsPageForUser = await container.get(
         ReadParticipantsPageForUser
     )
+    voting_service: VotingService = await container.get(VotingService)
 
     nomination = await get_nomination_by_id(
         dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
@@ -74,10 +76,15 @@ async def participants_getter(
     dialog_manager.dialog_data[DATA_USER_VOTE_ID] = (
         nomination.vote_id if nomination.vote_id else None
     )
+    voting_state = await voting_service.get_voting_state(user, user.ticket)
     return {
+        # Participants
         "nomination_title": nomination.title,
         "participants": page.items,
         "pages": pages or 1,
+        # Voting state
+        "voting_state": voting_state,
+        "can_vote": voting_state is VotingState.OPEN,
         "is_voted": bool(dialog_manager.dialog_data[DATA_USER_VOTE_ID]),
     }
 
@@ -117,10 +124,20 @@ async def cancel_vote_handler(
 voting_window = Window(
     Title(Jinja("🌟 Номинация {{ nomination_title }}")),
     Jinja(voting_list),
-    Const("👆 Чтобы проголосовать, нажми на номер участника", when=~F["is_voted"]),
+    Case(
+        {
+            VotingState.OPEN: Const(
+                "👆 Чтобы проголосовать, нажми на номер участника", when=~F["is_voted"]
+            ),
+            VotingState.NO_TICKET: Const("🔒 Привяжи билет для голосования"),
+            VotingState.DISABLED: Const("🔒 Голосование отключено"),
+        },
+        selector="voting_state",
+    ),
     SwitchInlineQueryCurrentChat(
         text=Const(strings.buttons.search),
         switch_inline_query=Const(""),
+        when=~F["is_voted"] & F["can_vote"],
     ),
     Row(
         StubScroll(ID_VOTING_SCROLL, pages="pages"),
@@ -136,7 +153,7 @@ voting_window = Window(
     Button(
         Const("🗑️ Отменить голос"),
         id="cancel_vote",
-        when="is_voted",
+        when=F["is_voted"] & F["can_vote"],
         on_click=cancel_vote_handler,
     ),
     SwitchTo(
@@ -150,5 +167,5 @@ voting_window = Window(
         on_success=add_vote_handler,
     ),
     state=states.Voting.ADD_VOTE,
-    getter=participants_getter,
+    getter=voting_getter,
 )

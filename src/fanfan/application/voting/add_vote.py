@@ -51,6 +51,10 @@ class AddVote:
         self,
         data: AddVoteDTO,
     ) -> Vote:
+        # Ensure user can even vote
+        user = await self.id_provider.get_user_data()
+        await self.service.ensure_user_can_vote(user=user, ticket=user.ticket)
+
         # Checking participant
         participant = await self.participants_repo.get_participant_by_voting_number(
             nomination_id=data.nomination_id, voting_number=data.voting_number
@@ -63,13 +67,11 @@ class AddVote:
         if event and event.is_skipped:
             raise ParticipantNotFound
 
-        # Checking user
-        user = await self.id_provider.get_user_data()
+        # Check if user voted before in this nomination
         if await self.votes_repo.get_user_vote_by_nomination(
             user.id, data.nomination_id
         ):
             raise AlreadyVotedInThisNomination
-        await self.service.ensure_user_can_vote(user=user, ticket=user.ticket)
 
         async with self.uow:
             try:
