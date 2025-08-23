@@ -1,32 +1,17 @@
-import asyncio
-import sys
 from contextlib import suppress
 
 import logfire
 import uvicorn
 
 from fanfan.adapters.config.parsers import get_config
-from fanfan.adapters.debug.logging import setup_logging
-from fanfan.adapters.debug.telemetry import setup_telemetry
+from fanfan.main.common import init
 from fanfan.presentation.web.factory import create_app
 
 
 def main():
-    config = get_config()
-    setup_logging(
-        level=config.debug.logging_level,
-        json_logs=config.debug.json_logs,
-    )
-    setup_telemetry(
-        service_name="web",
-        environment=config.env,
-        logfire_token=config.debug.logfire_token.get_secret_value()
-        if config.debug.logfire_token
-        else None,
-    )
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    init(service_name="web")
 
+    config = get_config()
     app = create_app(web_config=config.web, debug_config=config.debug)
     logfire.instrument_fastapi(app)
     with suppress(KeyboardInterrupt):

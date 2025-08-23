@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 import logging
-import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -10,8 +9,7 @@ from aiohttp.web_runner import AppRunner, TCPSite
 
 from fanfan.adapters.config.models import Configuration
 from fanfan.adapters.config.parsers import get_config
-from fanfan.adapters.debug.logging import setup_logging
-from fanfan.adapters.debug.telemetry import setup_telemetry
+from fanfan.main.common import init
 from fanfan.main.di import create_bot_container
 from fanfan.presentation.tgbot.config import BotMode
 
@@ -48,11 +46,12 @@ async def run_webhook(bot: Bot, dp: Dispatcher, config: Configuration) -> None:
     await asyncio.Event().wait()
 
 
-async def run(config: Configuration) -> None:
+async def run() -> None:
     # Get dependencies ready
     container = create_bot_container()
     bot: Bot = await container.get(Bot)
     dp: Dispatcher = await container.get(Dispatcher)
+    config: Configuration = await container.get(Configuration)
 
     # Register startup hook
     dp.startup.register(on_startup)
@@ -70,22 +69,9 @@ async def run(config: Configuration) -> None:
 
 
 def main():
-    config = get_config()
-    setup_logging(
-        level=config.debug.logging_level,
-        json_logs=config.debug.json_logs,
-    )
-    setup_telemetry(
-        service_name="bot",
-        environment=config.env,
-        logfire_token=config.debug.logfire_token.get_secret_value()
-        if config.debug.logfire_token
-        else None,
-    )
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    init(service_name="bot")
     with contextlib.suppress(KeyboardInterrupt):
-        asyncio.run(run(config=config))
+        asyncio.run(run())
 
 
 if __name__ == "__main__":
