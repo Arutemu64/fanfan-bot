@@ -3,11 +3,11 @@ import contextlib
 import logging
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from fanfan.adapters.db.models import GlobalSettingsORM
+from fanfan.adapters.db.repositories.app_settings import SettingsRepository
 from fanfan.adapters.db.repositories.permissions import PermissionsRepository
 from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.core.models.app_settings import AppSettings
 from fanfan.core.models.permission import Permission, PermissionsList
 from fanfan.main.common import init
 from fanfan.main.di import create_system_container
@@ -31,13 +31,12 @@ async def migrate():
                 await uow.rollback()
 
         # Setup initial settings
-        session: AsyncSession = await container.get(AsyncSession)
-        async with session:
-            try:
-                session.add(GlobalSettingsORM(id=1))
-                await session.commit()
-            except IntegrityError:
-                await session.rollback()
+        settings_repo: SettingsRepository = await container.get(SettingsRepository)
+        try:
+            await settings_repo.add_settings(AppSettings())
+            await uow.commit()
+        except IntegrityError:
+            await uow.rollback()
 
     logger.info("Migration completed")
 

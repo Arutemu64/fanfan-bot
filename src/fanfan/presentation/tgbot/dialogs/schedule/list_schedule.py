@@ -17,7 +17,7 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import AsyncContainer
 
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 from fanfan.application.schedule.management.set_next_event import SetNextScheduleEvent
 from fanfan.application.schedule.read_event_by_public_id import (
     ReadScheduleEventByPublicId,
@@ -55,7 +55,7 @@ async def view_schedule_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    config: Configuration = await container.get(Configuration)
+    config: EnvConfig = await container.get(EnvConfig)
     return {
         "docs_link": config.docs_link,
     }

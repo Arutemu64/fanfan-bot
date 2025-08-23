@@ -2,7 +2,7 @@ from dishka import Provider, Scope, provide
 from faststream.nats import NatsBroker
 from nats.js import JetStreamContext
 
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 from fanfan.adapters.nats.config import NatsConfig
 from fanfan.adapters.nats.factory import NATSClient, create_nats_client
 from fanfan.adapters.utils.events_broker import EventsBroker
@@ -17,7 +17,7 @@ class StreamProvider(Provider):
     scope = Scope.APP
 
     @provide
-    def get_nats_config(self, config: Configuration) -> NatsConfig:
+    def get_nats_config(self, config: EnvConfig) -> NatsConfig:
         return config.nats
 
     @provide

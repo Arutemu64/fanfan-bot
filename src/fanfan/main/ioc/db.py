@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 from fanfan.adapters.db.config import DatabaseConfig
 from fanfan.adapters.db.factory import create_engine, create_session_pool
 from fanfan.adapters.db.uow import UnitOfWork
@@ -15,7 +15,7 @@ from fanfan.adapters.db.uow import UnitOfWork
 
 class DbProvider(Provider):
     @provide(scope=Scope.APP)
-    def get_db_config(self, config: Configuration) -> DatabaseConfig:
+    def get_db_config(self, config: EnvConfig) -> DatabaseConfig:
         return config.db
 
     @provide(scope=Scope.APP)

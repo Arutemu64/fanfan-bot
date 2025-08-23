@@ -3,7 +3,6 @@ import logging
 from fanfan.adapters.api.ticketscloud.client import TCloudClient
 from fanfan.adapters.api.ticketscloud.config import TCloudConfig
 from fanfan.adapters.api.ticketscloud.dto.order import Order, OrderStatus
-from fanfan.adapters.api.ticketscloud.exceptions import NoTCloudConfigProvided
 from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.core.models.ticket import Ticket
@@ -19,8 +18,8 @@ DEFAULT_PAGE_SIZE = 200
 class TCloudImporter:
     def __init__(
         self,
-        config: TCloudConfig | None,
-        client: TCloudClient | None,
+        config: TCloudConfig,
+        client: TCloudClient,
         tickets_repo: TicketsRepository,
         tickets_service: TicketsService,
         uow: UnitOfWork,
@@ -55,8 +54,6 @@ class TCloudImporter:
         return added_tickets
 
     async def sync_tickets(self):
-        if self.client is None:
-            raise NoTCloudConfigProvided
         added_tickets = 0
         orders_init = await self.client.get_orders(page=1, page_size=DEFAULT_PAGE_SIZE)
         logger.info(

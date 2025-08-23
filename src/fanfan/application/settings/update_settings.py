@@ -2,7 +2,7 @@ import logging
 
 from adaptix import Retort, name_mapping
 
-from fanfan.adapters.db.repositories.settings import SettingsRepository
+from fanfan.adapters.db.repositories.app_settings import SettingsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.base import AccessDenied

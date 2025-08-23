@@ -4,7 +4,6 @@ from dataclasses import replace
 from fanfan.adapters.api.cosplay2.client import Cosplay2Client
 from fanfan.adapters.api.cosplay2.config import Cosplay2Config
 from fanfan.adapters.api.cosplay2.dto.requests import RequestStatus
-from fanfan.adapters.api.cosplay2.exceptions import NoCosplay2ConfigProvided
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.db.uow import UnitOfWork
@@ -19,8 +18,8 @@ logger = logging.getLogger(__name__)
 class Cosplay2Importer:
     def __init__(
         self,
-        config: Cosplay2Config | None,
-        client: Cosplay2Client | None,
+        config: Cosplay2Config,
+        client: Cosplay2Client,
         participants_repo: ParticipantsRepository,
         nominations_repo: NominationsRepository,
         uow: UnitOfWork,
@@ -108,8 +107,6 @@ class Cosplay2Importer:
         return new_requests
 
     async def sync_all(self):
-        if self.config is None:
-            raise NoCosplay2ConfigProvided
         async with self.uow:
             await self._sync_topics()
             await self._sync_requests()

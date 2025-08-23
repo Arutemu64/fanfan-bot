@@ -7,7 +7,7 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 from aiohttp import web
 from aiohttp.web_runner import AppRunner, TCPSite
 
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 from fanfan.adapters.config.parsers import get_config
 from fanfan.main.common import init
 from fanfan.main.di import create_bot_container
@@ -28,7 +28,7 @@ async def on_startup(bot: Bot) -> None:
             logger.info("Running in polling mode")
 
 
-async def run_webhook(bot: Bot, dp: Dispatcher, config: Configuration) -> None:
+async def run_webhook(bot: Bot, dp: Dispatcher, config: EnvConfig) -> None:
     app = web.Application()
     webhook_requests_handler = SimpleRequestHandler(
         dispatcher=dp,
@@ -51,7 +51,7 @@ async def run() -> None:
     container = create_bot_container()
     bot: Bot = await container.get(Bot)
     dp: Dispatcher = await container.get(Dispatcher)
-    config: Configuration = await container.get(Configuration)
+    config: EnvConfig = await container.get(EnvConfig)
 
     # Register startup hook
     dp.startup.register(on_startup)

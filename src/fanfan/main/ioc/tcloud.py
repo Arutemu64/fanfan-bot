@@ -6,8 +6,9 @@ from dishka import Provider, Scope, provide
 
 from fanfan.adapters.api.ticketscloud.client import TCloudClient
 from fanfan.adapters.api.ticketscloud.config import TCloudConfig
+from fanfan.adapters.api.ticketscloud.exceptions import NoTCloudConfigProvided
 from fanfan.adapters.api.ticketscloud.importer import TCloudImporter
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 
 TCloudSession = NewType("TCloudSession", ClientSession)
 
@@ -16,7 +17,9 @@ class TCloudProvider(Provider):
     scope = Scope.REQUEST
 
     @provide(scope=Scope.APP)
-    def get_tcloud_config(self, config: Configuration) -> TCloudConfig | None:
+    def get_tcloud_config(self, config: EnvConfig) -> TCloudConfig:
+        if config.tcloud is None:
+            raise NoTCloudConfigProvided
         return config.tcloud
 
     @provide
@@ -26,10 +29,8 @@ class TCloudProvider(Provider):
 
     @provide
     async def get_tcloud_client(
-        self, session: TCloudSession, config: TCloudConfig | None = None
-    ) -> TCloudClient | None:
-        if config:
-            return TCloudClient(session, config)
-        return None
+        self, session: TCloudSession, config: TCloudConfig
+    ) -> TCloudClient:
+        return TCloudClient(session, config)
 
     importer = provide(TCloudImporter)

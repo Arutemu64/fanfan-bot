@@ -6,7 +6,7 @@ from dishka.integrations.faststream import inject
 from faststream.nats import NatsRouter, PullSub
 from pytz import timezone
 
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
@@ -66,7 +66,7 @@ async def proceed_schedule_change(
     subscriptions_repo: FromDishka[SubscriptionsRepository],
     uow: FromDishka[UnitOfWork],
     mailing_repo: FromDishka[MailingDAO],
-    config: FromDishka[Configuration],
+    config: FromDishka[EnvConfig],
     jinja: FromDishka[StreamJinjaEnvironment],
     events_broker: FromDishka[EventsBroker],
 ) -> None:

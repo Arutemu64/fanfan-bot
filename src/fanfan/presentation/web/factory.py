@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 from fanfan.adapters.debug.config import DebugConfig
 from fanfan.main.di import create_web_container
 from fanfan.presentation.web.admin import setup_admin
@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
     container: AsyncContainer = app.state.dishka_container
 
     # Setup admin
-    config: Configuration = await container.get(Configuration)
+    config: EnvConfig = await container.get(EnvConfig)
     setup_admin(
         app=app, config=config, session_pool=await container.get(async_sessionmaker)
     )

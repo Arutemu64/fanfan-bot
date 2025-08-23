@@ -11,7 +11,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from dishka import AsyncContainer
 
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.user import UserData
 from fanfan.core.services.tickets import TicketsService
@@ -27,7 +27,7 @@ async def staff_main_getter(
     user: UserData,
     **kwargs,
 ):
-    config: Configuration = await container.get(Configuration)
+    config: EnvConfig = await container.get(EnvConfig)
     tickets_service: TicketsService = await container.get(TicketsService)
     token_processor: JwtTokenProcessor = await container.get(JwtTokenProcessor)
 

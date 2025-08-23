@@ -1,6 +1,6 @@
 import enum
 
-from fanfan.adapters.db.repositories.settings import SettingsRepository
+from fanfan.adapters.db.repositories.app_settings import SettingsRepository
 from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.ticket import Ticket
 from fanfan.core.models.user import User

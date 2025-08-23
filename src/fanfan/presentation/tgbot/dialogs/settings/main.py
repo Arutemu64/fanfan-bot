@@ -3,7 +3,7 @@ from aiogram_dialog.widgets.kbd import Cancel, SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import AsyncContainer
 
-from fanfan.adapters.config.models import Configuration
+from fanfan.adapters.config.models import EnvConfig
 from fanfan.core.models.user import UserData
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
@@ -18,7 +18,7 @@ async def current_user_info_getter(
     container: AsyncContainer,
     **kwargs,
 ):
-    config: Configuration = await container.get(Configuration)
+    config: EnvConfig = await container.get(EnvConfig)
     return {
         "user_id": user.id,
         "username": user.username,

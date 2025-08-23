@@ -1,5 +1,4 @@
 from pydantic import (
-    BaseModel,
     DirectoryPath,
     HttpUrl,
 )
@@ -16,11 +15,7 @@ from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.web.config import WebConfig
 
 
-class LimitsConfig(BaseModel):
-    announcement_timeout: int = 10
-
-
-class Configuration(BaseSettings):
+class EnvConfig(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter="__")
 
     env: str
@@ -35,7 +30,6 @@ class Configuration(BaseSettings):
     redis: RedisConfig
     nats: NatsConfig
 
-    limits: LimitsConfig
     debug: DebugConfig
 
     cosplay2: Cosplay2Config | None = None

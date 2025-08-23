@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 
-from fanfan.adapters.config.models import LimitsConfig
+from fanfan.adapters.db.repositories.app_settings import SettingsRepository
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.redis.dao.mailing import MailingDAO
@@ -33,7 +33,7 @@ class SkipScheduleEvent:
     def __init__(
         self,
         schedule_repo: ScheduleEventsRepository,
-        limits: LimitsConfig,
+        settings_repo: SettingsRepository,
         service: ScheduleService,
         uow: UnitOfWork,
         rate_lock_factory: RateLockFactory,
@@ -42,7 +42,7 @@ class SkipScheduleEvent:
         mailing_repo: MailingDAO,
     ) -> None:
         self.schedule_repo = schedule_repo
-        self.limits = limits
+        self.settings_repo = settings_repo
         self.service = service
         self.uow = uow
         self.rate_lock_factory = rate_lock_factory
@@ -53,10 +53,13 @@ class SkipScheduleEvent:
     async def __call__(self, event_id: ScheduleEventId) -> SkipScheduleEventResult:
         user = await self.id_provider.get_user_data()
         self.service.ensure_user_can_manage_schedule(user)
+
+        settings = await self.settings_repo.get_settings()
         lock = self.rate_lock_factory(
             ANNOUNCE_LIMIT_NAME,
-            cooldown_period=self.limits.announcement_timeout,
+            cooldown_period=settings.limits.announcement_timeout,
         )
+
         try:
             async with self.uow, lock:
                 # Get and check event
