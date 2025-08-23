@@ -29,7 +29,7 @@ async def migrate():
             try:
                 await permissions_repo.add_permission(Permission(name=name))
                 await uow.commit()
-                logger.info(f"New permission added: {name}")
+                logger.info("New permission added: %s", name)
             except IntegrityError:
                 await uow.rollback()
 

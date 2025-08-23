@@ -8,7 +8,7 @@ from .participant import ParticipantView
 from .quote import QuoteView
 from .ticket import TicketView
 from .transaction import TransactionView
-from .user import UserSettingsView, UserView
+from .user import UserView
 from .vote import VoteView
 
 model_views = [
@@ -20,7 +20,6 @@ model_views = [
     QuoteView,
     TicketView,
     UserView,
-    UserSettingsView,
     VoteView,
     FeedbackView,
     TransactionView,

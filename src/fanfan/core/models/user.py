@@ -8,12 +8,12 @@ from fanfan.core.models.ticket import Ticket
 from fanfan.core.vo.user import UserId, UserRole
 
 
-@dataclass(kw_only=True)
+@dataclass(slots=True, kw_only=True)
 class UserSettings:
     items_per_page: int = 5
     receive_all_announcements: bool = True
 
-    # Org specific settings
+    # Org specific settings (only applicable if user is an org)
     org_receive_feedback_notifications: bool = True
 
 

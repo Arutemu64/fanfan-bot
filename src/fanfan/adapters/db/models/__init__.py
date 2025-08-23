@@ -18,7 +18,6 @@ from .subscription import SubscriptionORM
 from .ticket import TicketORM
 from .transaction import TransactionORM
 from .user import UserORM
-from .user_settings import UserSettingsORM
 from .vote import VoteORM
 
 __all__ = [
@@ -33,7 +32,6 @@ __all__ = [
     "SubscriptionORM",
     "TicketORM",
     "UserORM",
-    "UserSettingsORM",
     "VoteORM",
     "ActivityORM",
     "QuoteORM",

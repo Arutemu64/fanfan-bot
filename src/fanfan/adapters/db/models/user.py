@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from adaptix import Retort
 from sqlalchemy import BigInteger, func, select
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import (
     Mapped,
     column_property,
@@ -15,12 +17,14 @@ from sqlalchemy.orm import (
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.permission import PermissionORM, user_permissions
 from fanfan.adapters.db.models.received_achievement import ReceivedAchievementORM
-from fanfan.adapters.db.models.user_settings import UserSettingsORM
-from fanfan.core.models.user import User
+from fanfan.core.models.user import User, UserSettings
 from fanfan.core.vo.user import UserId, UserRole
 
 if TYPE_CHECKING:
     from fanfan.adapters.db.models.ticket import TicketORM
+
+
+retort = Retort()
 
 
 class UserORM(Base):
@@ -40,10 +44,12 @@ class UserORM(Base):
         server_default="VISITOR",
     )
 
+    # Settings
+    settings: Mapped[dict] = mapped_column(JSONB)
+
     # Relations
-    permissions: Mapped[list[PermissionORM]] = relationship(secondary=user_permissions)
-    settings: Mapped[UserSettingsORM] = relationship(cascade="all, delete-orphan")
     ticket: Mapped[TicketORM | None] = relationship(foreign_keys="TicketORM.used_by_id")
+    permissions: Mapped[list[PermissionORM]] = relationship(secondary=user_permissions)
 
     # Quest
     points: Mapped[int] = mapped_column(server_default="0", deferred=True)
@@ -87,7 +93,7 @@ class UserORM(Base):
             last_name=model.last_name,
             role=model.role,
             permissions=[PermissionORM.from_model(p) for p in model.permissions],
-            settings=UserSettingsORM.from_model(model.settings),
+            settings=retort.dump(model.settings),
         )
 
     def to_model(self) -> User:
@@ -98,5 +104,5 @@ class UserORM(Base):
             last_name=self.last_name,
             role=UserRole(self.role),
             permissions=[p.to_model() for p in self.permissions],
-            settings=self.settings.to_model(),
+            settings=retort.load(self.settings, UserSettings),
         )

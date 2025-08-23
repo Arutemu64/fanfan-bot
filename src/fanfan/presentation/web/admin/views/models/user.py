@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import UserORM, UserSettingsORM
+from fanfan.adapters.db.models import UserORM
 
 
 class UserView(ModelView, model=UserORM):
@@ -41,19 +41,3 @@ class UserView(ModelView, model=UserORM):
         UserORM.created_at: "Время создания",
         UserORM.updated_at: "Время изменения",
     }
-
-
-class UserSettingsView(ModelView, model=UserSettingsORM):
-    name_plural = "Настройки пользователей"
-    category = "Пользователи"
-    icon = "fa-solid fa-gear"
-    can_create = False
-
-    column_list = [
-        UserSettingsORM.user,
-    ]
-    column_labels = {
-        UserSettingsORM.items_per_page: "Элементов на странице",
-        UserSettingsORM.receive_all_announcements: "Получает все уведомления",
-    }
-    form_excluded_columns = [UserSettingsORM.user]
