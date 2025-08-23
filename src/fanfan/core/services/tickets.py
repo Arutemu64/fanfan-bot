@@ -4,6 +4,7 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.core.constants.flags import VOTING_CONTEST_FLAG_NAME
 from fanfan.core.exceptions.base import AccessDenied
+from fanfan.core.models.permission import PermissionsList
 from fanfan.core.models.ticket import Ticket
 from fanfan.core.models.user import User
 from fanfan.core.vo.user import UserRole
@@ -24,7 +25,7 @@ class TicketsService:
 
     @staticmethod
     def ensure_user_can_create_tickets(user: User):
-        if user.permissions.can_create_tickets is False:
+        if not user.check_permission(PermissionsList.can_create_tickets):
             reason = "У вас нет прав для выпуска новых билетов"
             raise AccessDenied(reason)
 

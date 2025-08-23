@@ -9,6 +9,7 @@ from dishka.integrations.aiogram import CONTAINER_NAME
 
 from fanfan.application.etc.read_random_quote import ReadRandomQuote
 from fanfan.core.exceptions.base import AccessDenied
+from fanfan.core.models.permission import PermissionsList
 from fanfan.core.models.user import UserData
 from fanfan.core.services.feedback import FeedbackService
 from fanfan.core.services.quest import QuestService
@@ -18,7 +19,8 @@ from fanfan.presentation.tgbot.dialogs.common.getters import (
     current_user_getter,
 )
 from fanfan.presentation.tgbot.dialogs.common.predicates import (
-    is_helper, is_ticket_linked,
+    is_helper,
+    is_ticket_linked,
 )
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
@@ -46,6 +48,7 @@ async def main_menu_getter(
         "first_name": user.first_name,
         # Access
         "can_participate_in_quest": can_participate_in_quest,
+        "can_send_feedback": user.check_permission(PermissionsList.can_send_feedback),
         # Customization
         "image_path": UI_IMAGES_DIR.joinpath("main_menu.jpg"),
         "quote": await get_random_quote(),
@@ -94,7 +97,7 @@ main_window = Window(
         when=~F[CURRENT_USER].ticket,
     ),
     Group(
-Start(
+        Start(
             Const(strings.titles.activities),
             id="open_activities",
             state=states.Activities.LIST_ACTIVITIES,
@@ -142,7 +145,7 @@ Start(
                     True: Const(strings.titles.feedback),
                     False: Const(f"{strings.titles.feedback} 🔒"),
                 },
-                selector=F[CURRENT_USER].permissions.can_send_feedback,
+                selector="can_send_feedback",
             ),
             id="open_feedback",
             on_click=open_feedback_handler,

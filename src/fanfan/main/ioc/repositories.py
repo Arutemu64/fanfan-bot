@@ -12,6 +12,7 @@ from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import (
     ParticipantsRepository,
 )
+from fanfan.adapters.db.repositories.permissions import PermissionsRepository
 from fanfan.adapters.db.repositories.products import ProductsRepository
 from fanfan.adapters.db.repositories.quest import QuestRepository
 from fanfan.adapters.db.repositories.schedule_blocks import ScheduleBlocksRepository
@@ -54,6 +55,7 @@ class RepositoriesProvider(Provider):
     votes = provide(VotesRepository)
     transactions = provide(TransactionsRepository)
     flags = provide(FlagsRepository)
+    permissions = provide(PermissionsRepository)
 
     # Redis
     mailing = provide(MailingDAO)

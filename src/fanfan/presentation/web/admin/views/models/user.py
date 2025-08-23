@@ -1,6 +1,6 @@
 from sqladmin import ModelView
 
-from fanfan.adapters.db.models import UserORM, UserPermissionsORM, UserSettingsORM
+from fanfan.adapters.db.models import UserORM, UserSettingsORM
 
 
 class UserView(ModelView, model=UserORM):
@@ -41,22 +41,6 @@ class UserView(ModelView, model=UserORM):
         UserORM.created_at: "Время создания",
         UserORM.updated_at: "Время изменения",
     }
-
-
-class UserPermissionsView(ModelView, model=UserPermissionsORM):
-    name_plural = "Права пользователей"
-    category = "Пользователи"
-    icon = "fa-solid fa-passport"
-    can_create = False
-
-    column_list = [
-        UserPermissionsORM.user,
-    ]
-    column_labels = {
-        UserPermissionsORM.user: "Пользователь",
-        UserPermissionsORM.can_send_feedback: "Может отправлять отзывы",
-    }
-    form_excluded_columns = [UserPermissionsORM.user]
 
 
 class UserSettingsView(ModelView, model=UserSettingsORM):

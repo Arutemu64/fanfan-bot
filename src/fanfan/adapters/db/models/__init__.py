@@ -7,6 +7,7 @@ from .flag import FlagORM
 from .market import MarketManagerORM, MarketORM
 from .nomination import NominationORM
 from .participant import ParticipantORM
+from .permission import PermissionORM
 from .product import ProductORM
 from .quote import QuoteORM
 from .received_achievement import ReceivedAchievementORM
@@ -17,11 +18,11 @@ from .subscription import SubscriptionORM
 from .ticket import TicketORM
 from .transaction import TransactionORM
 from .user import UserORM
-from .user_permissions import UserPermissionsORM
 from .user_settings import UserSettingsORM
 from .vote import VoteORM
 
 __all__ = [
+    "PermissionORM",
     "AchievementORM",
     "Base",
     "ScheduleEventORM",
@@ -32,7 +33,6 @@ __all__ = [
     "SubscriptionORM",
     "TicketORM",
     "UserORM",
-    "UserPermissionsORM",
     "UserSettingsORM",
     "VoteORM",
     "ActivityORM",

@@ -3,14 +3,15 @@ from dataclasses import asdict, dataclass, replace
 
 from aiogram.types import User as AiogramUser
 
+from fanfan.adapters.db.repositories.permissions import PermissionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.users import UserNotFound
+from fanfan.core.models.permission import PermissionsList
 from fanfan.core.models.user import (
     User,
     UserData,
-    UserPermissions,
     UserSettings,
 )
 from fanfan.core.vo.user import UserId, UserRole
@@ -37,10 +38,15 @@ class AuthenticateDTO:
 
 class Authenticate:
     def __init__(
-        self, id_provider: IdProvider, users_repo: UsersRepository, uow: UnitOfWork
+        self,
+        id_provider: IdProvider,
+        users_repo: UsersRepository,
+        permissions_repo: PermissionsRepository,
+        uow: UnitOfWork,
     ):
         self.id_provider = id_provider
         self.users_repo = users_repo
+        self.permissions_repo = permissions_repo
         self.uow = uow
 
     async def __call__(self, data: AuthenticateDTO) -> UserData:
@@ -48,6 +54,7 @@ class Authenticate:
             user = await self.id_provider.get_user_data()
         except UserNotFound:
             async with self.uow:
+                # Create user
                 user = User(
                     id=data.id,
                     username=data.username,
@@ -55,8 +62,16 @@ class Authenticate:
                     last_name=data.last_name,
                     role=UserRole.VISITOR,
                     settings=UserSettings(),
-                    permissions=UserPermissions(),
+                    permissions=[],
                 )
+
+                # Add basic permissions
+                can_send_feedback = await self.permissions_repo.get_permission_by_name(
+                    PermissionsList.can_send_feedback
+                )
+                user.add_permission(can_send_feedback)
+
+                # Save user
                 await self.users_repo.add_user(user)
                 await self.uow.commit()
                 logger.info("New user %s has registered", data.id, extra={"user": user})

@@ -15,7 +15,7 @@ install:
 
 # Alembic utils
 generate MIGRATION_NAME:
-	alembic revision --m="{{MIGRATION_NAME}}" --
+	alembic revision --autogenerate -m="{{MIGRATION_NAME}}"
 
 migrate:
     alembic upgrade head

@@ -15,7 +15,7 @@ class RoleFilter(Filter):
         user: UserData,
     ) -> bool:
         allowed = user.role in self.allowed_roles
-        if allowed is False:
+        if not allowed:
             if isinstance(event, CallbackQuery):
                 await event.answer("У вас нет доступа к этой функции", show_alert=True)
             else:

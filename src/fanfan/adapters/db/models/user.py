@@ -13,8 +13,8 @@ from sqlalchemy.orm import (
 )
 
 from fanfan.adapters.db.models.base import Base
+from fanfan.adapters.db.models.permission import PermissionORM, user_permissions
 from fanfan.adapters.db.models.received_achievement import ReceivedAchievementORM
-from fanfan.adapters.db.models.user_permissions import UserPermissionsORM
 from fanfan.adapters.db.models.user_settings import UserSettingsORM
 from fanfan.core.models.user import User
 from fanfan.core.vo.user import UserId, UserRole
@@ -41,8 +41,8 @@ class UserORM(Base):
     )
 
     # Relations
+    permissions: Mapped[list[PermissionORM]] = relationship(secondary=user_permissions)
     settings: Mapped[UserSettingsORM] = relationship(cascade="all, delete-orphan")
-    permissions: Mapped[UserPermissionsORM] = relationship(cascade="all, delete-orphan")
     ticket: Mapped[TicketORM | None] = relationship(foreign_keys="TicketORM.used_by_id")
 
     # Quest
@@ -86,7 +86,7 @@ class UserORM(Base):
             first_name=model.first_name,
             last_name=model.last_name,
             role=model.role,
-            permissions=UserPermissionsORM.from_model(model.permissions),
+            permissions=[PermissionORM.from_model(p) for p in model.permissions],
             settings=UserSettingsORM.from_model(model.settings),
         )
 
@@ -97,6 +97,6 @@ class UserORM(Base):
             first_name=self.first_name,
             last_name=self.last_name,
             role=UserRole(self.role),
-            permissions=self.permissions.to_model(),
+            permissions=[p.to_model() for p in self.permissions],
             settings=self.settings.to_model(),
         )

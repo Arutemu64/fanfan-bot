@@ -63,7 +63,7 @@ class SkipScheduleEvent:
                 event = await self.schedule_repo.get_event_by_id(event_id)
                 if event is None:
                     raise EventNotFound(event_id=event_id)
-                if event.is_current is True:
+                if event.is_current:
                     raise CurrentEventNotAllowed
 
                 # Get next event at this point
