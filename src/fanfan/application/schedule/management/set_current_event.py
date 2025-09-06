@@ -50,7 +50,7 @@ class SetCurrentScheduleEvent:
         self, event_id: ScheduleEventId | None
     ) -> SetCurrentScheduleEventResult:
         user = await self.id_provider.get_user_data()
-        self.service.ensure_user_can_manage_schedule(user)
+        await self.service.ensure_user_can_manage_schedule(user)
 
         settings = await self.settings_repo.get_settings()
         lock = self.rate_lock_factory(

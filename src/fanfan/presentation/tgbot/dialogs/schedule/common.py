@@ -96,7 +96,7 @@ async def can_edit_schedule_getter(
     schedule_service: ScheduleService = await container.get(ScheduleService)
 
     try:
-        schedule_service.ensure_user_can_manage_schedule(user)
+        await schedule_service.ensure_user_can_manage_schedule(user)
     except AccessDenied:
         can_edit_schedule = False
     else:

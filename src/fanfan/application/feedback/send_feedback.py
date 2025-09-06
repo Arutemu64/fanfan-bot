@@ -40,7 +40,7 @@ class SendFeedback:
 
     async def __call__(self, data: SendFeedbackDTO) -> None:
         user = await self.id_provider.get_user_data()
-        self.service.ensure_user_can_send_feedback(user)
+        await self.service.ensure_user_can_send_feedback(user)
         mailing_id = await self.mailing_repo.create_new_mailing(
             by_user_id=self.id_provider.get_current_user_id()
         )

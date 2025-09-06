@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from fanfan.core.models.permission import Permission, PermissionsList
 from fanfan.core.models.ticket import Ticket
 from fanfan.core.vo.user import UserId, UserRole
 
@@ -25,18 +24,10 @@ class User:  # noqa: PLW1641
     last_name: str | None
     role: UserRole
 
-    permissions: list[Permission]
     settings: UserSettings
 
     def set_role(self, role: UserRole):
         self.role = role
-
-    def add_permission(self, permission: Permission):
-        if permission not in self.permissions:
-            self.permissions.append(permission)
-
-    def check_permission(self, name: PermissionsList) -> bool:
-        return any(name == p.name for p in self.permissions)
 
     def __eq__(self, other: User | Any) -> bool:
         return isinstance(other, User) and self.id == other.id

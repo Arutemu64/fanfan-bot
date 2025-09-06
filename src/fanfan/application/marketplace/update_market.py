@@ -2,6 +2,7 @@ from fanfan.adapters.db.repositories.markets import MarketsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.constants.permissions import PermissionObjectTypes, Permissions
 from fanfan.core.dto.user import UserDTO
 from fanfan.core.exceptions.market import (
     MarketNotFound,
@@ -9,6 +10,7 @@ from fanfan.core.exceptions.market import (
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.market import Market
 from fanfan.core.services.market import MarketService
+from fanfan.core.services.permissions import UserPermissionService
 from fanfan.core.vo.market import MarketId
 from fanfan.core.vo.telegram import TelegramFileId
 
@@ -20,20 +22,24 @@ class UpdateMarket:
         users_repo: UsersRepository,
         id_provider: IdProvider,
         uow: UnitOfWork,
-        service: MarketService,
+        market_service: MarketService,
+        user_perm_service: UserPermissionService,
     ):
         self.markets_repo = markets_repo
         self.users_repo = users_repo
         self.id_provider = id_provider
         self.uow = uow
-        self.service = service
+        self.market_service = market_service
+        self.user_perm_service = user_perm_service
 
     async def _get_market(self, market_id: MarketId) -> Market:
         market = await self.markets_repo.get_market_by_id(market_id)
         if market is None:
             raise MarketNotFound
         user = await self.id_provider.get_user_data()
-        self.service.ensure_user_can_manage_market(market=market, manager=user)
+        await self.market_service.ensure_user_can_manage_market(
+            market=market, user=user
+        )
         return market
 
     async def update_market_name(self, market_id: MarketId, new_name: str) -> None:
@@ -73,12 +79,16 @@ class UpdateMarket:
     async def add_manager_by_username(
         self, market_id: MarketId, username: str
     ) -> UserDTO:
+        market = await self._get_market(market_id)
+        user = await self.users_repo.read_user_by_username(username.lower())
+        if user is None:
+            raise UserNotFound
         async with self.uow:
-            market = await self._get_market(market_id)
-            user = await self.users_repo.read_user_by_username(username.lower())
-            if user is None:
-                raise UserNotFound
-            market.add_manager(user.id)
-            await self.markets_repo.save_market(market)
+            await self.user_perm_service.add_permission(
+                perm_name=Permissions.CAN_MANAGE_MARKET,
+                user_id=user.id,
+                object_type=PermissionObjectTypes.MARKET,
+                object_id=market.id,
+            )
             await self.uow.commit()
             return user

@@ -3,6 +3,7 @@ from dishka import Provider, Scope, provide
 from fanfan.core.services.feedback import FeedbackService
 from fanfan.core.services.mailing import MailingService
 from fanfan.core.services.market import MarketService
+from fanfan.core.services.permissions import UserPermissionService
 from fanfan.core.services.quest import QuestService
 from fanfan.core.services.schedule import ScheduleService
 from fanfan.core.services.tickets import TicketsService
@@ -21,3 +22,4 @@ class ServicesProvider(Provider):
     tickets = provide(TicketsService)
     user = provide(UserService)
     voting = provide(VotingService)
+    user_perm_service = provide(UserPermissionService)

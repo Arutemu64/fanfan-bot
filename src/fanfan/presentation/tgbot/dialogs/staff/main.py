@@ -32,7 +32,7 @@ async def staff_main_getter(
     token_processor: JwtTokenProcessor = await container.get(JwtTokenProcessor)
 
     try:
-        tickets_service.ensure_user_can_create_tickets(user)
+        await tickets_service.ensure_user_can_create_tickets(user)
         can_create_tickets = True
     except AccessDenied:
         can_create_tickets = False

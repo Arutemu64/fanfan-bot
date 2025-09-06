@@ -68,7 +68,7 @@ class CMDUpdater:
             commands_list.append(STAFF_CMD)
 
         try:
-            self.feedback_service.ensure_user_can_send_feedback(user)
+            await self.feedback_service.ensure_user_can_send_feedback(user)
             commands_list.append(FEEDBACK_CMD)
         except AccessDenied:
             pass

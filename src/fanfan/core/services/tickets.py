@@ -3,10 +3,11 @@ from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.core.constants.flags import VOTING_CONTEST_FLAG_NAME
+from fanfan.core.constants.permissions import Permissions
 from fanfan.core.exceptions.base import AccessDenied
-from fanfan.core.models.permission import PermissionsList
 from fanfan.core.models.ticket import Ticket
 from fanfan.core.models.user import User
+from fanfan.core.services.permissions import UserPermissionService
 from fanfan.core.vo.user import UserRole
 
 
@@ -17,15 +18,20 @@ class TicketsService:
         users_repo: UsersRepository,
         votes_repo: VotesRepository,
         flags_repo: FlagsRepository,
+        user_perm_service: UserPermissionService,
     ):
         self.tickets_repo = tickets_repo
         self.users_repo = users_repo
         self.votes_repo = votes_repo
         self.flags_repo = flags_repo
+        self.user_perm_service = user_perm_service
 
-    @staticmethod
-    def ensure_user_can_create_tickets(user: User):
-        if not user.check_permission(PermissionsList.can_create_tickets):
+    async def ensure_user_can_create_tickets(self, user: User):
+        user_perm = await self.user_perm_service.get_user_permission(
+            perm_name=Permissions.CAN_CREATE_TICKETS,
+            user_id=user.id,
+        )
+        if not user_perm:
             reason = "У вас нет прав для выпуска новых билетов"
             raise AccessDenied(reason)
 

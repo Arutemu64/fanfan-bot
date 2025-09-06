@@ -36,7 +36,7 @@ class RevertScheduleChange:
 
     async def __call__(self, schedule_change_id: ScheduleChangeId) -> None:
         user = await self.id_provider.get_user_data()
-        self.service.ensure_user_can_manage_schedule(user)
+        await self.service.ensure_user_can_manage_schedule(user)
         schedule_change = await self.schedule_changes_repo.get_schedule_change(
             schedule_change_id
         )

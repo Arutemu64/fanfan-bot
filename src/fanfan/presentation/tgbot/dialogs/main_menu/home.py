@@ -8,10 +8,11 @@ from dishka import AsyncContainer
 from dishka.integrations.aiogram import CONTAINER_NAME
 
 from fanfan.application.etc.read_random_quote import ReadRandomQuote
+from fanfan.core.constants.permissions import Permissions
 from fanfan.core.exceptions.base import AccessDenied
-from fanfan.core.models.permission import PermissionsList
 from fanfan.core.models.user import UserData
 from fanfan.core.services.feedback import FeedbackService
+from fanfan.core.services.permissions import UserPermissionService
 from fanfan.core.services.quest import QuestService
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
@@ -34,6 +35,9 @@ async def main_menu_getter(
 ):
     get_random_quote: ReadRandomQuote = await container.get(ReadRandomQuote)
     quest_service: QuestService = await container.get(QuestService)
+    user_perm_service: UserPermissionService = await container.get(
+        UserPermissionService
+    )
 
     try:
         quest_service.ensure_user_can_participate_in_quest(
@@ -43,12 +47,17 @@ async def main_menu_getter(
     except AccessDenied:
         can_participate_in_quest = False
 
+    can_send_feedback = await user_perm_service.get_user_permission(
+        perm_name=Permissions.CAN_SEND_FEEDBACK,
+        user_id=user.id,
+    )
+
     return {
         # Info
         "first_name": user.first_name,
         # Access
         "can_participate_in_quest": can_participate_in_quest,
-        "can_send_feedback": user.check_permission(PermissionsList.can_send_feedback),
+        "can_send_feedback": bool(can_send_feedback),
         # Customization
         "image_path": UI_IMAGES_DIR.joinpath("main_menu.jpg"),
         "quote": await get_random_quote(),
@@ -63,7 +72,7 @@ async def open_feedback_handler(
     user: UserData = manager.middleware_data["user"]
     container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
     feedback_service: FeedbackService = await container.get(FeedbackService)
-    feedback_service.ensure_user_can_send_feedback(user)
+    await feedback_service.ensure_user_can_send_feedback(user)
     await manager.start(states.Feedback.SEND_FEEDBACK)
 
 

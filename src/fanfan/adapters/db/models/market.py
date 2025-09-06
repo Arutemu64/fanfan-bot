@@ -1,22 +1,15 @@
-from sqlalchemy import ForeignKey, UniqueConstraint
+import typing
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.mixins.order import OrderMixin
-from fanfan.adapters.db.models.user import UserORM
 from fanfan.core.models.market import Market
 from fanfan.core.vo.market import MarketId
 from fanfan.core.vo.telegram import TelegramFileId
 
-
-class MarketManagerORM(Base):
-    __tablename__ = "market_managers"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    market_id: Mapped[int] = mapped_column(ForeignKey("markets.id", ondelete="CASCADE"))
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-
-    UniqueConstraint(market_id, user_id)
+if typing.TYPE_CHECKING:
+    from fanfan.adapters.db.models import UserPermissionORM  # noqa
 
 
 class MarketORM(Base, OrderMixin):
@@ -29,7 +22,12 @@ class MarketORM(Base, OrderMixin):
 
     is_visible: Mapped[bool] = mapped_column(server_default="False")
 
-    managers: Mapped[list[UserORM]] = relationship(secondary="market_managers")
+    permissions: Mapped[list["UserPermissionORM"]] = relationship(
+        primaryjoin="and_("
+        "MarketORM.id == foreign(UserPermissionORM.object_id), "
+        "UserPermissionORM.object_type == 'market')",
+        viewonly=True,
+    )
 
     @classmethod
     def from_model(cls, model: Market):
@@ -39,7 +37,6 @@ class MarketORM(Base, OrderMixin):
             description=model.description,
             image_id=model.image_id,
             is_visible=model.is_visible,
-            managers=[UserORM(id=id_) for id_ in model.manager_ids],
         )
 
     def to_model(self) -> Market:
@@ -49,5 +46,4 @@ class MarketORM(Base, OrderMixin):
             description=self.description,
             image_id=self.image_id,
             is_visible=self.is_visible,
-            manager_ids=[u.id for u in self.managers],
         )

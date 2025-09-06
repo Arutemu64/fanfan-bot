@@ -32,7 +32,7 @@ class UpdateProduct:
             raise ProductNotFound
         market = await self.markets_repo.get_market_by_id(product.market_id)
         user = await self.id_provider.get_user_data()
-        self.service.ensure_user_can_manage_market(market=market, manager=user)
+        await self.service.ensure_user_can_manage_market(market=market, user=user)
         return product
 
     async def update_product_name(self, product_id: ProductId, new_name: str) -> None:

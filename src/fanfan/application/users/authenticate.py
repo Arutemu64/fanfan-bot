@@ -3,17 +3,17 @@ from dataclasses import asdict, dataclass, replace
 
 from aiogram.types import User as AiogramUser
 
-from fanfan.adapters.db.repositories.permissions import PermissionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
+from fanfan.core.constants.permissions import Permissions
 from fanfan.core.exceptions.users import UserNotFound
-from fanfan.core.models.permission import PermissionsList
 from fanfan.core.models.user import (
     User,
     UserData,
     UserSettings,
 )
+from fanfan.core.services.permissions import UserPermissionService
 from fanfan.core.vo.user import UserId, UserRole
 
 logger = logging.getLogger(__name__)
@@ -41,12 +41,12 @@ class Authenticate:
         self,
         id_provider: IdProvider,
         users_repo: UsersRepository,
-        permissions_repo: PermissionsRepository,
+        user_perm_service: UserPermissionService,
         uow: UnitOfWork,
     ):
         self.id_provider = id_provider
         self.users_repo = users_repo
-        self.permissions_repo = permissions_repo
+        self.user_perm_service = user_perm_service
         self.uow = uow
 
     async def __call__(self, data: AuthenticateDTO) -> UserData:
@@ -62,17 +62,16 @@ class Authenticate:
                     last_name=data.last_name,
                     role=UserRole.VISITOR,
                     settings=UserSettings(),
-                    permissions=[],
                 )
+                await self.users_repo.add_user(user)
 
                 # Add basic permissions
-                can_send_feedback = await self.permissions_repo.get_permission_by_name(
-                    PermissionsList.can_send_feedback
+                await self.user_perm_service.add_permission(
+                    perm_name=Permissions.CAN_SEND_FEEDBACK,
+                    user_id=user.id,
                 )
-                user.add_permission(can_send_feedback)
 
                 # Save user
-                await self.users_repo.add_user(user)
                 await self.uow.commit()
                 logger.info("New user %s has registered", data.id, extra={"user": user})
                 return await self.id_provider.get_user_data()

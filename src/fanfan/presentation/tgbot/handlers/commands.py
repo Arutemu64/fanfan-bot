@@ -107,7 +107,7 @@ async def feedback_cmd(
     feedback_service: FromDishka[FeedbackService],
 ) -> None:
     try:
-        feedback_service.ensure_user_can_send_feedback(user)
+        await feedback_service.ensure_user_can_send_feedback(user)
         await dialog_manager.start(states.Feedback.SEND_FEEDBACK)
     except AccessDenied:
         await dialog_manager.update(data={})

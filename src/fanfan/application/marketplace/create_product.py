@@ -41,7 +41,7 @@ class CreateProduct:
         if market is None:
             raise MarketNotFound
         user = await self.id_provider.get_user_data()
-        self.service.ensure_user_can_manage_market(market=market, manager=user)
+        await self.service.ensure_user_can_manage_market(market=market, user=user)
         return market
 
     async def __call__(self, data: CreateProductDTO):

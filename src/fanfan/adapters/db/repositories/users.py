@@ -4,11 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from fanfan.adapters.db.models import (
-    PermissionORM,
     UserORM,
 )
+from fanfan.adapters.db.models.permission import PermissionORM, UserPermissionORM
+from fanfan.core.constants.permissions import Permissions
 from fanfan.core.dto.user import UserDTO
-from fanfan.core.models.permission import PermissionsList
 from fanfan.core.models.user import (
     User,
     UserData,
@@ -36,7 +36,6 @@ def _parse_user_data(user_orm: UserORM) -> UserData:
         first_name=user_orm.first_name,
         last_name=user_orm.last_name,
         role=UserRole(user_orm.role),
-        permissions=[p.to_model() for p in user_orm.permissions],
         settings=retort.load(user_orm.settings, UserSettings),
         ticket=user_orm.ticket.to_model() if user_orm.ticket else None,
     )
@@ -46,19 +45,8 @@ class UsersRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def _sync_user_permissions(self, user_orm: UserORM) -> None:
-        existing_permissions = []
-        for p in user_orm.permissions:
-            perm = await self.session.get(PermissionORM, p.id)
-            if perm is None:
-                msg = f"Permission {p.id} does not exist in DB"
-                raise ValueError(msg)
-            existing_permissions.append(perm)
-        user_orm.permissions = existing_permissions
-
     async def add_user(self, user: User) -> User:
         user_orm = UserORM.from_model(user)
-        await self._sync_user_permissions(user_orm)
         self.session.add(user_orm)
         await self.session.flush([user_orm])
         return user_orm.to_model()
@@ -77,7 +65,6 @@ class UsersRepository:
             .where(UserORM.id == user_id)
             .options(
                 joinedload(UserORM.ticket),
-                joinedload(UserORM.permissions),
             )
         )
         user_orm = await self.session.scalar(stmt)
@@ -85,7 +72,6 @@ class UsersRepository:
 
     async def save_user(self, user: User) -> User:
         user_orm = UserORM.from_model(user)
-        await self._sync_user_permissions(user_orm)
         user_orm = await self.session.merge(user_orm)
         await self.session.flush([user_orm])
         return user_orm.to_model()
@@ -116,13 +102,11 @@ class UsersRepository:
         return [_parse_user_dto(u) for u in users_orm]
 
     async def get_schedule_editors(self) -> list[UserDTO]:
-        stmt = select(UserORM).where(
-            and_(
-                UserORM.role.in_([UserRole.HELPER, UserRole.ORG]),
-                UserORM.permissions.any(
-                    PermissionORM.name == PermissionsList.can_edit_schedule
-                ),
-            )
+        stmt = (
+            select(UserORM)
+            .join(UserPermissionORM)
+            .join(PermissionORM)
+            .where(PermissionORM.name == Permissions.CAN_EDIT_SCHEDULE)
         )
         editors_orm = await self.session.scalars(stmt)
         return [_parse_user_dto(e) for e in editors_orm]

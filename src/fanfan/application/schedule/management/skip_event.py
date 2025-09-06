@@ -52,7 +52,7 @@ class SkipScheduleEvent:
 
     async def __call__(self, event_id: ScheduleEventId) -> SkipScheduleEventResult:
         user = await self.id_provider.get_user_data()
-        self.service.ensure_user_can_manage_schedule(user)
+        await self.service.ensure_user_can_manage_schedule(user)
 
         settings = await self.settings_repo.get_settings()
         lock = self.rate_lock_factory(
