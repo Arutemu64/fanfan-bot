@@ -4,13 +4,11 @@ from pydantic_core import to_json
 
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.exceptions.base import AccessDenied
-from fanfan.core.services.feedback import FeedbackService
 from fanfan.core.services.quest import QuestService
 from fanfan.core.services.voting import VotingService
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,
-    FEEDBACK_CMD,
     LINK_TICKET_CMD,
     MARKETPLACE_CMD,
     NOTIFICATIONS_CMD,
@@ -29,13 +27,11 @@ class CMDUpdater:
         self,
         bot: Bot,
         id_provider: IdProvider,
-        feedback_service: FeedbackService,
         voting_service: VotingService,
         quest_service: QuestService,
     ):
         self.bot = bot
         self.id_provider = id_provider
-        self.feedback_service = feedback_service
         self.voting_service = voting_service
         self.quest_service = quest_service
 
@@ -66,12 +62,6 @@ class CMDUpdater:
 
         if user.role in [UserRole.HELPER, UserRole.ORG]:
             commands_list.append(STAFF_CMD)
-
-        try:
-            await self.feedback_service.ensure_user_can_send_feedback(user)
-            commands_list.append(FEEDBACK_CMD)
-        except AccessDenied:
-            pass
 
         commands_list.append(SETTINGS_CMD)
 

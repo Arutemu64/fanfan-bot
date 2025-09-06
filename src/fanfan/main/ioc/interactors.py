@@ -5,8 +5,6 @@ from fanfan.application.activities.read_activity_by_id import ReadActivityById
 from fanfan.application.codes.get_code_by_id import GetCodeById
 from fanfan.application.codes.get_user_code_id import GetUserCodeId
 from fanfan.application.etc.read_random_quote import ReadRandomQuote
-from fanfan.application.feedback.proceed_feedback import ProceedFeedback
-from fanfan.application.feedback.send_feedback import SendFeedback
 from fanfan.application.mailing.cancel_mailing import CancelMailing
 from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
 from fanfan.application.mailing.read_mailing_info import ReadMailingInfo
@@ -103,9 +101,6 @@ class InteractorsProvider(Provider):
     skip_event = provide(SkipScheduleEvent)
     revert_change = provide(RevertScheduleChange)
     replace_schedule = provide(ReplaceSchedule)
-
-    send_feedback = provide(SendFeedback)
-    process_feedback = provide(ProceedFeedback)
 
     create_mailing = provide(CreateRoleMailing)
     get_mailing_info = provide(ReadMailingInfo)

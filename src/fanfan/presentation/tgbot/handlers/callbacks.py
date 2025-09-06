@@ -5,10 +5,6 @@ from aiogram_dialog import DialogManager, ShowMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.application.feedback.proceed_feedback import (
-    ProceedFeedback,
-    ProceedFeedbackDTO,
-)
 from fanfan.application.schedule.management.revert_change import RevertScheduleChange
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.mailing.view_mailing import show_mailing_info
@@ -16,7 +12,6 @@ from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
 from fanfan.presentation.tgbot.filters.callbacks import (
     DeleteMessageCallback,
     OpenSubscriptionsCallback,
-    ProcessFeedbackCallback,
     PullDialogDownCallback,
     ShowMailingInfoCallback,
     ShowUserInfoCallback,
@@ -58,23 +53,6 @@ async def open_subscriptions_menu(
 @router.callback_query(PullDialogDownCallback.filter())
 async def pull_down_menu(query: CallbackQuery, dialog_manager: DialogManager) -> None:
     await dialog_manager.update(data={}, show_mode=ShowMode.SEND)
-
-
-@router.callback_query(ProcessFeedbackCallback.filter())
-@inject
-async def process_feedback(
-    query: CallbackQuery,
-    callback_data: ProcessFeedbackCallback,
-    interactor: FromDishka[ProceedFeedback],
-):
-    await interactor(ProceedFeedbackDTO(feedback_id=callback_data.feedback_id))
-    await query.answer(
-        "✅ Вы взяли отзыв в работу. "
-        "Теперь можете связаться с пользователем. "
-        "Это можно сделать в ЛС или от имени бота "
-        "через информацию о пользователе (односторонняя связь). ",
-        show_alert=True,
-    )
 
 
 @router.callback_query(ShowUserInfoCallback.filter())

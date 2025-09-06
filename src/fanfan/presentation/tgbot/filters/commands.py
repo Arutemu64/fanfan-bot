@@ -12,7 +12,6 @@ NOTIFICATIONS_CMD = BotCommand(
 )
 VOTING_CMD = BotCommand(command="voting", description=titles.voting)
 STAFF_CMD = BotCommand(command="staff", description=titles.staff_menu)
-FEEDBACK_CMD = BotCommand(command="feedback", description=titles.feedback)
 SETTINGS_CMD = BotCommand(command="settings", description=titles.settings)
 QUEST_CMD = BotCommand(command="quest", description=titles.quest)
 MARKETPLACE_CMD = BotCommand(command="marketplace", description=titles.marketplace)

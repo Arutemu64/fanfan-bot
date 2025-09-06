@@ -3,7 +3,6 @@ from .activity import ActivityORM
 from .app_settings import AppSettingsORM
 from .base import Base
 from .code import CodeORM
-from .feedback import FeedbackORM
 from .flag import FlagORM
 from .market import MarketORM
 from .nomination import NominationORM
@@ -35,7 +34,6 @@ __all__ = [
     "VoteORM",
     "ActivityORM",
     "QuoteORM",
-    "FeedbackORM",
     "TransactionORM",
     "ScheduleChangeORM",
     "CodeORM",

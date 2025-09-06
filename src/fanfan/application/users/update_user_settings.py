@@ -30,14 +30,3 @@ class UpdateUserSettings:
             user.settings.receive_all_announcements = receive_all_announcements
             await self.users_repo.save_user(user)
             await self.uow.commit()
-
-    async def toggle_org_receive_feedback_notifications(
-        self, receive_feedback_notifications: bool
-    ) -> None:
-        user = await self.id_provider.get_user_data()
-        async with self.uow:
-            user.settings.org_receive_feedback_notifications = (
-                receive_feedback_notifications
-            )
-            await self.users_repo.save_user(user)
-            await self.uow.commit()

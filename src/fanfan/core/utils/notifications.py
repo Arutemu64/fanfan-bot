@@ -1,18 +1,10 @@
-import html
-
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from fanfan.core.dto.feedback import FeedbackDTO
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.models.achievement import Achievement
 from fanfan.core.utils.pluralize import Plurals, pluralize
-from fanfan.presentation.tgbot.keyboards.buttons import (
-    DELETE_BUTTON,
-    PULL_DOWN_DIALOG,
-    process_feedback_button,
-    show_user_info_button,
-)
+from fanfan.presentation.tgbot.keyboards.buttons import DELETE_BUTTON
 
 
 def create_achievement_notification(achievement: Achievement) -> UserNotification:
@@ -30,39 +22,6 @@ def create_points_notification(points: int, comment: str | None) -> UserNotifica
     return UserNotification(
         title="💰 Ты заработал очки",
         text=text,
-    )
-
-
-def create_feedback_notification(feedback: FeedbackDTO) -> UserNotification:
-    bottom_text = (
-        "⚙️ Уведомления можно отключить в личных настройках.\n"
-        "⚠️ Пользователю можно ограничить доступ к обратной связи, "
-        "отозвав разрешение can_send_feedback через орг-панель.\n"
-    )
-    if feedback.processed_by is None:
-        bottom_text += "🙋 Нажмите кнопку, если готовы взять обработку отзыва на себя."
-        reply_markup = InlineKeyboardBuilder(
-            [
-                [process_feedback_button(feedback_id=feedback.id)],
-                [show_user_info_button(user_id=feedback.reported_by.id)],
-                [PULL_DOWN_DIALOG],
-            ]
-        ).as_markup()
-    else:
-        bottom_text += f"✅ @{feedback.processed_by.username} взял отзыв в работу."
-        reply_markup = InlineKeyboardBuilder(
-            [
-                [show_user_info_button(user_id=feedback.reported_by.id)],
-                [PULL_DOWN_DIALOG],
-            ]
-        ).as_markup()
-    return UserNotification(
-        title="💬 ОБРАТНАЯ СВЯЗЬ",
-        text=f"Поступила обратная связь "
-        f"от @{feedback.reported_by.username} ({feedback.reported_by.id}):\n\n"
-        f"<blockquote>{html.escape(feedback.text)}</blockquote>",
-        bottom_text=bottom_text,
-        reply_markup=reply_markup,
     )
 
 

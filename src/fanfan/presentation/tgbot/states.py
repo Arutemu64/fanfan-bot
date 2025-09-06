@@ -10,10 +10,6 @@ class Activities(StatesGroup):
     VIEW_ACTIVITY = State()
 
 
-class Feedback(StatesGroup):
-    SEND_FEEDBACK = State()
-
-
 class Main(StatesGroup):
     HOME = State()
 

@@ -8,7 +8,6 @@ from fanfan.adapters.db.repositories.app_settings import (
     SettingsRepository,
 )
 from fanfan.adapters.db.repositories.codes import CodesRepository
-from fanfan.adapters.db.repositories.feedback import FeedbackRepository
 from fanfan.adapters.db.repositories.flags import FlagsRepository
 from fanfan.adapters.db.repositories.markets import MarketsRepository
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
@@ -39,7 +38,6 @@ class RepositoriesProvider(Provider):
     achievements = provide(AchievementsRepository)
     activities = provide(ActivitiesRepository)
     codes = provide(CodesRepository)
-    feedback = provide(FeedbackRepository)
     markets = provide(MarketsRepository)
     nominations = provide(NominationsRepository)
     participants = provide(ParticipantsRepository)

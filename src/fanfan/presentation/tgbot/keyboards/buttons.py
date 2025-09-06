@@ -1,13 +1,11 @@
 from aiogram.types import InlineKeyboardButton
 
 from fanfan.core.dto.mailing import MailingId
-from fanfan.core.vo.feedback import FeedbackId
 from fanfan.core.vo.schedule_change import ScheduleChangeId
 from fanfan.core.vo.user import UserId
 from fanfan.presentation.tgbot.filters.callbacks import (
     DeleteMessageCallback,
     OpenSubscriptionsCallback,
-    ProcessFeedbackCallback,
     PullDialogDownCallback,
     ShowMailingInfoCallback,
     ShowUserInfoCallback,
@@ -33,13 +31,6 @@ def show_mailing_info_button(mailing_id: MailingId) -> InlineKeyboardButton:
     return InlineKeyboardButton(
         text="📃 Информация о рассылке",
         callback_data=ShowMailingInfoCallback(mailing_id=mailing_id).pack(),
-    )
-
-
-def process_feedback_button(feedback_id: FeedbackId) -> InlineKeyboardButton:
-    return InlineKeyboardButton(
-        text="🙋 Беру на себя",
-        callback_data=ProcessFeedbackCallback(feedback_id=feedback_id).pack(),
     )
 
 

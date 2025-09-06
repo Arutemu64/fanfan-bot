@@ -1,5 +1,5 @@
 from adaptix import Retort
-from sqlalchemy import Boolean, and_, cast, func, select
+from sqlalchemy import Boolean, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -110,15 +110,3 @@ class UsersRepository:
         )
         editors_orm = await self.session.scalars(stmt)
         return [_parse_user_dto(e) for e in editors_orm]
-
-    async def read_orgs_for_feedback_notification(self) -> list[UserDTO]:
-        stmt = select(UserORM).where(
-            and_(
-                UserORM.role == UserRole.ORG,
-                UserORM.settings["org_receive_feedback_notifications"].astext.cast(
-                    Boolean
-                ),
-            )
-        )
-        orgs_orm = await self.session.scalars(stmt)
-        return [_parse_user_dto(o) for o in orgs_orm]

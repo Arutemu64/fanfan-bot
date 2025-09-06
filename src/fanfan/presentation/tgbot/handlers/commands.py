@@ -8,14 +8,12 @@ from dishka.integrations.aiogram import inject
 
 from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.models.user import UserData
-from fanfan.core.services.feedback import FeedbackService
 from fanfan.core.services.quest import QuestService
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.filters import RoleFilter
 from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,
-    FEEDBACK_CMD,
     LINK_TICKET_CMD,
     MARKETPLACE_CMD,
     NOTIFICATIONS_CMD,
@@ -96,21 +94,6 @@ async def voting_cmd(
 @router.message(Command(STAFF_CMD), RoleFilter(UserRole.HELPER, UserRole.ORG))
 async def staff_cmd(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(states.Staff.MAIN)
-
-
-@router.message(Command(FEEDBACK_CMD))
-@inject
-async def feedback_cmd(
-    message: Message,
-    dialog_manager: DialogManager,
-    user: UserData,
-    feedback_service: FromDishka[FeedbackService],
-) -> None:
-    try:
-        await feedback_service.ensure_user_can_send_feedback(user)
-        await dialog_manager.start(states.Feedback.SEND_FEEDBACK)
-    except AccessDenied:
-        await dialog_manager.update(data={})
 
 
 @router.message(Command(SETTINGS_CMD))

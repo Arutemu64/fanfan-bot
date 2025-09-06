@@ -1,7 +1,6 @@
 from aiogram.filters.callback_data import CallbackData
 
 from fanfan.core.dto.mailing import MailingId
-from fanfan.core.vo.feedback import FeedbackId
 from fanfan.core.vo.schedule_change import ScheduleChangeId
 from fanfan.core.vo.user import UserId
 
@@ -20,10 +19,6 @@ class OpenSubscriptionsCallback(CallbackData, prefix="open_subscriptions"):
 
 class PullDialogDownCallback(CallbackData, prefix="pull_dialog_down"):
     pass
-
-
-class ProcessFeedbackCallback(CallbackData, prefix="process_feedback"):
-    feedback_id: FeedbackId
 
 
 class ShowUserInfoCallback(CallbackData, prefix="show_user_info"):

@@ -4,7 +4,6 @@ from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot.dialogs import (
     achievements,
     activities,
-    feedback,
     link_ticket,
     mailing,
     main_menu,
@@ -29,7 +28,6 @@ def setup_router() -> Router:
         achievements.dialog,
         voting.dialog,
         settings.dialog,
-        feedback.dialog,
         activities.dialog,
         quest.dialog,
         marketplace.dialog,

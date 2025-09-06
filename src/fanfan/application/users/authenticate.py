@@ -6,7 +6,6 @@ from aiogram.types import User as AiogramUser
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.constants.permissions import Permissions
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.user import (
     User,
@@ -64,12 +63,6 @@ class Authenticate:
                     settings=UserSettings(),
                 )
                 await self.users_repo.add_user(user)
-
-                # Add basic permissions
-                await self.user_perm_service.add_permission(
-                    perm_name=Permissions.CAN_SEND_FEEDBACK,
-                    user_id=user.id,
-                )
 
                 # Save user
                 await self.uow.commit()
