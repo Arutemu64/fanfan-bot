@@ -17,6 +17,7 @@ if typing.TYPE_CHECKING:
 
 class SubscriptionORM(Base):
     __tablename__ = "subscriptions"
+    __table_args__ = (UniqueConstraint("event_id", "user_id"),)
 
     id: Mapped[SubscriptionId] = mapped_column(primary_key=True)
     counter: Mapped[int] = mapped_column()
@@ -26,11 +27,10 @@ class SubscriptionORM(Base):
     user: Mapped[UserORM] = relationship()
 
     # Event relation
-    event_id: Mapped[int] = mapped_column(ForeignKey("schedule.id", ondelete="CASCADE"))
+    event_id: Mapped[ScheduleEventId] = mapped_column(
+        ForeignKey("schedule.id", ondelete="CASCADE")
+    )
     event: Mapped[ScheduleEventORM] = relationship()
-
-    # Constraint
-    UniqueConstraint(event_id, user_id)
 
     @classmethod
     def from_model(cls, model: Subscription):
@@ -43,8 +43,8 @@ class SubscriptionORM(Base):
 
     def to_model(self) -> Subscription:
         return Subscription(
-            id=SubscriptionId(self.id),
-            user_id=UserId(self.user_id),
-            event_id=ScheduleEventId(self.event_id),
+            id=self.id,
+            user_id=self.user_id,
+            event_id=self.event_id,
             counter=self.counter,
         )

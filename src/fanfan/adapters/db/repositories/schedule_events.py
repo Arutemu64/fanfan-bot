@@ -1,5 +1,3 @@
-import math
-
 from sqlalchemy import Select, and_, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, undefer
@@ -21,7 +19,7 @@ from fanfan.core.models.schedule_event import (
     ScheduleEvent,
 )
 from fanfan.core.vo.participant import ParticipantId
-from fanfan.core.vo.schedule_event import ScheduleEventId, ScheduleEventPublicId
+from fanfan.core.vo.schedule_event import ScheduleEventId
 from fanfan.core.vo.user import UserId
 
 
@@ -227,15 +225,6 @@ class ScheduleEventsRepository:
             )
         return None
 
-    async def read_event_by_public_id(
-        self, event_public_id: ScheduleEventPublicId
-    ) -> ScheduleEventDTO | None:
-        stmt = _select_schedule_event_dto().where(
-            ScheduleEventORM.public_id == event_public_id
-        )
-        event_orm = await self.session.scalar(stmt)
-        return _parse_schedule_event_dto(event_orm) if event_orm else None
-
     async def read_event_by_queue(self, queue: int) -> ScheduleEventDTO | None:
         stmt = _select_schedule_event_dto().where(ScheduleEventORM.queue == queue)
         event_orm = await self.session.scalar(stmt)
@@ -245,22 +234,6 @@ class ScheduleEventsRepository:
         stmt = _select_schedule_event_dto().where(ScheduleEventORM.is_current.is_(True))
         event_orm = await self.session.scalar(stmt)
         return _parse_schedule_event_dto(event_orm) if event_orm else None
-
-    async def get_page_number_by_event(
-        self, event_id: ScheduleEventId, events_per_page: int
-    ) -> int | None:
-        order_stmt = (
-            select(ScheduleEventORM.order)
-            .where(ScheduleEventORM.id == event_id)
-            .scalar_subquery()
-        )
-        position_stmt = select(func.count(ScheduleEventORM.id)).where(
-            ScheduleEventORM.order <= order_stmt
-        )
-        event_position = await self.session.scalar(position_stmt)
-        if event_position > 0:
-            return math.floor((event_position - 1) / events_per_page)
-        return None
 
     async def list_schedule_for_user(
         self,

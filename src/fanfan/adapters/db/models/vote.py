@@ -19,15 +19,16 @@ if TYPE_CHECKING:
 
 class VoteORM(Base):
     __tablename__ = "votes"
+    __table_args__ = (UniqueConstraint("user_id", "participant_id"),)
 
     id: Mapped[VoteId] = mapped_column(primary_key=True)
 
     # User relation
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[UserId] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped[UserORM] = relationship()
 
     # Participant relation
-    participant_id: Mapped[int] = mapped_column(
+    participant_id: Mapped[ParticipantId] = mapped_column(
         ForeignKey("participants.id", ondelete="CASCADE"),
     )
     participant: Mapped[ParticipantORM] = relationship()
@@ -35,9 +36,6 @@ class VoteORM(Base):
         secondary="participants",
         viewonly=True,
     )
-
-    # User can vote once for participant
-    UniqueConstraint(user_id, participant_id)
 
     @classmethod
     def from_model(cls, model: Vote):
@@ -49,7 +47,7 @@ class VoteORM(Base):
 
     def to_model(self) -> Vote:
         return Vote(
-            id=VoteId(self.id),
-            user_id=UserId(self.user_id),
-            participant_id=ParticipantId(self.participant_id),
+            id=self.id,
+            user_id=self.user_id,
+            participant_id=self.participant_id,
         )

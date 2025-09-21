@@ -10,7 +10,6 @@ from fanfan.core.exceptions.tickets import (
     TicketNotFound,
     UserAlreadyHasTicketLinked,
 )
-from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.vo.ticket import TicketId
 
 logger = logging.getLogger(__name__)
@@ -30,14 +29,11 @@ class LinkTicket:
         self.id_provider = id_provider
 
     async def __call__(self, ticket_id: TicketId) -> None:
-        user_id = self.id_provider.get_current_user_id()
+        user = await self.id_provider.get_current_user()
+        ticket = await self.tickets_repo.get_ticket_by_user_id(user.id)
         async with self.uow:
             try:
-                # Get user
-                user = await self.users_repo.get_user_data(user_id)
-                if user is None:
-                    raise UserNotFound
-                if user.ticket:
+                if ticket:
                     raise UserAlreadyHasTicketLinked
 
                 # Get ticket
@@ -55,10 +51,10 @@ class LinkTicket:
                 await self.uow.rollback()
                 raise
             else:
-                user = await self.users_repo.get_user_data(user_id)
+                user = await self.users_repo.get_user_by_id(user.id)
                 logger.info(
                     "Ticket %s was linked to user %s",
                     ticket_id,
-                    user_id,
+                    user.id,
                     extra={"user": user, "ticket": ticket},
                 )

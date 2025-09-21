@@ -1,9 +1,7 @@
-from aiogram_dialog import Dialog, DialogManager
+from aiogram_dialog import Dialog
 
-from fanfan.core.vo.market import MarketId
-from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import merge_start_data
 
-from .common import DATA_SELECTED_MARKET_ID
 from .market.add_manager import (
     add_manager_window,
 )
@@ -42,20 +40,6 @@ from .product.view_product import (
     view_product_window,
 )
 
-
-async def open_market(manager: DialogManager, market_id: MarketId):
-    await manager.start(
-        state=states.Marketplace.VIEW_MARKET, data={DATA_SELECTED_MARKET_ID: market_id}
-    )
-
-
-async def on_start(start_data: dict | None, manager: DialogManager):
-    if isinstance(start_data, dict):
-        manager.dialog_data[DATA_SELECTED_MARKET_ID] = start_data.get(
-            DATA_SELECTED_MARKET_ID
-        )
-
-
 dialog = Dialog(
     # Market
     list_markets_window,
@@ -72,5 +56,5 @@ dialog = Dialog(
     edit_product_price_window,
     edit_product_image_window,
     delete_product_window,
-    on_start=on_start,
+    on_start=merge_start_data,
 )

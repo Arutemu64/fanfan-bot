@@ -7,6 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.achievement import ReceivedAchievement
+from fanfan.core.vo.achievements import AchievementId
+from fanfan.core.vo.user import UserId
 
 if typing.TYPE_CHECKING:
     from fanfan.adapters.db.models.achievement import AchievementORM
@@ -15,27 +17,25 @@ if typing.TYPE_CHECKING:
 
 class ReceivedAchievementORM(Base):
     __tablename__ = "received_achievements"
+    __table_args__ = (UniqueConstraint("user_id", "achievement_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Achievement relation
-    achievement_id: Mapped[int] = mapped_column(
+    achievement_id: Mapped[AchievementId] = mapped_column(
         ForeignKey("achievements.id", ondelete="CASCADE"),
     )
     achievement: Mapped[AchievementORM] = relationship(viewonly=True)
 
     # User relation
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[UserId] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped[UserORM] = relationship(foreign_keys=user_id)
 
     # From user relation
-    from_user_id: Mapped[int | None] = mapped_column(
+    from_user_id: Mapped[UserId | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
     from_user: Mapped[UserORM | None] = relationship(foreign_keys=from_user_id)
-
-    # Constraint
-    UniqueConstraint(user_id, achievement_id)
 
     @classmethod
     def from_model(cls, model: ReceivedAchievement) -> ReceivedAchievementORM:

@@ -14,7 +14,7 @@ class AchievementORM(Base, OrderMixin):
     __tablename__ = "achievements"
 
     id: Mapped[AchievementId] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column()
+    title: Mapped[str] = mapped_column(unique=True)
     description: Mapped[str | None] = mapped_column()
 
     def __str__(self) -> str:

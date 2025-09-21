@@ -1,30 +1,30 @@
-from typing import TYPE_CHECKING
-
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.mailing.read_mailing_info import ReadMailingInfo
-from fanfan.core.dto.mailing import MailingId
+from fanfan.application.mailing.get_mailing_info import (
+    GetMailingInfo,
+    GetMailingInfoDTO,
+)
+from fanfan.core.vo.mailing import MailingId
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.mailing.view_mailing import show_mailing_info
+from fanfan.presentation.tgbot.dialogs.mailing.api import show_mailing_info
 from fanfan.presentation.tgbot.static import strings
 
-if TYPE_CHECKING:
-    from dishka import AsyncContainer
 
-
+@inject
 async def find_mailing_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: MailingId,
+    get_mailing_info: FromDishka[GetMailingInfo],
 ) -> None:
-    container: AsyncContainer = dialog_manager.middleware_data["container"]
-    get_mailing_info: ReadMailingInfo = await container.get(ReadMailingInfo)
-    await get_mailing_info(data)
+    await get_mailing_info(GetMailingInfoDTO(mailing_id=data))
     await show_mailing_info(dialog_manager, data)
 
 

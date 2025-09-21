@@ -2,7 +2,7 @@
 
 Revision ID: 001
 Revises:
-Create Date: 2024-11-17 00:44:16.532315
+Create Date: 2025-09-06 16:27:46.479473
 
 """
 
@@ -22,12 +22,19 @@ def upgrade() -> None:
     op.execute("CREATE SEQUENCE achievements_order_seq")
     op.execute("CREATE SEQUENCE activities_order_seq")
     op.execute("CREATE SEQUENCE schedule_order_seq")
+    op.execute("CREATE SEQUENCE markets_order_seq")
+    op.execute("CREATE SEQUENCE products_order_seq")
+    sa.Enum(
+        "SET_AS_CURRENT", "MOVED", "SKIPPED", "UNSKIPPED", name="schedulechangetype"
+    ).create(op.get_bind())
+    sa.Enum("VISITOR", "PARTICIPANT", "HELPER", "ORG", name="userrole").create(
+        op.get_bind()
+    )
     op.create_table(
         "achievements",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(), nullable=False),
         sa.Column("description", sa.String(), nullable=True),
-        sa.Column("secret_id", sa.String(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -48,14 +55,14 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_achievements")),
         sa.UniqueConstraint("order", name=op.f("uq_achievements_order")),
-        sa.UniqueConstraint("secret_id", name=op.f("uq_achievements_secret_id")),
+        sa.UniqueConstraint("title", name=op.f("uq_achievements_title")),
     )
     op.create_table(
         "activities",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(), nullable=False),
         sa.Column("description", sa.String(), nullable=False),
-        sa.Column("image", sa.String(), nullable=True),
+        sa.Column("image_path", sa.String(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -78,10 +85,28 @@ def upgrade() -> None:
         sa.UniqueConstraint("order", name=op.f("uq_activities_order")),
     )
     op.create_table(
+        "app_settings",
+        sa.Column("id", sa.Integer(), server_default="1", nullable=False),
+        sa.Column("config", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_app_settings")),
+    )
+    op.create_table(
         "blocks",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(), nullable=False),
-        sa.Column("start_order", sa.Integer(), nullable=False),
+        sa.Column("start_order", sa.Float(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -96,6 +121,34 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_blocks")),
         sa.UniqueConstraint("start_order", name=op.f("uq_blocks_start_order")),
+    )
+    op.create_table(
+        "markets",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(), nullable=False),
+        sa.Column("description", sa.String(), nullable=True),
+        sa.Column("image_id", sa.String(), nullable=True),
+        sa.Column("is_visible", sa.Boolean(), server_default="False", nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "order",
+            sa.Float(),
+            server_default=sa.text("nextval('markets_order_seq')"),
+            nullable=False,
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_markets")),
+        sa.UniqueConstraint("order", name=op.f("uq_markets_order")),
     )
     op.create_table(
         "nominations",
@@ -120,6 +173,25 @@ def upgrade() -> None:
         sa.UniqueConstraint("title", name=op.f("uq_nominations_title")),
     )
     op.create_table(
+        "permissions",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_permissions")),
+        sa.UniqueConstraint("name", name=op.f("uq_permissions_name")),
+    )
+    op.create_table(
         "quotes",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("text", sa.String(), nullable=False),
@@ -138,49 +210,26 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_quotes")),
     )
     op.create_table(
-        "settings",
-        sa.Column("id", sa.Integer(), server_default="1", nullable=False),
-        sa.Column(
-            "voting_enabled", sa.Boolean(), server_default="False", nullable=False
-        ),
-        sa.Column(
-            "quest_registration_enabled",
-            sa.Boolean(),
-            server_default="False",
-            nullable=False,
-        ),
-        sa.Column(
-            "quest_registrations_limit",
-            sa.Integer(),
-            server_default="10",
-            nullable=False,
-        ),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_settings")),
-    )
-    op.create_table(
         "users",
-        sa.Column("id", sa.BigInteger(), autoincrement=False, nullable=False),
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("tg_id", sa.BigInteger(), nullable=True),
         sa.Column("username", sa.String(), nullable=True),
         sa.Column("first_name", sa.String(), nullable=True),
         sa.Column("last_name", sa.String(), nullable=True),
         sa.Column(
             "role",
-            postgresql.ENUM("VISITOR", "PARTICIPANT", "HELPER", "ORG", name="userrole"),
+            postgresql.ENUM(
+                "VISITOR",
+                "PARTICIPANT",
+                "HELPER",
+                "ORG",
+                name="userrole",
+                create_type=False,
+            ),
             server_default="VISITOR",
             nullable=False,
         ),
+        sa.Column("settings", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("points", sa.Integer(), server_default="0", nullable=False),
         sa.Column(
             "created_at",
@@ -195,15 +244,14 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_users")),
+        sa.UniqueConstraint("tg_id", name=op.f("uq_users_tg_id")),
     )
     op.create_index(op.f("ix_users_username"), "users", ["username"], unique=True)
     op.create_table(
-        "feedback",
+        "flags",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("text", sa.String(), nullable=False),
-        sa.Column("mailing_id", sa.String(), nullable=True),
-        sa.Column("user_id", sa.BigInteger(), nullable=True),
-        sa.Column("processed_by_id", sa.BigInteger(), nullable=True),
+        sa.Column("name", sa.String(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -217,30 +265,19 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["processed_by_id"],
-            ["users.id"],
-            name=op.f("fk_feedback_processed_by_id_users"),
-            ondelete="SET NULL",
-        ),
-        sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
-            name=op.f("fk_feedback_user_id_users"),
-            ondelete="SET NULL",
+            name=op.f("fk_flags_user_id_users"),
+            ondelete="CASCADE",
         ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_feedback")),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_flags")),
     )
     op.create_table(
         "participants",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(), nullable=False),
-        sa.Column("nomination_id", sa.Integer(), nullable=True),
-        sa.Column(
-            "scoped_id",
-            sa.Integer(),
-            sa.Identity(always=False, start=1),
-            nullable=False,
-        ),
+        sa.Column("nomination_id", sa.Integer(), nullable=False),
+        sa.Column("voting_number", sa.Integer(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -257,20 +294,28 @@ def upgrade() -> None:
             ["nomination_id"],
             ["nominations.id"],
             name=op.f("fk_participants_nomination_id_nominations"),
-            ondelete="SET NULL",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_participants")),
         sa.UniqueConstraint(
-            "nomination_id", "scoped_id", name=op.f("uq_participants_nomination_id")
+            "nomination_id",
+            "voting_number",
+            deferrable=True,
+            initially="DEFERRED",
+            name=op.f("uq_participants_nomination_id"),
         ),
     )
     op.create_index(
         op.f("ix_participants_title"), "participants", ["title"], unique=False
     )
     op.create_table(
-        "quest_registrations",
+        "products",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.BigInteger(), nullable=False),
+        sa.Column("name", sa.String(), nullable=False),
+        sa.Column("description", sa.String(), nullable=True),
+        sa.Column("price", sa.Float(), server_default="0", nullable=False),
+        sa.Column("image_id", sa.String(), nullable=True),
+        sa.Column("market_id", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -283,20 +328,27 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
+        sa.Column(
+            "order",
+            sa.Float(),
+            server_default=sa.text("nextval('products_order_seq')"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
-            ["user_id"],
-            ["users.id"],
-            name=op.f("fk_quest_registrations_user_id_users"),
+            ["market_id"],
+            ["markets.id"],
+            name=op.f("fk_products_market_id_markets"),
             ondelete="CASCADE",
         ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_quest_registrations")),
-        sa.UniqueConstraint("user_id", name=op.f("uq_quest_registrations_user_id")),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_products")),
+        sa.UniqueConstraint("order", name=op.f("uq_products_order")),
     )
     op.create_table(
         "received_achievements",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("achievement_id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.BigInteger(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("from_user_id", sa.Integer(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -316,6 +368,12 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
+            ["from_user_id"],
+            ["users.id"],
+            name=op.f("fk_received_achievements_from_user_id_users"),
+            ondelete="SET NULL",
+        ),
+        sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
             name=op.f("fk_received_achievements_user_id_users"),
@@ -331,11 +389,18 @@ def upgrade() -> None:
         sa.Column("id", sa.String(), nullable=False),
         sa.Column(
             "role",
-            postgresql.ENUM("VISITOR", "PARTICIPANT", "HELPER", "ORG", name="userrole"),
+            postgresql.ENUM(
+                "VISITOR",
+                "PARTICIPANT",
+                "HELPER",
+                "ORG",
+                name="userrole",
+                create_type=False,
+            ),
             nullable=False,
         ),
-        sa.Column("used_by_id", sa.BigInteger(), nullable=True),
-        sa.Column("issued_by_id", sa.BigInteger(), nullable=True),
+        sa.Column("used_by_id", sa.Integer(), nullable=True),
+        sa.Column("issued_by_id", sa.Integer(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -364,11 +429,12 @@ def upgrade() -> None:
         sa.UniqueConstraint("used_by_id", name=op.f("uq_tickets_used_by_id")),
     )
     op.create_table(
-        "user_permissions",
-        sa.Column(
-            "can_send_feedback", sa.Boolean(), server_default="True", nullable=False
-        ),
-        sa.Column("user_id", sa.BigInteger(), nullable=False),
+        "transactions",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("points", sa.Integer(), nullable=False),
+        sa.Column("comment", sa.String(), nullable=True),
+        sa.Column("to_user_id", sa.Integer(), nullable=False),
+        sa.Column("from_user_id", sa.Integer(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -380,6 +446,45 @@ def upgrade() -> None:
             sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["from_user_id"],
+            ["users.id"],
+            name=op.f("fk_transactions_from_user_id_users"),
+            ondelete="SET NULL",
+        ),
+        sa.ForeignKeyConstraint(
+            ["to_user_id"],
+            ["users.id"],
+            name=op.f("fk_transactions_to_user_id_users"),
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_transactions")),
+    )
+    op.create_table(
+        "user_permissions",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("permission_id", sa.Integer(), nullable=False),
+        sa.Column("object_id", sa.Integer(), nullable=True),
+        sa.Column("object_type", sa.String(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["permission_id"],
+            ["permissions.id"],
+            name=op.f("fk_user_permissions_permission_id_permissions"),
+            ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["user_id"],
@@ -387,24 +492,21 @@ def upgrade() -> None:
             name=op.f("fk_user_permissions_user_id_users"),
             ondelete="CASCADE",
         ),
-        sa.PrimaryKeyConstraint("user_id", name=op.f("pk_user_permissions")),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_user_permissions")),
+        sa.UniqueConstraint(
+            "user_id",
+            "permission_id",
+            "object_id",
+            "object_type",
+            name=op.f("uq_user_permissions_user_id"),
+        ),
     )
     op.create_table(
-        "user_settings",
-        sa.Column("items_per_page", sa.Integer(), server_default="5", nullable=False),
-        sa.Column(
-            "receive_all_announcements",
-            sa.Boolean(),
-            server_default="True",
-            nullable=False,
-        ),
-        sa.Column(
-            "org_receive_feedback_notifications",
-            sa.Boolean(),
-            server_default="True",
-            nullable=False,
-        ),
-        sa.Column("user_id", sa.BigInteger(), nullable=False),
+        "codes",
+        sa.Column("id", sa.String(), nullable=False),
+        sa.Column("achievement_id", sa.Integer(), nullable=True),
+        sa.Column("user_id", sa.Integer(), nullable=True),
+        sa.Column("ticket_id", sa.String(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -418,17 +520,31 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["user_id"],
-            ["users.id"],
-            name=op.f("fk_user_settings_user_id_users"),
+            ["achievement_id"],
+            ["achievements.id"],
+            name=op.f("fk_codes_achievement_id_achievements"),
             ondelete="CASCADE",
         ),
-        sa.PrimaryKeyConstraint("user_id", name=op.f("pk_user_settings")),
+        sa.ForeignKeyConstraint(
+            ["ticket_id"],
+            ["tickets.id"],
+            name=op.f("fk_codes_ticket_id_tickets"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["users.id"],
+            name=op.f("fk_codes_user_id_users"),
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_codes")),
     )
     op.create_table(
         "schedule",
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("public_id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(), nullable=False),
+        sa.Column("duration", sa.Integer(), server_default="0", nullable=False),
         sa.Column("is_current", sa.Boolean(), nullable=True),
         sa.Column("is_skipped", sa.Boolean(), server_default="False", nullable=False),
         sa.Column("participant_id", sa.Integer(), nullable=True),
@@ -459,12 +575,13 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_schedule")),
         sa.UniqueConstraint("is_current", name=op.f("uq_schedule_is_current")),
         sa.UniqueConstraint("order", name=op.f("uq_schedule_order")),
+        sa.UniqueConstraint("public_id", name=op.f("uq_schedule_public_id")),
     )
     op.create_index(op.f("ix_schedule_title"), "schedule", ["title"], unique=False)
     op.create_table(
         "votes",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.BigInteger(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("participant_id", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
@@ -494,10 +611,62 @@ def upgrade() -> None:
         sa.UniqueConstraint("user_id", "participant_id", name=op.f("uq_votes_user_id")),
     )
     op.create_table(
+        "schedule_changes",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column(
+            "type",
+            postgresql.ENUM(
+                "SET_AS_CURRENT",
+                "MOVED",
+                "SKIPPED",
+                "UNSKIPPED",
+                name="schedulechangetype",
+                create_type=False,
+            ),
+            nullable=False,
+        ),
+        sa.Column("changed_event_id", sa.Integer(), nullable=True),
+        sa.Column("argument_event_id", sa.Integer(), nullable=True),
+        sa.Column("user_id", sa.Integer(), nullable=True),
+        sa.Column("send_global_announcement", sa.Boolean(), nullable=False),
+        sa.Column("mailing_id", sa.String(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["argument_event_id"],
+            ["schedule.id"],
+            name=op.f("fk_schedule_changes_argument_event_id_schedule"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["changed_event_id"],
+            ["schedule.id"],
+            name=op.f("fk_schedule_changes_changed_event_id_schedule"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["users.id"],
+            name=op.f("fk_schedule_changes_user_id_users"),
+            ondelete="SET NULL",
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_schedule_changes")),
+    )
+    op.create_table(
         "subscriptions",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("counter", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.BigInteger(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("event_id", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
@@ -534,29 +703,38 @@ def upgrade() -> None:
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table("subscriptions")
+    op.drop_table("schedule_changes")
     op.drop_table("votes")
     op.drop_index(op.f("ix_schedule_title"), table_name="schedule")
     op.drop_table("schedule")
-    op.drop_table("user_settings")
+    op.drop_table("codes")
     op.drop_table("user_permissions")
+    op.drop_table("transactions")
     op.drop_table("tickets")
     op.drop_table("received_achievements")
-    op.drop_table("quest_registrations")
+    op.drop_table("products")
     op.drop_index(op.f("ix_participants_title"), table_name="participants")
     op.drop_table("participants")
-    op.drop_table("feedback")
+    op.drop_table("flags")
     op.drop_index(op.f("ix_users_username"), table_name="users")
     op.drop_table("users")
-    op.drop_table("settings")
     op.drop_table("quotes")
+    op.drop_table("permissions")
     op.drop_table("nominations")
+    op.drop_table("markets")
     op.drop_table("blocks")
+    op.drop_table("app_settings")
     op.drop_table("activities")
     op.drop_table("achievements")
+    sa.Enum("VISITOR", "PARTICIPANT", "HELPER", "ORG", name="userrole").drop(
+        op.get_bind()
+    )
+    sa.Enum(
+        "SET_AS_CURRENT", "MOVED", "SKIPPED", "UNSKIPPED", name="schedulechangetype"
+    ).drop(op.get_bind())
     op.execute("DROP SEQUENCE achievements_order_seq")
     op.execute("DROP SEQUENCE activities_order_seq")
     op.execute("DROP SEQUENCE schedule_order_seq")
-    postgresql.ENUM("VISITOR", "PARTICIPANT", "HELPER", "ORG", name="userrole").drop(
-        op.get_bind(),
-    )
+    op.execute("DROP SEQUENCE markets_order_seq")
+    op.execute("DROP SEQUENCE products_order_seq")
     # ### end Alembic commands ###

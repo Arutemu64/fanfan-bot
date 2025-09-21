@@ -18,11 +18,11 @@ if TYPE_CHECKING:
 class TicketORM(Base):
     __tablename__ = "tickets"
 
-    id: Mapped[str] = mapped_column(primary_key=True)
+    id: Mapped[TicketId] = mapped_column(primary_key=True)
     role: Mapped[UserRole] = mapped_column(postgresql.ENUM(UserRole))
 
     # Users relations
-    used_by_id: Mapped[int | None] = mapped_column(
+    used_by_id: Mapped[UserId | None] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
     )
@@ -31,7 +31,7 @@ class TicketORM(Base):
         back_populates="ticket",
     )
 
-    issued_by_id: Mapped[int | None] = mapped_column(
+    issued_by_id: Mapped[UserId | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
     )
     issued_by: Mapped[UserORM | None] = relationship(foreign_keys=issued_by_id)
@@ -50,8 +50,8 @@ class TicketORM(Base):
 
     def to_model(self) -> Ticket:
         return Ticket(
-            id=TicketId(self.id),
-            role=UserRole(self.role),
-            used_by_id=UserId(self.used_by_id),
-            issued_by_id=UserId(self.issued_by_id),
+            id=self.id,
+            role=self.role,
+            used_by_id=self.used_by_id,
+            issued_by_id=self.issued_by_id,
         )

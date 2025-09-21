@@ -8,7 +8,7 @@ from fanfan.core.vo.schedule_block import ScheduleBlockId
 class ScheduleBlockORM(Base):
     __tablename__ = "blocks"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[ScheduleBlockId] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column()
     start_order: Mapped[float] = mapped_column(unique=True)
 
@@ -25,7 +25,7 @@ class ScheduleBlockORM(Base):
 
     def to_model(self) -> ScheduleBlock:
         return ScheduleBlock(
-            id=ScheduleBlockId(self.id),
+            id=self.id,
             title=self.title,
             start_order=self.start_order,
         )

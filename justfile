@@ -1,6 +1,6 @@
 # Ruff check
 ruff-check:
-	ruff check src/fanfan --respect-gitignore --fix
+	ruff check src/fanfan --respect-gitignore --fix --unsafe-fixes
 
 # Ruff format
 ruff-format:

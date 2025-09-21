@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.quest import QuestRepository
+from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.transactions import TransactionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
@@ -29,6 +30,7 @@ class AddPointsToUser:
         self,
         users_repo: UsersRepository,
         quest_repo: QuestRepository,
+        tickets_repo: TicketsRepository,
         transactions_repo: TransactionsRepository,
         uow: UnitOfWork,
         service: QuestService,
@@ -37,6 +39,7 @@ class AddPointsToUser:
     ) -> None:
         self.users_repo = users_repo
         self.quest_repo = quest_repo
+        self.tickets_repo = tickets_repo
         self.transactions_repo = transactions_repo
         self.service = service
         self.uow = uow
@@ -45,20 +48,20 @@ class AddPointsToUser:
 
     async def __call__(self, data: AddPointsToUserDTO) -> None:
         async with self.uow:
-            user = await self.users_repo.get_user_data(data.user_id)
+            user = await self.users_repo.get_user_by_id(data.user_id)
             if user is None:
                 raise UserNotFound
-            self.service.ensure_user_can_participate_in_quest(
-                user=user, ticket=user.ticket
-            )
+            ticket = await self.tickets_repo.get_ticket_by_user_id(user.id)
+            self.service.ensure_user_can_participate_in_quest(user=user, ticket=ticket)
         async with self.uow:
             participant = await self.quest_repo.get_player(user_id=user.id)
             participant.add_points(data.points)
+            current_user = await self.id_provider.get_current_user()
             transaction = Transaction(
                 points=data.points,
                 comment=data.comment,
                 to_user_id=participant.id,
-                from_user_id=self.id_provider.get_current_user_id(),
+                from_user_id=current_user.id,
             )
 
             await self.quest_repo.save_player(participant)
@@ -69,7 +72,7 @@ class AddPointsToUser:
                 "User %s received %s points from user %s",
                 data.user_id,
                 data.points,
-                self.id_provider.get_current_user_id(),
+                current_user.id,
             )
             await self.stream_broker_adapter.publish(
                 NewNotificationEvent(

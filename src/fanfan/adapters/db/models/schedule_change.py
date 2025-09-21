@@ -5,7 +5,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.schedule_event import ScheduleEventORM
 from fanfan.adapters.db.models.user import UserORM
-from fanfan.core.dto.mailing import MailingId
 from fanfan.core.models.schedule_change import (
     ScheduleChange,
     ScheduleChangeType,
@@ -18,20 +17,20 @@ from fanfan.core.vo.user import UserId
 class ScheduleChangeORM(Base):
     __tablename__ = "schedule_changes"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[ScheduleChangeId] = mapped_column(primary_key=True)
 
     # Arguments
     type: Mapped[ScheduleChangeType] = mapped_column(
         postgresql.ENUM(ScheduleChangeType)
     )
-    changed_event_id: Mapped[int | None] = mapped_column(
+    changed_event_id: Mapped[ScheduleEventId | None] = mapped_column(
         ForeignKey("schedule.id", ondelete="CASCADE")
     )
 
-    argument_event_id: Mapped[int | None] = mapped_column(
+    argument_event_id: Mapped[ScheduleEventId | None] = mapped_column(
         ForeignKey("schedule.id", ondelete="CASCADE")
     )
-    user_id: Mapped[int | None] = mapped_column(
+    user_id: Mapped[UserId | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
     )
     send_global_announcement: Mapped[bool] = mapped_column()
@@ -60,11 +59,11 @@ class ScheduleChangeORM(Base):
 
     def to_model(self) -> ScheduleChange:
         return ScheduleChange(
-            id=ScheduleChangeId(self.id),
+            id=self.id,
             type=self.type,
-            mailing_id=MailingId(self.mailing_id),
-            user_id=UserId(self.user_id),
-            changed_event_id=ScheduleEventId(self.changed_event_id),
-            argument_event_id=ScheduleEventId(self.argument_event_id),
+            mailing_id=self.mailing_id,
+            user_id=self.user_id,
+            changed_event_id=self.changed_event_id,
+            argument_event_id=self.argument_event_id,
             send_global_announcement=self.send_global_announcement,
         )

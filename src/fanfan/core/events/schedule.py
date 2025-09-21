@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from fanfan.core.dto.mailing import MailingId
 from fanfan.core.events.base import AppEvent
 from fanfan.core.models.schedule_change import ScheduleChangeType
+from fanfan.core.vo.mailing import MailingId
 from fanfan.core.vo.schedule_event import ScheduleEventId
 from fanfan.core.vo.user import UserId
 

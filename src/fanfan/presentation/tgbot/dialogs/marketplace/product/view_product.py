@@ -1,36 +1,32 @@
-import typing
-
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Group, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Jinja, Multi
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.marketplace.update_product import UpdateProduct
-from fanfan.core.vo.product import ProductId
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.marketplace.common import (
-    DATA_SELECTED_PRODUCT_ID,
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
+from fanfan.presentation.tgbot.dialogs.marketplace.data import (
+    MarketDialogData,
 )
 from fanfan.presentation.tgbot.dialogs.marketplace.product.common import product_getter
 from fanfan.presentation.tgbot.static import strings
 
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
 
-
+@inject
 async def delete_product_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+    update_product: FromDishka[UpdateProduct],
 ):
-    container: AsyncContainer = manager.middleware_data["container"]
-    update_product: UpdateProduct = await container.get(UpdateProduct)
-
-    await update_product.delete_product(
-        product_id=ProductId(manager.dialog_data[DATA_SELECTED_PRODUCT_ID])
-    )
-
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
+    await update_product.delete_product(product_id=dialog_data.product_id)
     await callback.answer(strings.common.success)
-
     await manager.switch_to(state=states.Marketplace.LIST_PRODUCTS)
 
 

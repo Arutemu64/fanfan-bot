@@ -14,69 +14,71 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.voting.add_vote import AddVote, AddVoteDTO
 from fanfan.application.voting.cancel_vote import CancelVote, CancelVoteDTO
-from fanfan.application.voting.read_nomination_for_user import ReadNominationForUser
-from fanfan.application.voting.read_participants_page_for_user import (
-    GetParticipantsPageDTO,
-    ReadParticipantsPageForUser,
+from fanfan.application.voting.get_nomination_by_id import (
+    GetNominationById,
+    GetNominationByIdDTO,
 )
+from fanfan.application.voting.get_participants_page import (
+    GetParticipantsPage,
+    GetParticipantsPageDTO,
+)
+from fanfan.application.voting.get_voting_state import GetVotingState
 from fanfan.core.dto.page import Pagination
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.exceptions.votes import VoteNotFound
-from fanfan.core.models.user import UserData
-from fanfan.core.services.voting import VotingService, VotingState
+from fanfan.core.services.voting import VotingState
 from fanfan.core.vo.participant import ParticipantVotingNumber
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.dialogs.common.widgets import (
     SwitchInlineQueryCurrentChat,
     Title,
 )
-from fanfan.presentation.tgbot.dialogs.voting.common import (
-    DATA_SELECTED_NOMINATION_ID,
+from fanfan.presentation.tgbot.dialogs.voting.data import (
+    VotingDialogData,
 )
+from fanfan.presentation.tgbot.middlewares.dialog_data_adapter import DialogDataAdapter
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.templates import voting_list
 
 ID_VOTING_SCROLL = "voting_scroll"
-DATA_USER_VOTE_ID = "user_vote_id"
 
 
-async def voting_getter(
+@inject
+async def list_participants_getter(
     dialog_manager: DialogManager,
-    user: UserData,
-    container: AsyncContainer,
+    current_user: FullUserDTO,
+    dialog_data_adapter: DialogDataAdapter,
+    get_nomination_by_id: FromDishka[GetNominationById],
+    get_participants_page: FromDishka[GetParticipantsPage],
+    get_voting_state: FromDishka[GetVotingState],
     **kwargs,
 ) -> dict:
-    get_nomination_by_id: ReadNominationForUser = await container.get(
-        ReadNominationForUser
-    )
-    get_participants_page: ReadParticipantsPageForUser = await container.get(
-        ReadParticipantsPageForUser
-    )
-    voting_service: VotingService = await container.get(VotingService)
-
+    dialog_data = dialog_data_adapter.load(VotingDialogData)
     nomination = await get_nomination_by_id(
-        dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
+        GetNominationByIdDTO(nomination_id=dialog_data.nomination_id)
     )
+    dialog_data.user_vote_id = nomination.vote_id
+    dialog_data_adapter.flush(dialog_data)
     page = await get_participants_page(
         GetParticipantsPageDTO(
             pagination=Pagination(
-                limit=user.settings.items_per_page,
+                limit=current_user.settings.items_per_page,
                 offset=await dialog_manager.find(ID_VOTING_SCROLL).get_page()
-                * user.settings.items_per_page,
+                * current_user.settings.items_per_page,
             ),
-            nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
+            nomination_id=dialog_data.nomination_id,
         ),
     )
-    pages = page.total // user.settings.items_per_page + bool(
-        page.total % user.settings.items_per_page
+    pages = page.total // current_user.settings.items_per_page + bool(
+        page.total % current_user.settings.items_per_page
     )
-    dialog_manager.dialog_data[DATA_USER_VOTE_ID] = (
-        nomination.vote_id if nomination.vote_id else None
-    )
-    voting_state = await voting_service.get_voting_state(user, user.ticket)
+    voting_state = await get_voting_state()
     return {
         # Participants
         "nomination_title": nomination.title,
@@ -85,38 +87,40 @@ async def voting_getter(
         # Voting state
         "voting_state": voting_state,
         "can_vote": voting_state is VotingState.OPEN,
-        "is_voted": bool(dialog_manager.dialog_data[DATA_USER_VOTE_ID]),
+        "is_voted": bool(dialog_data.user_vote_id),
     }
 
 
+@inject
 async def add_vote_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
+    add_vote: FromDishka[AddVote],
 ) -> None:
-    container: AsyncContainer = dialog_manager.middleware_data["container"]
-    add_vote: AddVote = await container.get(AddVote)
-
+    dialog_data_adapter = get_dialog_data_adapter(dialog_manager)
+    dialog_data = dialog_data_adapter.load(VotingDialogData)
     if "/" in data and data.replace("/", "").isnumeric():
         await add_vote(
             AddVoteDTO(
-                nomination_id=dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID],
+                nomination_id=dialog_data.nomination_id,
                 voting_number=ParticipantVotingNumber(int(data.replace("/", ""))),
             )
         )
 
 
+@inject
 async def cancel_vote_handler(
     callback: CallbackQuery,
     button: Button,
     manager: DialogManager,
+    cancel_vote: FromDishka[CancelVote],
 ) -> None:
-    container: AsyncContainer = manager.middleware_data["container"]
-    cancel_vote: CancelVote = await container.get(CancelVote)
-
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(VotingDialogData)
     try:
-        await cancel_vote(CancelVoteDTO(vote_id=manager.dialog_data[DATA_USER_VOTE_ID]))
+        await cancel_vote(CancelVoteDTO(vote_id=dialog_data.user_vote_id))
     except VoteNotFound:
         return
 
@@ -167,5 +171,5 @@ voting_window = Window(
         on_success=add_vote_handler,
     ),
     state=states.Voting.ADD_VOTE,
-    getter=voting_getter,
+    getter=list_participants_getter,
 )

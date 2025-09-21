@@ -36,7 +36,6 @@ class UserView(ModelView, model=UserORM):
         UserORM.achievements_count: "Достижений получено",
         UserORM.points: "Очков",
         UserORM.settings: "Настройки пользователя",
-        UserORM.permissions: "Права пользователя",
         UserORM.ticket: "Билет",
         UserORM.created_at: "Время создания",
         UserORM.updated_at: "Время изменения",

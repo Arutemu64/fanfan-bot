@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import undefer
 
 from fanfan.adapters.db.models import UserORM
-from fanfan.adapters.redis.dao.cache import CacheAdapter
 from fanfan.core.dto.quest import QuestPlayerDTO, QuestRatingDTO
 from fanfan.core.models.quest import QuestPlayer
 from fanfan.core.vo.user import UserId
@@ -36,9 +35,8 @@ def _parse_quest_player_dto(user_orm: UserORM) -> QuestPlayerDTO:
 
 
 class QuestRepository:
-    def __init__(self, session: AsyncSession, cache: CacheAdapter):
+    def __init__(self, session: AsyncSession):
         self.session = session
-        self.cache = cache
 
     async def get_player(self, user_id: UserId) -> QuestPlayer | None:
         stmt = (
@@ -67,20 +65,15 @@ class QuestRepository:
         )
 
     async def read_full_quest_rating(self) -> QuestRatingDTO:
-        cache_key = "quest_rating"
-        rating = await self.cache.get_cache(cache_key, QuestRatingDTO)
-        if rating is None:
-            stmt = (
-                _select_quest_player_dto()
-                .where(UserORM.rank.isnot(None))
-                .order_by(UserORM.rank)
-            )
-            users = await self.session.scalars(stmt)
-            players = [_parse_quest_player_dto(user_orm) for user_orm in users]
-            total = await self.count_quest_players()
-            rating = QuestRatingDTO(
-                players=players,
-                total=total,
-            )
-            await self.cache.set_cache(cache_key, rating, ttl=60)
-        return rating
+        stmt = (
+            _select_quest_player_dto()
+            .where(UserORM.rank.isnot(None))
+            .order_by(UserORM.rank)
+        )
+        users = await self.session.scalars(stmt)
+        players = [_parse_quest_player_dto(user_orm) for user_orm in users]
+        total = await self.count_quest_players()
+        return QuestRatingDTO(
+            players=players,
+            total=total,
+        )

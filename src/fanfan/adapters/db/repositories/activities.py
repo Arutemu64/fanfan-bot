@@ -14,7 +14,7 @@ def _parse_activity_dto(activity_orm: ActivityORM) -> ActivityDTO:
         id=activity_orm.id,
         title=activity_orm.title,
         description=activity_orm.description,
-        image_path=Path(activity_orm.image.path) if activity_orm.image else None,
+        image_path=Path(activity_orm.image_path) if activity_orm.image_path else None,
     )
 
 

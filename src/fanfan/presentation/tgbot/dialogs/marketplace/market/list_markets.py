@@ -16,15 +16,19 @@ from aiogram_dialog.widgets.kbd import (
     StubScroll,
 )
 from aiogram_dialog.widgets.text import Const, Format
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.marketplace.read_markets_page import ReadMarketsPage
+from fanfan.application.marketplace.get_markets_page import GetMarketsPage
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.user import UserData
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.vo.market import MarketId
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.dialogs.marketplace.common import DATA_SELECTED_MARKET_ID
+from fanfan.presentation.tgbot.dialogs.marketplace.data import (
+    MarketDialogData,
+)
 from fanfan.presentation.tgbot.static import strings
 
 ID_SELECT_MARKET = "select_market"
@@ -34,22 +38,22 @@ if typing.TYPE_CHECKING:
     from aiogram_dialog.widgets.common import ManagedScroll
 
 
+@inject
 async def list_markets_getter(
     dialog_manager: DialogManager,
-    container: AsyncContainer,
-    user: UserData,
+    current_user: FullUserDTO,
+    list_markets: FromDishka[GetMarketsPage],
     **kwargs,
 ):
-    list_markets: ReadMarketsPage = await container.get(ReadMarketsPage)
     scroll: ManagedScroll = dialog_manager.find(ID_MARKETS_SCROLL)
     page = await list_markets(
         pagination=Pagination(
-            limit=user.settings.items_per_page,
-            offset=await scroll.get_page() * user.settings.items_per_page,
+            limit=current_user.settings.items_per_page,
+            offset=await scroll.get_page() * current_user.settings.items_per_page,
         )
     )
-    pages = page.total // user.settings.items_per_page + bool(
-        page.total % user.settings.items_per_page
+    pages = page.total // current_user.settings.items_per_page + bool(
+        page.total % current_user.settings.items_per_page
     )
     return {
         "markets": page.items,
@@ -60,7 +64,10 @@ async def list_markets_getter(
 async def on_market_selected(
     callback: CallbackQuery, widget: Any, manager: DialogManager, item_id: MarketId
 ):
-    manager.dialog_data[DATA_SELECTED_MARKET_ID] = item_id
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
+    dialog_data.market_id = item_id
+    dialog_data_adapter.flush(dialog_data)
     await manager.switch_to(states.Marketplace.VIEW_MARKET)
 
 

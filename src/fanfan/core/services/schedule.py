@@ -8,11 +8,14 @@ class ScheduleService:
     def __init__(self, user_perm_service: UserPermissionService):
         self.user_perm_service = user_perm_service
 
-    async def ensure_user_can_manage_schedule(self, user: User) -> None:
+    async def user_can_manage_schedule(self, user: User) -> bool:
         user_perm = await self.user_perm_service.get_user_permission(
             perm_name=Permissions.CAN_EDIT_SCHEDULE,
             user_id=user.id,
         )
-        if not user_perm:
+        return bool(user_perm)
+
+    async def ensure_user_can_manage_schedule(self, user: User) -> None:
+        if not await self.user_can_manage_schedule(user=user):
             reason = "У вас нет прав для редактирования расписания"
             raise AccessDenied(reason)

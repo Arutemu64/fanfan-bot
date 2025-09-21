@@ -53,6 +53,13 @@ class SubscriptionsRepository:
         await self.session.flush([subscription_orm])
         return subscription_orm.to_model()
 
+    async def get_subscription_by_id(
+        self, subscription_id: SubscriptionId
+    ) -> Subscription | None:
+        stmt = select(SubscriptionORM).where(SubscriptionORM.id == subscription_id)
+        subscription_orm = await self.session.scalar(stmt)
+        return subscription_orm.to_model() if subscription_orm else None
+
     async def get_user_subscription_by_event(
         self, user_id: UserId, event_id: ScheduleEventId
     ) -> Subscription | None:

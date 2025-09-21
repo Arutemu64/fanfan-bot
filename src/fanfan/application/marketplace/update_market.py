@@ -3,12 +3,12 @@ from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.constants.permissions import PermissionObjectTypes, Permissions
-from fanfan.core.dto.user import UserDTO
 from fanfan.core.exceptions.market import (
     MarketNotFound,
 )
 from fanfan.core.exceptions.users import UserNotFound
 from fanfan.core.models.market import Market
+from fanfan.core.models.user import User
 from fanfan.core.services.market import MarketService
 from fanfan.core.services.permissions import UserPermissionService
 from fanfan.core.vo.market import MarketId
@@ -36,7 +36,7 @@ class UpdateMarket:
         market = await self.markets_repo.get_market_by_id(market_id)
         if market is None:
             raise MarketNotFound
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         await self.market_service.ensure_user_can_manage_market(
             market=market, user=user
         )
@@ -76,11 +76,9 @@ class UpdateMarket:
             await self.markets_repo.save_market(market)
             await self.uow.commit()
 
-    async def add_manager_by_username(
-        self, market_id: MarketId, username: str
-    ) -> UserDTO:
+    async def add_manager_by_username(self, market_id: MarketId, username: str) -> User:
         market = await self._get_market(market_id)
-        user = await self.users_repo.read_user_by_username(username.lower())
+        user = await self.users_repo.get_user_by_username(username.lower())
         if user is None:
             raise UserNotFound
         async with self.uow:

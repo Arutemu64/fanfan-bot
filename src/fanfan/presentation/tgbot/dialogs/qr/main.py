@@ -1,11 +1,11 @@
-import typing
-
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import Cancel
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.core.vo.code import CodeId
 from fanfan.presentation.tgbot import states
@@ -18,18 +18,15 @@ from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.utils.code_processor import CodeProcessor
 
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
 
-
+@inject
 async def manual_code_input_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: CodeId,
+    code_processor: FromDishka[CodeProcessor],
 ) -> None:
-    container: AsyncContainer = dialog_manager.middleware_data["container"]
-    code_processor = await container.get(CodeProcessor)
     result = await code_processor(data)
     await message.reply(result.message)
 

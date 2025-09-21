@@ -4,70 +4,62 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Group, Start
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
-from dishka import AsyncContainer
-from dishka.integrations.aiogram import CONTAINER_NAME
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.etc.read_random_quote import ReadRandomQuote
+from fanfan.application.etc.get_random_quote import GetRandomQuote
+from fanfan.application.quest.get_user_quest_status import GetUserQuestStatus
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.exceptions.base import AccessDenied
-from fanfan.core.models.user import UserData
-from fanfan.core.services.quest import QuestService
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
-    CURRENT_USER,
     current_user_getter,
 )
 from fanfan.presentation.tgbot.dialogs.common.predicates import (
     is_helper,
-    is_ticket_linked,
 )
+from fanfan.presentation.tgbot.dialogs.common.utils import get_current_user
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 
 
+@inject
 async def main_menu_getter(
     dialog_manager: DialogManager,
-    user: UserData,
-    container: AsyncContainer,
+    current_user: FullUserDTO,
+    get_random_quote: FromDishka[GetRandomQuote],
+    get_user_quest_status: FromDishka[GetUserQuestStatus],
     **kwargs,
 ):
-    get_random_quote: ReadRandomQuote = await container.get(ReadRandomQuote)
-    quest_service: QuestService = await container.get(QuestService)
-
-    try:
-        quest_service.ensure_user_can_participate_in_quest(
-            user=user, ticket=user.ticket
-        )
-        can_participate_in_quest = True
-    except AccessDenied:
-        can_participate_in_quest = False
-
+    quest_status = await get_user_quest_status(current_user.id)
     return {
-        # Info
-        "first_name": user.first_name,
         # Access
-        "can_participate_in_quest": can_participate_in_quest,
+        "can_participate_in_quest": quest_status.can_participate_in_quest,
         # Customization
         "image_path": UI_IMAGES_DIR.joinpath("main_menu.jpg"),
         "quote": await get_random_quote(),
     }
 
 
+@inject
 async def open_quest_handler(
     callback: CallbackQuery,
     button: Button,
     manager: DialogManager,
+    get_user_quest_status: FromDishka[GetUserQuestStatus],
 ) -> None:
-    user: UserData = manager.middleware_data["user"]
-    container: AsyncContainer = manager.middleware_data[CONTAINER_NAME]
-    quest_service: QuestService = await container.get(QuestService)
-    quest_service.ensure_user_can_participate_in_quest(user=user, ticket=user.ticket)
-    await manager.start(states.Quest.MAIN)
+    current_user = get_current_user(manager)
+    quest_status = await get_user_quest_status(current_user.id)
+    if quest_status.can_participate_in_quest:
+        await manager.start(states.Quest.MAIN)
+    else:
+        raise AccessDenied(quest_status.reason)
 
 
 main_window = Window(
     Title(Const(strings.titles.main_menu)),
     Jinja(
-        "Привет, {{ first_name|e }}! 👋\n"
+        "Привет, {{ current_user_first_name|e }}! 👋\n"
         "Мы рады, что ты сегодня с нами. Пусть этот день подарит "
         "тебе яркие впечатления, "
         "новые знакомства и тёплые воспоминания. Наслаждайся каждым моментом! 🎉🍉🌸"
@@ -79,7 +71,7 @@ main_window = Window(
         Const(strings.titles.link_ticket),
         id="link_ticket",
         state=states.LinkTicket.MAIN,
-        when=~F[CURRENT_USER].ticket,
+        when=F["current_user_ticket_id"].is_(None),
     ),
     Group(
         Start(
@@ -98,7 +90,7 @@ main_window = Window(
                     True: Const(strings.titles.quest),
                     False: Const(f"{strings.titles.quest} 🔒"),
                 },
-                selector=is_ticket_linked,
+                selector=F["current_user_ticket_id"].is_not(None),
             ),
             id="open_quest",
             on_click=open_quest_handler,

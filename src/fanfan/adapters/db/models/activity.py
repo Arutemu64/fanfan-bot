@@ -1,4 +1,4 @@
-from fastapi_storages import FileSystemStorage, StorageImage
+from fastapi_storages import FileSystemStorage
 from sqlalchemy.orm import Mapped, mapped_column
 
 from fanfan.adapters.config.parsers import get_config
@@ -14,7 +14,7 @@ class ActivityORM(Base, OrderMixin):
     id: Mapped[ActivityId] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
-    image: Mapped[StorageImage | None] = mapped_column(
+    image_path: Mapped[str | None] = mapped_column(
         ImageType(
             storage=FileSystemStorage(
                 get_config().media_root.joinpath("activity_images"),

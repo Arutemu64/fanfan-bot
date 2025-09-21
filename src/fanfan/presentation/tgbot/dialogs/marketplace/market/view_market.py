@@ -1,5 +1,3 @@
-import typing
-
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import (
@@ -9,34 +7,37 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Case, Const, Jinja, Multi
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.marketplace.read_market import ReadMarket
+from fanfan.application.marketplace.get_market_by_id import GetMarketById
 from fanfan.application.marketplace.update_market import UpdateMarket
-from fanfan.core.vo.market import MarketId
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.dialogs.marketplace.common import DATA_SELECTED_MARKET_ID
+from fanfan.presentation.tgbot.dialogs.marketplace.data import (
+    MarketDialogData,
+)
 from fanfan.presentation.tgbot.dialogs.marketplace.market.common import market_getter
 from fanfan.presentation.tgbot.static import strings
 
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
 
-
+@inject
 async def change_market_visibility(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+    get_market: FromDishka[GetMarketById],
+    update_market: FromDishka[UpdateMarket],
 ):
-    container: AsyncContainer = manager.middleware_data["container"]
-    market_id = MarketId(manager.dialog_data[DATA_SELECTED_MARKET_ID])
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
 
-    get_market: ReadMarket = await container.get(ReadMarket)
-    update_market: UpdateMarket = await container.get(UpdateMarket)
-
-    market = await get_market(market_id=market_id)
+    market = await get_market(market_id=dialog_data.market_id)
     await update_market.update_market_visibility(
-        market_id=market_id, is_visible=not market.is_visible
+        market_id=dialog_data.market_id, is_visible=not market.is_visible
     )
-    market = await get_market(market_id=market_id)
+    market = await get_market(market_id=dialog_data.market_id)
 
     if market.is_visible:
         await callback.answer("✅ Теперь магазин видим для остальных")

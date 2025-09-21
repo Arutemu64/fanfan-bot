@@ -17,6 +17,7 @@ from fanfan.adapters.db.models.schedule_block import ScheduleBlockORM
 from fanfan.core.models.schedule_event import (
     ScheduleEvent,
 )
+from fanfan.core.vo.participant import ParticipantId
 from fanfan.core.vo.schedule_event import ScheduleEventId, ScheduleEventPublicId
 
 if TYPE_CHECKING:
@@ -38,7 +39,7 @@ class ScheduleEventORM(Base, OrderMixin):
     is_skipped: Mapped[bool] = mapped_column(server_default="False")
 
     # Participant relation
-    participant_id: Mapped[int | None] = mapped_column(
+    participant_id: Mapped[ParticipantId | None] = mapped_column(
         ForeignKey("participants.id", ondelete="SET NULL"),
     )
     participant: Mapped[ParticipantORM | None] = relationship(
@@ -128,7 +129,7 @@ class ScheduleEventORM(Base, OrderMixin):
 
     def to_model(self) -> ScheduleEvent:
         return ScheduleEvent(
-            id=ScheduleEventId(self.id),
+            id=self.id,
             public_id=self.public_id,
             title=self.title,
             duration=self.duration,

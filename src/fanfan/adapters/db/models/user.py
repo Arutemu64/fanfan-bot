@@ -17,9 +17,11 @@ from sqlalchemy.orm import (
 from fanfan.adapters.db.models.base import Base
 from fanfan.adapters.db.models.received_achievement import ReceivedAchievementORM
 from fanfan.core.models.user import User, UserSettings
-from fanfan.core.vo.user import UserId, UserRole
+from fanfan.core.vo.telegram import TelegramUserId
+from fanfan.core.vo.user import UserId, Username, UserRole
 
 if TYPE_CHECKING:
+    from fanfan.adapters.db.models.permission import UserPermissionORM
     from fanfan.adapters.db.models.ticket import TicketORM
 
 
@@ -29,10 +31,9 @@ retort = Retort()
 class UserORM(Base):
     __tablename__ = "users"
 
-    id: Mapped[UserId] = mapped_column(
-        BigInteger, primary_key=True, autoincrement=False
-    )
-    username: Mapped[str | None] = mapped_column(index=True, unique=True)
+    id: Mapped[UserId] = mapped_column(primary_key=True)
+    tg_id: Mapped[TelegramUserId | None] = mapped_column(BigInteger, unique=True)
+    username: Mapped[Username | None] = mapped_column(index=True, unique=True)
 
     first_name: Mapped[str | None] = mapped_column()
     last_name: Mapped[str | None] = mapped_column()
@@ -48,6 +49,9 @@ class UserORM(Base):
 
     # Relations
     ticket: Mapped[TicketORM | None] = relationship(foreign_keys="TicketORM.used_by_id")
+    permissions: Mapped[list[UserPermissionORM]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
     # Quest
     points: Mapped[int] = mapped_column(server_default="0", deferred=True)
@@ -91,12 +95,14 @@ class UserORM(Base):
             last_name=model.last_name,
             role=model.role,
             settings=retort.dump(model.settings),
+            tg_id=model.tg_id,
         )
 
     def to_model(self) -> User:
         return User(
             id=UserId(self.id),
             username=self.username,
+            tg_id=self.tg_id,
             first_name=self.first_name,
             last_name=self.last_name,
             role=UserRole(self.role),

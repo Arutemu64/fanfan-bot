@@ -32,7 +32,7 @@ async def migrate():
                 await uow.rollback()
 
         # Setup initial settings
-        settings_repo: SettingsRepository = await container.get(SettingsRepository)
+        settings_repo = await container.get(SettingsRepository)
         try:
             await settings_repo.add_settings(AppSettings())
             await uow.commit()

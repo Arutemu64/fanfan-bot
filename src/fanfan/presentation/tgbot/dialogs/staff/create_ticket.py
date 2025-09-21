@@ -1,5 +1,4 @@
 import operator
-import typing
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
@@ -7,27 +6,25 @@ from aiogram_dialog.widgets.kbd import Column, Select, SwitchTo
 from aiogram_dialog.widgets.kbd.select import ManagedT
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.tickets.generate_ticket import (
     GenerateTicket,
     GenerateTicketDTO,
 )
-from fanfan.core.models.user import UserData
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.utils.code import get_qr_code_image
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
+from fanfan.presentation.tgbot.dialogs.staff.data import StaffDialogData
 from fanfan.presentation.tgbot.static import strings
 
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
 
-DATA_NEW_TICKET_ID = "new_ticket_id"
-DATA_TICKET_CODE_ID = "ticket_code_id"
-
-
-async def pick_role_getter(user: UserData, **kwargs) -> dict:
+async def pick_role_getter(current_user: FullUserDTO, **kwargs) -> dict:
     roles = [UserRole.VISITOR, UserRole.PARTICIPANT]
-    if user.role is UserRole.ORG:
+    if current_user.role is UserRole.ORG:
         roles += [UserRole.HELPER, UserRole.ORG]
     return {
         "roles": [(item.value, item.label, item.label_plural) for item in roles],
@@ -38,24 +35,29 @@ async def result_window_getter(
     dialog_manager: DialogManager,
     **kwargs,
 ) -> dict:
+    dialog_data_adapter = get_dialog_data_adapter(dialog_manager)
+    dialog_data = dialog_data_adapter.load(StaffDialogData)
     return {
-        "ticket_id": dialog_manager.middleware_data[DATA_NEW_TICKET_ID],
-        "qr_file_path": get_qr_code_image(
-            dialog_manager.middleware_data[DATA_TICKET_CODE_ID]
-        ),
+        "ticket_id": dialog_data.new_ticket_id,
+        "qr_file_path": get_qr_code_image(dialog_data.new_ticket_code_id),
     }
 
 
+@inject
 async def pick_role_handler(
-    callback: CallbackQuery, widget: ManagedT, manager: DialogManager, role: UserRole
+    callback: CallbackQuery,
+    widget: ManagedT,
+    manager: DialogManager,
+    data: UserRole,
+    generate_ticket: FromDishka[GenerateTicket],
 ):
-    container: AsyncContainer = manager.middleware_data["container"]
-    generate_ticket: GenerateTicket = await container.get(GenerateTicket)
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(StaffDialogData)
 
-    result = await generate_ticket(GenerateTicketDTO(role=role))
-
-    manager.middleware_data[DATA_NEW_TICKET_ID] = result.ticket_id
-    manager.middleware_data[DATA_TICKET_CODE_ID] = result.code_id
+    result = await generate_ticket(GenerateTicketDTO(role=data))
+    dialog_data.new_ticket_id = result.ticket_id
+    dialog_data.new_ticket_code_id = result.code_id
+    dialog_data_adapter.flush(dialog_data)
 
     await manager.switch_to(state=states.Staff.CREATE_TICKET_RESULT)
 

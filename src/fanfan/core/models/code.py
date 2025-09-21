@@ -10,6 +10,6 @@ from fanfan.core.vo.user import UserId
 class Code:
     id: CodeId
 
-    achievement_id: AchievementId | None
-    user_id: UserId | None
-    ticket_id: TicketId | None
+    achievement_id: AchievementId | None = None
+    user_id: UserId | None = None
+    ticket_id: TicketId | None = None

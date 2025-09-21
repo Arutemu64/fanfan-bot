@@ -1,7 +1,7 @@
 import enum
 from dataclasses import dataclass
 
-from fanfan.core.dto.mailing import MailingId
+from fanfan.core.vo.mailing import MailingId
 from fanfan.core.vo.schedule_change import ScheduleChangeId
 from fanfan.core.vo.schedule_event import ScheduleEventId
 from fanfan.core.vo.user import UserId

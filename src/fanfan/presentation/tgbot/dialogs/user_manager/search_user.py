@@ -1,42 +1,33 @@
-import typing
-
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import Cancel
 from aiogram_dialog.widgets.text import Const
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.users.get_user_by_id import GetUserById
-from fanfan.application.users.read_user_by_username import ReadUserByUsername
+from fanfan.application.users.get_user_by_username import GetUserByUsername
 from fanfan.core.vo.user import UserId
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.user_manager import (
-    DATA_USER_ID,
-)
+from fanfan.presentation.tgbot.dialogs.user_manager.api import start_user_manager
 from fanfan.presentation.tgbot.static import strings
 
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
 
-
+@inject
 async def manual_user_search_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
+    get_user_by_id: FromDishka[GetUserById],
+    get_user_by_username: FromDishka[GetUserByUsername],
 ) -> None:
-    container: AsyncContainer = dialog_manager.middleware_data["container"]
-    get_user_by_id: GetUserById = await container.get(GetUserById)
-    get_user_by_username: ReadUserByUsername = await container.get(ReadUserByUsername)
-
     if data.isnumeric():
         user = await get_user_by_id(UserId(int(data)))
     else:
         user = await get_user_by_username(data)
-    await dialog_manager.start(
-        state=states.UserManager.USER_INFO,
-        data={DATA_USER_ID: user.id},
-    )
+    await start_user_manager(manager=dialog_manager, user_id=user.id)
 
 
 manual_user_search_window = Window(

@@ -43,12 +43,12 @@ class CreateSubscription:
         self,
         data: CreateSubscriptionDTO,
     ) -> SubscriptionDTO:
-        user_id = self.id_provider.get_current_user_id()
+        user = await self.id_provider.get_current_user()
         async with self.uow:
             try:
                 subscription = await self.subscriptions_repo.add_subscription(
                     Subscription(
-                        user_id=user_id,
+                        user_id=user.id,
                         event_id=data.event_id,
                         counter=data.counter,
                     )

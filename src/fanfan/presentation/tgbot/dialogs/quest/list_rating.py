@@ -14,15 +14,14 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.quest.get_rating_page_number_by_user import (
-    GetRatingPageNumberByUser,
-)
-from fanfan.application.quest.read_quest_rating import GetQuestRating, GetQuestRatingDTO
+from fanfan.application.quest.get_quest_rating import GetQuestRating, GetQuestRatingDTO
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.user import UserData
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import get_current_user
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.templates import rating_list
@@ -33,43 +32,50 @@ if typing.TYPE_CHECKING:
 ID_RATING_SCROLL = "rating_scroll"
 
 
+@inject
 async def rating_getter(
     dialog_manager: DialogManager,
-    container: AsyncContainer,
-    user: UserData,
+    current_user: FullUserDTO,
+    get_quest_rating: FromDishka[GetQuestRating],
     **kwargs,
 ) -> dict:
     scroll: ManagedScroll = dialog_manager.find(ID_RATING_SCROLL)
-    get_quest_rating: GetQuestRating = await container.get(GetQuestRating)
     rating = await get_quest_rating(
         GetQuestRatingDTO(
             pagination=Pagination(
-                limit=user.settings.items_per_page,
-                offset=await scroll.get_page() * user.settings.items_per_page,
+                limit=current_user.settings.items_per_page,
+                offset=await scroll.get_page() * current_user.settings.items_per_page,
             )
         )
     )
-    pages = rating.total // user.settings.items_per_page + bool(
-        rating.total % user.settings.items_per_page
+    pages = rating.total // current_user.settings.items_per_page + bool(
+        rating.total % current_user.settings.items_per_page
     )
     return {
         "players": rating.items,
         "pages": pages or 1,
-        "current_user_id": user.id,
+        "current_user_id": current_user.id,
     }
 
 
+@inject
 async def find_me_handler(
     callback: CallbackQuery,
     button: Button,
     manager: DialogManager,
+    get_quest_rating: FromDishka[GetQuestRating],
 ) -> None:
     scroll: ManagedScroll = manager.find(ID_RATING_SCROLL)
-    container: AsyncContainer = manager.middleware_data["container"]
-    get_rating_page = await container.get(GetRatingPageNumberByUser)
-    page = await get_rating_page()
-    if isinstance(page, int):
-        await scroll.set_page(page - 1)
+    current_user = get_current_user(manager)
+
+    rating = await get_quest_rating(GetQuestRatingDTO())
+    page = None
+    for idx, player in enumerate(rating.items):
+        if player.user_id == current_user.id:
+            page = idx // current_user.settings.items_per_page
+
+    if page is not None:
+        await scroll.set_page(page)
     else:
         await callback.answer("😢 Не нашли тебя в рейтинге")
 

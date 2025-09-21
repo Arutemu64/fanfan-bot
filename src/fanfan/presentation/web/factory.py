@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
     container: AsyncContainer = app.state.dishka_container
 
     # Setup admin
-    config: EnvConfig = await container.get(EnvConfig)
+    config = await container.get(EnvConfig)
     setup_admin(
         app=app, config=config, session_pool=await container.get(async_sessionmaker)
     )

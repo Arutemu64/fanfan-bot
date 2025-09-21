@@ -2,7 +2,8 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.text import Case, Const
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.settings.get_settings import GetSettings
 from fanfan.application.settings.update_settings import UpdateSettings
@@ -13,29 +14,28 @@ from fanfan.presentation.tgbot.static import strings
 ID_TOGGLE_VOTING_BUTTON = "id_toggle_voting_button"
 
 
+@inject
 async def fest_settings_getter(
     dialog_manager: DialogManager,
-    container: AsyncContainer,
+    get_settings: FromDishka[GetSettings],
     **kwargs,
 ):
-    get_settings: GetSettings = await container.get(GetSettings)
     settings = await get_settings()
     return {
         "voting_enabled": settings.voting_enabled,
     }
 
 
+@inject
 async def toggle_voting_handler(
     callback: CallbackQuery,
     button: Button,
     manager: DialogManager,
+    get_settings: FromDishka[GetSettings],
+    update_settings: FromDishka[UpdateSettings],
 ) -> None:
-    container: AsyncContainer = manager.middleware_data["container"]
-    get_settings: GetSettings = await container.get(GetSettings)
-    update_settings: UpdateSettings = await container.get(UpdateSettings)
-
     settings = await get_settings()
-    await update_settings.toggle_voting(voting_enabled=not settings.voting_enabled)
+    await update_settings.set_voting(voting_enabled=not settings.voting_enabled)
 
 
 fest_settings_window = Window(

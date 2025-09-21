@@ -17,13 +17,13 @@ class CodeORM(Base):
 
     id: Mapped[CodeId] = mapped_column(primary_key=True)
 
-    achievement_id: Mapped[int | None] = mapped_column(
+    achievement_id: Mapped[AchievementId | None] = mapped_column(
         ForeignKey("achievements.id", ondelete="CASCADE"),
     )
-    user_id: Mapped[int | None] = mapped_column(
+    user_id: Mapped[UserId | None] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
     )
-    ticket_id: Mapped[str | None] = mapped_column(
+    ticket_id: Mapped[TicketId | None] = mapped_column(
         ForeignKey("tickets.id", ondelete="CASCADE"),
     )
 
@@ -35,10 +35,10 @@ class CodeORM(Base):
 
     def to_model(self) -> Code:
         return Code(
-            id=CodeId(self.id),
-            achievement_id=AchievementId(self.achievement_id),
-            user_id=UserId(self.user_id),
-            ticket_id=TicketId(self.ticket_id),
+            id=self.id,
+            achievement_id=self.achievement_id,
+            user_id=self.user_id,
+            ticket_id=self.ticket_id,
         )
 
     @classmethod

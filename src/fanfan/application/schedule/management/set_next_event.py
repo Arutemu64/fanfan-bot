@@ -1,6 +1,7 @@
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.application.schedule.management.set_current_event import (
     SetCurrentScheduleEvent,
+    SetCurrentScheduleEventDTO,
     SetCurrentScheduleEventResult,
 )
 from fanfan.core.exceptions.schedule import NoNextEvent
@@ -25,4 +26,6 @@ class SetNextScheduleEvent:
             next_event = await self.schedule_repo.read_event_by_queue(1)
             if next_event is None:
                 raise NoNextEvent
-        return await self.set_current_event(next_event.id)
+        return await self.set_current_event(
+            SetCurrentScheduleEventDTO(event_id=next_event.id)
+        )

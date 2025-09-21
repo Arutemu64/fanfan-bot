@@ -1,36 +1,34 @@
-import typing
-
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.marketplace.update_product import UpdateProduct
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.marketplace.common import (
-    DATA_SELECTED_PRODUCT_ID,
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
+from fanfan.presentation.tgbot.dialogs.marketplace.data import (
+    MarketDialogData,
 )
 from fanfan.presentation.tgbot.dialogs.marketplace.product.common import product_getter
 from fanfan.presentation.tgbot.static import strings
 
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
 
-
+@inject
 async def edit_product_price_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
+    update_product: FromDishka[UpdateProduct],
     data: float,
 ) -> None:
-    container: AsyncContainer = dialog_manager.middleware_data["container"]
-    update_product: UpdateProduct = await container.get(UpdateProduct)
-
+    dialog_data_adapter = get_dialog_data_adapter(dialog_manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
     await update_product.update_product_price(
-        product_id=dialog_manager.dialog_data[DATA_SELECTED_PRODUCT_ID], new_price=data
+        product_id=dialog_data.product_id, new_price=data
     )
-
     await dialog_manager.switch_to(state=states.Marketplace.VIEW_PRODUCT)
 
 

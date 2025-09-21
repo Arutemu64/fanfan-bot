@@ -63,7 +63,7 @@ class MoveScheduleEvent:
         self.events_broker = events_broker
 
     async def __call__(self, data: MoveEventDTO) -> MoveScheduleEventResult:
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         await self.service.ensure_user_can_manage_schedule(user)
 
         settings = await self.settings_repo.get_settings()
@@ -128,7 +128,7 @@ class MoveScheduleEvent:
                     "Event %s was placed after event %s by user %s",
                     data.event_id,
                     data.place_after_event_id,
-                    self.id_provider.get_current_user_id(),
+                    user.id,
                     extra={
                         "moved_event": event,
                         "place_after_event": place_after_event,

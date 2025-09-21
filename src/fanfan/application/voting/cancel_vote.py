@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 
+from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.events_broker import EventsBroker
@@ -27,17 +28,20 @@ class CancelVote:
         id_provider: IdProvider,
         events_broker: EventsBroker,
         service: VotingService,
+        tickets_repo: TicketsRepository,
     ) -> None:
         self.votes_repo = votes_repo
         self.uow = uow
         self.id_provider = id_provider
         self.events_broker = events_broker
         self.service = service
+        self.tickets_repo = tickets_repo
 
     async def __call__(self, data: CancelVoteDTO) -> None:
         # Ensure user can undo vote
-        user = await self.id_provider.get_user_data()
-        await self.service.ensure_user_can_vote(user=user, ticket=user.ticket)
+        user = await self.id_provider.get_current_user()
+        ticket = await self.tickets_repo.get_ticket_by_user_id(user.id)
+        await self.service.ensure_user_can_vote(user=user, ticket=ticket)
 
         vote = await self.votes_repo.get_vote(data.vote_id)
         if vote is None:

@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, frozen=True)
+class SetCurrentScheduleEventDTO:
+    event_id: ScheduleEventId | None
+
+
+@dataclass(slots=True, frozen=True)
 class SetCurrentScheduleEventResult:
     current_event: ScheduleEvent | None
 
@@ -47,9 +52,9 @@ class SetCurrentScheduleEvent:
         self.mailing_repo = mailing_repo
 
     async def __call__(
-        self, event_id: ScheduleEventId | None
+        self, data: SetCurrentScheduleEventDTO
     ) -> SetCurrentScheduleEventResult:
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         await self.service.ensure_user_can_manage_schedule(user)
 
         settings = await self.settings_repo.get_settings()
@@ -67,10 +72,10 @@ class SetCurrentScheduleEvent:
                     await self.schedule_repo.save_event(previous_current_event)
 
                 # Get event and set as current
-                if event_id is not None:
-                    event = await self.schedule_repo.get_event_by_id(event_id)
+                if data.event_id is not None:
+                    event = await self.schedule_repo.get_event_by_id(data.event_id)
                     if event is None:
-                        raise EventNotFound(event_id)
+                        raise EventNotFound(data.event_id)
                     event.is_current = True
                     await self.schedule_repo.save_event(event)
                 else:
@@ -78,7 +83,7 @@ class SetCurrentScheduleEvent:
 
                 # Commit and publish
                 await self.uow.commit()
-                if event_id is not None:
+                if data.event_id is not None:
                     mailing_id = await self.mailing_repo.create_new_mailing(
                         by_user_id=user.id,
                     )
@@ -97,8 +102,8 @@ class SetCurrentScheduleEvent:
 
                 logger.info(
                     "Event %s was set as current by user %s",
-                    event_id,
-                    self.id_provider.get_current_user_id(),
+                    data.event_id,
+                    user.id,
                     extra={"current_event": event},
                 )
                 return SetCurrentScheduleEventResult(

@@ -20,6 +20,11 @@ if TYPE_CHECKING:
 
 class ParticipantORM(Base):
     __tablename__ = "participants"
+    __table_args__ = (
+        UniqueConstraint(
+            "nomination_id", "voting_number", deferrable=True, initially="DEFERRED"
+        ),
+    )
 
     id: Mapped[ParticipantId] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(index=True)
@@ -32,9 +37,6 @@ class ParticipantORM(Base):
 
     # Nomination scoped id
     voting_number: Mapped[int | None] = mapped_column()
-    UniqueConstraint(
-        nomination_id, voting_number, deferrable=True, initially="DEFERRED"
-    )
 
     # Relationships
     event: Mapped[ScheduleEventORM | None] = relationship(

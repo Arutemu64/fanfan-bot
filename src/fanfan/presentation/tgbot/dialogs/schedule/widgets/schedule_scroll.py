@@ -1,5 +1,3 @@
-import typing
-
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import (
@@ -14,14 +12,11 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format
 
-from fanfan.application.schedule.read_current_event import ReadCurrentScheduleEvent
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
     ID_SCHEDULE_SCROLL,
+    get_current_event,
     show_event_page,
 )
-
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
 
 
 async def update_schedule_handler(
@@ -29,12 +24,7 @@ async def update_schedule_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    container: AsyncContainer = manager.middleware_data["container"]
-    get_current_event: ReadCurrentScheduleEvent = await container.get(
-        ReadCurrentScheduleEvent
-    )
-
-    if current_event := await get_current_event():
+    if current_event := await get_current_event(manager):
         await show_event_page(manager, current_event.id)
 
 
@@ -44,7 +34,7 @@ SCHEDULE_SCROLL = Group(
         FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
         Button(
-            text=Format(text="{page_number} 🔥"),
+            text=Format(text="{page} 🔥"),
             id="update_schedule",
             on_click=update_schedule_handler,
         ),

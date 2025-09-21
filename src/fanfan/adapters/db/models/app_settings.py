@@ -9,11 +9,9 @@ retort = Retort()
 
 
 class AppSettingsORM(Base):
-    __tablename__ = "settings"
+    __tablename__ = "app_settings"
 
-    id: Mapped[int] = mapped_column(
-        primary_key=True, server_default="1"
-    )  # TODO: change type to bool
+    id: Mapped[int] = mapped_column(primary_key=True, server_default="1")
     config: Mapped[dict] = mapped_column(JSONB)
 
     @classmethod

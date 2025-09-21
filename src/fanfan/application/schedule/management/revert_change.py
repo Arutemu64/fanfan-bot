@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
@@ -15,6 +16,11 @@ from fanfan.core.services.schedule import ScheduleService
 from fanfan.core.vo.schedule_change import ScheduleChangeId
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(slots=True, frozen=True)
+class RevertScheduleChangeDTO:
+    schedule_change_id: ScheduleChangeId
 
 
 class RevertScheduleChange:
@@ -34,11 +40,11 @@ class RevertScheduleChange:
         self.id_provider = id_provider
         self.service = service
 
-    async def __call__(self, schedule_change_id: ScheduleChangeId) -> None:
-        user = await self.id_provider.get_user_data()
+    async def __call__(self, data: RevertScheduleChangeDTO) -> None:
+        user = await self.id_provider.get_current_user()
         await self.service.ensure_user_can_manage_schedule(user)
         schedule_change = await self.schedule_changes_repo.get_schedule_change(
-            schedule_change_id
+            data.schedule_change_id
         )
         if schedule_change is None:
             raise ScheduleChangeNotFound
@@ -101,6 +107,6 @@ class RevertScheduleChange:
             logger.info(
                 "User %s reverted schedule change %s",
                 user.id,
-                schedule_change_id,
+                data.schedule_change_id,
                 extra={"schedule_change": schedule_change},
             )

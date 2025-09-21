@@ -1,36 +1,34 @@
 import operator
-import typing
 from typing import Any
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Column, Select, SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.users.update_user import UpdateUser
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.getters import roles_getter
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.static import strings
 
-from .common import DATA_USER_ID
-
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
+from .data import UserManagerDialogData
 
 
+@inject
 async def change_role_handler(
     callback: CallbackQuery,
     widget: Any,
     manager: DialogManager,
     data: UserRole,
+    update_user: FromDishka[UpdateUser],
 ) -> None:
-    container: AsyncContainer = manager.middleware_data["container"]
-    update_user: UpdateUser = await container.get(UpdateUser)
-
-    await update_user.change_role(
-        user_id=manager.start_data[DATA_USER_ID], new_role=data
-    )
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(UserManagerDialogData)
+    await update_user.set_role(user_id=dialog_data.selected_user_id, role=data)
     await callback.answer(strings.common.success)
     await manager.switch_to(states.UserManager.USER_INFO)
 

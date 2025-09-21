@@ -1,32 +1,32 @@
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Cancel, SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.adapters.config.models import EnvConfig
-from fanfan.core.models.user import UserData
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.getters import (
+    current_user_getter,
+)
 from fanfan.presentation.tgbot.dialogs.common.predicates import is_org
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 
 
+@inject
 async def current_user_info_getter(
     dialog_manager: DialogManager,
-    user: UserData,
-    container: AsyncContainer,
+    current_user: FullUserDTO,
+    config: FromDishka[EnvConfig],
     **kwargs,
 ):
-    config: EnvConfig = await container.get(EnvConfig)
     return {
-        "user_id": user.id,
-        "username": user.username,
-        "ticket_id": user.ticket.id if user.ticket else None,
-        "role": user.role,
         # Special setting visibility
         "can_access_dev_settings": config.debug.test_mode
-        and user.role in [UserRole.HELPER, UserRole.ORG],
+        and current_user.role in [UserRole.HELPER, UserRole.ORG],
     }
 
 
@@ -38,21 +38,17 @@ settings_main_window = Window(
     ),
     Const(" "),
     Jinja(
-        "<b>👤 Никнейм:</b> {% if username %}"
-        "@{{ username|e }}"
+        "<b>👤 Никнейм:</b> {% if current_user_username %}"
+        "@{{ current_user_username|e }}"
         "{% else %}"
         "не задан"
         "{% endif %}"
     ),
-    Jinja("<b>🆔 ID:</b> <code>{{ user_id }}</code>"),
+    Jinja("<b>🆔 ID:</b> <code>{{ current_user_id }}</code>"),
     Jinja(
-        "<b>🎫 Билет:</b> {% if ticket_id %}"
-        "<code>{{ ticket_id }}</code>"
-        "{% else %}"
-        "не привязан"
-        "{% endif %}"
+        "<b>🎫 Билет:</b> <code>{{ current_user_ticket_id or 'не привязан' }}</code>"
     ),
-    Jinja("<b>🧩 Роль:</b> {{ role }}"),
+    Jinja("<b>🧩 Роль:</b> {{ current_user_role }}"),
     SwitchTo(
         text=Const(strings.titles.user_settings),
         id="open_user_settings",
@@ -78,5 +74,5 @@ settings_main_window = Window(
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Settings.MAIN,
-    getter=current_user_info_getter,
+    getter=[current_user_getter],
 )

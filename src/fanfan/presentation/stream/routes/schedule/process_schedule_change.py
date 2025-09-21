@@ -99,7 +99,7 @@ async def proceed_schedule_change(
     reason_msg = get_schedule_change_reason_msg(change, changed_event)
 
     # Notify schedule editors first
-    editor = await users_repo.read_user_by_id(change.user_id)
+    editor = await users_repo.get_user_by_id(change.user_id)
     editors_notification = UserNotification(
         title="✏️ ИЗМЕНЕНИЕ РАСПИСАНИЯ",
         text=f"@{editor.username} сделал изменение в расписании:\n{reason_msg}",
@@ -110,7 +110,7 @@ async def proceed_schedule_change(
             ]
         ).as_markup(),
     )
-    for e in await users_repo.get_schedule_editors():
+    for e in await users_repo.read_schedule_editors():
         await events_broker.publish(
             NewNotificationEvent(
                 user_id=e.id,
@@ -138,7 +138,7 @@ async def proceed_schedule_change(
             text=text,
             reply_markup=ANNOUNCEMENT_REPLY_MARKUP,
         )
-        for u in await users_repo.read_users_by_receive_all_announcements():
+        for u in await users_repo.read_all_by_receive_all_announcements():
             await events_broker.publish(
                 NewNotificationEvent(
                     user_id=u.id,

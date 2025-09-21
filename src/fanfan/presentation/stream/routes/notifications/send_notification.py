@@ -10,10 +10,11 @@ from dishka.integrations.faststream import inject
 from faststream import Logger, Path
 from faststream.nats import NatsMessage, NatsRouter, PullSub
 
+from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.redis.dao.mailing import MailingDAO
-from fanfan.adapters.utils.notifier import BotNotifier
-from fanfan.core.dto.mailing import MailingId
+from fanfan.adapters.utils.notifier import TgBotNotifier
 from fanfan.core.events.notifications import NewNotificationEvent
+from fanfan.core.vo.mailing import MailingId
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
@@ -35,23 +36,26 @@ router = NatsRouter()
 async def send_notification(
     data: NewNotificationEvent,
     msg: FromDishka[NatsMessage],
-    notifier: FromDishka[BotNotifier],
+    notifier: FromDishka[TgBotNotifier],
     bot: FromDishka[Bot],
     bgm_factory: FromDishka[BgManagerFactory],
     mailing_repo: FromDishka[MailingDAO],
+    users_repo: FromDishka[UsersRepository],
     logger: Logger,
     mailing_id: MailingId | None = Path(default=None),  # noqa: B008
 ) -> None:
+    user = await users_repo.get_user_by_id(data.user_id)
+    if user.tg_id is None:
+        await msg.reject()
+        return
     try:
         # Send message
         message = await notifier.send_notification(
-            user_id=data.user_id,
+            tg_id=user.tg_id,
             notification=data.notification,
         )
         # Update current dialog (in case if it's information is now outdated)
-        bg = bgm_factory.bg(
-            bot=bot, user_id=data.user_id, chat_id=data.user_id, load=True
-        )
+        bg = bgm_factory.bg(bot=bot, user_id=user.tg_id, chat_id=user.tg_id, load=True)
         await bg.update(data={}, show_mode=ShowMode.EDIT)
     except TelegramRetryAfter as e:
         await msg.nack(delay=e.retry_after)

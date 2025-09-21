@@ -49,9 +49,9 @@ async def run_webhook(bot: Bot, dp: Dispatcher, config: EnvConfig) -> None:
 async def run() -> None:
     # Get dependencies ready
     container = create_bot_container()
-    bot: Bot = await container.get(Bot)
-    dp: Dispatcher = await container.get(Dispatcher)
-    config: EnvConfig = await container.get(EnvConfig)
+    bot = await container.get(Bot)
+    dp = await container.get(Dispatcher)
+    config = await container.get(EnvConfig)
 
     # Register startup hook
     dp.startup.register(on_startup)

@@ -1,31 +1,39 @@
 from aiogram import F
 from aiogram.types import CallbackQuery
-from aiogram_dialog import DialogManager, ShowMode, Window
+from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const, Jinja
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.mailing.cancel_mailing import CancelMailing
-from fanfan.application.mailing.read_mailing_info import ReadMailingInfo
+from fanfan.application.mailing.cancel_mailing import CancelMailing, CancelMailingDTO
+from fanfan.application.mailing.get_mailing_info import (
+    GetMailingInfo,
+    GetMailingInfoDTO,
+)
 from fanfan.application.users.get_user_by_id import GetUserById
-from fanfan.core.dto.mailing import MailingId, MailingStatus
+from fanfan.core.vo.mailing import MailingStatus
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.dialogs.mailing.common import DATA_MAILING_ID
+from fanfan.presentation.tgbot.dialogs.mailing.data import MailingDialogData
+from fanfan.presentation.tgbot.middlewares.dialog_data_adapter import DialogDataAdapter
 from fanfan.presentation.tgbot.static import strings
 
 
+@inject
 async def mailing_info_getter(
     dialog_manager: DialogManager,
-    container: AsyncContainer,
+    dialog_data_adapter: DialogDataAdapter,
+    get_mailing_info: FromDishka[GetMailingInfo],
+    get_user_by_id: FromDishka[GetUserById],
     **kwargs,
 ) -> dict:
-    get_mailing_info: ReadMailingInfo = await container.get(ReadMailingInfo)
-    get_user_by_id: GetUserById = await container.get(GetUserById)
-
-    mailing_info = await get_mailing_info(dialog_manager.start_data[DATA_MAILING_ID])
+    dialog_data = dialog_data_adapter.load(MailingDialogData)
+    mailing_info = await get_mailing_info(
+        GetMailingInfoDTO(mailing_id=dialog_data.mailing_id)
+    )
     sender = await get_user_by_id(mailing_info.data.by_user_id)
-
     return {
         "id": mailing_info.data.id,
         "total_messages": mailing_info.data.total_messages,
@@ -36,14 +44,16 @@ async def mailing_info_getter(
     }
 
 
+@inject
 async def cancel_mailing_handler(
     callback: CallbackQuery,
     button: Button,
     manager: DialogManager,
+    cancel_mailing: FromDishka[CancelMailing],
 ) -> None:
-    container: AsyncContainer = manager.middleware_data["container"]
-    cancel_mailing: CancelMailing = await container.get(CancelMailing)
-    await cancel_mailing(manager.start_data[DATA_MAILING_ID])
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(MailingDialogData)
+    await cancel_mailing(CancelMailingDTO(mailing_id=dialog_data.mailing_id))
     await callback.answer("✅ Рассылка отменена")
 
 
@@ -65,11 +75,3 @@ mailing_info_window = Window(
     getter=mailing_info_getter,
     state=states.Mailing.MAILING_INFO,
 )
-
-
-async def show_mailing_info(manager: DialogManager, mailing_id: MailingId) -> None:
-    await manager.start(
-        state=states.Mailing.MAILING_INFO,
-        data={DATA_MAILING_ID: mailing_id},
-        show_mode=ShowMode.SEND,
-    )

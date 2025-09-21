@@ -17,17 +17,22 @@ from aiogram_dialog.widgets.kbd import (
     StubScroll,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.voting.read_nominations_page_for_user import (
-    ReadNominationsPageForUser,
+from fanfan.application.voting.get_nominations_page import (
+    GetNominationsPage,
+    GetNominationsPageDTO,
 )
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.user import UserData
+from fanfan.core.dto.user import FullUserDTO
+from fanfan.core.vo.nomination import NominationId
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.dialogs.voting.common import (
-    DATA_SELECTED_NOMINATION_ID,
+from fanfan.presentation.tgbot.dialogs.voting.data import (
+    DATA_NOMINATION_ID,
+    VotingDialogData,
 )
 from fanfan.presentation.tgbot.dialogs.voting.list_participants import ID_VOTING_SCROLL
 from fanfan.presentation.tgbot.static import strings
@@ -38,26 +43,25 @@ if typing.TYPE_CHECKING:
 ID_NOMINATIONS_SCROLL = "nominations_scroll"
 
 
-async def nominations_getter(
+@inject
+async def list_nominations_getter(
     dialog_manager: DialogManager,
-    user: UserData,
-    container: AsyncContainer,
+    current_user: FullUserDTO,
+    get_nominations_page: FromDishka[GetNominationsPage],
     **kwargs,
 ) -> dict:
-    get_nominations_page: ReadNominationsPageForUser = await container.get(
-        ReadNominationsPageForUser
-    )
-
     page = await get_nominations_page(
-        pagination=Pagination(
-            limit=user.settings.items_per_page,
-            offset=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
-            * user.settings.items_per_page,
-        ),
+        GetNominationsPageDTO(
+            pagination=Pagination(
+                limit=current_user.settings.items_per_page,
+                offset=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
+                * current_user.settings.items_per_page,
+            )
+        )
     )
     nominations_list = [(n.id, n) for n in page.items]
-    pages = page.total // user.settings.items_per_page + bool(
-        page.total % user.settings.items_per_page
+    pages = page.total // current_user.settings.items_per_page + bool(
+        page.total % current_user.settings.items_per_page
     )
     return {
         "nominations_list": nominations_list,
@@ -71,12 +75,15 @@ async def select_nomination_handler(
     dialog_manager: DialogManager,
     item_id: int,
 ) -> None:
-    state: FSMContext = dialog_manager.middleware_data["state"]
+    dialog_data_adapter = get_dialog_data_adapter(dialog_manager)
+    dialog_data = dialog_data_adapter.load(VotingDialogData)
 
-    dialog_manager.dialog_data[DATA_SELECTED_NOMINATION_ID] = item_id
+    dialog_data.nomination_id = NominationId(item_id)
+    dialog_data_adapter.flush(dialog_data)
 
     # Enable search
-    await state.update_data({DATA_SELECTED_NOMINATION_ID: item_id})
+    state: FSMContext = dialog_manager.middleware_data["state"]
+    await state.update_data({DATA_NOMINATION_ID: item_id})
     await state.set_state(states.InlineQuerySearch.VOTING_PARTICIPANTS)
 
     await dialog_manager.find(ID_VOTING_SCROLL).set_page(0)
@@ -109,5 +116,5 @@ nominations_window = Window(
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Voting.LIST_NOMINATIONS,
-    getter=nominations_getter,
+    getter=list_nominations_getter,
 )

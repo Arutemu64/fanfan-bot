@@ -24,8 +24,8 @@ class UpdateSettings:
         self.uow = uow
         self.retort = Retort(recipe=[name_mapping(omit_default=True)])
 
-    async def toggle_voting(self, voting_enabled: bool) -> None:
-        user = await self.id_provider.get_user_data()
+    async def set_voting(self, voting_enabled: bool) -> None:
+        user = await self.id_provider.get_current_user()
         if user.role is not UserRole.ORG:
             raise AccessDenied
         settings = await self.repo.get_settings()
@@ -37,6 +37,6 @@ class UpdateSettings:
             await self.uow.commit()
             logger.info(
                 "Voting toggled by user %s",
-                self.id_provider.get_current_user_id(),
+                user.id,
                 extra={"settings": settings},
             )

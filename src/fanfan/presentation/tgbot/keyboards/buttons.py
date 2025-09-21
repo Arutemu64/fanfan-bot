@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton
 
-from fanfan.core.dto.mailing import MailingId
+from fanfan.core.vo.mailing import MailingId
 from fanfan.core.vo.schedule_change import ScheduleChangeId
 from fanfan.core.vo.user import UserId
 from fanfan.presentation.tgbot.filters.callbacks import (

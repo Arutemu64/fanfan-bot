@@ -31,7 +31,7 @@ class UpdateProduct:
         if product is None:
             raise ProductNotFound
         market = await self.markets_repo.get_market_by_id(product.market_id)
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         await self.service.ensure_user_can_manage_market(market=market, user=user)
         return product
 

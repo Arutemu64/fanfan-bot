@@ -5,17 +5,17 @@ from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessag
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.application.schedule.read_schedule_page_for_user import (
+from fanfan.application.schedule.get_schedule import (
+    GetSchedulePage,
     GetSchedulePageDTO,
-    ReadSchedulePageForUser,
 )
-from fanfan.application.voting.read_participants_page_for_user import (
+from fanfan.application.voting.get_participants_page import (
+    GetParticipantsPage,
     GetParticipantsPageDTO,
-    ReadParticipantsPageForUser,
 )
 from fanfan.core.dto.page import Pagination
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.voting.common import DATA_SELECTED_NOMINATION_ID
+from fanfan.presentation.tgbot.dialogs.voting.data import DATA_NOMINATION_ID
 
 router = Router(name="inline_query_router")
 
@@ -23,7 +23,7 @@ router = Router(name="inline_query_router")
 @router.inline_query(StateFilter(states.InlineQuerySearch.EVENTS))
 @inject
 async def search_events(
-    inline_query: InlineQuery, get_schedule_page: FromDishka[ReadSchedulePageForUser]
+    inline_query: InlineQuery, get_schedule_page: FromDishka[GetSchedulePage]
 ):
     offset = int(inline_query.offset) if inline_query.offset else 0
     page = await get_schedule_page(
@@ -55,7 +55,7 @@ async def search_events(
 @inject
 async def search_voting_participants(
     inline_query: InlineQuery,
-    get_participants_page: FromDishka[ReadParticipantsPageForUser],
+    get_participants_page: FromDishka[GetParticipantsPage],
     state: FSMContext,
 ):
     offset = int(inline_query.offset) if inline_query.offset else 0
@@ -65,7 +65,7 @@ async def search_voting_participants(
                 limit=50,
                 offset=offset,
             ),
-            nomination_id=await state.get_value(DATA_SELECTED_NOMINATION_ID),
+            nomination_id=await state.get_value(DATA_NOMINATION_ID),
             search_query=inline_query.query,
         ),
     )

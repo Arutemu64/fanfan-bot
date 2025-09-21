@@ -45,7 +45,7 @@ class GenerateTicket:
         self.service = service
 
     async def __call__(self, data: GenerateTicketDTO) -> GenerateTicketResult:
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         await self.service.ensure_user_can_create_tickets(user)
 
         # Generate ticket

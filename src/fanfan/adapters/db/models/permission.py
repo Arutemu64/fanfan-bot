@@ -5,6 +5,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.permission import Permission, UserPermission
+from fanfan.core.vo.permission import (
+    PermissionId,
+    PermissionName,
+    PermissionObjectId,
+    PermissionObjectType,
+    UserPermissionId,
+)
+from fanfan.core.vo.user import UserId
 
 if typing.TYPE_CHECKING:
     from fanfan.adapters.db.models import UserORM  # noqa
@@ -13,21 +21,18 @@ if typing.TYPE_CHECKING:
 class UserPermissionORM(Base):
     __tablename__ = "user_permissions"
     __table_args__ = (
-        UniqueConstraint(
-            "user_id",
-            "permission_id",
-            "object_id",
-            "object_type",
-        ),
+        UniqueConstraint("user_id", "permission_id", "object_id", "object_type"),
     )
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    permission_id: Mapped[int] = mapped_column(
+    id: Mapped[UserPermissionId] = mapped_column(primary_key=True)
+
+    user_id: Mapped[UserId] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    permission_id: Mapped[PermissionId] = mapped_column(
         ForeignKey("permissions.id", ondelete="CASCADE")
     )
-    object_id: Mapped[int | None] = mapped_column()
-    object_type: Mapped[str | None] = mapped_column()
+
+    object_id: Mapped[PermissionObjectId | None] = mapped_column()
+    object_type: Mapped[PermissionObjectType | None] = mapped_column()
 
     user: Mapped["UserORM"] = relationship()
     permission: Mapped["PermissionORM"] = relationship()
@@ -55,8 +60,8 @@ class UserPermissionORM(Base):
 class PermissionORM(Base):
     __tablename__ = "permissions"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
+    id: Mapped[PermissionId] = mapped_column(primary_key=True)
+    name: Mapped[PermissionName] = mapped_column(unique=True)
 
     @classmethod
     def from_model(cls, model: Permission):

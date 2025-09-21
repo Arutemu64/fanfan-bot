@@ -7,12 +7,13 @@ from fanfan.application.codes.get_code_by_id import GetCodeById
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.quest.receive_achievement import ReceiveAchievement
 from fanfan.application.tickets.link_ticket import LinkTicket
+from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.exceptions.codes import InvalidCode
 from fanfan.core.models.code import Code
-from fanfan.core.services.user import UserService
 from fanfan.core.vo.code import CodeId
+from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
+from fanfan.presentation.tgbot.dialogs.user_manager.api import start_user_manager
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,7 +28,6 @@ class CodeProcessor:
         id_provider: IdProvider,
         bg_factory: BgManagerFactory,
         bot: Bot,
-        user_service: UserService,
         get_code_by_id: GetCodeById,
         receive_achievement: ReceiveAchievement,
         link_ticket: LinkTicket,
@@ -35,13 +35,12 @@ class CodeProcessor:
         self.id_provider = id_provider
         self.bg_factory = bg_factory
         self.bot = bot
-        self.user_service = user_service
         self.get_code_by_id = get_code_by_id
         self.receive_achievement = receive_achievement
         self.link_ticket = link_ticket
 
     async def __call__(self, code_id: CodeId) -> CodeProcessResult:
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         code = await self.get_code_by_id(code_id)
         bg = self.bg_factory.bg(
             bot=self.bot,
@@ -60,7 +59,9 @@ class CodeProcessor:
 
         # User
         if code.user_id:
-            self.user_service.ensure_user_can_open_user_manager(user)
+            if user.role not in [UserRole.HELPER, UserRole.ORG]:
+                reason = "Вы не можете просматривать информацию о других пользователях"
+                raise AccessDenied(reason)
             await start_user_manager(bg, code.user_id)
             return CodeProcessResult(code=code, message=None)
 

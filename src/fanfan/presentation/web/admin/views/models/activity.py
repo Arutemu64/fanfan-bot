@@ -18,7 +18,7 @@ class ActivityView(ModelView, model=ActivityORM):
         ActivityORM.order: "Порядок",
         ActivityORM.title: "Название",
         ActivityORM.description: "Описание",
-        ActivityORM.image: "Изображение",
+        ActivityORM.image_path: "Изображение",
         ActivityORM.created_at: "Время создания",
         ActivityORM.updated_at: "Время изменения",
     }
@@ -26,5 +26,5 @@ class ActivityView(ModelView, model=ActivityORM):
         ActivityORM.order,
         ActivityORM.title,
         ActivityORM.description,
-        ActivityORM.image,
+        ActivityORM.image_path,
     ]

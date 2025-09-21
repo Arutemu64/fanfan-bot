@@ -27,14 +27,12 @@ class AdminAuth(AuthenticationBackend):
 
     async def authenticate(self, request: Request) -> bool | RedirectResponse:
         container: AsyncContainer = request.state.dishka_container
-        id_provider: IdProvider = await container.get(IdProvider)
+        id_provider = await container.get(IdProvider)
         try:
-            user = await id_provider.get_user_data()
+            user = await id_provider.get_current_user()
             if user.role is UserRole.ORG:
                 # Updating token
-                token_processor: JwtTokenProcessor = await container.get(
-                    JwtTokenProcessor
-                )
+                token_processor = await container.get(JwtTokenProcessor)
                 request.session["token"] = token_processor.create_access_token(
                     user_id=user.id
                 )

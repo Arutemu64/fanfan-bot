@@ -1,24 +1,25 @@
 from aiogram.enums import ContentType
 from aiogram_dialog import DialogManager
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.marketplace.read_market import ReadMarket
-from fanfan.core.models.user import UserData
-from fanfan.core.vo.market import MarketId
-from fanfan.presentation.tgbot.dialogs.marketplace.common import DATA_SELECTED_MARKET_ID
+from fanfan.application.marketplace.get_market_by_id import GetMarketById
+from fanfan.core.dto.user import FullUserDTO
+from fanfan.presentation.tgbot.dialogs.marketplace.data import MarketDialogData
+from fanfan.presentation.tgbot.middlewares.dialog_data_adapter import DialogDataAdapter
 
 
+@inject
 async def market_getter(
     dialog_manager: DialogManager,
-    container: AsyncContainer,
-    user: UserData,
+    current_user: FullUserDTO,
+    dialog_data_adapter: DialogDataAdapter,
+    get_market: FromDishka[GetMarketById],
     **kwargs,
 ):
-    market_id = MarketId(dialog_manager.dialog_data[DATA_SELECTED_MARKET_ID])
-    get_market: ReadMarket = await container.get(ReadMarket)
-
-    market = await get_market(market_id=market_id)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
+    market = await get_market(market_id=dialog_data.market_id)
     market_image = None
     if market.image_id:
         market_image = MediaAttachment(
@@ -31,6 +32,6 @@ async def market_getter(
         "market_description": market.description,
         "market_image": market_image,
         "market_is_visible": market.is_visible,
-        "market_is_manager": user.id in (u.id for u in market.managers),
+        "market_is_manager": current_user.id in (u.id for u in market.managers),
         "market_managers": market.managers,
     }

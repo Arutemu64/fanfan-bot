@@ -1,7 +1,5 @@
-from fanfan.core.models.user import UserData
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.vo.user import UserRole
-
-CURRENT_USER = "current_user"
 
 
 async def roles_getter(**kwargs) -> dict:
@@ -10,8 +8,13 @@ async def roles_getter(**kwargs) -> dict:
     }
 
 
-async def current_user_getter(
-    user: UserData,
-    **kwargs,
-) -> dict[str, UserData]:
-    return {CURRENT_USER: user}
+async def current_user_getter(current_user: FullUserDTO, **kwargs) -> dict:
+    return {
+        "current_user_id": current_user.id,
+        "current_user_username": current_user.username,
+        "current_user_role": current_user.role,
+        "current_user_first_name": current_user.first_name,
+        "current_user_ticket_id": current_user.ticket.id
+        if current_user.ticket
+        else None,
+    }

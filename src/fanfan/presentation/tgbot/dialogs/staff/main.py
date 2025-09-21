@@ -8,39 +8,32 @@ from aiogram_dialog.widgets.kbd import (
     Url,
 )
 from aiogram_dialog.widgets.text import Const, Format
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
 from fanfan.adapters.config.models import EnvConfig
-from fanfan.core.exceptions.base import AccessDenied
-from fanfan.core.models.user import UserData
-from fanfan.core.services.tickets import TicketsService
+from fanfan.core.constants.permissions import Permissions
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 
 
+@inject
 async def staff_main_getter(
     dialog_manager: DialogManager,
-    container: AsyncContainer,
-    user: UserData,
+    current_user: FullUserDTO,
+    config: FromDishka[EnvConfig],
+    token_processor: FromDishka[JwtTokenProcessor],
     **kwargs,
 ):
-    config: EnvConfig = await container.get(EnvConfig)
-    tickets_service: TicketsService = await container.get(TicketsService)
-    token_processor: JwtTokenProcessor = await container.get(JwtTokenProcessor)
-
-    try:
-        await tickets_service.ensure_user_can_create_tickets(user)
-        can_create_tickets = True
-    except AccessDenied:
-        can_create_tickets = False
-
-    jwt_token = token_processor.create_access_token(dialog_manager.event.from_user.id)
+    can_create_tickets = current_user.check_permission(Permissions.CAN_CREATE_TICKETS)
+    jwt_token = token_processor.create_access_token(current_user.id)
     return {
-        "is_helper": user.role in [UserRole.HELPER, UserRole.ORG],
-        "is_org": user.role is UserRole.ORG,
+        "is_helper": current_user.role in [UserRole.HELPER, UserRole.ORG],
+        "is_org": current_user.role is UserRole.ORG,
         "can_create_tickets": can_create_tickets,
         "docs_link": config.docs_link,
         "qr_scanner_url": config.web.build_qr_scanner_url() if config.web else None,

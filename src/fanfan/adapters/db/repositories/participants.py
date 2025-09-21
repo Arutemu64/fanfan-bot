@@ -1,11 +1,10 @@
-from sqlalchemy import Select, String, and_, case, cast, func, or_, select
+from sqlalchemy import Select, String, and_, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import undefer
 
 from fanfan.adapters.db.models import (
     NominationORM,
     ParticipantORM,
-    ScheduleEventORM,
     VoteORM,
 )
 from fanfan.core.dto.page import Pagination
@@ -48,7 +47,6 @@ def _filter_participants(
     stmt: Select,
     nomination_id: NominationId | None = None,
     search_query: str | None = None,
-    only_votable: bool | None = None,
 ) -> Select:
     filters = []
     if nomination_id:
@@ -60,21 +58,6 @@ def _filter_participants(
                 ParticipantORM.voting_number == int(search_query)
                 if search_query.isnumeric()
                 else False,
-            )
-        )
-    if only_votable:
-        filters.append(
-            and_(
-                case(
-                    (
-                        ParticipantORM.event.has(),
-                        ParticipantORM.event.has(
-                            ScheduleEventORM.is_skipped.isnot(True)
-                        ),
-                    ),
-                    else_=True,
-                ),
-                ParticipantORM.nomination.has(NominationORM.is_votable.is_(True)),
             )
         )
     return stmt.where(*filters)
@@ -120,7 +103,7 @@ class ParticipantsRepository:
         await self.session.flush([participant_orm])
         return participant_orm.to_model()
 
-    async def read_votable_participants_for_user(
+    async def read_participants_for_user(
         self,
         user_id: UserId,
         nomination_id: NominationId | None = None,
@@ -131,13 +114,10 @@ class ParticipantsRepository:
 
         # Filter
         stmt = _filter_participants(
-            stmt=stmt,
-            nomination_id=nomination_id,
-            search_query=search_query,
-            only_votable=True,
+            stmt=stmt, nomination_id=nomination_id, search_query=search_query
         )
 
-        # Order
+        # Unique order
         user_unique_order = func.md5(
             func.concat(cast(user_id, String), "-", cast(ParticipantORM.id, String))
         )
@@ -156,16 +136,13 @@ class ParticipantsRepository:
             for participant_orm, vote_orm in result
         ]
 
-    async def count_votable_participants(
+    async def count_participants(
         self,
         nomination_id: NominationId | None = None,
         search_query: str | None = None,
     ) -> int:
         stmt = select(func.count(ParticipantORM.id))
         stmt = _filter_participants(
-            stmt=stmt,
-            nomination_id=nomination_id,
-            search_query=search_query,
-            only_votable=True,
+            stmt=stmt, nomination_id=nomination_id, search_query=search_query
         )
         return await self.session.scalar(stmt)

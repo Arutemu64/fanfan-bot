@@ -5,10 +5,13 @@ from aiogram_dialog import DialogManager, ShowMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
-from fanfan.application.schedule.management.revert_change import RevertScheduleChange
+from fanfan.application.schedule.management.revert_change import (
+    RevertScheduleChange,
+    RevertScheduleChangeDTO,
+)
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.mailing.view_mailing import show_mailing_info
-from fanfan.presentation.tgbot.dialogs.user_manager import start_user_manager
+from fanfan.presentation.tgbot.dialogs.mailing.api import show_mailing_info
+from fanfan.presentation.tgbot.dialogs.user_manager.api import start_user_manager
 from fanfan.presentation.tgbot.filters.callbacks import (
     DeleteMessageCallback,
     OpenSubscriptionsCallback,
@@ -72,5 +75,7 @@ async def undo_schedule_change(
     callback_data: UndoScheduleChangeCallback,
     interactor: FromDishka[RevertScheduleChange],
 ):
-    await interactor(callback_data.schedule_change_id)
+    await interactor(
+        RevertScheduleChangeDTO(schedule_change_id=callback_data.schedule_change_id)
+    )
     await query.answer()

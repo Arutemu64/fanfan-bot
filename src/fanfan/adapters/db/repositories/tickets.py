@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fanfan.adapters.db.models import TicketORM
 from fanfan.core.models.ticket import Ticket
 from fanfan.core.vo.ticket import TicketId
+from fanfan.core.vo.user import UserId
 
 
 class TicketsRepository:
@@ -18,6 +19,11 @@ class TicketsRepository:
 
     async def get_ticket_by_id(self, ticket_id: TicketId) -> Ticket | None:
         stmt = select(TicketORM).where(TicketORM.id == ticket_id)
+        ticket_orm = await self.session.scalar(stmt)
+        return ticket_orm.to_model() if ticket_orm else None
+
+    async def get_ticket_by_user_id(self, user_id: UserId) -> Ticket | None:
+        stmt = select(TicketORM).where(TicketORM.used_by_id == user_id)
         ticket_orm = await self.session.scalar(stmt)
         return ticket_orm.to_model() if ticket_orm else None
 

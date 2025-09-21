@@ -19,7 +19,6 @@ class MarketORM(Base, OrderMixin):
     name: Mapped[str] = mapped_column()
     description: Mapped[str | None] = mapped_column()
     image_id: Mapped[TelegramFileId | None] = mapped_column()
-
     is_visible: Mapped[bool] = mapped_column(server_default="False")
 
     permissions: Mapped[list["UserPermissionORM"]] = relationship(

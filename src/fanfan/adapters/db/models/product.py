@@ -13,6 +13,7 @@ class ProductORM(Base, OrderMixin):
     __tablename__ = "products"
 
     id: Mapped[ProductId] = mapped_column(primary_key=True)
+
     name: Mapped[str] = mapped_column()
     description: Mapped[str | None] = mapped_column()
     price: Mapped[float] = mapped_column(server_default="0")

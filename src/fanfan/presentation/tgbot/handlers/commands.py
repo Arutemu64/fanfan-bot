@@ -6,9 +6,9 @@ from aiogram_dialog import DialogManager, ShowMode, StartMode
 from dishka import FromDishka
 from dishka.integrations.aiogram import inject
 
+from fanfan.application.quest.get_user_quest_status import GetUserQuestStatus
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.exceptions.base import AccessDenied
-from fanfan.core.models.user import UserData
-from fanfan.core.services.quest import QuestService
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.filters import RoleFilter
@@ -44,9 +44,9 @@ async def start_cmd(
 async def link_ticket_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: UserData,
+    current_user: FullUserDTO,
 ) -> None:
-    if not user.ticket:
+    if current_user.ticket is None:
         await dialog_manager.start(states.LinkTicket.MAIN)
 
 
@@ -70,20 +70,17 @@ async def notifications_cmd(message: Message, dialog_manager: DialogManager) -> 
 async def quest_cmd(
     message: Message,
     dialog_manager: DialogManager,
-    user: UserData,
-    quest_service: FromDishka[QuestService],
+    current_user: FullUserDTO,
+    get_user_quest_status: FromDishka[GetUserQuestStatus],
 ) -> None:
-    try:
-        quest_service.ensure_user_can_participate_in_quest(
-            user=user, ticket=user.ticket
-        )
+    quest_status = await get_user_quest_status(current_user.id)
+    if quest_status.can_participate_in_quest:
         await dialog_manager.start(states.Quest.MAIN)
-    except AccessDenied:
-        await dialog_manager.update(data={})
+    else:
+        raise AccessDenied(quest_status.reason)
 
 
 @router.message(Command(VOTING_CMD))
-@inject
 async def voting_cmd(
     message: Message,
     dialog_manager: DialogManager,

@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from fanfan.core.models.ticket import Ticket
-from fanfan.core.vo.user import UserId, UserRole
+from fanfan.core.vo.telegram import TelegramUserId
+from fanfan.core.vo.user import UserId, Username, UserRole
 
 
 @dataclass(slots=True, kw_only=True)
@@ -15,12 +15,15 @@ class UserSettings:
 
 @dataclass(slots=True, kw_only=True)
 class User:  # noqa: PLW1641
-    id: UserId
-    username: str | None
+    id: UserId | None = None
+
+    username: Username | None
+    tg_id: TelegramUserId | None
+
     first_name: str | None
     last_name: str | None
-    role: UserRole
 
+    role: UserRole
     settings: UserSettings
 
     def set_role(self, role: UserRole):
@@ -28,8 +31,3 @@ class User:  # noqa: PLW1641
 
     def __eq__(self, other: User | Any) -> bool:
         return isinstance(other, User) and self.id == other.id
-
-
-@dataclass(slots=True, kw_only=True)
-class UserData(User):
-    ticket: Ticket | None

@@ -25,6 +25,11 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, frozen=True)
+class SkipScheduleEventDTO:
+    event_id: ScheduleEventId
+
+
+@dataclass(slots=True, frozen=True)
 class SkipScheduleEventResult:
     event: ScheduleEvent
 
@@ -50,8 +55,8 @@ class SkipScheduleEvent:
         self.id_provider = id_provider
         self.mailing_repo = mailing_repo
 
-    async def __call__(self, event_id: ScheduleEventId) -> SkipScheduleEventResult:
-        user = await self.id_provider.get_user_data()
+    async def __call__(self, data: SkipScheduleEventDTO) -> SkipScheduleEventResult:
+        user = await self.id_provider.get_current_user()
         await self.service.ensure_user_can_manage_schedule(user)
 
         settings = await self.settings_repo.get_settings()
@@ -63,9 +68,9 @@ class SkipScheduleEvent:
         try:
             async with self.uow, lock:
                 # Get and check event
-                event = await self.schedule_repo.get_event_by_id(event_id)
+                event = await self.schedule_repo.get_event_by_id(data.event_id)
                 if event is None:
-                    raise EventNotFound(event_id=event_id)
+                    raise EventNotFound(event_id=data.event_id)
                 if event.is_current:
                     raise CurrentEventNotAllowed
 
@@ -99,12 +104,12 @@ class SkipScheduleEvent:
                 )
 
                 # Update event after commit
-                event = await self.schedule_repo.get_event_by_id(event_id)
+                event = await self.schedule_repo.get_event_by_id(data.event_id)
 
                 logger.info(
                     "Event %s was skipped by user %s",
-                    event_id,
-                    self.id_provider.get_current_user_id(),
+                    data.event_id,
+                    user.id,
                     extra={"skipped_event": event},
                 )
                 return SkipScheduleEventResult(

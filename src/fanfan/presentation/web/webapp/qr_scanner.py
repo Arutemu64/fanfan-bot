@@ -41,7 +41,7 @@ async def proceed_qr_post(
     id_provider: FromDishka[IdProvider],
 ) -> JSONResponse:
     try:
-        user_id = id_provider.get_current_user_id()
+        user = await id_provider.get_current_user()
         request_data = await request.json()
         qr_data = request_data.get("qr_data")
 
@@ -58,8 +58,8 @@ async def proceed_qr_post(
             await link_ticket(ticket_id=TicketId(qr_data))
             bg = bg_factory.bg(
                 bot=bot,
-                user_id=user_id,
-                chat_id=user_id,
+                user_id=user.tg_id,
+                chat_id=user.tg_id,
                 load=True,
             )
             await bg.start(

@@ -20,7 +20,7 @@ class FlagsRepository:
         stmt = select(FlagORM).where(
             and_(
                 FlagORM.user_id == user_id,
-                FlagORM.flag_name == flag_name,
+                FlagORM.name == flag_name,
             )
         )
         flag_orm = await self.session.scalar(stmt)

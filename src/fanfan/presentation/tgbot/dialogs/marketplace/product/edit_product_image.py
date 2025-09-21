@@ -1,65 +1,51 @@
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.marketplace.read_product import ReadProduct
 from fanfan.application.marketplace.update_product import UpdateProduct
-from fanfan.core.vo.product import ProductId
 from fanfan.core.vo.telegram import TelegramFileId
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.marketplace.common import (
-    DATA_SELECTED_PRODUCT_ID,
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
+from fanfan.presentation.tgbot.dialogs.marketplace.data import (
+    MarketDialogData,
 )
+from fanfan.presentation.tgbot.dialogs.marketplace.product.common import product_getter
 from fanfan.presentation.tgbot.static import strings
 
 
-async def product_image_getter(
-    dialog_manager: DialogManager,
-    container: AsyncContainer,
-    **kwargs,
-):
-    product_id = ProductId(dialog_manager.dialog_data[DATA_SELECTED_PRODUCT_ID])
-    get_product: ReadProduct = await container.get(ReadProduct)
-    product = await get_product(product_id=product_id)
-
-    product_image = None
-    if product.image_id:
-        product_image = MediaAttachment(
-            ContentType.PHOTO, file_id=MediaId(product.image_id)
-        )
-
-    return {
-        "product_image": product_image,
-    }
-
-
+@inject
 async def new_product_image_handler(
     message: Message,
     message_input: MessageInput,
     manager: DialogManager,
+    update_product: FromDishka[UpdateProduct],
 ):
-    container: AsyncContainer = manager.middleware_data["container"]
-    update_product: UpdateProduct = await container.get(UpdateProduct)
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
     if message.photo:
         await update_product.update_product_image(
-            product_id=ProductId(manager.dialog_data[DATA_SELECTED_PRODUCT_ID]),
+            product_id=dialog_data.product_id,
             new_image_id=TelegramFileId(message.photo[-1].file_id),
         )
 
 
+@inject
 async def delete_image_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+    update_product: FromDishka[UpdateProduct],
 ):
-    container: AsyncContainer = manager.middleware_data["container"]
-    update_product: UpdateProduct = await container.get(UpdateProduct)
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
     await update_product.update_product_image(
-        product_id=ProductId(manager.dialog_data[DATA_SELECTED_PRODUCT_ID]),
+        product_id=dialog_data.product_id,
         new_image_id=None,
     )
 
@@ -81,5 +67,5 @@ edit_product_image_window = Window(
         Const(strings.buttons.back), state=states.Marketplace.VIEW_PRODUCT, id="back"
     ),
     state=states.Marketplace.EDIT_PRODUCT_IMAGE,
-    getter=product_image_getter,
+    getter=product_getter,
 )

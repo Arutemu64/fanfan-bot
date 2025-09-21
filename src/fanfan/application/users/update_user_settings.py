@@ -16,16 +16,16 @@ class UpdateUserSettings:
         self.uow = uow
 
     async def set_items_per_page(self, items_per_page: int) -> None:
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         async with self.uow:
             user.settings.items_per_page = items_per_page
             await self.users_repo.save_user(user)
             await self.uow.commit()
 
-    async def toggle_receive_all_announcements(
+    async def set_receive_all_announcements(
         self, receive_all_announcements: bool
     ) -> None:
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         async with self.uow:
             user.settings.receive_all_announcements = receive_all_announcements
             await self.users_repo.save_user(user)

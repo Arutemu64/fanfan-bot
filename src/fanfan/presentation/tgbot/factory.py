@@ -4,7 +4,6 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.base import BaseEventIsolation, BaseStorage, DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisEventIsolation, RedisStorage
 from aiogram_dialog import setup_dialogs
-from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
 from aiogram_dialog.context.media_storage import MediaIdStorage
 from aiogram_dialog.manager.manager_middleware import BG_FACTORY_KEY
 from dishka import AsyncContainer
@@ -17,8 +16,10 @@ from fanfan.presentation.tgbot import dialogs, handlers
 from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.tgbot.handlers.errors import register_error_handlers
 from fanfan.presentation.tgbot.middlewares import (
-    LoadDataMiddleware,
+    DialogDataAdapterMiddleware,
+    LoadCurrentUserMiddleware,
     RetryRequestMiddleware,
+    UpdateUserCommandsMiddleware,
 )
 
 
@@ -56,16 +57,15 @@ def create_dispatcher(
     )
 
     # Setup handlers
+    register_error_handlers(dp)
     dp.include_router(handlers.setup_router())  # Handlers must be above dialogs
     dp.include_router(dialogs.setup_router())
-    register_error_handlers(dp)
 
     # Setup middlewares
-    dp.message.outer_middleware(LoadDataMiddleware())
-    dp.callback_query.outer_middleware(LoadDataMiddleware())
-    dp.inline_query.outer_middleware(LoadDataMiddleware())
-    dp.errors.outer_middleware(LoadDataMiddleware())
-    dp.observers[DIALOG_EVENT_NAME].outer_middleware(LoadDataMiddleware())
+    dp.update.outer_middleware(LoadCurrentUserMiddleware())
+    dp.update.middleware(UpdateUserCommandsMiddleware())
+    for observer in dp.observers.values():
+        observer.middleware(DialogDataAdapterMiddleware())
 
     return dp
 

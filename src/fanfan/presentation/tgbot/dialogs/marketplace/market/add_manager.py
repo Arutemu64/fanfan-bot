@@ -1,31 +1,32 @@
-import typing
-
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import SwitchTo
 from aiogram_dialog.widgets.text import Const
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.marketplace.update_market import UpdateMarket
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.marketplace.common import DATA_SELECTED_MARKET_ID
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
+from fanfan.presentation.tgbot.dialogs.marketplace.data import (
+    MarketDialogData,
+)
 from fanfan.presentation.tgbot.static import strings
 
-if typing.TYPE_CHECKING:
-    from dishka import AsyncContainer
 
-
+@inject
 async def add_manager_handler(
     message: Message,
     widget: ManagedTextInput,
     dialog_manager: DialogManager,
     data: str,
+    update_market: FromDishka[UpdateMarket],
 ) -> None:
-    container: AsyncContainer = dialog_manager.middleware_data["container"]
-    update_market: UpdateMarket = await container.get(UpdateMarket)
-
+    dialog_data_adapter = get_dialog_data_adapter(dialog_manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
     new_manager = await update_market.add_manager_by_username(
-        market_id=dialog_manager.dialog_data[DATA_SELECTED_MARKET_ID],
+        market_id=dialog_data.market_id,
         username=data,
     )
     await message.answer(

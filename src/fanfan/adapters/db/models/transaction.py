@@ -11,16 +11,18 @@ from fanfan.core.vo.user import UserId
 class TransactionORM(Base):
     __tablename__ = "transactions"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[TransactionId] = mapped_column(primary_key=True)
     points: Mapped[int] = mapped_column()
     comment: Mapped[str | None] = mapped_column()
 
     # To user
-    to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    to_user_id: Mapped[UserId] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE")
+    )
     to_user: Mapped[UserORM] = relationship(foreign_keys=to_user_id)
 
     # From user
-    from_user_id: Mapped[int | None] = mapped_column(
+    from_user_id: Mapped[UserId | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
     from_user: Mapped[UserORM | None] = relationship(foreign_keys=from_user_id)
@@ -37,9 +39,9 @@ class TransactionORM(Base):
 
     def to_model(self) -> Transaction:
         return Transaction(
-            id=TransactionId(self.id),
+            id=self.id,
             points=self.points,
             comment=self.comment,
-            to_user_id=UserId(self.to_user_id),
-            from_user_id=UserId(self.from_user_id),
+            to_user_id=self.to_user_id,
+            from_user_id=self.from_user_id,
         )

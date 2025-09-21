@@ -48,8 +48,6 @@ async def check_voting_contest_entry(
     else:
         if user_votes_count >= votable_nominations_count:
             async with uow:
-                flag = Flag(
-                    flag_name=VOTING_CONTEST_FLAG_NAME, user_id=data.vote.user_id
-                )
+                flag = Flag(name=VOTING_CONTEST_FLAG_NAME, user_id=data.vote.user_id)
                 await flags_repo.add_flag(flag)
                 await uow.commit()

@@ -40,7 +40,7 @@ class CreateProduct:
         market = await self.markets_repo.get_market_by_id(market_id)
         if market is None:
             raise MarketNotFound
-        user = await self.id_provider.get_user_data()
+        user = await self.id_provider.get_current_user()
         await self.service.ensure_user_can_manage_market(market=market, user=user)
         return market
 

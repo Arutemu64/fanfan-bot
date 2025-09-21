@@ -15,24 +15,25 @@ from aiogram_dialog.widgets.kbd import (
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format, Jinja
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.marketplace.create_product import (
     CreateProduct,
     CreateProductDTO,
 )
-from fanfan.application.marketplace.read_market import ReadMarket
-from fanfan.application.marketplace.read_products_page import ReadProductsPage
+from fanfan.application.marketplace.get_market_by_id import GetMarketById
+from fanfan.application.marketplace.get_products_page import GetProductsPage
 from fanfan.core.dto.page import Pagination
-from fanfan.core.models.user import UserData
-from fanfan.core.vo.market import MarketId
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.vo.product import ProductId
 from fanfan.presentation.tgbot import states
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.dialogs.marketplace.common import (
-    DATA_SELECTED_MARKET_ID,
-    DATA_SELECTED_PRODUCT_ID,
+from fanfan.presentation.tgbot.dialogs.marketplace.data import (
+    MarketDialogData,
 )
+from fanfan.presentation.tgbot.middlewares.dialog_data_adapter import DialogDataAdapter
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.templates import product_list
 
@@ -42,33 +43,33 @@ if typing.TYPE_CHECKING:
     from aiogram_dialog.widgets.common import ManagedScroll
 
 
+@inject
 async def list_products_getter(
     dialog_manager: DialogManager,
-    container: AsyncContainer,
-    user: UserData,
+    get_market: FromDishka[GetMarketById],
+    get_products: FromDishka[GetProductsPage],
+    dialog_data_adapter: DialogDataAdapter,
+    current_user: FullUserDTO,
     **kwargs,
 ):
-    market_id = MarketId(dialog_manager.dialog_data[DATA_SELECTED_MARKET_ID])
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
     scroll: ManagedScroll = dialog_manager.find(ID_PRODUCTS_SCROLL)
-
-    get_market: ReadMarket = await container.get(ReadMarket)
-    market = await get_market(market_id=market_id)
-    get_products: ReadProductsPage = await container.get(ReadProductsPage)
+    market = await get_market(market_id=dialog_data.market_id)
     page = await get_products(
-        market_id=market_id,
+        market_id=market.id,
         pagination=Pagination(
-            limit=user.settings.items_per_page,
-            offset=await scroll.get_page() * user.settings.items_per_page,
+            limit=current_user.settings.items_per_page,
+            offset=await scroll.get_page() * current_user.settings.items_per_page,
         ),
     )
-    pages = page.total // user.settings.items_per_page + bool(
-        page.total % user.settings.items_per_page
+    pages = page.total // current_user.settings.items_per_page + bool(
+        page.total % current_user.settings.items_per_page
     )
     return {
         "products": page.items,
         "pages": pages or 1,
         "market_name": market.name,
-        "is_manager": user.id in (u.id for u in market.managers),
+        "is_manager": current_user.id in (u.id for u in market.managers),
     }
 
 
@@ -78,21 +79,27 @@ async def product_id_input_handler(
     dialog_manager: DialogManager,
     data: str,
 ) -> None:
+    dialog_data_adapter = get_dialog_data_adapter(dialog_manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
     if "/" in data and data.replace("/", "").isnumeric():
-        product_id = ProductId(int(data.replace("/", "")))
-        dialog_manager.dialog_data[DATA_SELECTED_PRODUCT_ID] = product_id
+        # User picked product
+        dialog_data.product_id = ProductId(int(data.replace("/", "")))
+        dialog_data_adapter.flush(dialog_data)
         await dialog_manager.switch_to(state=states.Marketplace.VIEW_PRODUCT)
 
 
+@inject
 async def add_product_handler(
-    callback: CallbackQuery, button: Button, manager: DialogManager
+    callback: CallbackQuery,
+    button: Button,
+    manager: DialogManager,
+    create_product: FromDishka[CreateProduct],
 ):
-    container: AsyncContainer = manager.middleware_data["container"]
-    create_product: CreateProduct = await container.get(CreateProduct)
-
+    dialog_data_adapter = get_dialog_data_adapter(manager)
+    dialog_data = dialog_data_adapter.load(MarketDialogData)
     await create_product(
         CreateProductDTO(
-            market_id=manager.dialog_data[DATA_SELECTED_MARKET_ID],
+            market_id=dialog_data.market_id,
             name="Новый товар",
         )
     )

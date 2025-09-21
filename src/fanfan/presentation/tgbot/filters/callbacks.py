@@ -1,6 +1,6 @@
 from aiogram.filters.callback_data import CallbackData
 
-from fanfan.core.dto.mailing import MailingId
+from fanfan.core.vo.mailing import MailingId
 from fanfan.core.vo.schedule_change import ScheduleChangeId
 from fanfan.core.vo.user import UserId
 

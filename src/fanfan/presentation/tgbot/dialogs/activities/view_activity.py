@@ -3,31 +3,33 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import StubScroll, SwitchTo
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 from sulguk import SULGUK_PARSE_MODE
 
-from fanfan.application.activities.read_activity_by_id import ReadActivityById
+from fanfan.application.activities.get_activity_by_id import GetActivityById
 from fanfan.presentation.tgbot import states
-from fanfan.presentation.tgbot.dialogs.activities.common import (
-    DATA_SELECTED_ACTIVITY_ID,
+from fanfan.presentation.tgbot.dialogs.activities.data import (
+    ActivitiesDialogData,
 )
 from fanfan.presentation.tgbot.dialogs.activities.list_activities import (
     ID_ACTIVITIES_SCROLL,
 )
+from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 
 
+@inject
 async def view_activity_getter(
     dialog_manager: DialogManager,
-    container: AsyncContainer,
+    get_activity_by_id: FromDishka[GetActivityById],
     **kwargs,
 ):
-    get_activity_by_id: ReadActivityById = await container.get(ReadActivityById)
+    dialog_data_adapter = get_dialog_data_adapter(dialog_manager)
+    dialog_data = dialog_data_adapter.load(ActivitiesDialogData)
 
-    activity = await get_activity_by_id(
-        dialog_manager.dialog_data[DATA_SELECTED_ACTIVITY_ID],
-    )
+    activity = await get_activity_by_id(dialog_data.activity_id)
     return {
         "title": activity.title,
         "description": activity.description,

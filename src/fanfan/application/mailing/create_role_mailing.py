@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.core.dto.mailing import MailingId
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.notifications import NewRolesNotificationEvent
 from fanfan.core.exceptions.base import AccessDenied
+from fanfan.core.vo.mailing import MailingId
 from fanfan.core.vo.user import UserRole
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True, slots=True)
 class CreateRoleMailingDTO:
-    message_text: str
+    text: str
     roles: list[UserRole]
     image_id: str | None = None
 
@@ -32,18 +32,16 @@ class CreateRoleMailing:
         self.stream_broker_adapter = stream_broker_adapter
 
     async def __call__(self, data: CreateRoleMailingDTO) -> MailingId:
-        sender = await self.id_provider.get_user_data()
+        sender = await self.id_provider.get_current_user()
         if sender.role is not UserRole.ORG:
             raise AccessDenied
 
-        mailing_id = await self.mailing_repo.create_new_mailing(
-            by_user_id=self.id_provider.get_current_user_id()
-        )
+        mailing_id = await self.mailing_repo.create_new_mailing(by_user_id=sender.id)
         await self.stream_broker_adapter.publish(
             NewRolesNotificationEvent(
                 notification=UserNotification(
                     title="📣 Сообщение от организаторов",
-                    text=f"<blockquote>{data.message_text}</blockquote>",
+                    text=f"<blockquote>{data.text}</blockquote>",
                     bottom_text=f"Отправил @{sender.username}",
                     image_id=data.image_id,
                 ),

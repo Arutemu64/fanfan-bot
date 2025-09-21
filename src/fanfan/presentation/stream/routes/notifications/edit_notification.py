@@ -9,7 +9,7 @@ from faststream import Logger
 from faststream.nats import NatsMessage, NatsRouter, PullSub
 
 from fanfan.adapters.redis.dao.mailing import MailingDAO
-from fanfan.adapters.utils.notifier import BotNotifier
+from fanfan.adapters.utils.notifier import TgBotNotifier
 from fanfan.core.events.notifications import EditNotificationEvent
 from fanfan.presentation.stream.jstream import stream
 
@@ -27,7 +27,7 @@ async def edit_notification(
     data: EditNotificationEvent,
     mailing_repo: FromDishka[MailingDAO],
     msg: FromDishka[NatsMessage],
-    notifier: FromDishka[BotNotifier],
+    notifier: FromDishka[TgBotNotifier],
     logger: Logger,
 ) -> None:
     try:

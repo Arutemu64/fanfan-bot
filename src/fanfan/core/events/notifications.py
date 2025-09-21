@@ -2,9 +2,9 @@ from dataclasses import dataclass
 
 from aiogram.types import Message
 
-from fanfan.core.dto.mailing import MailingId
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.base import AppEvent
+from fanfan.core.vo.mailing import MailingId
 from fanfan.core.vo.user import UserId, UserRole
 
 

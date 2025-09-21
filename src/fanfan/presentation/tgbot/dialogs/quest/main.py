@@ -4,26 +4,27 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, SwitchTo
 from aiogram_dialog.widgets.text import Const, Jinja, Progress
-from dishka import AsyncContainer
+from dishka import FromDishka
+from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.quest.read_user_quest_details import GetUserQuestStatus
-from fanfan.core.models.user import UserData
+from fanfan.application.quest.get_user_quest_status import GetUserQuestStatus
+from fanfan.core.dto.user import FullUserDTO
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
+from fanfan.presentation.tgbot.dialogs.common.utils import get_current_user
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.static import strings
 
 
+@inject
 async def quest_main_getter(
     dialog_manager: DialogManager,
-    user: UserData,
-    container: AsyncContainer,
+    current_user: FullUserDTO,
+    get_user_stats: FromDishka[GetUserQuestStatus],
     **kwargs,
 ) -> dict:
-    get_user_stats: GetUserQuestStatus = await container.get(GetUserQuestStatus)
-
     achievements_progress = 0
-    user_stats = await get_user_stats(user.id)
+    user_stats = await get_user_stats(current_user.id)
     if user_stats.total_achievements > 0:
         achievements_progress = math.floor(
             user_stats.achievements_count * 100 / user_stats.total_achievements,
@@ -43,7 +44,8 @@ async def open_achievements_handler(
     button: Button,
     manager: DialogManager,
 ) -> None:
-    await start_achievements(manager, manager.event.from_user.id)
+    current_user = get_current_user(manager)
+    await start_achievements(manager, current_user.id)
     return
 
 
