@@ -56,7 +56,7 @@ view_user_window = Window(
         "{% endif %}"
     ),
     Jinja("<b>🆔 ID:</b> <code>{{ selected_user_id }}</code>"),
-    Jinja("<b>🎫 Билет:</b> {{ if selected_user_ticket_id or 'не привязан' }}"),
+    Jinja("<b>🎫 Билет:</b> {{ selected_user_ticket_id or 'не привязан' }}"),
     Jinja("<b>🧩 Роль:</b> {{ selected_user_role }}"),
     Const(" "),
     Jinja(

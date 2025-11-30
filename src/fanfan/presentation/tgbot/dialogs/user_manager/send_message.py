@@ -74,7 +74,7 @@ send_message_window = Window(
         "никнейм в настройках Telegram."
     ),
     Const(" "),
-    Jinja("Вы собираетесь написать @{{ managed_user.username }}"),
+    Jinja("Вы собираетесь написать @{{ selected_user_username }}"),
     Const(" "),
     Jinja("Текст: <blockquote>{{ message_text or 'не задан' }}</blockquote>"),
     Button(

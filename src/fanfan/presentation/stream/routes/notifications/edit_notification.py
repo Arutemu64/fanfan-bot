@@ -4,7 +4,7 @@ from aiogram.exceptions import (
     TelegramRetryAfter,
 )
 from dishka import FromDishka
-from dishka.integrations.faststream import inject
+from dishka_faststream import inject
 from faststream import Logger
 from faststream.nats import NatsMessage, NatsRouter, PullSub
 

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from dishka import FromDishka
-from dishka.integrations.faststream import inject
+from dishka_faststream import inject
 from faststream.nats import NatsRouter, PullSub
 from pytz import timezone
 

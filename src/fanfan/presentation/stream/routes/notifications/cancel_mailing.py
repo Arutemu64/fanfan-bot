@@ -2,7 +2,7 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram_dialog import BgManagerFactory, ShowMode
 from dishka import FromDishka
-from dishka.integrations.faststream import inject
+from dishka_faststream import inject
 from faststream import Logger
 from faststream.nats import NatsRouter, PullSub
 from nats.js import JetStreamContext
