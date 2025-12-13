@@ -4,7 +4,7 @@ from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.dto.subscription import SubscriptionDTO
 
 
-class GetSubscriptionsPage:
+class ListSubscriptions:
     def __init__(
         self,
         subscriptions_repo: SubscriptionsRepository,

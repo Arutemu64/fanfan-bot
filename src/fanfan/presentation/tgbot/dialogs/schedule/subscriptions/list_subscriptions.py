@@ -17,8 +17,8 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.schedule.subscriptions.get_subscriptions_page import (
-    GetSubscriptionsPage,
+from fanfan.application.schedule.subscriptions.list_subscriptions_page import (
+    ListSubscriptions,
 )
 from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
@@ -47,7 +47,7 @@ ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 async def subscriptions_getter(
     dialog_manager: DialogManager,
     current_user: FullUserDTO,
-    get_subscriptions_page: FromDishka[GetSubscriptionsPage],
+    get_subscriptions_page: FromDishka[ListSubscriptions],
     **kwargs,
 ):
     page = await get_subscriptions_page(

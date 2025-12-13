@@ -23,7 +23,7 @@ from fanfan.application.marketplace.create_product import (
     CreateProductDTO,
 )
 from fanfan.application.marketplace.get_market_by_id import GetMarketById
-from fanfan.application.marketplace.get_products_page import GetProductsPage
+from fanfan.application.marketplace.list_products import ListProducts
 from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.vo.product import ProductId
@@ -47,7 +47,7 @@ if typing.TYPE_CHECKING:
 async def list_products_getter(
     dialog_manager: DialogManager,
     get_market: FromDishka[GetMarketById],
-    get_products: FromDishka[GetProductsPage],
+    get_products: FromDishka[ListProducts],
     dialog_data_adapter: DialogDataAdapter,
     current_user: FullUserDTO,
     **kwargs,

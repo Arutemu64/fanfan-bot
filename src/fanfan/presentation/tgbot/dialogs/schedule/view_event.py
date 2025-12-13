@@ -172,7 +172,7 @@ selected_event_window = Window(
             on_click=skip_event_handler,
             when=~F["event_is_current"],
         ),
-        when=F[Permissions.CAN_EDIT_SCHEDULE],
+        when=F[Permissions.CAN_MANAGE_SCHEDULE],
     ),
     Cancel(Const(strings.buttons.back), id="back"),
     getter=[event_details_getter, current_event_getter, helpers_schedule_getter],

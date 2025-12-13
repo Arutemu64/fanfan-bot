@@ -1,7 +1,7 @@
 {% for achievement in achievements %}
 <b>{{ achievement.title }} {% if achievement.is_received %}✅{% else %}⬜{% endif %}</b>
-{% if achievement.description %}{{ achievement.description }}{% endif %}
+{% if achievement.description %}{{ achievement.description }}
+{% endif %}
 {% if not loop.last +%}
-
 {% endif %}
 {% endfor %}

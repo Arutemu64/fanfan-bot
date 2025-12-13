@@ -1,17 +1,13 @@
 from collections.abc import AsyncIterable
-from typing import NewType
 
 from aiohttp import ClientSession
 from dishka import Provider, Scope, provide
-from redis.asyncio import Redis
 
 from fanfan.adapters.api.cosplay2.client import Cosplay2Client
 from fanfan.adapters.api.cosplay2.config import Cosplay2Config
 from fanfan.adapters.api.cosplay2.exceptions import NoCosplay2ConfigProvided
 from fanfan.adapters.api.cosplay2.importer import Cosplay2Importer
 from fanfan.adapters.config.models import EnvConfig
-
-Cosplay2Session = NewType("Cosplay2Session", ClientSession)
 
 
 class Cosplay2Provider(Provider):
@@ -24,16 +20,14 @@ class Cosplay2Provider(Provider):
         return config.cosplay2
 
     @provide
-    async def get_cosplay2_session(self) -> AsyncIterable[Cosplay2Session]:
-        async with ClientSession() as session:
-            yield Cosplay2Session(session)
-
-    @provide
     async def get_cosplay2_client(
-        self, session: Cosplay2Session, config: Cosplay2Config, redis: Redis
-    ) -> Cosplay2Client:
-        client = Cosplay2Client(session, config, redis)
-        await client.auth()
-        return client
+        self, config: Cosplay2Config
+    ) -> AsyncIterable[Cosplay2Client]:
+        headers = {
+            "X-API-Key": config.api_key,
+            "X-API-Secret": config.api_secret.get_secret_value(),
+        }
+        async with ClientSession(headers=headers) as session:
+            yield Cosplay2Client(base_url=config.build_api_base_url(), session=session)
 
     importer = provide(Cosplay2Importer)

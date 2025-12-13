@@ -19,7 +19,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.marketplace.get_markets_page import GetMarketsPage
+from fanfan.application.marketplace.list_markets import ListMarkets
 from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.vo.market import MarketId
@@ -42,7 +42,7 @@ if typing.TYPE_CHECKING:
 async def list_markets_getter(
     dialog_manager: DialogManager,
     current_user: FullUserDTO,
-    list_markets: FromDishka[GetMarketsPage],
+    list_markets: FromDishka[ListMarkets],
     **kwargs,
 ):
     scroll: ManagedScroll = dialog_manager.find(ID_MARKETS_SCROLL)

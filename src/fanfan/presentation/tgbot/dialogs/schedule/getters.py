@@ -60,8 +60,8 @@ async def helpers_schedule_getter(
     **kwargs,
 ):
     return {
-        Permissions.CAN_EDIT_SCHEDULE: current_user.check_permission(
-            Permissions.CAN_EDIT_SCHEDULE
+        Permissions.CAN_MANAGE_SCHEDULE: current_user.check_permission(
+            Permissions.CAN_MANAGE_SCHEDULE
         ),
         "docs_link": config.docs_link,
     }

@@ -10,7 +10,7 @@ class ScheduleService:
 
     async def user_can_manage_schedule(self, user: User) -> bool:
         user_perm = await self.user_perm_service.get_user_permission(
-            perm_name=Permissions.CAN_EDIT_SCHEDULE,
+            perm_name=Permissions.CAN_MANAGE_SCHEDULE,
             user_id=user.id,
         )
         return bool(user_perm)

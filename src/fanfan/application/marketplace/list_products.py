@@ -4,7 +4,7 @@ from fanfan.core.dto.product import ProductDTO
 from fanfan.core.vo.market import MarketId
 
 
-class GetProductsPage:
+class ListProducts:
     def __init__(self, products_repo: ProductsRepository):
         self.products_repo = products_repo
 

@@ -19,15 +19,15 @@ from dishka.integrations.aiogram_dialog import inject
 
 from fanfan.application.voting.add_vote import AddVote, AddVoteDTO
 from fanfan.application.voting.cancel_vote import CancelVote, CancelVoteDTO
-from fanfan.application.voting.get_nomination_by_id import (
-    GetNominationById,
-    GetNominationByIdDTO,
-)
-from fanfan.application.voting.get_participants_page import (
-    GetParticipantsPage,
-    GetParticipantsPageDTO,
+from fanfan.application.voting.get_voting_nomination_by_id import (
+    GetVotingNominationById,
+    GetVotingNominationByIdDTO,
 )
 from fanfan.application.voting.get_voting_state import GetVotingState
+from fanfan.application.voting.list_voting_participants import (
+    GetVotingParticipantsDTO,
+    ListVotingParticipants,
+)
 from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.exceptions.votes import VoteNotFound
@@ -50,23 +50,23 @@ ID_VOTING_SCROLL = "voting_scroll"
 
 
 @inject
-async def list_participants_getter(
+async def list_voting_participants_getter(
     dialog_manager: DialogManager,
     current_user: FullUserDTO,
     dialog_data_adapter: DialogDataAdapter,
-    get_nomination_by_id: FromDishka[GetNominationById],
-    get_participants_page: FromDishka[GetParticipantsPage],
+    get_voting_nomination_by_id: FromDishka[GetVotingNominationById],
+    get_voting_participants_page: FromDishka[ListVotingParticipants],
     get_voting_state: FromDishka[GetVotingState],
     **kwargs,
 ) -> dict:
     dialog_data = dialog_data_adapter.load(VotingDialogData)
-    nomination = await get_nomination_by_id(
-        GetNominationByIdDTO(nomination_id=dialog_data.nomination_id)
+    nomination = await get_voting_nomination_by_id(
+        GetVotingNominationByIdDTO(nomination_id=dialog_data.nomination_id)
     )
     dialog_data.user_vote_id = nomination.vote_id
     dialog_data_adapter.flush(dialog_data)
-    page = await get_participants_page(
-        GetParticipantsPageDTO(
+    page = await get_voting_participants_page(
+        GetVotingParticipantsDTO(
             pagination=Pagination(
                 limit=current_user.settings.items_per_page,
                 offset=await dialog_manager.find(ID_VOTING_SCROLL).get_page()
@@ -125,7 +125,7 @@ async def cancel_vote_handler(
         return
 
 
-voting_window = Window(
+voting_participants_window = Window(
     Title(Jinja("🌟 Номинация {{ nomination_title }}")),
     Jinja(voting_list),
     Case(
@@ -171,5 +171,5 @@ voting_window = Window(
         on_success=add_vote_handler,
     ),
     state=states.Voting.ADD_VOTE,
-    getter=list_participants_getter,
+    getter=list_voting_participants_getter,
 )

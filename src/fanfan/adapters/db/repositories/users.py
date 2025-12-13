@@ -125,7 +125,7 @@ class UsersRepository:
             select(UserORM)
             .join(UserPermissionORM)
             .join(PermissionORM)
-            .where(PermissionORM.name == Permissions.CAN_EDIT_SCHEDULE)
+            .where(PermissionORM.name == Permissions.CAN_MANAGE_SCHEDULE)
         )
         users_orm = await self.session.scalars(stmt)
         return [_parse_user_dto(u) for u in users_orm]

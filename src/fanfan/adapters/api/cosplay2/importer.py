@@ -8,7 +8,7 @@ from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import ParticipantsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.core.models.nomination import Nomination
-from fanfan.core.models.participant import Participant
+from fanfan.core.models.participant import Participant, ParticipantValue
 from fanfan.core.vo.nomination import NominationId
 from fanfan.core.vo.participant import ParticipantId
 
@@ -68,21 +68,35 @@ class Cosplay2Importer:
     async def _sync_requests(self):
         new_requests = 0
         requests = await self.client.get_all_requests()
+        values = await self.client.get_all_values()
         for request in requests:
+            # Checks
             if request.status is not RequestStatus.APPROVED:
                 continue
             if not request.voting_title:
                 logger.warning("Request %s lacks voting_title", request.id)
                 continue
+
+            # Query existing participant
             participant = await self.participants_repo.get_participant_by_id(
                 participant_id=ParticipantId(request.id)
             )
+
+            # Convert request values to participant values
+            request_values = [v for v in values if v.request_id == participant.id]
+            participant_values = [
+                ParticipantValue(title=r.title, type=r.type, value=r.value)
+                for r in request_values
+            ]
+
+            # Update or create participant
             if participant:
                 participant = replace(
                     participant,
                     title=request.voting_title,
                     nomination_id=NominationId(request.topic_id),
                     voting_number=request.voting_number,
+                    values=participant_values,
                 )
                 participant = await self.participants_repo.save_participant(participant)
                 logger.info(
@@ -96,6 +110,7 @@ class Cosplay2Importer:
                     title=request.voting_title,
                     nomination_id=NominationId(request.topic_id),
                     voting_number=request.voting_number,
+                    values=participant_values,
                 )
                 await self.participants_repo.add_participant(participant)
                 new_requests += 1

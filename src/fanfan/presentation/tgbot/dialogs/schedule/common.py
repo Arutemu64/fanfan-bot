@@ -2,9 +2,9 @@ import typing
 
 from aiogram_dialog import DialogManager
 
-from fanfan.application.schedule.get_schedule import (
-    GetSchedulePage,
-    GetSchedulePageDTO,
+from fanfan.application.schedule.list_schedule import (
+    ListSchedule,
+    ListScheduleDTO,
 )
 from fanfan.core.dto.schedule import ScheduleEventDTO
 from fanfan.core.dto.user import FullUserDTO
@@ -23,8 +23,8 @@ ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 async def get_schedule(dialog_manager: DialogManager) -> list[ScheduleEventDTO]:
     container = get_container(dialog_manager)
-    get_schedule_page = await container.get(GetSchedulePage)
-    page = await get_schedule_page(GetSchedulePageDTO())
+    get_schedule_page = await container.get(ListSchedule)
+    page = await get_schedule_page(ListScheduleDTO())
     return page.items
 
 

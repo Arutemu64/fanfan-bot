@@ -6,17 +6,17 @@ from fanfan.core.dto.page import Page, Pagination
 
 
 @dataclass(frozen=True, slots=True)
-class GetActivitiesPageDTO:
+class ListActivitiesDTO:
     pagination: Pagination | None = None
 
 
-class GetActivitiesPage:
+class ListActivities:
     def __init__(self, activities_repo: ActivitiesRepository) -> None:
         self.activities_repo = activities_repo
 
     async def __call__(
         self,
-        data: GetActivitiesPageDTO,
+        data: ListActivitiesDTO,
     ) -> Page[ActivityDTO]:
         return Page(
             items=await self.activities_repo.list_activities(data.pagination),

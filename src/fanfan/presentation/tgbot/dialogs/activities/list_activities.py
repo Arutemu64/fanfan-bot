@@ -18,9 +18,9 @@ from aiogram_dialog.widgets.text import Const, Format
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.activities.get_activities_page import (
-    GetActivitiesPage,
-    GetActivitiesPageDTO,
+from fanfan.application.activities.list_activities import (
+    ListActivities,
+    ListActivitiesDTO,
 )
 from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.user import FullUserDTO
@@ -43,12 +43,12 @@ ID_ACTIVITIES_SCROLL = "activities_scroll"
 async def list_activities_getter(
     dialog_manager: DialogManager,
     current_user: FullUserDTO,
-    get_activities_page: FromDishka[GetActivitiesPage],
+    get_activities_page: FromDishka[ListActivities],
     **kwargs,
 ):
     scroll: ManagedScroll = dialog_manager.find(ID_ACTIVITIES_SCROLL)
     page = await get_activities_page(
-        GetActivitiesPageDTO(
+        ListActivitiesDTO(
             pagination=Pagination(
                 limit=current_user.settings.items_per_page,
                 offset=await scroll.get_page() * current_user.settings.items_per_page,

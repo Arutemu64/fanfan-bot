@@ -2,7 +2,7 @@ from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.db.models import NominationORM, ParticipantORM, VoteORM
-from fanfan.core.dto.nomination import NominationUserDTO
+from fanfan.core.dto.nomination import VotingNominationUserDTO
 from fanfan.core.dto.page import Pagination
 from fanfan.core.models.nomination import Nomination
 from fanfan.core.vo.nomination import NominationId
@@ -21,8 +21,8 @@ def _select_nomination_user_dto(user_id: UserId | None) -> Select:
 
 def _parse_nomination_user_dto(
     nomination: NominationORM, vote: VoteORM | None
-) -> NominationUserDTO:
-    return NominationUserDTO(
+) -> VotingNominationUserDTO:
+    return VotingNominationUserDTO(
         id=nomination.id,
         title=nomination.title,
         vote_id=vote.id if vote else None,
@@ -59,6 +59,23 @@ class NominationsRepository:
         nomination_orm = await self.session.scalar(stmt)
         return nomination_orm.to_model() if nomination_orm else None
 
+    async def list_nominations(
+        self, pagination: Pagination | None = None
+    ) -> list[Nomination]:
+        stmt = select(NominationORM)
+
+        if pagination:
+            stmt = stmt.limit(pagination.limit).offset(pagination.offset)
+
+        nominations = (await self.session.scalars(stmt)).unique()
+        return [n.to_model() for n in nominations]
+
+    async def count_nominations(self, is_votable: bool | None = None) -> int:
+        stmt = select(func.count(NominationORM.id))
+        if is_votable is not None:
+            stmt = stmt.where(NominationORM.is_votable.is_(is_votable))
+        return await self.session.scalar(stmt)
+
     async def save_nomination(self, nomination: Nomination) -> Nomination:
         nomination_orm = await self.session.merge(NominationORM.from_model(nomination))
         await self.session.flush([nomination_orm])
@@ -66,7 +83,7 @@ class NominationsRepository:
 
     async def read_nomination(
         self, nomination_id: NominationId, user_id: UserId
-    ) -> NominationUserDTO | None:
+    ) -> VotingNominationUserDTO | None:
         stmt = _select_nomination_user_dto(user_id).where(
             NominationORM.id == nomination_id
         )
@@ -82,7 +99,7 @@ class NominationsRepository:
         self,
         user_id: UserId,
         pagination: Pagination | None = None,
-    ) -> list[NominationUserDTO]:
+    ) -> list[VotingNominationUserDTO]:
         stmt = _select_nomination_user_dto(user_id).where(
             NominationORM.is_votable.is_(True)
         )
@@ -96,9 +113,3 @@ class NominationsRepository:
             _parse_nomination_user_dto(nomination=nomination_orm, vote=vote_orm)
             for nomination_orm, vote_orm in results
         ]
-
-    async def count_votable_nominations(self) -> int:
-        stmt = select(func.count(NominationORM.id)).where(
-            NominationORM.is_votable.is_(True)
-        )
-        return await self.session.scalar(stmt)

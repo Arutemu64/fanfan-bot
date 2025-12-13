@@ -75,13 +75,12 @@ class QR(StatesGroup):
 
 class InlineQuerySearch(StatesGroup):
     EVENTS = State()
+    PARTICIPANTS = State()
     VOTING_PARTICIPANTS = State()
 
 
 class Staff(StatesGroup):
     MAIN = State()
-
-    CREATE_MARKET = State()
 
     CREATE_TICKET_PICK_ROLE = State()
     CREATE_TICKET_RESULT = State()
@@ -102,3 +101,10 @@ class Marketplace(StatesGroup):
     EDIT_PRODUCT_PRICE = State()
     EDIT_PRODUCT_IMAGE = State()
     CONFIRM_PRODUCT_DELETE = State()
+
+
+class Participants(StatesGroup):
+    LIST_PARTICIPANTS = State()
+    VIEW_PARTICIPANT = State()
+
+    FILTER_NOMINATIONS = State()

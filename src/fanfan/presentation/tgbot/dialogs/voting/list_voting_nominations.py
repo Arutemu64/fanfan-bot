@@ -20,9 +20,9 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.voting.get_nominations_page import (
-    GetNominationsPage,
-    GetNominationsPageDTO,
+from fanfan.application.voting.list_voting_nominations import (
+    ListVotingNominations,
+    ListVotingNominationsDTO,
 )
 from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.user import FullUserDTO
@@ -31,10 +31,14 @@ from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.utils import get_dialog_data_adapter
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.voting.data import (
-    DATA_NOMINATION_ID,
     VotingDialogData,
 )
-from fanfan.presentation.tgbot.dialogs.voting.list_participants import ID_VOTING_SCROLL
+from fanfan.presentation.tgbot.dialogs.voting.list_voting_participants import (
+    ID_VOTING_SCROLL,
+)
+from fanfan.presentation.tgbot.handlers.inline_query import (
+    INLINE_DATA_VOTING_NOMINATION_ID,
+)
 from fanfan.presentation.tgbot.static import strings
 
 if typing.TYPE_CHECKING:
@@ -44,14 +48,14 @@ ID_NOMINATIONS_SCROLL = "nominations_scroll"
 
 
 @inject
-async def list_nominations_getter(
+async def list_voting_nominations_getter(
     dialog_manager: DialogManager,
     current_user: FullUserDTO,
-    get_nominations_page: FromDishka[GetNominationsPage],
+    get_voting_nominations: FromDishka[ListVotingNominations],
     **kwargs,
 ) -> dict:
-    page = await get_nominations_page(
-        GetNominationsPageDTO(
+    page = await get_voting_nominations(
+        ListVotingNominationsDTO(
             pagination=Pagination(
                 limit=current_user.settings.items_per_page,
                 offset=await dialog_manager.find(ID_NOMINATIONS_SCROLL).get_page()
@@ -69,7 +73,7 @@ async def list_nominations_getter(
     }
 
 
-async def select_nomination_handler(
+async def select_voting_nomination_handler(
     callback: CallbackQuery,
     widget: Any,
     dialog_manager: DialogManager,
@@ -83,14 +87,14 @@ async def select_nomination_handler(
 
     # Enable search
     state: FSMContext = dialog_manager.middleware_data["state"]
-    await state.update_data({DATA_NOMINATION_ID: item_id})
+    await state.update_data({INLINE_DATA_VOTING_NOMINATION_ID: item_id})
     await state.set_state(states.InlineQuerySearch.VOTING_PARTICIPANTS)
 
     await dialog_manager.find(ID_VOTING_SCROLL).set_page(0)
     await dialog_manager.switch_to(states.Voting.ADD_VOTE)
 
 
-nominations_window = Window(
+voting_nominations_window = Window(
     Title(Const(strings.titles.voting)),
     Const("Для голосования доступны следующие номинации"),
     Column(
@@ -100,7 +104,7 @@ nominations_window = Window(
             item_id_getter=operator.itemgetter(0),
             items="nominations_list",
             type_factory=int,
-            on_click=select_nomination_handler,
+            on_click=select_voting_nomination_handler,
         ),
     ),
     StubScroll(ID_NOMINATIONS_SCROLL, pages="pages"),
@@ -116,5 +120,5 @@ nominations_window = Window(
     ),
     Cancel(Const(strings.buttons.back)),
     state=states.Voting.LIST_NOMINATIONS,
-    getter=list_nominations_getter,
+    getter=list_voting_nominations_getter,
 )

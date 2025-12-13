@@ -25,20 +25,22 @@ async def migrate():
         permissions_repo = await container.get(PermissionsRepository)
         for name in Permissions:
             try:
-                await permissions_repo.add_permission(Permission(name=name))
-                await uow.commit()
-                logger.info("New permission added: %s", name)
+                async with uow.nested():
+                    await permissions_repo.add_permission(Permission(name=name))
+                    logger.info("New permission added: %s", name)
             except IntegrityError:
-                await uow.rollback()
+                logger.info("Permission %s already exist", name)
 
         # Setup initial settings
         settings_repo = await container.get(SettingsRepository)
         try:
-            await settings_repo.add_settings(AppSettings())
-            await uow.commit()
+            async with uow.nested():
+                await settings_repo.add_settings(AppSettings())
+                logger.info("Settings added")
         except IntegrityError:
-            await uow.rollback()
+            logger.info("Settings already exist")
 
+        await uow.commit()
     logger.info("Migration completed")
 
 

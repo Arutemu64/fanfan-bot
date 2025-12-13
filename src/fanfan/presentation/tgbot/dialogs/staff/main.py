@@ -30,14 +30,19 @@ async def staff_main_getter(
     **kwargs,
 ):
     can_create_tickets = current_user.check_permission(Permissions.CAN_CREATE_TICKETS)
+    can_view_participants = current_user.check_permission(
+        Permissions.CAN_VIEW_PARTICIPANTS
+    )
     jwt_token = token_processor.create_access_token(current_user.id)
     return {
-        "is_helper": current_user.role in [UserRole.HELPER, UserRole.ORG],
-        "is_org": current_user.role is UserRole.ORG,
-        "can_create_tickets": can_create_tickets,
         "docs_link": config.docs_link,
         "qr_scanner_url": config.web.build_qr_scanner_url() if config.web else None,
         "admin_auth_url": config.web.build_admin_auth_url(jwt_token),
+        # Permissions
+        "is_helper": current_user.role in [UserRole.HELPER, UserRole.ORG],
+        "is_org": current_user.role is UserRole.ORG,
+        "can_create_tickets": can_create_tickets,
+        "can_view_participants": can_view_participants,
     }
 
 
@@ -49,17 +54,17 @@ staff_main_window = Window(
         "Набор доступных функций зависит от роли и выданных разрешений."
     ),
     Group(
+        Start(
+            text=Const(strings.titles.participants),
+            state=states.Participants.LIST_PARTICIPANTS,
+            id="participants",
+            when=F["can_view_participants"],
+        ),
         SwitchTo(
             state=states.Staff.CREATE_TICKET_PICK_ROLE,
             id="new_ticket",
             text=Const("🎫 Новый билет"),
             when=F["can_create_tickets"],
-        ),
-        SwitchTo(
-            Const("🛍️ Новый магазин"),
-            id="new_market",
-            state=states.Staff.CREATE_MARKET,
-            when=F["is_org"],
         ),
         Start(
             state=states.Mailing.MAIN,

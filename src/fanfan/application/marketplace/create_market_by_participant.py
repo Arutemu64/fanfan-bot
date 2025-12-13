@@ -8,7 +8,6 @@ from fanfan.core.exceptions.participants import ParticipantNotFound
 from fanfan.core.models.market import Market
 from fanfan.core.services.permissions import UserPermissionService
 from fanfan.core.vo.participant import ParticipantId
-from fanfan.core.vo.user import UserRole
 
 
 class CreateMarketByParticipant:
@@ -26,13 +25,16 @@ class CreateMarketByParticipant:
         self.id_provider = id_provider
         self.user_perm_service = user_perm_service
 
-    async def __call__(self, request_id: int) -> Market:
+    async def __call__(self, participant_id: ParticipantId) -> Market:
         async with self.uow:
             user = await self.id_provider.get_current_user()
-            if user.role is not UserRole.ORG:
-                raise AccessDenied
-
-            participant_id = ParticipantId(request_id)
+            user_perm = await self.user_perm_service.get_user_permission(
+                perm_name=Permissions.CAN_CREATE_MARKET,
+                user_id=user.id,
+            )
+            if user_perm is None:
+                msg = "Вы не можете создавать новые магазины"
+                raise AccessDenied(msg)
 
             participant = await self.participants_repo.get_participant_by_id(
                 participant_id

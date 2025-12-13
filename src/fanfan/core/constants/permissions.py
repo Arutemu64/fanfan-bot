@@ -6,6 +6,10 @@ class PermissionObjectTypes(enum.StrEnum):
 
 
 class Permissions(enum.StrEnum):
-    CAN_EDIT_SCHEDULE = "can_edit_schedule"
+    CAN_MANAGE_SCHEDULE = "can_manage_schedule"
     CAN_CREATE_TICKETS = "can_create_tickets"
+    CAN_VIEW_PARTICIPANTS = "can_view_participants"
+
+    # Marketplace
+    CAN_CREATE_MARKET = "can_create_market"
     CAN_MANAGE_MARKET = "can_manage_market"  # object_id is market_id

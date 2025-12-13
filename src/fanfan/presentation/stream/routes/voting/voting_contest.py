@@ -30,7 +30,9 @@ async def check_voting_contest_entry(
 ):
     # Get count of current user votes and total votable nominations
     user_votes_count = await votes_repo.count_user_votes(data.vote.user_id)
-    votable_nominations_count = await nominations_repo.count_votable_nominations()
+    votable_nominations_count = await nominations_repo.count_nominations(
+        is_votable=True
+    )
 
     # Check existing user flag
     flag = await flags_repo.get_flag_by_user(

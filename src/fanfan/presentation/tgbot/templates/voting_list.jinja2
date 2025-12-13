@@ -9,4 +9,6 @@
 {% endmacro %}
 {% for participant in participants %}
 {% if can_vote and not is_voted %}/{% endif %}<b>{{participant.voting_number}}</b> {{participant.title}} <b>[{{participant.votes_count}} {{votes_pluralize(participant.votes_count)}}]</b>{{ " ✅" if participant.vote_id else ""}}
+{% if not loop.last +%}
+{% endif %}
 {% endfor %}

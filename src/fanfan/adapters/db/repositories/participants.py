@@ -1,6 +1,6 @@
 from sqlalchemy import Select, String, and_, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import undefer
+from sqlalchemy.orm import joinedload, undefer
 
 from fanfan.adapters.db.models import (
     NominationORM,
@@ -8,7 +8,7 @@ from fanfan.adapters.db.models import (
     VoteORM,
 )
 from fanfan.core.dto.page import Pagination
-from fanfan.core.dto.participant import ParticipantUserDTO
+from fanfan.core.dto.participant import VotingParticipantUserDTO
 from fanfan.core.models.participant import (
     Participant,
 )
@@ -33,8 +33,8 @@ def _select_participant_user_dto(user_id: UserId | None) -> Select:
 
 def _parse_participant_user_dto(
     participant_orm: ParticipantORM, vote_orm: VoteORM | None
-) -> ParticipantUserDTO:
-    return ParticipantUserDTO(
+) -> VotingParticipantUserDTO:
+    return VotingParticipantUserDTO(
         id=participant_orm.id,
         title=participant_orm.title,
         voting_number=participant_orm.voting_number,
@@ -45,12 +45,14 @@ def _parse_participant_user_dto(
 
 def _filter_participants(
     stmt: Select,
-    nomination_id: NominationId | None = None,
+    nomination_ids: list[NominationId] | None = None,
     search_query: str | None = None,
 ) -> Select:
     filters = []
-    if nomination_id:
-        filters.append(ParticipantORM.nomination.has(NominationORM.id == nomination_id))
+    if nomination_ids:
+        filters.append(
+            ParticipantORM.nomination.has(NominationORM.id.in_(nomination_ids))
+        )
     if search_query:
         filters.append(
             or_(
@@ -79,6 +81,7 @@ class ParticipantsRepository:
         stmt = (
             select(ParticipantORM)
             .where(ParticipantORM.id == participant_id)
+            .options(joinedload(ParticipantORM.values, innerjoin=True))
             .with_for_update()
         )
         participant_orm = await self.session.scalar(stmt)
@@ -87,14 +90,37 @@ class ParticipantsRepository:
     async def get_participant_by_voting_number(
         self, nomination_id: NominationId, voting_number: ParticipantVotingNumber
     ) -> Participant | None:
-        stmt = select(ParticipantORM).where(
-            and_(
-                ParticipantORM.nomination_id == nomination_id,
-                ParticipantORM.voting_number == voting_number,
-            ),
+        stmt = (
+            select(ParticipantORM)
+            .where(
+                and_(
+                    ParticipantORM.nomination_id == nomination_id,
+                    ParticipantORM.voting_number == voting_number,
+                ),
+            )
+            .options(joinedload(ParticipantORM.values, innerjoin=True))
         )
         participant_orm = await self.session.scalar(stmt)
         return participant_orm.to_model() if participant_orm else None
+
+    async def list_participants(
+        self,
+        pagination: Pagination | None = None,
+        search_query: str | None = None,
+        nomination_ids: list[NominationId] | None = None,
+    ) -> list[Participant]:
+        stmt = select(ParticipantORM).options(
+            joinedload(ParticipantORM.values, innerjoin=True)
+        )
+
+        stmt = _filter_participants(stmt, nomination_ids, search_query)
+
+        if pagination:
+            stmt = stmt.limit(pagination.limit).offset(pagination.offset)
+
+        participants_orm = (await self.session.scalars(stmt)).unique()
+
+        return [p.to_model() for p in participants_orm]
 
     async def save_participant(self, participant: Participant) -> Participant:
         participant_orm = await self.session.merge(
@@ -103,18 +129,18 @@ class ParticipantsRepository:
         await self.session.flush([participant_orm])
         return participant_orm.to_model()
 
-    async def read_participants_for_user(
+    async def list_voting_nomination_participants_for_user(
         self,
         user_id: UserId,
         nomination_id: NominationId | None = None,
         search_query: str | None = None,
         pagination: Pagination | None = None,
-    ) -> list[ParticipantUserDTO]:
+    ) -> list[VotingParticipantUserDTO]:
         stmt = _select_participant_user_dto(user_id)
 
         # Filter
         stmt = _filter_participants(
-            stmt=stmt, nomination_id=nomination_id, search_query=search_query
+            stmt=stmt, nomination_ids=[nomination_id], search_query=search_query
         )
 
         # Unique order
@@ -138,11 +164,11 @@ class ParticipantsRepository:
 
     async def count_participants(
         self,
-        nomination_id: NominationId | None = None,
+        nomination_ids: list[NominationId] | None = None,
         search_query: str | None = None,
     ) -> int:
         stmt = select(func.count(ParticipantORM.id))
         stmt = _filter_participants(
-            stmt=stmt, nomination_id=nomination_id, search_query=search_query
+            stmt=stmt, nomination_ids=nomination_ids, search_query=search_query
         )
         return await self.session.scalar(stmt)

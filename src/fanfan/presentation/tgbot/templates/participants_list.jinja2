@@ -1,0 +1,5 @@
+{% for participant in participants %}
+<b>/{{participant.id}}</b> {{participant.title}}
+{% if not loop.last +%}
+{% endif %}
+{% endfor %}

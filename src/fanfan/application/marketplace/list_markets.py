@@ -4,7 +4,7 @@ from fanfan.core.dto.page import Page, Pagination
 from fanfan.core.models.market import Market
 
 
-class GetMarketsPage:
+class ListMarkets:
     def __init__(self, markets_repo: MarketsRepository, id_provider: IdProvider):
         self.markets_repo = markets_repo
         self.id_provider = id_provider

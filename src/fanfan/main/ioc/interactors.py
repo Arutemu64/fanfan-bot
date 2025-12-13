@@ -1,7 +1,7 @@
 from dishka import Provider, Scope, provide
 
-from fanfan.application.activities.get_activities_page import GetActivitiesPage
 from fanfan.application.activities.get_activity_by_id import GetActivityById
+from fanfan.application.activities.list_activities import ListActivities
 from fanfan.application.codes.get_code_by_id import GetCodeById
 from fanfan.application.codes.get_user_code_id import GetUserCodeId
 from fanfan.application.etc.get_random_quote import GetRandomQuote
@@ -14,11 +14,14 @@ from fanfan.application.marketplace.create_market_by_participant import (
 )
 from fanfan.application.marketplace.create_product import CreateProduct
 from fanfan.application.marketplace.get_market_by_id import GetMarketById
-from fanfan.application.marketplace.get_markets_page import GetMarketsPage
 from fanfan.application.marketplace.get_product_by_id import GetProductById
-from fanfan.application.marketplace.get_products_page import GetProductsPage
+from fanfan.application.marketplace.list_markets import ListMarkets
+from fanfan.application.marketplace.list_products import ListProducts
 from fanfan.application.marketplace.update_market import UpdateMarket
 from fanfan.application.marketplace.update_product import UpdateProduct
+from fanfan.application.nominations.list_nominations import ListNominations
+from fanfan.application.participants.get_participant_by_id import GetParticipantById
+from fanfan.application.participants.list_participants import ListParticipants
 from fanfan.application.quest.add_points_to_user import AddPointsToUser
 from fanfan.application.quest.get_achievements_page import (
     GetAchievementsPage,
@@ -27,10 +30,10 @@ from fanfan.application.quest.get_quest_rating import GetQuestRating
 from fanfan.application.quest.get_user_quest_status import GetUserQuestStatus
 from fanfan.application.quest.receive_achievement import ReceiveAchievement
 from fanfan.application.quest.reset_quest import ResetQuest
-from fanfan.application.schedule.get_schedule import (
-    GetSchedulePage,
-)
 from fanfan.application.schedule.get_schedule_event_by_id import GetScheduleEventById
+from fanfan.application.schedule.list_schedule import (
+    ListSchedule,
+)
 from fanfan.application.schedule.management.move_event import MoveScheduleEvent
 from fanfan.application.schedule.management.replace_schedule import ReplaceSchedule
 from fanfan.application.schedule.management.revert_change import RevertScheduleChange
@@ -45,8 +48,8 @@ from fanfan.application.schedule.subscriptions.create_subscription import (
 from fanfan.application.schedule.subscriptions.delete_subscription import (
     DeleteSubscription,
 )
-from fanfan.application.schedule.subscriptions.get_subscriptions_page import (
-    GetSubscriptionsPage,
+from fanfan.application.schedule.subscriptions.list_subscriptions_page import (
+    ListSubscriptions,
 )
 from fanfan.application.settings.get_settings import GetSettings
 from fanfan.application.settings.update_settings import UpdateSettings
@@ -60,14 +63,16 @@ from fanfan.application.users.update_user import UpdateUser
 from fanfan.application.users.update_user_settings import UpdateUserSettings
 from fanfan.application.voting.add_vote import AddVote
 from fanfan.application.voting.cancel_vote import CancelVote
-from fanfan.application.voting.get_nomination_by_id import GetNominationById
-from fanfan.application.voting.get_nominations_page import (
-    GetNominationsPage,
-)
-from fanfan.application.voting.get_participants_page import (
-    GetParticipantsPage,
+from fanfan.application.voting.get_voting_nomination_by_id import (
+    GetVotingNominationById,
 )
 from fanfan.application.voting.get_voting_state import GetVotingState
+from fanfan.application.voting.list_voting_nominations import (
+    ListVotingNominations,
+)
+from fanfan.application.voting.list_voting_participants import (
+    ListVotingParticipants,
+)
 
 
 class InteractorsProvider(Provider):
@@ -75,13 +80,13 @@ class InteractorsProvider(Provider):
 
     get_achievements_page = provide(GetAchievementsPage)
 
-    get_activities_page = provide(GetActivitiesPage)
+    get_activities_page = provide(ListActivities)
     get_activity_by_id = provide(GetActivityById)
 
     get_random_quote = provide(GetRandomQuote)
 
     get_event_by_id = provide(GetScheduleEventById)
-    get_schedule_page = provide(GetSchedulePage)
+    get_schedule_page = provide(ListSchedule)
 
     move_event = provide(MoveScheduleEvent)
     set_current_event = provide(SetCurrentScheduleEvent)
@@ -94,15 +99,15 @@ class InteractorsProvider(Provider):
     get_mailing_info = provide(GetMailingInfo)
     delete_mailing = provide(CancelMailing)
 
-    get_nomination_by_id = provide(GetNominationById)
-    get_nominations_page = provide(GetNominationsPage)
+    get_nomination_by_id = provide(GetVotingNominationById)
+    get_nominations_page = provide(ListVotingNominations)
 
     get_settings = provide(GetSettings)
     update_settings = provide(UpdateSettings)
 
     create_subscription = provide(CreateSubscription)
     delete_subscription = provide(DeleteSubscription)
-    get_subscriptions_page = provide(GetSubscriptionsPage)
+    get_subscriptions_page = provide(ListSubscriptions)
 
     generate_ticket = provide(GenerateTicket)
     delete_ticket = provide(DeleteTicket)
@@ -121,7 +126,7 @@ class InteractorsProvider(Provider):
     receive_achievement = provide(ReceiveAchievement)
     reset_quest = provide(ResetQuest)
 
-    get_participants_page = provide(GetParticipantsPage)
+    get_participants_page = provide(ListVotingParticipants)
     add_vote = provide(AddVote)
     cancel_vote = provide(CancelVote)
     get_voting_state = provide(GetVotingState)
@@ -129,12 +134,17 @@ class InteractorsProvider(Provider):
     get_code_by_id = provide(GetCodeById)
     get_user_code = provide(GetUserCodeId)
 
-    list_markets = provide(GetMarketsPage)
+    list_markets = provide(ListMarkets)
     get_market = provide(GetMarketById)
     update_market = provide(UpdateMarket)
 
     add_product = provide(CreateProduct)
-    list_products = provide(GetProductsPage)
+    list_products = provide(ListProducts)
     get_product = provide(GetProductById)
     update_product = provide(UpdateProduct)
     create_market_by_participant = provide(CreateMarketByParticipant)
+
+    list_participants = provide(ListParticipants)
+    get_participant_by_id = provide(GetParticipantById)
+
+    list_nominations = provide(ListNominations)

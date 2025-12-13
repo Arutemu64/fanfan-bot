@@ -14,6 +14,7 @@ dependencies = [
     "alembic-postgresql-enum>=1.5.0",
     "alembic>=1.13.3",
     "click>=8.1.8",
+    "descanso>=0.7.1",
     "dishka-faststream>=0.6.0",
     "dishka>=1.4.0",
     "fastapi-storages>=0.3.0",

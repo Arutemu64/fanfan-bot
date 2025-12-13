@@ -5,7 +5,7 @@ from fanfan.core.vo.vote import VoteId
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class NominationUserDTO:
+class VotingNominationUserDTO:
     id: NominationId
     title: str
     vote_id: VoteId | None

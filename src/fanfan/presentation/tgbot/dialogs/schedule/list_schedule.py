@@ -71,7 +71,6 @@ async def list_schedule_input_handler(
 schedule_main_window = Window(
     Title(Const(strings.titles.schedule)),
     Jinja(schedule_list),
-    Const("👆 Нажми на номер, чтобы выбрать выступление"),
     TextInput(
         id="schedule_main_window_text_input",
         type_factory=str,
@@ -98,7 +97,7 @@ schedule_main_window = Window(
             Const("🧰 Инструменты волонтёра ⬆️"),
             id=ID_TOGGLE_HELPER_TOOLS,
         ),
-        when=F[Permissions.CAN_EDIT_SCHEDULE],
+        when=F[Permissions.CAN_MANAGE_SCHEDULE],
     ),
     Row(
         SwitchInlineQueryCurrentChat(
