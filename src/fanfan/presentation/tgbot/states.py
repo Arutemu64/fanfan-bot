@@ -12,6 +12,7 @@ class Activities(StatesGroup):
 
 class Main(StatesGroup):
     HOME = State()
+    IMAGE_MAKER = State()
 
 
 class LinkTicket(StatesGroup):

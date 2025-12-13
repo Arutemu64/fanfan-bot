@@ -66,6 +66,7 @@ async def list_participants_getter(
     return {
         "participants": page.items,
         "pages": pages or 1,
+        "nomination_ids_count": len(nomination_ids),
     }
 
 
@@ -100,7 +101,10 @@ list_participants_window = Window(
     ),
     Row(
         SwitchTo(
-            text=Const("🌪️ Фильтр"),
+            text=Jinja(
+                "🌪️ Фильтр"
+                "{%if nomination_ids_count%} [{{nomination_ids_count}}]{%endif%}"
+            ),
             id="filter_nominations",
             state=states.Participants.FILTER_NOMINATIONS,
         ),

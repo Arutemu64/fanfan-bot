@@ -1,7 +1,7 @@
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Group, Start
+from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import FromDishka
@@ -36,7 +36,6 @@ async def main_menu_getter(
         # Access
         "can_participate_in_quest": quest_status.can_participate_in_quest,
         # Customization
-        "image_path": UI_IMAGES_DIR.joinpath("main_menu.jpg"),
         "quote": await get_random_quote(),
     }
 
@@ -65,12 +64,17 @@ main_window = Window(
     ),
     Const(" "),
     Format("<i>{quote}</i>", when=F["quote"]),
-    StaticMedia(path=Format("{image_path}")),
+    StaticMedia(path=UI_IMAGES_DIR.joinpath("main_menu.jpg")),
     Start(
         Const(strings.titles.link_ticket),
         id="link_ticket",
         state=states.LinkTicket.MAIN,
         when=F["current_user_ticket_id"].is_(None),
+    ),
+    SwitchTo(
+        Const(strings.titles.image_maker),
+        id="open_image_maker",
+        state=states.Main.IMAGE_MAKER,
     ),
     Group(
         Start(
