@@ -1,5 +1,4 @@
 from collections.abc import AsyncIterable
-from typing import NewType
 
 from aiohttp import ClientSession
 from dishka import Provider, Scope, provide
@@ -9,8 +8,6 @@ from fanfan.adapters.api.ticketscloud.config import TCloudConfig
 from fanfan.adapters.api.ticketscloud.exceptions import NoTCloudConfigProvided
 from fanfan.adapters.api.ticketscloud.importer import TCloudImporter
 from fanfan.adapters.config.models import EnvConfig
-
-TCloudSession = NewType("TCloudSession", ClientSession)
 
 
 class TCloudProvider(Provider):
@@ -23,14 +20,11 @@ class TCloudProvider(Provider):
         return config.tcloud
 
     @provide
-    async def get_tcloud_session(self) -> AsyncIterable[TCloudSession]:
-        async with ClientSession() as session:
-            yield TCloudSession(session)
-
-    @provide
     async def get_tcloud_client(
-        self, session: TCloudSession, config: TCloudConfig
-    ) -> TCloudClient:
-        return TCloudClient(session, config)
+        self, config: TCloudConfig
+    ) -> AsyncIterable[TCloudClient]:
+        headers = {"Authorization": f"key {config.api_key.get_secret_value()}"}
+        async with ClientSession(headers=headers) as session:
+            yield TCloudClient(base_url="https://ticketscloud.com/v2/", session=session)
 
     importer = provide(TCloudImporter)

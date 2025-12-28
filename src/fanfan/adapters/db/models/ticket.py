@@ -19,6 +19,7 @@ class TicketORM(Base):
     __tablename__ = "tickets"
 
     id: Mapped[TicketId] = mapped_column(primary_key=True)
+    external_id: Mapped[str | None] = mapped_column(unique=True, index=True)
     role: Mapped[UserRole] = mapped_column(postgresql.ENUM(UserRole))
 
     # Users relations
@@ -43,6 +44,7 @@ class TicketORM(Base):
     def from_model(cls, model: Ticket):
         return TicketORM(
             id=model.id,
+            external_id=model.external_id,
             role=model.role,
             used_by_id=model.used_by_id,
             issued_by_id=model.issued_by_id,
@@ -51,6 +53,7 @@ class TicketORM(Base):
     def to_model(self) -> Ticket:
         return Ticket(
             id=self.id,
+            external_id=self.external_id,
             role=self.role,
             used_by_id=self.used_by_id,
             issued_by_id=self.issued_by_id,

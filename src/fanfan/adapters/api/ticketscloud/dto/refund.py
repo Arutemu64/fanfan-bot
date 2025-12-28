@@ -16,7 +16,7 @@ class Refund:
     id: str
     event: str
     status: RefundStatus
-    tickets: list[str]
+    tickets: list[str]  # list of ticket ids
 
 
 @dataclass(slots=True, frozen=True)

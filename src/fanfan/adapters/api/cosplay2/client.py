@@ -1,5 +1,4 @@
 import logging
-from typing import TypeVar
 
 from adaptix import Retort
 from descanso import RestBuilder
@@ -10,11 +9,9 @@ from fanfan.adapters.api.cosplay2.dto.topics import Topic
 
 logger = logging.getLogger(__name__)
 
-OutputType = TypeVar("OutputType")
-
 rest = RestBuilder(
     request_body_dumper=Retort(),
-    response_body_loader=Retort(strict_coercion=False),
+    response_body_loader=Retort(),
     query_param_dumper=Retort(),
 )
 

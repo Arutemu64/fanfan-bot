@@ -22,6 +22,11 @@ class TicketsRepository:
         ticket_orm = await self.session.scalar(stmt)
         return ticket_orm.to_model() if ticket_orm else None
 
+    async def get_ticket_by_external_id(self, external_ticket_id: str) -> Ticket | None:
+        stmt = select(TicketORM).where(TicketORM.external_id == external_ticket_id)
+        ticket_orm = await self.session.scalar(stmt)
+        return ticket_orm.to_model() if ticket_orm else None
+
     async def get_ticket_by_user_id(self, user_id: UserId) -> Ticket | None:
         stmt = select(TicketORM).where(TicketORM.used_by_id == user_id)
         ticket_orm = await self.session.scalar(stmt)
