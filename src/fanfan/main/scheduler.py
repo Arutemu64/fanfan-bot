@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from dishka.integrations.taskiq import setup_dishka
 from taskiq import SimpleRetryMiddleware, TaskiqEvents, TaskiqScheduler, TaskiqState
 from taskiq.schedule_sources import LabelScheduleSource
-from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
+from taskiq_redis import RedisAsyncResultBackend, RedisStreamBroker
 
 from fanfan.adapters.config.parsers import get_config
 from fanfan.main.common import init
@@ -18,7 +18,7 @@ redis_async_result = RedisAsyncResultBackend(
     result_ex_time=timedelta(hours=2).seconds,
 )
 broker = (
-    ListQueueBroker(
+    RedisStreamBroker(
         url=get_config().redis.build_connection_str(),
     )
     .with_result_backend(redis_async_result)

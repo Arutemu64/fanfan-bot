@@ -64,7 +64,7 @@ main_window = Window(
     ),
     Const(" "),
     Format("<i>{quote}</i>", when=F["quote"]),
-    StaticMedia(path=UI_IMAGES_DIR.joinpath("main_menu.jpg")),
+    StaticMedia(path=UI_IMAGES_DIR.joinpath("main_menu.png")),
     Start(
         Const(strings.titles.link_ticket),
         id="link_ticket",

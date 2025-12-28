@@ -34,9 +34,7 @@ class TCloudImporter:
     async def proceed_order(self, order: Order) -> int:
         added_tickets = 0
         for order_ticket in order.tickets:
-            ticket = await self.tickets_repo.get_ticket_by_external_id(
-                order_ticket.id
-            )
+            ticket = await self.tickets_repo.get_ticket_by_external_id(order_ticket.id)
             if order.status == OrderStatus.DONE and ticket is None:
                 role = self.config.event_ids.get(order.event, UserRole.VISITOR)
                 ticket = Ticket(

@@ -1,3 +1,4 @@
+import asyncio
 import io
 
 from aiogram import Bot
@@ -53,6 +54,12 @@ def make_image(base_image_buffer: io.BytesIO) -> io.BytesIO:
     return output_buffer
 
 
+async def keep_upload_photo_status(bot: Bot, message: Message):
+    while True:
+        await bot.send_chat_action(chat_id=message.chat.id, action="upload_photo")
+        await asyncio.sleep(5)
+
+
 @inject
 async def image_maker_handler(
     message: Message,
@@ -60,12 +67,17 @@ async def image_maker_handler(
     manager: DialogManager,
     bot: FromDishka[Bot],
 ):
-    await bot.send_chat_action(chat_id=message.chat.id, action="upload_photo")
+    await message.answer("🔮 Творим магию...")
+    status_task = asyncio.create_task(keep_upload_photo_status(bot, message))
     file_id = message.photo[-1].file_id
     base_image_buffer = await bot.download(file_id)
     final_image_buffer = make_image(base_image_buffer)
-    await message.answer_photo(
-        photo=BufferedInputFile(final_image_buffer.read(), filename="final_image.png"),
+    status_task.cancel()
+    await message.answer_document(
+        document=BufferedInputFile(
+            final_image_buffer.read(),
+            filename=f"FAN FAN + {message.chat.first_name}.png",
+        ),
         caption="✨ А вот и фото! Скорее публикуй эту красоту в своих социальных "
         "сетях.\nИ не забудь про хештеги #УвидимсяНаFANFAN #fanfan2026 😙",
         reply_markup=DEFAULT_REPLY_MARKUP,
