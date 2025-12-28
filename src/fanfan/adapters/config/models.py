@@ -1,4 +1,5 @@
 from pydantic import (
+    BaseModel,
     DirectoryPath,
     HttpUrl,
 )
@@ -13,6 +14,16 @@ from fanfan.adapters.nats.config import NatsConfig
 from fanfan.adapters.redis.config import RedisConfig
 from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.web.config import WebConfig
+
+
+class BotFeatureFlags(BaseModel):
+    activities: bool = True
+    image_maker: bool = True
+    schedule: bool = True
+    quest: bool = True
+    qr: bool = True
+    voting: bool = True
+    marketplace: bool = True
 
 
 class EnvConfig(BaseSettings):
@@ -34,3 +45,5 @@ class EnvConfig(BaseSettings):
 
     cosplay2: Cosplay2Config | None = None
     tcloud: TCloudConfig | None = None
+
+    features: BotFeatureFlags = BotFeatureFlags()

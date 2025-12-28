@@ -7,16 +7,15 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
+from fanfan.adapters.config.models import BotFeatureFlags
 from fanfan.application.etc.get_random_quote import GetRandomQuote
 from fanfan.application.quest.get_user_quest_status import GetUserQuestStatus
 from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.exceptions.base import AccessDenied
+from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot import UI_IMAGES_DIR, states
 from fanfan.presentation.tgbot.dialogs.common.getters import (
     current_user_getter,
-)
-from fanfan.presentation.tgbot.dialogs.common.predicates import (
-    is_helper,
 )
 from fanfan.presentation.tgbot.dialogs.common.utils import get_current_user
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
@@ -29,12 +28,22 @@ async def main_menu_getter(
     current_user: FullUserDTO,
     get_random_quote: FromDishka[GetRandomQuote],
     get_user_quest_status: FromDishka[GetUserQuestStatus],
+    bot_features: FromDishka[BotFeatureFlags],
     **kwargs,
 ):
     quest_status = await get_user_quest_status(current_user.id)
     return {
+        # Enabled features
+        "enabled_image_maker": bot_features.image_maker,
+        "enabled_activities": bot_features.activities,
+        "enabled_schedule": bot_features.schedule,
+        "enabled_quest": bot_features.quest,
+        "enabled_qr": bot_features.qr,
+        "enabled_voting": bot_features.voting,
+        "enabled_marketplace": bot_features.marketplace,
         # Access
         "can_participate_in_quest": quest_status.can_participate_in_quest,
+        "can_access_staff_menu": current_user.role in [UserRole.HELPER, UserRole.ORG],
         # Customization
         "quote": await get_random_quote(),
     }
@@ -75,17 +84,20 @@ main_window = Window(
         Const(strings.titles.image_maker),
         id="open_image_maker",
         state=states.Main.IMAGE_MAKER,
+        when="enabled_image_maker",
     ),
     Group(
         Start(
             Const(strings.titles.activities),
             id="open_activities",
             state=states.Activities.LIST_ACTIVITIES,
+            when="enabled_activities",
         ),
         Start(
             text=Const(strings.titles.schedule),
             id="open_schedule",
             state=states.Schedule.MAIN,
+            when="enabled_schedule",
         ),
         Button(
             Case(
@@ -97,26 +109,30 @@ main_window = Window(
             ),
             id="open_quest",
             on_click=open_quest_handler,
+            when="enabled_quest",
         ),
         Start(
             text=Const(strings.titles.qr),
             id="open_qr",
             state=states.QR.MAIN,
+            when="enabled_qr",
         ),
         Start(
             text=Const(strings.titles.voting),
             id="open_voting",
             state=states.Voting.LIST_NOMINATIONS,
+            when="enabled_voting",
         ),
         Start(
             text=Const(strings.titles.marketplace),
-            id="open_markets",
+            id="open_marketplace",
             state=states.Marketplace.LIST_MARKETS,
+            when="enabled_marketplace",
         ),
         Start(
             text=Const(strings.titles.staff_menu),
-            id="open_helper_menu",
-            when=is_helper,
+            id="open_staff_menu",
+            when="can_access_staff_menu",
             state=states.Staff.MAIN,
         ),
         Start(

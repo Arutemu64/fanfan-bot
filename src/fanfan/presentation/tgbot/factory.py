@@ -11,9 +11,11 @@ from dishka.integrations.aiogram import setup_dishka
 from redis.asyncio import Redis
 from sulguk import AiogramSulgukMiddleware
 
+from fanfan.adapters.config.models import BotFeatureFlags
 from fanfan.adapters.redis.config import RedisConfig
-from fanfan.presentation.tgbot import dialogs, handlers
 from fanfan.presentation.tgbot.config import BotConfig
+from fanfan.presentation.tgbot.dialogs import setup_dialog_router
+from fanfan.presentation.tgbot.handlers import setup_handlers_router
 from fanfan.presentation.tgbot.handlers.errors import register_error_handlers
 from fanfan.presentation.tgbot.middlewares import (
     DialogDataAdapterMiddleware,
@@ -37,6 +39,7 @@ def create_dispatcher(
     storage: BaseStorage,
     event_isolation: BaseEventIsolation,
     container: AsyncContainer,
+    bot_features: BotFeatureFlags,
 ) -> Dispatcher:
     dp = Dispatcher(
         storage=storage,
@@ -58,8 +61,8 @@ def create_dispatcher(
 
     # Setup handlers
     register_error_handlers(dp)
-    dp.include_router(handlers.setup_router())  # Handlers must be above dialogs
-    dp.include_router(dialogs.setup_router())
+    dp.include_router(setup_handlers_router())  # Handlers must be above dialogs
+    dp.include_router(setup_dialog_router(bot_features))
 
     # Setup middlewares
     dp.update.outer_middleware(LoadCurrentUserMiddleware())

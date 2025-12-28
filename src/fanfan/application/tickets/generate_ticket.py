@@ -55,6 +55,7 @@ class GenerateTicket:
                 try:
                     ticket = Ticket(
                         id=TicketId(unique_code),
+                        external_id=None,
                         role=data.role,
                         used_by_id=None,
                         issued_by_id=user.id,

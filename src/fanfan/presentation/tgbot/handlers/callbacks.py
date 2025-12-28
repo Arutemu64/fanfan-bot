@@ -21,10 +21,10 @@ from fanfan.presentation.tgbot.filters.callbacks import (
     UndoScheduleChangeCallback,
 )
 
-router = Router(name="callbacks_router")
+callbacks_router = Router(name="callbacks_router")
 
 
-@router.callback_query(DeleteMessageCallback.filter())
+@callbacks_router.callback_query(DeleteMessageCallback.filter())
 async def delete_message(callback: CallbackQuery) -> None:
     try:
         await callback.message.delete()
@@ -32,7 +32,7 @@ async def delete_message(callback: CallbackQuery) -> None:
         await callback.answer("⚠️ Этому сообщению больше 2 дней, удалите его вручную")
 
 
-@router.callback_query(ShowMailingInfoCallback.filter())
+@callbacks_router.callback_query(ShowMailingInfoCallback.filter())
 @inject
 async def show_mailing_info_callback(
     query: CallbackQuery,
@@ -42,7 +42,7 @@ async def show_mailing_info_callback(
     await show_mailing_info(dialog_manager, callback_data.mailing_id)
 
 
-@router.callback_query(OpenSubscriptionsCallback.filter())
+@callbacks_router.callback_query(OpenSubscriptionsCallback.filter())
 async def open_subscriptions_menu(
     query: CallbackQuery,
     dialog_manager: DialogManager,
@@ -53,12 +53,12 @@ async def open_subscriptions_menu(
     )
 
 
-@router.callback_query(PullDialogDownCallback.filter())
+@callbacks_router.callback_query(PullDialogDownCallback.filter())
 async def pull_down_menu(query: CallbackQuery, dialog_manager: DialogManager) -> None:
     await dialog_manager.update(data={}, show_mode=ShowMode.SEND)
 
 
-@router.callback_query(ShowUserInfoCallback.filter())
+@callbacks_router.callback_query(ShowUserInfoCallback.filter())
 @inject
 async def show_user_info(
     query: CallbackQuery,
@@ -68,7 +68,7 @@ async def show_user_info(
     await start_user_manager(manager=dialog_manager, user_id=callback_data.user_id)
 
 
-@router.callback_query(UndoScheduleChangeCallback.filter())
+@callbacks_router.callback_query(UndoScheduleChangeCallback.filter())
 @inject
 async def undo_schedule_change(
     query: CallbackQuery,

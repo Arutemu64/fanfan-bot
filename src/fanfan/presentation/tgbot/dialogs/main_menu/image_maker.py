@@ -72,7 +72,6 @@ async def image_maker_handler(
     file_id = message.photo[-1].file_id
     base_image_buffer = await bot.download(file_id)
     final_image_buffer = make_image(base_image_buffer)
-    status_task.cancel()
     await message.answer_document(
         document=BufferedInputFile(
             final_image_buffer.read(),
@@ -82,6 +81,7 @@ async def image_maker_handler(
         "сетях.\nИ не забудь про хештеги #УвидимсяНаFANFAN #fanfan2026 😙",
         reply_markup=DEFAULT_REPLY_MARKUP,
     )
+    status_task.cancel()
     manager.show_mode = ShowMode.NO_UPDATE
 
 
