@@ -1,4 +1,3 @@
-from aiogram import Router
 from aiogram_dialog import Dialog
 
 from fanfan.presentation.tgbot.dialogs.common.utils import merge_start_data
@@ -8,8 +7,6 @@ from .find_mailing import find_mailing_window
 from .main import main_mailing_window
 from .view_mailing import mailing_info_window
 
-mailing_router = Router(name="mailing_router")
-
 mailing_dialog = Dialog(
     main_mailing_window,
     mailing_info_window,
@@ -17,5 +14,3 @@ mailing_dialog = Dialog(
     create_mailing_window,
     on_start=merge_start_data,
 )
-
-mailing_router.include_router(mailing_dialog)

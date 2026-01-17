@@ -9,7 +9,7 @@ class DatabaseConfig(BaseModel):
     name: str
 
     database_system: str = "postgresql"
-    driver: str = "psycopg"
+    driver: str = "asyncpg"
     echo: bool = True
 
     def build_connection_str(self) -> str:

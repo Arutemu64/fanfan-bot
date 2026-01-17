@@ -6,10 +6,10 @@ from aiogram_dialog import DialogManager, ShowMode, StartMode
 
 from fanfan.presentation.tgbot import states
 
-commands_router = Router(name="commands_router")
+common_commands_router = Router(name="common_commands_router")
 
 
-@commands_router.message(CommandStart())
+@common_commands_router.message(CommandStart())
 async def start_cmd(
     message: Message, dialog_manager: DialogManager, state: FSMContext
 ) -> None:

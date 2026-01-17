@@ -21,8 +21,6 @@ class EventView(ModelView, model=ScheduleEventORM):
     ]
     form_excluded_columns = [
         ScheduleEventORM.queue,
-        ScheduleEventORM.nomination,
-        ScheduleEventORM.block,
     ]
 
     column_labels = {
@@ -32,8 +30,6 @@ class EventView(ModelView, model=ScheduleEventORM):
         ScheduleEventORM.title: "Название",
         ScheduleEventORM.is_current: "Текущее",
         ScheduleEventORM.is_skipped: "Пропущено",
-        ScheduleEventORM.nomination: "Номинация",
-        ScheduleEventORM.participant: "Участник",
         ScheduleEventORM.created_at: "Время создания",
         ScheduleEventORM.updated_at: "Время изменения",
     }

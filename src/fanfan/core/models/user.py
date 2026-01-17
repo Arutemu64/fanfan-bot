@@ -9,7 +9,7 @@ from fanfan.core.vo.user import UserId, Username, UserRole
 
 @dataclass(slots=True, kw_only=True)
 class UserSettings:
-    items_per_page: int = 5
+    items_per_page: int = 4
     receive_all_announcements: bool = True
 
 

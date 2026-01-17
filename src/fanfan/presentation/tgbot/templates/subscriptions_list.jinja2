@@ -24,7 +24,7 @@
                 {% set tag %}<b>🏁 Закончилось:</b> {{events_left|abs}} {{events_pluralize(events_left|abs)}} назад <i>(≈ {{"%02d" | format(hours)}} час. {{"%02d" | format(minutes)}} мин.)</i>{% endset %}
             {% endif -%}
         {% endif %}
-<b>/{{ subscription.event.public_id }}</b> {% if subscription.event.is_skipped %}<s>{% endif %}{{ subscription.event.title }}{% if subscription.event.is_skipped %}</s>{% endif %}
+<b>/{{ '%03d' % subscription.event.public_id }}</b> {% if subscription.event.is_skipped %}<s>{% endif %}{{ subscription.event.title }}{% if subscription.event.is_skipped %}</s>{% endif %}
 {% if tag +%}
 {{ tag }}{% endif +%}
 <b>🔔 Напоминания:</b> за {{subscription.counter}} {{events_pluralize(subscription.counter)}}

@@ -8,7 +8,6 @@ from fanfan.adapters.db.repositories.app_settings import (
     SettingsRepository,
 )
 from fanfan.adapters.db.repositories.codes import CodesRepository
-from fanfan.adapters.db.repositories.flags import FlagsRepository
 from fanfan.adapters.db.repositories.markets import MarketsRepository
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
 from fanfan.adapters.db.repositories.participants import (
@@ -24,6 +23,7 @@ from fanfan.adapters.db.repositories.subscriptions import (
 )
 from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.transactions import TransactionsRepository
+from fanfan.adapters.db.repositories.user_flags import UserFlagsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.redis.dao.mailing import MailingDAO
@@ -50,7 +50,7 @@ class RepositoriesProvider(Provider):
     users = provide(UsersRepository)
     votes = provide(VotesRepository)
     transactions = provide(TransactionsRepository)
-    flags = provide(FlagsRepository)
+    flags = provide(UserFlagsRepository)
     permissions = provide(PermissionsRepository)
 
     # Redis

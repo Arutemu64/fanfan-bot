@@ -7,10 +7,10 @@ from fanfan.core.dto.user import FullUserDTO
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.filters.commands import LINK_TICKET_CMD
 
-link_ticket_handlers_router = Router(name="link_ticket_handlers_router")
+tickets_handlers_router = Router(name="tickets_handlers_router")
 
 
-@link_ticket_handlers_router.message(Command(LINK_TICKET_CMD))
+@tickets_handlers_router.message(Command(LINK_TICKET_CMD))
 async def link_ticket_cmd(
     message: Message,
     dialog_manager: DialogManager,

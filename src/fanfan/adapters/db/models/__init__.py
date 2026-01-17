@@ -3,7 +3,6 @@ from .activity import ActivityORM
 from .app_settings import AppSettingsORM
 from .base import Base
 from .code import CodeORM
-from .flag import FlagORM
 from .market import MarketORM
 from .nomination import NominationORM
 from .participant import ParticipantORM
@@ -17,6 +16,7 @@ from .subscription import SubscriptionORM
 from .ticket import TicketORM
 from .transaction import TransactionORM
 from .user import UserORM
+from .user_flag import UserFlagORM
 from .vote import VoteORM
 
 __all__ = [
@@ -37,7 +37,7 @@ __all__ = [
     "TransactionORM",
     "ScheduleChangeORM",
     "CodeORM",
-    "FlagORM",
+    "UserFlagORM",
     "ProductORM",
     "UserPermissionORM",
     "MarketORM",

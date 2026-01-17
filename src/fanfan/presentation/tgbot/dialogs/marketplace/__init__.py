@@ -1,9 +1,7 @@
-from aiogram import Router
 from aiogram_dialog import Dialog
 
 from fanfan.presentation.tgbot.dialogs.common.utils import merge_start_data
 
-from .handlers import marketplace_handlers_router
 from .market.add_manager import (
     add_manager_window,
 )
@@ -42,8 +40,6 @@ from .product.view_product import (
     view_product_window,
 )
 
-marketplace_router = Router(name="marketplace_router")
-
 marketplace_dialog = Dialog(
     # Market
     list_markets_window,
@@ -62,5 +58,3 @@ marketplace_dialog = Dialog(
     delete_product_window,
     on_start=merge_start_data,
 )
-
-marketplace_router.include_routers(marketplace_handlers_router, marketplace_dialog)

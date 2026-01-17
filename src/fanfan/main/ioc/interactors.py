@@ -55,6 +55,7 @@ from fanfan.application.settings.update_settings import UpdateSettings
 from fanfan.application.tickets.delete_ticket import DeleteTicket
 from fanfan.application.tickets.generate_ticket import GenerateTicket
 from fanfan.application.tickets.link_ticket import LinkTicket
+from fanfan.application.users.get_current_user import GetCurrentUser
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.get_user_by_username import GetUserByUsername
 from fanfan.application.users.tg_authenticate import TgAuthenticate
@@ -114,6 +115,7 @@ class InteractorsProvider(Provider):
     authenticate = provide(TgAuthenticate)
     get_user_by_id = provide(GetUserById)
     get_user_by_username = provide(GetUserByUsername)
+    get_current_user = provide(GetCurrentUser)
     update_user = provide(UpdateUser)
     update_user_settings = provide(UpdateUserSettings)
     send_message = provide(SendMessageToUser)

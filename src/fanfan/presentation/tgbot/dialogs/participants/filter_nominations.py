@@ -20,7 +20,7 @@ from fanfan.application.nominations.list_nominations import (
 )
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
-from fanfan.presentation.tgbot.dialogs.participants.handlers import (
+from fanfan.presentation.tgbot.handlers.participants import (
     INLINE_DATA_SELECTED_NOMINATION_IDS,
 )
 from fanfan.presentation.tgbot.static import strings

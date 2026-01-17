@@ -15,7 +15,6 @@ from fanfan.core.dto.schedule import (
 from fanfan.core.models.schedule_event import (
     ScheduleEvent,
 )
-from fanfan.core.vo.participant import ParticipantId
 from fanfan.core.vo.schedule_event import ScheduleEventId
 from fanfan.core.vo.user import UserId
 
@@ -109,15 +108,6 @@ class ScheduleEventsRepository:
 
     async def get_event_by_id(self, event_id: ScheduleEventId) -> ScheduleEvent | None:
         stmt = select(ScheduleEventORM).where(ScheduleEventORM.id == event_id)
-        event_orm = await self.session.scalar(stmt)
-        return event_orm.to_model() if event_orm else None
-
-    async def get_event_by_participant_id(
-        self, participant_id: ParticipantId
-    ) -> ScheduleEvent | None:
-        stmt = select(ScheduleEventORM).where(
-            ScheduleEventORM.participant_id == participant_id
-        )
         event_orm = await self.session.scalar(stmt)
         return event_orm.to_model() if event_orm else None
 

@@ -5,6 +5,8 @@ from fastapi import Request
 from starlette.responses import JSONResponse
 
 from fanfan.adapters.auth.utils.token import JwtTokenProcessor
+from fanfan.adapters.db.repositories.users import UsersRepository
+from fanfan.core.vo.telegram import TelegramUserId
 from fanfan.presentation.tgbot.config import BotConfig
 
 
@@ -13,6 +15,7 @@ async def webapp_auth(
     request: Request,
     config: FromDishka[BotConfig],
     token_processor: FromDishka[JwtTokenProcessor],
+    users_repo: FromDishka[UsersRepository],
 ):
     data = await request.json()
     try:
@@ -20,7 +23,10 @@ async def webapp_auth(
             token=config.token.get_secret_value(),
             init_data=data["_auth"],
         )
-        token = token_processor.create_access_token(web_app_init_data.user.id)
+        user = await users_repo.get_user_by_tg_id(
+            TelegramUserId(web_app_init_data.user.id)
+        )
+        token = token_processor.create_access_token(user.id)
         request.session["token"] = token
     except ValueError:
         return JSONResponse({"ok": False, "err": "Unauthorized"}, status_code=401)

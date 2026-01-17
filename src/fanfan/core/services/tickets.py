@@ -1,5 +1,5 @@
-from fanfan.adapters.db.repositories.flags import FlagsRepository
 from fanfan.adapters.db.repositories.tickets import TicketsRepository
+from fanfan.adapters.db.repositories.user_flags import UserFlagsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.core.constants.flags import VOTING_CONTEST_FLAG_NAME
@@ -17,7 +17,7 @@ class TicketsService:
         tickets_repo: TicketsRepository,
         users_repo: UsersRepository,
         votes_repo: VotesRepository,
-        flags_repo: FlagsRepository,
+        flags_repo: UserFlagsRepository,
         user_perm_service: UserPermissionService,
     ):
         self.tickets_repo = tickets_repo
@@ -49,4 +49,4 @@ class TicketsService:
                 user_id=user_id, flag_name=VOTING_CONTEST_FLAG_NAME
             )
             if contest_flag:
-                await self.flags_repo.delete_flag(contest_flag)
+                await self.flags_repo.delete_user_flag(contest_flag)

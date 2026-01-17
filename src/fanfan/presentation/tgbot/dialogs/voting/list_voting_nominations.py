@@ -33,11 +33,11 @@ from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.voting.data import (
     VotingDialogData,
 )
-from fanfan.presentation.tgbot.dialogs.voting.handlers import (
-    INLINE_DATA_VOTING_NOMINATION_ID,
-)
 from fanfan.presentation.tgbot.dialogs.voting.list_voting_participants import (
     ID_VOTING_SCROLL,
+)
+from fanfan.presentation.tgbot.handlers.voting import (
+    INLINE_DATA_VOTING_NOMINATION_ID,
 )
 from fanfan.presentation.tgbot.static import strings
 

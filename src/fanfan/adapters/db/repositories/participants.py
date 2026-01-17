@@ -145,7 +145,7 @@ class ParticipantsRepository:
 
         # Unique order
         user_unique_order = func.md5(
-            func.concat(cast(user_id, String), "-", cast(ParticipantORM.id, String))
+            func.concat(str(user_id), "-", cast(ParticipantORM.id, String))
         )
         stmt = stmt.order_by(user_unique_order)
 

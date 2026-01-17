@@ -83,7 +83,7 @@ class Cosplay2Importer:
             )
 
             # Convert request values to participant values
-            request_values = [v for v in values if v.request_id == participant.id]
+            request_values = [v for v in values if v.request_id == request.id]
             participant_values = [
                 ParticipantValue(title=r.title, type=r.type, value=r.value)
                 for r in request_values

@@ -2,13 +2,13 @@ from dishka import FromDishka
 from dishka_faststream import inject
 from faststream.nats import NatsRouter, PullSub
 
-from fanfan.adapters.db.repositories.flags import FlagsRepository
 from fanfan.adapters.db.repositories.nominations import NominationsRepository
+from fanfan.adapters.db.repositories.user_flags import UserFlagsRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.core.constants.flags import VOTING_CONTEST_FLAG_NAME
 from fanfan.core.events.voting import VoteUpdatedEvent
-from fanfan.core.models.flag import Flag
+from fanfan.core.models.user_flag import UserFlag
 from fanfan.presentation.stream.jstream import stream
 
 router = NatsRouter()
@@ -23,7 +23,7 @@ router = NatsRouter()
 @inject
 async def check_voting_contest_entry(
     data: VoteUpdatedEvent,
-    flags_repo: FromDishka[FlagsRepository],
+    flags_repo: FromDishka[UserFlagsRepository],
     votes_repo: FromDishka[VotesRepository],
     nominations_repo: FromDishka[NominationsRepository],
     uow: FromDishka[UnitOfWork],
@@ -43,13 +43,15 @@ async def check_voting_contest_entry(
     if flag:
         if user_votes_count < votable_nominations_count:
             async with uow:
-                await flags_repo.delete_flag(flag)
+                await flags_repo.delete_user_flag(flag)
                 await uow.commit()
 
     # If it's not - check if we can create it
     else:
         if user_votes_count >= votable_nominations_count:
             async with uow:
-                flag = Flag(name=VOTING_CONTEST_FLAG_NAME, user_id=data.vote.user_id)
-                await flags_repo.add_flag(flag)
+                flag = UserFlag(
+                    name=VOTING_CONTEST_FLAG_NAME, user_id=data.vote.user_id
+                )
+                await flags_repo.add_user_flag(flag)
                 await uow.commit()

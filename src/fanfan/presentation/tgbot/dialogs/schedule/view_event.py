@@ -129,7 +129,7 @@ async def unsubscribe_button_handler(
 
 
 selected_event_window = Window(
-    Jinja("<b>🎭 ВЫСТУПЛЕНИЕ №{{ event_public_id }}</b>"),
+    Jinja("<b>🎭 ВЫСТУПЛЕНИЕ №{{ '%03d' % event_public_id }}</b>"),
     Jinja(" └ <i>🗂️ {{ block_title }}</i>", when="block_title"),
     Const(" "),
     Jinja(selected_event_info),

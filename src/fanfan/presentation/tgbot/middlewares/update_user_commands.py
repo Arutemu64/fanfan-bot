@@ -28,6 +28,45 @@ if TYPE_CHECKING:
     from dishka import AsyncContainer
 
 
+def _generate_commands_list(
+    user: FullUserDTO, features: BotFeatureFlags
+) -> list[BotCommand]:
+    commands: list[BotCommand] = []
+
+    if user.ticket is None:
+        commands.append(LINK_TICKET_CMD)
+
+    commands.append(START_CMD)
+
+    if features.qr:
+        commands.append(QR_CMD)
+    if features.activities:
+        commands.append(ABOUT_CMD)
+    if features.schedule:
+        commands.extend([SCHEDULE_CMD, NOTIFICATIONS_CMD])
+    if features.voting:
+        commands.append(VOTING_CMD)
+    if features.quest:
+        commands.append(QUEST_CMD)
+    if features.marketplace:
+        commands.append(MARKETPLACE_CMD)
+
+    if user.role in [UserRole.HELPER, UserRole.ORG]:
+        commands.append(STAFF_CMD)
+
+    commands.append(SETTINGS_CMD)
+    return commands
+
+
+async def _update_bot_commands(
+    bot: Bot, chat_id: int, commands_list: list[BotCommand]
+) -> None:
+    scope = BotCommandScopeChat(chat_id=chat_id)
+    current_commands_list = await bot.get_my_commands(scope=scope)
+    if to_json(commands_list) != to_json(current_commands_list):
+        await bot.set_my_commands(commands_list, scope=scope)
+
+
 class UpdateUserCommandsMiddleware(BaseMiddleware):
     async def __call__(
         self,
@@ -35,47 +74,14 @@ class UpdateUserCommandsMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        if data.get(CURRENT_USER_KEY):
-            current_user: FullUserDTO = data[CURRENT_USER_KEY]
+        current_user: FullUserDTO | None = data.get(CURRENT_USER_KEY)
+        if current_user:
             container: AsyncContainer = data[CONTAINER_NAME]
             bot = await container.get(Bot)
             bot_features = await container.get(BotFeatureFlags)
 
-            scope = BotCommandScopeChat(chat_id=current_user.tg_id)
-            commands_list: list[BotCommand] = []
+            commands_list = _generate_commands_list(current_user, bot_features)
 
-            if current_user.ticket is None:
-                commands_list.append(LINK_TICKET_CMD)
-
-            commands_list.append(START_CMD)
-
-            if bot_features.qr:
-                commands_list.append(QR_CMD)
-
-            if bot_features.activities:
-                commands_list.append(ABOUT_CMD)
-
-            if bot_features.schedule:
-                commands_list.append(SCHEDULE_CMD)
-                commands_list.append(NOTIFICATIONS_CMD)
-
-            if bot_features.voting:
-                commands_list.append(VOTING_CMD)
-
-            if bot_features.quest:
-                commands_list.append(QUEST_CMD)
-
-            if bot_features.marketplace:
-                commands_list.append(MARKETPLACE_CMD)
-
-            if current_user.role in [UserRole.HELPER, UserRole.ORG]:
-                commands_list.append(STAFF_CMD)
-
-            commands_list.append(SETTINGS_CMD)
-
-            # Compare generated list to existing
-            current_commands_list = await bot.get_my_commands(scope=scope)
-            if to_json(commands_list) != to_json(current_commands_list):
-                await bot.set_my_commands(commands_list, scope=scope)
+            await _update_bot_commands(bot, current_user.tg_id, commands_list)
 
         return await handler(event, data)

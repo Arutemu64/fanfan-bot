@@ -8,7 +8,7 @@
         {% if (not loop.previtem) or (loop.previtem and (event.nomination_title != loop.previtem.nomination_title)) %}
 <b>🌟 {{event.nomination_title}}</b>
         {% endif %}
-<b>/{{event.public_id}}</b> {% if event.is_skipped %}<s>{% endif %}{% if event.is_current %}<b>{% endif %}{{ event.title }}
+<b>/{{ '%03d' % event.public_id }}</b> {% if event.is_skipped %}<s>{% endif %}{% if event.is_current %}<b>{% endif %}{{ event.title }}
         {%- if event.is_current %} 🔥</b>{% endif %}
         {%- if event.is_skipped %}</s> 🚫{% endif %}
         {%- if event.subscription %} 🔔{% endif +%}
