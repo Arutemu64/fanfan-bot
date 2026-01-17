@@ -1,17 +1,14 @@
 from sqlalchemy import Select, and_, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, undefer
+from sqlalchemy.orm import undefer
 
 from fanfan.adapters.db.models import (
-    NominationORM,
     ScheduleEventORM,
     SubscriptionORM,
 )
 from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.schedule import (
-    ScheduleEventBlockDTO,
     ScheduleEventDTO,
-    ScheduleEventNominationDTO,
     ScheduleEventSubscriptionDTO,
     ScheduleEventUserDTO,
 )
@@ -27,8 +24,6 @@ def _select_schedule_event_dto() -> Select:
     return select(ScheduleEventORM).options(
         undefer(ScheduleEventORM.queue),
         undefer(ScheduleEventORM.cumulative_duration),
-        joinedload(ScheduleEventORM.nomination),
-        joinedload(ScheduleEventORM.block),
     )
 
 
@@ -43,14 +38,8 @@ def _parse_schedule_event_dto(event_orm: ScheduleEventORM) -> ScheduleEventDTO:
         duration=event_orm.duration,
         queue=event_orm.queue,
         cumulative_duration=event_orm.cumulative_duration,
-        nomination=ScheduleEventNominationDTO(
-            id=event_orm.nomination.id, title=event_orm.nomination.title
-        )
-        if event_orm.nomination
-        else None,
-        block=ScheduleEventBlockDTO(id=event_orm.block.id, title=event_orm.block.title)
-        if event_orm.block
-        else None,
+        nomination_title=event_orm.nomination_title,
+        block_title=event_orm.block_title,
     )
 
 
@@ -67,8 +56,6 @@ def _select_schedule_event_user_dto(user_id: UserId | None) -> Select:
         .options(
             undefer(ScheduleEventORM.queue),
             undefer(ScheduleEventORM.cumulative_duration),
-            joinedload(ScheduleEventORM.nomination),
-            joinedload(ScheduleEventORM.block),
         )
     )
 
@@ -86,19 +73,13 @@ def _parse_schedule_event_user_dto(
         duration=event_orm.duration,
         queue=event_orm.queue,
         cumulative_duration=event_orm.cumulative_duration,
-        nomination=ScheduleEventNominationDTO(
-            id=event_orm.nomination.id, title=event_orm.nomination.title
-        )
-        if event_orm.nomination
-        else None,
-        block=ScheduleEventBlockDTO(id=event_orm.block.id, title=event_orm.block.title)
-        if event_orm.block
-        else None,
         subscription=ScheduleEventSubscriptionDTO(
             id=subscription_orm.id, counter=subscription_orm.counter
         )
         if subscription_orm
         else None,
+        nomination_title=event_orm.nomination_title,
+        block_title=event_orm.block_title,
     )
 
 
@@ -109,11 +90,7 @@ def _filter_schedule_events(
     filters = []
     if search_query:
         filters.append(ScheduleEventORM.title.ilike(f"%{search_query}%"))
-        filters.append(
-            ScheduleEventORM.nomination.has(
-                NominationORM.title.ilike(f"%{search_query}%")
-            )
-        )
+        filters.append(ScheduleEventORM.nomination_title.ilike(f"%{search_query}%"))
         if search_query.isnumeric():
             filters.append(ScheduleEventORM.id == int(search_query))
 

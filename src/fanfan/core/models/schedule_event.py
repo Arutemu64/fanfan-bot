@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from fanfan.core.vo.participant import ParticipantId
 from fanfan.core.vo.schedule_event import ScheduleEventId, ScheduleEventPublicId
 
 
@@ -16,7 +15,8 @@ class ScheduleEvent:  # noqa: PLW1641
     order: float
     is_current: bool | None
     is_skipped: bool
-    participant_id: ParticipantId | None
+    nomination_title: str
+    block_title: str
 
     def __eq__(self, other: ScheduleEvent | Any) -> bool:
         return isinstance(other, ScheduleEvent) and self.id == other.id

@@ -2,15 +2,11 @@
 ⚠️ Выступления не найдены
 {% else %}
     {% for event in events %}
-        {% if event.block %}
-            {% if (not loop.previtem) or (loop.previtem and (event.block != loop.previtem.block)) %}
-<b>🗂️ {{event.block.title}}</b>
-            {% endif %}
+        {% if (not loop.previtem) or (loop.previtem and (event.block_title != loop.previtem.block_title)) %}
+<b>🗂️ {{event.block_title}}</b>
         {% endif %}
-        {% if event.nomination %}
-            {% if (not loop.previtem) or (loop.previtem and (event.nomination != loop.previtem.nomination)) %}
-<b>🌟 {{event.nomination.title}}</b>
-            {% endif %}
+        {% if (not loop.previtem) or (loop.previtem and (event.nomination_title != loop.previtem.nomination_title)) %}
+<b>🌟 {{event.nomination_title}}</b>
         {% endif %}
 <b>/{{event.public_id}}</b> {% if event.is_skipped %}<s>{% endif %}{% if event.is_current %}<b>{% endif %}{{ event.title }}
         {%- if event.is_current %} 🔥</b>{% endif %}

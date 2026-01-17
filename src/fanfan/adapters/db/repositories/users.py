@@ -39,7 +39,7 @@ def _parse_full_user_dto(user: UserORM) -> FullUserDTO:
         last_name=user.last_name,
         role=user.role,
         settings=retort.load(user.settings, UserSettings),
-        ticket=user.ticket.to_model(),
+        ticket=user.ticket.to_model() if user.ticket else None,
         permissions=[
             UserPermissionDTO(
                 name=p.permission.name, object_type=p.object_type, object_id=p.object_id

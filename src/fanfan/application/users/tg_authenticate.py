@@ -63,9 +63,10 @@ class TgAuthenticate:
                     role=UserRole.VISITOR,
                     settings=UserSettings(),
                 )
-                await self.users_repo.add_user(user)
+                user = await self.users_repo.add_user(user)
                 await self.uow.commit()
                 logger.info("New user %s has registered", user.id, extra={"user": user})
+                return await self.users_repo.read_user_by_id(user_id=user.id)
         else:
             # Update details in database
             old_user = replace(user)
@@ -75,6 +76,4 @@ class TgAuthenticate:
                 async with self.uow:
                     await self.users_repo.save_user(user)
                     await self.uow.commit()
-        finally:
-            user_dto = await self.users_repo.read_user_by_id(user_id=user.id)
-        return user_dto
+            return await self.users_repo.read_user_by_id(user_id=user.id)

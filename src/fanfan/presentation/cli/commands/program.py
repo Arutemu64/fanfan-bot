@@ -5,10 +5,9 @@ import click
 from dishka.integrations.click import CONTAINER_NAME
 
 from fanfan.adapters.api.cosplay2.importer import Cosplay2Importer
-from fanfan.adapters.db.repositories.nominations import NominationsRepository
-from fanfan.adapters.db.repositories.participants import ParticipantsRepository
+from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
+from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.parsers.parse_schedule import parse_schedule
-from fanfan.application.schedule.management.replace_schedule import ReplaceSchedule
 from fanfan.presentation.cli.commands.common import async_command
 
 if TYPE_CHECKING:
@@ -37,7 +36,6 @@ async def parse_schedule_command(context: click.Context, schedule: BinaryIO):
     async with container() as r_container:
         await parse_schedule(
             file=schedule,
-            replace_schedule=await r_container.get(ReplaceSchedule),
-            participants_repo=await r_container.get(ParticipantsRepository),
-            nominations_repo=await r_container.get(NominationsRepository),
+            events_repo=await r_container.get(ScheduleEventsRepository),
+            uow=await r_container.get(UnitOfWork),
         )

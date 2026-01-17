@@ -35,7 +35,6 @@ from fanfan.application.schedule.list_schedule import (
     ListSchedule,
 )
 from fanfan.application.schedule.management.move_event import MoveScheduleEvent
-from fanfan.application.schedule.management.replace_schedule import ReplaceSchedule
 from fanfan.application.schedule.management.revert_change import RevertScheduleChange
 from fanfan.application.schedule.management.set_current_event import (
     SetCurrentScheduleEvent,
@@ -93,7 +92,6 @@ class InteractorsProvider(Provider):
     set_next_event = provide(SetNextScheduleEvent)
     skip_event = provide(SkipScheduleEvent)
     revert_change = provide(RevertScheduleChange)
-    replace_schedule = provide(ReplaceSchedule)
 
     create_mailing = provide(CreateRoleMailing)
     get_mailing_info = provide(GetMailingInfo)

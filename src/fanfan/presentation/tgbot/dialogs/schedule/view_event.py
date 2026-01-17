@@ -55,8 +55,8 @@ async def event_details_getter(
         "event_cumulative_duration": event.cumulative_duration,
         "event_duration": event.duration,
         "event_queue": event.queue,
-        "nomination_title": event.nomination.title if event.nomination else None,
-        "block_title": event.block.title if event.block else None,
+        "nomination_title": event.nomination_title,
+        "block_title": event.block_title,
         "user_is_subscribed": bool(event.subscription),
     }
 

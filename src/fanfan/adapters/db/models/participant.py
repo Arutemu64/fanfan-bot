@@ -16,7 +16,6 @@ from fanfan.core.vo.participant import ParticipantId, ParticipantVotingNumber, V
 
 if TYPE_CHECKING:
     from fanfan.adapters.db.models.nomination import NominationORM
-    from fanfan.adapters.db.models.schedule_event import ScheduleEventORM
 
 
 class ParticipantORM(Base):
@@ -40,9 +39,6 @@ class ParticipantORM(Base):
     voting_number: Mapped[int | None] = mapped_column()
 
     # Relationships
-    event: Mapped[ScheduleEventORM | None] = relationship(
-        back_populates="participant", single_parent=True
-    )
     votes_count = column_property(
         select(func.count(VoteORM.id))
         .where(VoteORM.participant_id == id)
