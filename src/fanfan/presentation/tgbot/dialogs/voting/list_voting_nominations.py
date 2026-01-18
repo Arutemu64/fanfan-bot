@@ -96,7 +96,10 @@ async def select_voting_nomination_handler(
 
 voting_nominations_window = Window(
     Title(Const(strings.titles.voting)),
-    Const("Для голосования доступны следующие номинации"),
+    Const("Для голосования доступны следующие номинации\n"),
+    Const("📺 AMV: https://vkvideo.ru/playlist/-32133918_52319783"),
+    Const("🖼️ Арт: https://fancom.info/cards/topic/art"),
+    Const("📸 Фотокосплей: https://fancom.info/cards/topic/fotcosp"),
     Column(
         Select(
             Jinja("{{item[1].title}} {% if item[1].vote_id %}✅{% endif %}"),
