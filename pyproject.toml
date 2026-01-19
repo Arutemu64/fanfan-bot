@@ -27,7 +27,7 @@ dependencies = [
     "logfire[aiohttp,fastapi,redis,sqlalchemy,system-metrics]>=3.16.0",
     "numpy>=2.1.2",
     "openpyxl>=3.1.5",
-    "pandas-stubs==2.3.3.251201",
+    "pandas-stubs==2.3.3.260113",
     "pandas>=2.2.3",
     "pydantic-extra-types>=2.9.0",
     "pydantic-settings>=2.6.1",
