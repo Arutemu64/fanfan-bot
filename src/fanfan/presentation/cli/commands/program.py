@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, BinaryIO
 import click
 from dishka.integrations.click import CONTAINER_NAME
 
-from fanfan.adapters.api.cosplay2.importer import Cosplay2Importer
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.utils.parsers.parse_schedule import parse_schedule
+from fanfan.application.cosplay2.sync_cosplay2 import SyncCosplay2
 from fanfan.presentation.cli.commands.common import async_command
 
 if TYPE_CHECKING:
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 async def sync_cosplay2_command(context: click.Context):
     container: AsyncContainer = context.meta[CONTAINER_NAME]
     async with container() as r_container:
-        importer = await r_container.get(Cosplay2Importer)
-        await importer.sync_all()
+        sync_cosplay2 = await r_container.get(SyncCosplay2)
+        await sync_cosplay2()
         logger.info("Importing from C2 done!")
 
 

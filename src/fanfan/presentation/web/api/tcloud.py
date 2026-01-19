@@ -3,7 +3,7 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter
 from starlette.responses import JSONResponse
 
-from fanfan.application.tickets.proceed_tcloud_order import (
+from fanfan.application.ticketscloud.proceed_tcloud_webhook import (
     ProceedTCloudWebhook,
     TCloudWebhookDTO,
 )

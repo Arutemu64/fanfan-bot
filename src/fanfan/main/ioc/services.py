@@ -1,5 +1,6 @@
 from dishka import Provider, Scope, provide
 
+from fanfan.core.services.cosplay2 import Cosplay2Service
 from fanfan.core.services.mailing import MailingService
 from fanfan.core.services.market import MarketService
 from fanfan.core.services.permissions import UserPermissionService
@@ -21,3 +22,4 @@ class ServicesProvider(Provider):
     voting = provide(VotingService)
     user_perms = provide(UserPermissionService)
     tcloud = provide(TCloudService)
+    cosplay2 = provide(Cosplay2Service)

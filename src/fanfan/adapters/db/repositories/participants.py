@@ -1,4 +1,4 @@
-from sqlalchemy import Select, String, and_, cast, func, or_, select
+from sqlalchemy import Select, String, and_, cast, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, undefer
 
@@ -81,8 +81,8 @@ class ParticipantsRepository:
         stmt = (
             select(ParticipantORM)
             .where(ParticipantORM.id == participant_id)
-            .options(joinedload(ParticipantORM.values, innerjoin=True))
-            .with_for_update()
+            .options(joinedload(ParticipantORM.values))  # LEFT JOIN
+            .with_for_update(of=ParticipantORM)  # only lock participants table
         )
         participant_orm = await self.session.scalar(stmt)
         return participant_orm.to_model() if participant_orm else None
@@ -172,3 +172,8 @@ class ParticipantsRepository:
             stmt=stmt, nomination_ids=nomination_ids, search_query=search_query
         )
         return await self.session.scalar(stmt)
+
+    async def delete_participant(self, participant: Participant):
+        await self.session.execute(
+            delete(ParticipantORM).where(ParticipantORM.id == participant.id)
+        )

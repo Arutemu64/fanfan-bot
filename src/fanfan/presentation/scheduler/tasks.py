@@ -1,7 +1,7 @@
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
 
-from fanfan.application.tickets.sync_tcloud import SyncTCloud, SyncTCloudResult
+from fanfan.application.ticketscloud.sync_tcloud import SyncTCloud, SyncTCloudResult
 from fanfan.main.scheduler import broker
 
 

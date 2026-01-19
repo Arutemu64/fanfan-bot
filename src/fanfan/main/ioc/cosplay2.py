@@ -6,7 +6,6 @@ from dishka import Provider, Scope, provide
 from fanfan.adapters.api.cosplay2.client import Cosplay2Client
 from fanfan.adapters.api.cosplay2.config import Cosplay2Config
 from fanfan.adapters.api.cosplay2.exceptions import NoCosplay2ConfigProvided
-from fanfan.adapters.api.cosplay2.importer import Cosplay2Importer
 from fanfan.adapters.config.models import EnvConfig
 
 
@@ -29,5 +28,3 @@ class Cosplay2Provider(Provider):
         }
         async with ClientSession(headers=headers) as session:
             yield Cosplay2Client(base_url=config.build_api_base_url(), session=session)
-
-    importer = provide(Cosplay2Importer)

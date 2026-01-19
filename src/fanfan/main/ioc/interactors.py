@@ -4,6 +4,7 @@ from fanfan.application.activities.get_activity_by_id import GetActivityById
 from fanfan.application.activities.list_activities import ListActivities
 from fanfan.application.codes.get_code_by_id import GetCodeById
 from fanfan.application.codes.get_user_code_id import GetUserCodeId
+from fanfan.application.cosplay2.sync_cosplay2 import SyncCosplay2
 from fanfan.application.etc.get_random_quote import GetRandomQuote
 from fanfan.application.mailing.cancel_mailing import CancelMailing
 from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
@@ -54,9 +55,9 @@ from fanfan.application.settings.get_settings import GetSettings
 from fanfan.application.settings.update_settings import UpdateSettings
 from fanfan.application.tickets.delete_ticket import DeleteTicket
 from fanfan.application.tickets.generate_ticket import GenerateTicket
-from fanfan.application.tickets.proceed_tcloud_order import ProceedTCloudWebhook
-from fanfan.application.tickets.sync_tcloud import SyncTCloud
 from fanfan.application.tickets.use_ticket import UseTicket
+from fanfan.application.ticketscloud.proceed_tcloud_webhook import ProceedTCloudWebhook
+from fanfan.application.ticketscloud.sync_tcloud import SyncTCloud
 from fanfan.application.users.get_current_user import GetCurrentUser
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.get_user_by_username import GetUserByUsername
@@ -113,8 +114,6 @@ class InteractorsProvider(Provider):
     generate_ticket = provide(GenerateTicket)
     delete_ticket = provide(DeleteTicket)
     use_ticket = provide(UseTicket)
-    sync_tcloud = provide(SyncTCloud)
-    proceed_tcloud_webhook = provide(ProceedTCloudWebhook)
 
     authenticate = provide(TgAuthenticate)
     get_user_by_id = provide(GetUserById)
@@ -152,3 +151,8 @@ class InteractorsProvider(Provider):
     get_participant_by_id = provide(GetParticipantById)
 
     list_nominations = provide(ListNominations)
+
+    sync_tcloud = provide(SyncTCloud)
+    proceed_tcloud_webhook = provide(ProceedTCloudWebhook)
+
+    sync_cosplay2 = provide(SyncCosplay2)

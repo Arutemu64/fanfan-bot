@@ -79,7 +79,9 @@ class ParticipantValueORM(Base):
     __tablename__ = "participant_values"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    participant_id: Mapped[ParticipantId] = mapped_column(ForeignKey("participants.id"))
+    participant_id: Mapped[ParticipantId] = mapped_column(
+        ForeignKey("participants.id", ondelete="CASCADE")
+    )
     title: Mapped[str] = mapped_column()
     type: Mapped[ValueType] = mapped_column()
     value: Mapped[str | None] = mapped_column()
