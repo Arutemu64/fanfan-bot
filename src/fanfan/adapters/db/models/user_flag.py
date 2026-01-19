@@ -3,8 +3,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from fanfan.adapters.db.models.base import Base
 from fanfan.core.models.user_flag import UserFlag
-from fanfan.core.vo.user_flag import UserFlagId
 from fanfan.core.vo.user import UserId
+from fanfan.core.vo.user_flag import UserFlagId
 
 
 class UserFlagORM(Base):

@@ -4,7 +4,7 @@ from aiogram_dialog.widgets.input import ManagedTextInput
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.tickets.link_ticket import LinkTicket
+from fanfan.application.tickets.use_ticket import UseTicket
 from fanfan.application.users.get_current_user import GetCurrentUser
 from fanfan.core.vo.ticket import TicketId
 from fanfan.presentation.tgbot import states
@@ -18,9 +18,9 @@ async def manual_ticket_input_handler(
     dialog_manager: DialogManager,
     data: TicketId,
     get_current_user: FromDishka[GetCurrentUser],
-    link_ticket: FromDishka[LinkTicket],
+    use_ticket: FromDishka[UseTicket],
 ) -> None:
-    await link_ticket(data)
+    await use_ticket(data)
     # Update user in context
     # TODO: Find a (maybe) nicer way to update user
     # Middleware won't run after linking ticket, bg update fails

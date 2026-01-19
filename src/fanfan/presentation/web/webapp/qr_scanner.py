@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Request
 from starlette.responses import FileResponse, JSONResponse
 
 from fanfan.application.common.id_provider import IdProvider
-from fanfan.application.tickets.link_ticket import LinkTicket
+from fanfan.application.tickets.use_ticket import UseTicket
 from fanfan.core.exceptions.base import AppException
 from fanfan.core.exceptions.codes import CodeNotFound
 from fanfan.core.vo.code import CodeId
@@ -35,7 +35,7 @@ async def open_qr_scanner() -> FileResponse:
 async def proceed_qr_post(
     request: Request,
     code_processor: FromDishka[CodeProcessor],
-    link_ticket: FromDishka[LinkTicket],
+    use_ticket: FromDishka[UseTicket],
     bg_factory: FromDishka[BgManagerFactory],
     bot: FromDishka[Bot],
     id_provider: FromDishka[IdProvider],
@@ -55,7 +55,7 @@ async def proceed_qr_post(
         # If CodeId not found, assume user scanned
         # TCloud QR code (numeric, 16 digits)
         if qr_data.isnumeric() and len(qr_data) == 16:
-            await link_ticket(ticket_id=TicketId(qr_data))
+            await use_ticket(ticket_id=TicketId(qr_data))
             bg = bg_factory.bg(
                 bot=bot,
                 user_id=user.tg_id,

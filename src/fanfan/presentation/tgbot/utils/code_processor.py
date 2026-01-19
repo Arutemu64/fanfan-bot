@@ -6,7 +6,7 @@ from aiogram_dialog import BgManagerFactory, ShowMode, StartMode
 from fanfan.application.codes.get_code_by_id import GetCodeById
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.quest.receive_achievement import ReceiveAchievement
-from fanfan.application.tickets.link_ticket import LinkTicket
+from fanfan.application.tickets.use_ticket import UseTicket
 from fanfan.core.exceptions.base import AccessDenied
 from fanfan.core.exceptions.codes import InvalidCode
 from fanfan.core.models.code import Code
@@ -30,14 +30,14 @@ class CodeProcessor:
         bot: Bot,
         get_code_by_id: GetCodeById,
         receive_achievement: ReceiveAchievement,
-        link_ticket: LinkTicket,
+        use_ticket: UseTicket,
     ):
         self.id_provider = id_provider
         self.bg_factory = bg_factory
         self.bot = bot
         self.get_code_by_id = get_code_by_id
         self.receive_achievement = receive_achievement
-        self.link_ticket = link_ticket
+        self.use_ticket = use_ticket
 
     async def __call__(self, code_id: CodeId) -> CodeProcessResult:
         user = await self.id_provider.get_current_user()
@@ -67,7 +67,7 @@ class CodeProcessor:
 
         # Ticket
         if code.ticket_id:
-            await self.link_ticket(code.ticket_id)
+            await self.use_ticket(code.ticket_id)
             await bg.start(
                 state=states.Main.HOME,
                 mode=StartMode.RESET_STACK,

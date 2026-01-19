@@ -1,14 +1,13 @@
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
 
-from fanfan.adapters.api.ticketscloud.importer import TCloudImporter
+from fanfan.application.tickets.sync_tcloud import SyncTCloud, SyncTCloudResult
 from fanfan.main.scheduler import broker
 
 
 @broker.task(task_name="sync_tcloud", schedule=[{"cron": "0 * * * *"}])
 @inject
 async def sync_tcloud(
-    importer: FromDishka[TCloudImporter],
-) -> None:
-    await importer.sync_tickets()
-    return
+    sync_tcloud: FromDishka[SyncTCloud],
+) -> SyncTCloudResult:
+    return await sync_tcloud()

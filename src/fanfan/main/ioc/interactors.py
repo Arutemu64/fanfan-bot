@@ -54,7 +54,9 @@ from fanfan.application.settings.get_settings import GetSettings
 from fanfan.application.settings.update_settings import UpdateSettings
 from fanfan.application.tickets.delete_ticket import DeleteTicket
 from fanfan.application.tickets.generate_ticket import GenerateTicket
-from fanfan.application.tickets.link_ticket import LinkTicket
+from fanfan.application.tickets.proceed_tcloud_order import ProceedTCloudWebhook
+from fanfan.application.tickets.sync_tcloud import SyncTCloud
+from fanfan.application.tickets.use_ticket import UseTicket
 from fanfan.application.users.get_current_user import GetCurrentUser
 from fanfan.application.users.get_user_by_id import GetUserById
 from fanfan.application.users.get_user_by_username import GetUserByUsername
@@ -110,7 +112,9 @@ class InteractorsProvider(Provider):
 
     generate_ticket = provide(GenerateTicket)
     delete_ticket = provide(DeleteTicket)
-    link_ticket = provide(LinkTicket)
+    use_ticket = provide(UseTicket)
+    sync_tcloud = provide(SyncTCloud)
+    proceed_tcloud_webhook = provide(ProceedTCloudWebhook)
 
     authenticate = provide(TgAuthenticate)
     get_user_by_id = provide(GetUserById)

@@ -1,28 +1,22 @@
-from dataclasses import dataclass
-
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter
 from starlette.responses import JSONResponse
 
-from fanfan.adapters.api.ticketscloud.dto.order import Order
-from fanfan.adapters.api.ticketscloud.importer import TCloudImporter
+from fanfan.application.tickets.proceed_tcloud_order import (
+    ProceedTCloudWebhook,
+    TCloudWebhookDTO,
+)
 
 tcloud_webhook_router = APIRouter()
-
-
-@dataclass(slots=True, frozen=True)
-class TCloudWebhookPayload:
-    data: Order
-    type: str  # TODO Enforce possible types later
 
 
 @tcloud_webhook_router.post("/tcloud_webhook")
 @inject
 async def order_change(
-    payload: TCloudWebhookPayload,
-    tcloud_importer: FromDishka[TCloudImporter],
+    payload: TCloudWebhookDTO,
+    proceed_tcloud_webhook: FromDishka[ProceedTCloudWebhook],
 ) -> JSONResponse:
-    added_tickets = await tcloud_importer.proceed_order(payload.data)
-    data = {"added_tickets": added_tickets}
+    result = await proceed_tcloud_webhook(payload)
+    data = {"new_tickets_count": result.new_tickets_count}
     return JSONResponse(content=data, status_code=200)

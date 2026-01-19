@@ -5,6 +5,7 @@ from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.core.constants.flags import VOTING_CONTEST_FLAG_NAME
 from fanfan.core.constants.permissions import Permissions
 from fanfan.core.exceptions.base import AccessDenied
+from fanfan.core.exceptions.tickets import UserAlreadyHasTicketLinked
 from fanfan.core.models.ticket import Ticket
 from fanfan.core.models.user import User
 from fanfan.core.services.permissions import UserPermissionService
@@ -34,6 +35,20 @@ class TicketsService:
         if not user_perm:
             reason = "У вас нет прав для выпуска новых билетов"
             raise AccessDenied(reason)
+
+    async def link_ticket(self, ticket: Ticket, user: User):
+        # Check if user got ticket linked already
+        existing_ticket = await self.tickets_repo.get_ticket_by_user_id(user.id)
+        if existing_ticket:
+            raise UserAlreadyHasTicketLinked
+
+        # Apply ticket role to user
+        user.set_role(ticket.role)
+        await self.users_repo.save_user(user)
+
+        # Mark as used
+        ticket.set_as_used(user.id)
+        await self.tickets_repo.save_ticket(ticket)
 
     async def unlink_ticket(self, ticket: Ticket):
         if user_id := ticket.used_by_id:
