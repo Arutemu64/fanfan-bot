@@ -9,10 +9,13 @@
 {% endmacro %}
 {% set duration_minutes = (event_duration % 3600) // 60 %}
 {% set duration_seconds = event_duration % 60 %}
+{% if nomination_title -%}
+<b>🌟 {{ nomination_title }}</b>
+{% endif -%}
 <blockquote>{% if event_is_skipped %}🚫 <s>{% endif %}{{ event_title }}{% if event_is_skipped %}</s>{% endif %}</blockquote>
-{% if nomination_title %}<b>🌟 {{ nomination_title }}</b>{% endif +%}
+
 <b>🕒 {{"%02d" | format(duration_minutes)}} мин. {{"%02d" | format(duration_seconds)}} сек.</b>
-{% if current_event_queue and event_queue +%}
+{% if current_event_queue and event_queue %}
 {% set time_diff = (event_cumulative_duration - current_event_cumulative_duration)|abs %}
 {% set hours_diff = time_diff // 3600 %}
 {% set minutes_diff = time_diff % 3600 // 60 %}

@@ -1,9 +1,21 @@
-{% if current_event %}<b>🔥 Сейчас — №{{ '%03d' % current_event.public_id }}</b>
-<blockquote>{{ current_event.title }}</blockquote>
+{% if current_event -%}
+<b>🔥 Сейчас - №{{ '%03d' % current_event.public_id }}</b>
+{% if current_event.block_title -%}
+<b>🗂️ {{ current_event.block_title }}</b>
+{% endif -%}
+{% if current_event.nomination_title -%}
 <b>🌟 {{ current_event.nomination_title }}</b>
-<b>🗂️ {{ current_event.block_title }}</b>{% endif +%}
+{% endif -%}
+<blockquote>{{ current_event.title }}</blockquote>
+{% endif %}
 
-{%+ if next_event %}<b>🚀 Затем — №{{ '%03d' % next_event.public_id }}</b>
-<blockquote>{{ next_event.title }}</blockquote>
+{% if next_event -%}
+<b>🚀 Затем - №{{ '%03d' % next_event.public_id }}</b>
+{% if next_event.block_title -%}
+<b>🗂️ {{ next_event.block_title }}</b>
+{% endif -%}
+{% if next_event.nomination_title -%}
 <b>🌟 {{ next_event.nomination_title }}</b>
-<b>🗂️ {{ next_event.block_title }}</b>{% endif %}
+{% endif -%}
+<blockquote>{{ next_event.title }}</blockquote>
+{% endif %}

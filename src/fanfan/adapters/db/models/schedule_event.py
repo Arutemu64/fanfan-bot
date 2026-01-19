@@ -25,8 +25,8 @@ class ScheduleEventORM(Base, OrderMixin):
     duration: Mapped[int] = mapped_column(server_default="0")
     is_current: Mapped[bool | None] = mapped_column(unique=True)
     is_skipped: Mapped[bool] = mapped_column(server_default="False")
-    nomination_title: Mapped[str] = mapped_column()
-    block_title: Mapped[str] = mapped_column()
+    nomination_title: Mapped[str | None] = mapped_column()
+    block_title: Mapped[str | None] = mapped_column()
 
     @declared_attr
     @classmethod

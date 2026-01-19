@@ -15,8 +15,8 @@ class ScheduleEvent:  # noqa: PLW1641
     order: float
     is_current: bool | None
     is_skipped: bool
-    nomination_title: str
-    block_title: str
+    nomination_title: str | None
+    block_title: str | None
 
     def __eq__(self, other: ScheduleEvent | Any) -> bool:
         return isinstance(other, ScheduleEvent) and self.id == other.id

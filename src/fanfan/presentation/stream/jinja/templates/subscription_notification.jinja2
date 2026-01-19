@@ -14,5 +14,5 @@
 {% set minutes_left = (time_diff % 3600) // 60 %}
 🚀 До начала выступления №{{ '%03d' % event_public_id }}. {{ event_title }} осталось <b>{{ queue_difference }} {{ events_pluralize(queue_difference) }}</b> <i>(≈ {{"%02d"|format(hours_left)}} час. {{"%02d"|format(minutes_left)}} мин.)</i>
 
-<i>[{{ reason_msg }}]</i>
+<i>{{ reason_msg }}</i>
 {%- endif %}
