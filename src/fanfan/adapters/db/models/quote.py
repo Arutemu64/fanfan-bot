@@ -8,3 +8,4 @@ class QuoteORM(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     text: Mapped[str] = mapped_column()
+    view_count: Mapped[int] = mapped_column(server_default="0")
