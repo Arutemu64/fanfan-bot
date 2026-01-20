@@ -4,8 +4,8 @@ from nats.js import JetStreamContext
 
 from fanfan.adapters.config.models import EnvConfig
 from fanfan.adapters.nats.config import NatsConfig
+from fanfan.adapters.nats.events_broker import EventsBroker
 from fanfan.adapters.nats.factory import NATSClient, create_nats_client
-from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.presentation.stream.broker import create_broker
 from fanfan.presentation.stream.jinja.factory import (
     StreamJinjaEnvironment,

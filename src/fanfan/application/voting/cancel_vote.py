@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.votes import VotesRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.utils.events_broker import EventsBroker
+from fanfan.adapters.nats.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.events.voting import VoteUpdatedEvent
 from fanfan.core.exceptions.base import AccessDenied

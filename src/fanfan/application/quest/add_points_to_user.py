@@ -6,7 +6,7 @@ from fanfan.adapters.db.repositories.tickets import TicketsRepository
 from fanfan.adapters.db.repositories.transactions import TransactionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.utils.events_broker import EventsBroker
+from fanfan.adapters.nats.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.events.notifications import NewNotificationEvent
 from fanfan.core.exceptions.users import UserNotFound
@@ -80,5 +80,6 @@ class AddPointsToUser:
                     notification=create_points_notification(
                         points=data.points, comment=data.comment
                     ),
+                    mailing_id=None,
                 )
             )

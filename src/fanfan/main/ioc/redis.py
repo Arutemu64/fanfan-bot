@@ -9,6 +9,7 @@ from fanfan.adapters.config.models import EnvConfig
 from fanfan.adapters.redis.config import RedisConfig
 from fanfan.adapters.redis.dao.cache import CacheAdapter
 from fanfan.adapters.redis.factory import create_redis
+from fanfan.adapters.redis.rate_lock import RateLockFactory
 from fanfan.adapters.redis.utils import RedisRetort, get_redis_retort
 from fanfan.presentation.tgbot.factory import (
     create_redis_isolation,
@@ -48,3 +49,4 @@ class RedisProvider(Provider):
         return get_redis_retort()
 
     cache_adapter = provide(CacheAdapter)
+    rate_limit_factory = provide(RateLockFactory, scope=Scope.APP)

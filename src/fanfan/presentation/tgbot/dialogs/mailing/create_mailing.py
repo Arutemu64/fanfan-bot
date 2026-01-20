@@ -18,7 +18,7 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.mailing.create_role_mailing import (
+from fanfan.application.notifications.create_role_mailing import (
     CreateRoleMailing,
     CreateRoleMailingDTO,
 )

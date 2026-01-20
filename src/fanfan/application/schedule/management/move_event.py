@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from fanfan.adapters.db.repositories.app_settings import SettingsRepository
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.adapters.nats.events_broker import EventsBroker
 from fanfan.adapters.redis.dao.mailing import MailingDAO
-from fanfan.adapters.utils.events_broker import EventsBroker
-from fanfan.adapters.utils.rate_lock import RateLockFactory
+from fanfan.adapters.redis.rate_lock import RateLockFactory
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.schedule.management.common import (
     ANNOUNCE_LIMIT_NAME,

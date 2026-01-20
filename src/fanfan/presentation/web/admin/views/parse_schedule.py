@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.utils.parsers.parse_schedule import parse_schedule
+from fanfan.adapters.parsers import parse_schedule
 
 if typing.TYPE_CHECKING:
     from dishka import AsyncContainer

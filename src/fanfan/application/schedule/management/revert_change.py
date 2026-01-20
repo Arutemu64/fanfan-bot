@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.utils.events_broker import EventsBroker
+from fanfan.adapters.nats.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.events.notifications import CancelMailingEvent
 from fanfan.core.exceptions.schedule import (

@@ -12,8 +12,8 @@ from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsReposi
 from fanfan.adapters.db.repositories.subscriptions import SubscriptionsRepository
 from fanfan.adapters.db.repositories.users import UsersRepository
 from fanfan.adapters.db.uow import UnitOfWork
+from fanfan.adapters.nats.events_broker import EventsBroker
 from fanfan.adapters.redis.dao.mailing import MailingDAO
-from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.core.dto.notification import UserNotification
 from fanfan.core.events.notifications import NewNotificationEvent
 from fanfan.core.events.schedule import ScheduleChanged

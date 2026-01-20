@@ -6,8 +6,11 @@ from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.mailing.cancel_mailing import CancelMailing, CancelMailingDTO
-from fanfan.application.mailing.get_mailing_info import (
+from fanfan.application.notifications.cancel_mailing import (
+    CancelMailing,
+    CancelMailingDTO,
+)
+from fanfan.application.notifications.get_mailing_info import (
     GetMailingInfo,
     GetMailingInfoDTO,
 )

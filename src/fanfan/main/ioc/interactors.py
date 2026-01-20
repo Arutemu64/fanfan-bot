@@ -6,10 +6,6 @@ from fanfan.application.codes.get_code_by_id import GetCodeById
 from fanfan.application.codes.get_user_code_id import GetUserCodeId
 from fanfan.application.cosplay2.sync_cosplay2 import SyncCosplay2
 from fanfan.application.etc.get_random_quote import GetRandomQuote
-from fanfan.application.mailing.cancel_mailing import CancelMailing
-from fanfan.application.mailing.create_role_mailing import CreateRoleMailing
-from fanfan.application.mailing.get_mailing_info import GetMailingInfo
-from fanfan.application.mailing.send_message_to_user import SendMessageToUser
 from fanfan.application.marketplace.create_market_by_participant import (
     CreateMarketByParticipant,
 )
@@ -21,6 +17,10 @@ from fanfan.application.marketplace.list_products import ListProducts
 from fanfan.application.marketplace.update_market import UpdateMarket
 from fanfan.application.marketplace.update_product import UpdateProduct
 from fanfan.application.nominations.list_nominations import ListNominations
+from fanfan.application.notifications.cancel_mailing import CancelMailing
+from fanfan.application.notifications.create_role_mailing import CreateRoleMailing
+from fanfan.application.notifications.get_mailing_info import GetMailingInfo
+from fanfan.application.notifications.send_message_to_user import SendMessageToUser
 from fanfan.application.participants.get_participant_by_id import GetParticipantById
 from fanfan.application.participants.list_participants import ListParticipants
 from fanfan.application.quest.add_points_to_user import AddPointsToUser

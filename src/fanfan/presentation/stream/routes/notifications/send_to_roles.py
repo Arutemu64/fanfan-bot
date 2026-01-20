@@ -3,8 +3,8 @@ from dishka_faststream import inject
 from faststream.nats import NatsRouter, PullSub
 
 from fanfan.adapters.db.repositories.users import UsersRepository
+from fanfan.adapters.nats.events_broker import EventsBroker
 from fanfan.adapters.redis.dao.mailing import MailingDAO
-from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.core.events.notifications import (
     NewNotificationEvent,
     NewRolesNotificationEvent,

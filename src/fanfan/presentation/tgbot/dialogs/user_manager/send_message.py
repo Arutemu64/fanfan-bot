@@ -6,7 +6,7 @@ from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.mailing.send_message_to_user import (
+from fanfan.application.notifications.send_message_to_user import (
     SendMessageToUser,
     SendMessageToUserDTO,
 )

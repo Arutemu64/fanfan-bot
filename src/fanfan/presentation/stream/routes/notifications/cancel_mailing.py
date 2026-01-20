@@ -5,7 +5,6 @@ from dishka import FromDishka
 from dishka_faststream import inject
 from faststream import Logger
 from faststream.nats import NatsRouter, PullSub
-from nats.js import JetStreamContext
 
 from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.core.events.notifications import CancelMailingEvent
@@ -26,11 +25,9 @@ async def cancel_mailing(
     mailing_repo: FromDishka[MailingDAO],
     bot: FromDishka[Bot],
     bgm_factory: FromDishka[BgManagerFactory],
-    js: FromDishka[JetStreamContext],
     logger: Logger,
 ) -> None:
-    subject = f"mailing.{data.mailing_id}"
-    await js.purge_stream("stream", subject=subject)
+    await mailing_repo.set_as_cancelled(data.mailing_id)
     while message := await mailing_repo.pop_message(data.mailing_id):
         try:
             await bot.delete_message(
@@ -52,6 +49,5 @@ async def cancel_mailing(
                 data.mailing_id,
                 extra={"deleted_message": message.model_dump_json(exclude_none=True)},
             )
-    await mailing_repo.set_as_cancelled(data.mailing_id)
     logger.info("Mailing %s was cancelled", data.mailing_id)
     return

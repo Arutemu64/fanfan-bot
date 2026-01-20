@@ -1,8 +1,8 @@
 import logging
 from dataclasses import dataclass
 
+from fanfan.adapters.nats.events_broker import EventsBroker
 from fanfan.adapters.redis.dao.mailing import MailingDAO
-from fanfan.adapters.utils.events_broker import EventsBroker
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.core.dto.mailing import MailingDTO
 from fanfan.core.events.notifications import CancelMailingEvent

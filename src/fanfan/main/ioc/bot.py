@@ -3,6 +3,7 @@ from collections.abc import AsyncIterable
 from aiogram import Bot
 from dishka import Provider, Scope, provide
 
+from fanfan.adapters.bot.notifier import TelegramNotifier
 from fanfan.adapters.config.models import EnvConfig
 from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.tgbot.factory import create_bot
@@ -21,6 +22,8 @@ class BotProvider(Provider):
         bot = create_bot(config)
         async with bot:
             yield bot
+
+    notifier = provide(TelegramNotifier)
 
 
 class BotUtilsProvider(Provider):

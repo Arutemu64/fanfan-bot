@@ -6,7 +6,7 @@ from dishka.integrations.click import CONTAINER_NAME
 
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
-from fanfan.adapters.utils.parsers.parse_schedule import parse_schedule
+from fanfan.adapters.parsers import parse_schedule
 from fanfan.application.cosplay2.sync_cosplay2 import SyncCosplay2
 from fanfan.presentation.cli.commands.common import async_command
 

@@ -19,7 +19,6 @@ from fanfan.main.ioc.repositories import RepositoriesProvider
 from fanfan.main.ioc.services import ServicesProvider
 from fanfan.main.ioc.stream import StreamProvider
 from fanfan.main.ioc.tcloud import TCloudProvider
-from fanfan.main.ioc.utils import UtilsProvider
 
 
 def get_common_providers() -> list[Provider]:
@@ -34,7 +33,6 @@ def get_common_providers() -> list[Provider]:
         TCloudProvider(),
         ServicesProvider(),
         RepositoriesProvider(),
-        UtilsProvider(),
         StreamProvider(),
         Cosplay2Provider(),
     ]

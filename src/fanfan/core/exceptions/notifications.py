@@ -1,9 +1,9 @@
 from fanfan.core.exceptions.base import AppException
 
 
-class MailingException(AppException):
+class NotificationsException(AppException):
     pass
 
 
-class MailingNotFound(MailingException):
+class MailingNotFound(NotificationsException):
     default_message = "Рассылка не найдена"

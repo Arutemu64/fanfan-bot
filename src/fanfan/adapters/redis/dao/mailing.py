@@ -7,7 +7,7 @@ from redis.asyncio import Redis
 
 from fanfan.adapters.redis.utils import RedisRetort
 from fanfan.core.dto.mailing import MailingDTO
-from fanfan.core.exceptions.mailing import MailingNotFound
+from fanfan.core.exceptions.notifications import MailingNotFound
 from fanfan.core.vo.mailing import MailingId
 from fanfan.core.vo.user import UserId
 
