@@ -14,9 +14,9 @@ from fanfan.application.schedule.management.set_current_event import (
     SetCurrentScheduleEvent,
     SetCurrentScheduleEventDTO,
 )
-from fanfan.application.schedule.management.skip_event import (
-    SkipScheduleEvent,
-    SkipScheduleEventDTO,
+from fanfan.application.schedule.management.toggle_event_skip import (
+    ToggleScheduleEventSkip,
+    ToggleScheduleEventSkipDTO,
 )
 from fanfan.application.schedule.subscriptions.delete_subscription import (
     DeleteSubscription,
@@ -95,11 +95,11 @@ async def skip_event_handler(
     callback: CallbackQuery,
     button: Button,
     manager: DialogManager,
-    skip_event: FromDishka[SkipScheduleEvent],
+    skip_event: FromDishka[ToggleScheduleEventSkip],
 ) -> None:
     dialog_data_adapter = get_dialog_data_adapter(manager)
     dialog_data = dialog_data_adapter.load(ScheduleDialogData)
-    result = await skip_event(SkipScheduleEventDTO(event_id=dialog_data.event_id))
+    result = await skip_event(ToggleScheduleEventSkipDTO(event_id=dialog_data.event_id))
     if result.event.is_skipped:
         text = f"🙈 Выступление <b>{result.event.title}</b> пропущено"
     else:

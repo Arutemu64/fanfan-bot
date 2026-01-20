@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.app_settings import SettingsRepository
+from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.nats.events_broker import EventsBroker
@@ -9,14 +10,14 @@ from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.redis.rate_lock import RateLockFactory
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.schedule.management.common import ANNOUNCE_LIMIT_NAME
-from fanfan.core.events.schedule import ScheduleChanged
+from fanfan.core.events.schedule import NewScheduleChange
 from fanfan.core.exceptions.limiter import RateLockCooldown
 from fanfan.core.exceptions.schedule import (
     CurrentEventNotAllowed,
     EventNotFound,
     ScheduleEditTooFast,
 )
-from fanfan.core.models.schedule_change import ScheduleChangeType
+from fanfan.core.models.schedule_change import ScheduleChange, ScheduleChangeType
 from fanfan.core.models.schedule_event import ScheduleEvent
 from fanfan.core.services.schedule import ScheduleService
 from fanfan.core.vo.schedule_event import ScheduleEventId
@@ -25,20 +26,21 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, frozen=True)
-class SkipScheduleEventDTO:
+class ToggleScheduleEventSkipDTO:
     event_id: ScheduleEventId
 
 
 @dataclass(slots=True, frozen=True)
-class SkipScheduleEventResult:
+class ToggleScheduleEventSkipResult:
     event: ScheduleEvent
 
 
-class SkipScheduleEvent:
+class ToggleScheduleEventSkip:
     def __init__(
         self,
         schedule_repo: ScheduleEventsRepository,
         settings_repo: SettingsRepository,
+        changes_repo: ScheduleChangesRepository,
         service: ScheduleService,
         uow: UnitOfWork,
         rate_lock_factory: RateLockFactory,
@@ -48,6 +50,7 @@ class SkipScheduleEvent:
     ) -> None:
         self.schedule_repo = schedule_repo
         self.settings_repo = settings_repo
+        self.changes_repo = changes_repo
         self.service = service
         self.uow = uow
         self.rate_lock_factory = rate_lock_factory
@@ -55,7 +58,9 @@ class SkipScheduleEvent:
         self.id_provider = id_provider
         self.mailing_repo = mailing_repo
 
-    async def __call__(self, data: SkipScheduleEventDTO) -> SkipScheduleEventResult:
+    async def __call__(
+        self, data: ToggleScheduleEventSkipDTO
+    ) -> ToggleScheduleEventSkipResult:
         user = await self.id_provider.get_current_user()
         await self.service.ensure_user_can_manage_schedule(user)
 
@@ -83,24 +88,28 @@ class SkipScheduleEvent:
 
                 next_event_after = await self.schedule_repo.read_next_event()
 
+                # Save schedule change
+                mailing_id = await self.mailing_repo.create_new_mailing(
+                    by_user_id=user.id
+                )
+                schedule_change = ScheduleChange(
+                    type=ScheduleChangeType.SKIPPED
+                    if event.is_skipped
+                    else ScheduleChangeType.UNSKIPPED,
+                    changed_event_id=event.id,
+                    argument_event_id=None,
+                    mailing_id=mailing_id,
+                    user_id=user.id,
+                    send_global_announcement=(next_event_before != next_event_after),
+                )
+                schedule_change = await self.changes_repo.add_schedule_change(
+                    schedule_change
+                )
+
                 # Commit and proceed
                 await self.uow.commit()
-                mailing_id = await self.mailing_repo.create_new_mailing(
-                    by_user_id=user.id,
-                )
                 await self.events_broker.publish(
-                    ScheduleChanged(
-                        changed_event_id=event.id,
-                        argument_event_id=None,
-                        type=ScheduleChangeType.SKIPPED
-                        if event.is_skipped
-                        else ScheduleChangeType.UNSKIPPED,
-                        user_id=user.id,
-                        mailing_id=mailing_id,
-                        send_global_announcement=(
-                            next_event_before != next_event_after
-                        ),
-                    )
+                    NewScheduleChange(schedule_change_id=schedule_change.id)
                 )
 
                 # Update event after commit
@@ -112,7 +121,7 @@ class SkipScheduleEvent:
                     user.id,
                     extra={"skipped_event": event},
                 )
-                return SkipScheduleEventResult(
+                return ToggleScheduleEventSkipResult(
                     event=event,
                 )
         except RateLockCooldown as e:

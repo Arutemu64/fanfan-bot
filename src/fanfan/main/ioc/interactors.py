@@ -41,7 +41,9 @@ from fanfan.application.schedule.management.set_current_event import (
     SetCurrentScheduleEvent,
 )
 from fanfan.application.schedule.management.set_next_event import SetNextScheduleEvent
-from fanfan.application.schedule.management.skip_event import SkipScheduleEvent
+from fanfan.application.schedule.management.toggle_event_skip import (
+    ToggleScheduleEventSkip,
+)
 from fanfan.application.schedule.subscriptions.create_subscription import (
     CreateSubscription,
 )
@@ -94,7 +96,7 @@ class InteractorsProvider(Provider):
     move_event = provide(MoveScheduleEvent)
     set_current_event = provide(SetCurrentScheduleEvent)
     set_next_event = provide(SetNextScheduleEvent)
-    skip_event = provide(SkipScheduleEvent)
+    toggle_event_skip = provide(ToggleScheduleEventSkip)
     revert_change = provide(RevertScheduleChange)
 
     create_mailing = provide(CreateRoleMailing)

@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.app_settings import SettingsRepository
+from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.nats.events_broker import EventsBroker
@@ -12,7 +13,7 @@ from fanfan.application.schedule.management.common import (
     ANNOUNCE_LIMIT_NAME,
 )
 from fanfan.core.dto.schedule import ScheduleEventDTO
-from fanfan.core.events.schedule import ScheduleChanged
+from fanfan.core.events.schedule import NewScheduleChange
 from fanfan.core.exceptions.limiter import RateLockCooldown
 from fanfan.core.exceptions.schedule import (
     EventNotFound,
@@ -20,6 +21,7 @@ from fanfan.core.exceptions.schedule import (
     ScheduleEditTooFast,
 )
 from fanfan.core.models.schedule_change import (
+    ScheduleChange,
     ScheduleChangeType,
 )
 from fanfan.core.models.schedule_event import ScheduleEvent
@@ -47,6 +49,7 @@ class MoveScheduleEvent:
         schedule_repo: ScheduleEventsRepository,
         mailing_repo: MailingDAO,
         settings_repo: SettingsRepository,
+        changes_repo: ScheduleChangesRepository,
         service: ScheduleService,
         uow: UnitOfWork,
         id_provider: IdProvider,
@@ -56,6 +59,7 @@ class MoveScheduleEvent:
         self.schedule_repo = schedule_repo
         self.mailing_repo = mailing_repo
         self.settings_repo = settings_repo
+        self.changes_repo = changes_repo
         self.service = service
         self.uow = uow
         self.id_provider = id_provider
@@ -106,22 +110,28 @@ class MoveScheduleEvent:
 
                 next_event_after_change = await self.schedule_repo.read_next_event()
 
+                # Save schedule change
+                mailing_id = await self.mailing_repo.create_new_mailing(
+                    by_user_id=user.id
+                )
+                schedule_change = ScheduleChange(
+                    type=ScheduleChangeType.MOVED,
+                    changed_event_id=event.id,
+                    argument_event_id=previous_event.id if previous_event else None,
+                    mailing_id=mailing_id,
+                    user_id=user.id,
+                    send_global_announcement=(
+                        next_event_before_change != next_event_after_change
+                    ),
+                )
+                schedule_change = await self.changes_repo.add_schedule_change(
+                    schedule_change
+                )
+
                 # Commit and proceed
                 await self.uow.commit()
-                mailing_id = await self.mailing_repo.create_new_mailing(
-                    by_user_id=user.id,
-                )
                 await self.events_broker.publish(
-                    ScheduleChanged(
-                        changed_event_id=event.id,
-                        argument_event_id=previous_event.id if previous_event else None,
-                        type=ScheduleChangeType.MOVED,
-                        user_id=user.id,
-                        mailing_id=mailing_id,
-                        send_global_announcement=(
-                            next_event_before_change != next_event_after_change
-                        ),
-                    )
+                    NewScheduleChange(schedule_change_id=schedule_change.id)
                 )
 
                 logger.info(

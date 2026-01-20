@@ -112,15 +112,15 @@ class SubscriptionsRepository:
         )
 
     async def read_upcoming_subscriptions(
-        self, current_queue: int
+        self, current_event_queue: int
     ) -> list[SubscriptionDTO]:
         stmt = _select_subscription_dto().where(
             # Ignore skipped events
             ScheduleEventORM.is_skipped.isnot(True),
             # Counter clause
-            SubscriptionORM.counter >= (ScheduleEventORM.queue - current_queue),
+            SubscriptionORM.counter >= (ScheduleEventORM.queue - current_event_queue),
             # Ignore past events due to previous clause
-            (ScheduleEventORM.queue - current_queue) >= 0,
+            (ScheduleEventORM.queue - current_event_queue) >= 0,
         )
 
         results = await self.session.scalars(stmt)

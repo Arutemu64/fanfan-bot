@@ -1,20 +1,11 @@
 from dataclasses import dataclass
 
 from fanfan.core.events.base import AppEvent
-from fanfan.core.models.schedule_change import ScheduleChangeType
-from fanfan.core.vo.mailing import MailingId
-from fanfan.core.vo.schedule_event import ScheduleEventId
-from fanfan.core.vo.user import UserId
+from fanfan.core.vo.schedule_change import ScheduleChangeId
 
 
 @dataclass(kw_only=True, slots=True)
-class ScheduleChanged(AppEvent):
+class NewScheduleChange(AppEvent):
     subject: str = "schedule.change.new"
 
-    type: ScheduleChangeType
-    changed_event_id: ScheduleEventId
-    argument_event_id: ScheduleEventId | None
-
-    mailing_id: MailingId
-    user_id: UserId
-    send_global_announcement: bool
+    schedule_change_id: ScheduleChangeId

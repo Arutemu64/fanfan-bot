@@ -9,7 +9,7 @@ from fanfan.core.vo.user import UserId
 
 class ScheduleChangeType(enum.StrEnum):
     SET_AS_CURRENT = "set_as_current"
-    # Changed event: current event
+    # Changed event: current event (None if current event was unchecked)
     # Argument event: previously current event
 
     MOVED = "moved"
@@ -31,7 +31,7 @@ class ScheduleChange:
     type: ScheduleChangeType
 
     # Arguments
-    changed_event_id: ScheduleEventId
+    changed_event_id: ScheduleEventId | None
     argument_event_id: ScheduleEventId | None
 
     # Mailing

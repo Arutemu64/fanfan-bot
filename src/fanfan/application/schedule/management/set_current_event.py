@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 
 from fanfan.adapters.db.repositories.app_settings import SettingsRepository
+from fanfan.adapters.db.repositories.schedule_changes import ScheduleChangesRepository
 from fanfan.adapters.db.repositories.schedule_events import ScheduleEventsRepository
 from fanfan.adapters.db.uow import UnitOfWork
 from fanfan.adapters.nats.events_broker import EventsBroker
@@ -9,10 +10,10 @@ from fanfan.adapters.redis.dao.mailing import MailingDAO
 from fanfan.adapters.redis.rate_lock import RateLockFactory
 from fanfan.application.common.id_provider import IdProvider
 from fanfan.application.schedule.management.common import ANNOUNCE_LIMIT_NAME
-from fanfan.core.events.schedule import ScheduleChanged
+from fanfan.core.events.schedule import NewScheduleChange
 from fanfan.core.exceptions.limiter import RateLockCooldown
 from fanfan.core.exceptions.schedule import EventNotFound, ScheduleEditTooFast
-from fanfan.core.models.schedule_change import ScheduleChangeType
+from fanfan.core.models.schedule_change import ScheduleChange, ScheduleChangeType
 from fanfan.core.models.schedule_event import ScheduleEvent
 from fanfan.core.services.schedule import ScheduleService
 from fanfan.core.vo.schedule_event import ScheduleEventId
@@ -35,6 +36,7 @@ class SetCurrentScheduleEvent:
         self,
         schedule_repo: ScheduleEventsRepository,
         settings_repo: SettingsRepository,
+        changes_repo: ScheduleChangesRepository,
         service: ScheduleService,
         uow: UnitOfWork,
         rate_lock_factory: RateLockFactory,
@@ -44,12 +46,14 @@ class SetCurrentScheduleEvent:
     ) -> None:
         self.schedule_repo = schedule_repo
         self.settings_repo = settings_repo
+
         self.service = service
         self.uow = uow
         self.rate_lock_factory = rate_lock_factory
         self.events_broker = events_broker
         self.id_provider = id_provider
         self.mailing_repo = mailing_repo
+        self.changes_repo = changes_repo
 
     async def __call__(
         self, data: SetCurrentScheduleEventDTO
@@ -81,24 +85,29 @@ class SetCurrentScheduleEvent:
                 else:
                     event = None
 
-                # Commit and publish
+                # Save schedule change
+                mailing_id = await self.mailing_repo.create_new_mailing(
+                    by_user_id=user.id
+                )
+                schedule_change = ScheduleChange(
+                    type=ScheduleChangeType.SET_AS_CURRENT,
+                    changed_event_id=event.id if event else None,
+                    argument_event_id=previous_current_event.id
+                    if previous_current_event
+                    else None,
+                    mailing_id=mailing_id,
+                    user_id=user.id,
+                    send_global_announcement=True,
+                )
+                schedule_change = await self.changes_repo.add_schedule_change(
+                    schedule_change
+                )
+
+                # Commit and proceed
                 await self.uow.commit()
-                if data.event_id is not None:
-                    mailing_id = await self.mailing_repo.create_new_mailing(
-                        by_user_id=user.id,
-                    )
-                    await self.events_broker.publish(
-                        ScheduleChanged(
-                            type=ScheduleChangeType.SET_AS_CURRENT,
-                            changed_event_id=event.id if event else None,
-                            argument_event_id=previous_current_event.id
-                            if previous_current_event
-                            else None,
-                            user_id=user.id,
-                            mailing_id=mailing_id,
-                            send_global_announcement=True,
-                        )
-                    )
+                await self.events_broker.publish(
+                    NewScheduleChange(schedule_change_id=schedule_change.id)
+                )
 
                 logger.info(
                     "Event %s was set as current by user %s",
