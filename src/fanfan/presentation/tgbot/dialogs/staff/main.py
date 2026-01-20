@@ -35,7 +35,7 @@ async def staff_main_getter(
     )
     jwt_token = token_processor.create_access_token(current_user.id)
     return {
-        "docs_link": config.docs_link,
+        "docs_link": config.features.docs_url,
         "qr_scanner_url": config.web.build_qr_scanner_url() if config.web else None,
         "admin_auth_url": config.web.build_admin_auth_url(jwt_token),
         # Permissions

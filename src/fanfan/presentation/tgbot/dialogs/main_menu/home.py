@@ -1,13 +1,13 @@
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Group, Start, SwitchTo, Url
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.adapters.config.models import BotFeatureFlags
+from fanfan.adapters.config.models import BotFeatures
 from fanfan.application.etc.get_random_quote import GetRandomQuote
 from fanfan.application.quest.get_user_quest_status import GetUserQuestStatus
 from fanfan.core.dto.user import FullUserDTO
@@ -28,19 +28,20 @@ async def main_menu_getter(
     current_user: FullUserDTO,
     get_random_quote: FromDishka[GetRandomQuote],
     get_user_quest_status: FromDishka[GetUserQuestStatus],
-    bot_features: FromDishka[BotFeatureFlags],
+    bot_features: FromDishka[BotFeatures],
     **kwargs,
 ):
     quest_status = await get_user_quest_status(current_user.id)
     return {
         # Enabled features
-        "enabled_image_maker": bot_features.image_maker,
-        "enabled_activities": bot_features.activities,
-        "enabled_schedule": bot_features.schedule,
-        "enabled_quest": bot_features.quest,
-        "enabled_qr": bot_features.qr,
-        "enabled_voting": bot_features.voting,
-        "enabled_marketplace": bot_features.marketplace,
+        "enabled_image_maker": bot_features.enable_image_maker,
+        "enabled_activities": bot_features.enable_activities,
+        "enabled_schedule": bot_features.enable_schedule,
+        "enabled_quest": bot_features.enable_quest,
+        "enabled_qr": bot_features.enable_qr,
+        "enabled_voting": bot_features.enable_voting,
+        "enabled_marketplace": bot_features.enable_marketplace,
+        "feedback_url": bot_features.feedback_url,
         # Access
         "can_participate_in_quest": quest_status.can_participate_in_quest,
         "can_access_staff_menu": current_user.role in [UserRole.HELPER, UserRole.ORG],
@@ -134,6 +135,11 @@ main_window = Window(
             id="open_staff_menu",
             when="can_access_staff_menu",
             state=states.Staff.MAIN,
+        ),
+        Url(
+            text=Const(strings.titles.feedback),
+            url=Format("{feedback_url}"),
+            when="feedback_url",
         ),
         Start(
             text=Const(strings.titles.settings),

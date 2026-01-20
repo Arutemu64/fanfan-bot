@@ -16,14 +16,18 @@ from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.web.config import WebConfig
 
 
-class BotFeatureFlags(BaseModel):
-    activities: bool = True
-    image_maker: bool = True
-    schedule: bool = True
-    quest: bool = True
-    qr: bool = True
-    voting: bool = True
-    marketplace: bool = True
+class BotFeatures(BaseModel):
+    # Feature flags
+    enable_activities: bool = True
+    enable_image_maker: bool = True
+    enable_schedule: bool = True
+    enable_quest: bool = True
+    enable_qr: bool = True
+    enable_voting: bool = True
+    enable_marketplace: bool = True
+
+    docs_url: HttpUrl | None = None
+    feedback_url: HttpUrl | None = None
 
 
 class EnvConfig(BaseSettings):
@@ -46,4 +50,4 @@ class EnvConfig(BaseSettings):
     cosplay2: Cosplay2Config | None = None
     tcloud: TCloudConfig | None = None
 
-    features: BotFeatureFlags = BotFeatureFlags()
+    features: BotFeatures = BotFeatures()

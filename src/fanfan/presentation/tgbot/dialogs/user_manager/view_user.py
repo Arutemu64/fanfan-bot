@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.text import Const, Jinja, Multi
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.adapters.config.models import BotFeatureFlags
+from fanfan.adapters.config.models import BotFeatures
 from fanfan.application.quest.get_user_quest_status import GetUserQuestStatus
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.achievements import start_achievements
@@ -24,7 +24,7 @@ async def view_user_getter(
     dialog_manager: DialogManager,
     dialog_data_adapter: DialogDataAdapter,
     get_user_quest_details: FromDishka[GetUserQuestStatus],
-    bot_features: FromDishka[BotFeatureFlags],
+    bot_features: FromDishka[BotFeatures],
     **kwargs,
 ):
     dialog_data = dialog_data_adapter.load(UserManagerDialogData)
@@ -37,7 +37,7 @@ async def view_user_getter(
         "rank": user_stats.rank,
         "can_participate_in_quest": user_stats.can_participate_in_quest,
         # Features
-        "enabled_quest": bot_features.quest,
+        "enabled_quest": bot_features.enable_quest,
     }
 
 

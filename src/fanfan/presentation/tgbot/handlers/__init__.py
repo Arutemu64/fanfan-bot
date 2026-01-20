@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from fanfan.adapters.config.models import BotFeatureFlags
+from fanfan.adapters.config.models import BotFeatures
 from fanfan.presentation.tgbot.handlers.activities import activities_handlers_router
 from fanfan.presentation.tgbot.handlers.common.callbacks import common_callbacks_router
 from fanfan.presentation.tgbot.handlers.common.commands import common_commands_router
@@ -15,7 +15,7 @@ from fanfan.presentation.tgbot.handlers.tickets import tickets_handlers_router
 from fanfan.presentation.tgbot.handlers.voting import voting_handlers_router
 
 
-def setup_handlers_router(bot_features: BotFeatureFlags) -> Router:
+def setup_handlers_router(bot_features: BotFeatures) -> Router:
     handlers_router = Router(name="handlers_router")
 
     # Common handlers
@@ -27,27 +27,27 @@ def setup_handlers_router(bot_features: BotFeatureFlags) -> Router:
     handlers_router.include_router(staff_handlers_router)
 
     # Activities
-    if bot_features.activities:
+    if bot_features.enable_activities:
         handlers_router.include_routers(activities_handlers_router)
 
     # Marketplace
-    if bot_features.marketplace:
+    if bot_features.enable_marketplace:
         handlers_router.include_routers(marketplace_handlers_router)
 
     # QR
-    if bot_features.qr:
+    if bot_features.enable_qr:
         handlers_router.include_routers(qr_handlers_router)
 
     # Quest
-    if bot_features.quest:
+    if bot_features.enable_quest:
         handlers_router.include_router(quest_handlers_router)
 
     # Schedule
-    if bot_features.schedule:
+    if bot_features.enable_schedule:
         handlers_router.include_routers(schedule_handlers_router)
 
     # Voting
-    if bot_features.voting:
+    if bot_features.enable_voting:
         handlers_router.include_routers(voting_handlers_router)
 
     return handlers_router

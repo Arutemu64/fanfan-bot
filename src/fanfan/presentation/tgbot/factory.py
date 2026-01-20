@@ -11,7 +11,7 @@ from dishka.integrations.aiogram import setup_dishka
 from redis.asyncio import Redis
 from sulguk import AiogramSulgukMiddleware
 
-from fanfan.adapters.config.models import BotFeatureFlags
+from fanfan.adapters.config.models import BotFeatures
 from fanfan.adapters.redis.config import RedisConfig
 from fanfan.presentation.tgbot.config import BotConfig
 from fanfan.presentation.tgbot.dialogs import setup_dialog_router
@@ -39,7 +39,7 @@ def create_dispatcher(
     storage: BaseStorage,
     event_isolation: BaseEventIsolation,
     container: AsyncContainer,
-    bot_features: BotFeatureFlags,
+    bot_features: BotFeatures,
 ) -> Dispatcher:
     dp = Dispatcher(
         storage=storage,

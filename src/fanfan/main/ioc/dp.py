@@ -4,7 +4,7 @@ from aiogram_dialog import BgManagerFactory
 from aiogram_dialog.manager.manager_middleware import BG_FACTORY_KEY
 from dishka import AsyncContainer, Provider, Scope, provide
 
-from fanfan.adapters.config.models import BotFeatureFlags
+from fanfan.adapters.config.models import BotFeatures
 from fanfan.presentation.tgbot.factory import create_dispatcher
 
 
@@ -17,7 +17,7 @@ class DpProvider(Provider):
         storage: BaseStorage,
         event_isolation: BaseEventIsolation,
         container: AsyncContainer,
-        bot_features: BotFeatureFlags,
+        bot_features: BotFeatures,
     ) -> Dispatcher:
         return create_dispatcher(
             storage=storage,
@@ -39,7 +39,7 @@ class ExternalBgmFactoryProvider(Provider):
         self,
         storage: BaseStorage,
         event_isolation: BaseEventIsolation,
-        bot_features: BotFeatureFlags,
+        bot_features: BotFeatures,
     ) -> BgManagerFactory:
         from fanfan.main.di import create_bot_container  # noqa: PLC0415
 

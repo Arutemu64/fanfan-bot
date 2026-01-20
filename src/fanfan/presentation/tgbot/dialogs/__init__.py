@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from fanfan.adapters.config.models import BotFeatureFlags
+from fanfan.adapters.config.models import BotFeatures
 from fanfan.presentation.tgbot.dialogs.achievements import achievements_dialog
 from fanfan.presentation.tgbot.dialogs.activities import activities_dialog
 from fanfan.presentation.tgbot.dialogs.link_ticket import link_ticket_dialog
@@ -17,7 +17,7 @@ from fanfan.presentation.tgbot.dialogs.user_manager import user_manager_dialog
 from fanfan.presentation.tgbot.dialogs.voting import voting_dialog
 
 
-def setup_dialog_router(bot_features: BotFeatureFlags) -> Router:
+def setup_dialog_router(bot_features: BotFeatures) -> Router:
     dialog_router = Router(name="dialog_router")
 
     # Common dialogs
@@ -32,28 +32,28 @@ def setup_dialog_router(bot_features: BotFeatureFlags) -> Router:
     )
 
     # Activities
-    if bot_features.activities:
+    if bot_features.enable_activities:
         dialog_router.include_routers(activities_dialog)
 
     # Schedule
-    if bot_features.schedule:
+    if bot_features.enable_schedule:
         dialog_router.include_routers(schedule_dialog)
 
     # Quest
-    if bot_features.quest:
+    if bot_features.enable_quest:
         dialog_router.include_router(quest_dialog)
         dialog_router.include_router(achievements_dialog)
 
     # Voting
-    if bot_features.voting:
+    if bot_features.enable_voting:
         dialog_router.include_routers(voting_dialog)
 
     # Marketplace
-    if bot_features.marketplace:
+    if bot_features.enable_marketplace:
         dialog_router.include_routers(marketplace_dialog)
 
     # QR
-    if bot_features.qr:
+    if bot_features.enable_qr:
         dialog_router.include_routers(qr_dialog)
 
     return dialog_router

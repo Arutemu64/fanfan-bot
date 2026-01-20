@@ -1,7 +1,7 @@
 from dishka import Provider, Scope, provide
 
 from fanfan.adapters.config.models import (
-    BotFeatureFlags,
+    BotFeatures,
     EnvConfig,
 )
 from fanfan.adapters.config.parsers import get_config
@@ -25,5 +25,5 @@ class ConfigProvider(Provider):
         return config.debug
 
     @provide
-    def get_bot_features_config(self, config: EnvConfig) -> BotFeatureFlags:
+    def get_bot_features_config(self, config: EnvConfig) -> BotFeatures:
         return config.features

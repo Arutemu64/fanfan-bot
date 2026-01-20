@@ -6,7 +6,7 @@ from aiogram.types import BotCommand, BotCommandScopeChat, TelegramObject
 from dishka.integrations.aiogram import CONTAINER_NAME
 from pydantic_core import to_json
 
-from fanfan.adapters.config.models import BotFeatureFlags
+from fanfan.adapters.config.models import BotFeatures
 from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.vo.user import UserRole
 from fanfan.presentation.tgbot.filters.commands import (
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 def _generate_commands_list(
-    user: FullUserDTO, features: BotFeatureFlags
+    user: FullUserDTO, features: BotFeatures
 ) -> list[BotCommand]:
     commands: list[BotCommand] = []
 
@@ -38,17 +38,17 @@ def _generate_commands_list(
 
     commands.append(START_CMD)
 
-    if features.qr:
+    if features.enable_qr:
         commands.append(QR_CMD)
-    if features.activities:
+    if features.enable_activities:
         commands.append(ABOUT_CMD)
-    if features.schedule:
+    if features.enable_schedule:
         commands.extend([SCHEDULE_CMD, NOTIFICATIONS_CMD])
-    if features.voting:
+    if features.enable_voting:
         commands.append(VOTING_CMD)
-    if features.quest:
+    if features.enable_quest:
         commands.append(QUEST_CMD)
-    if features.marketplace:
+    if features.enable_marketplace:
         commands.append(MARKETPLACE_CMD)
 
     if user.role in [UserRole.HELPER, UserRole.ORG]:
@@ -78,7 +78,7 @@ class UpdateUserCommandsMiddleware(BaseMiddleware):
         if current_user:
             container: AsyncContainer = data[CONTAINER_NAME]
             bot = await container.get(Bot)
-            bot_features = await container.get(BotFeatureFlags)
+            bot_features = await container.get(BotFeatures)
 
             commands_list = _generate_commands_list(current_user, bot_features)
 
