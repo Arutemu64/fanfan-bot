@@ -51,20 +51,4 @@ class SyncTCloud:
                     new_tickets_count,
                     removed_tickets_count,
                 )
-        # Refunds
-        for page in range(1, refunds_init.pagination.total + 1):
-            result = await self.client.get_refunds(
-                page=page, page_size=DEFAULT_PAGE_SIZE
-            )
-            async with self.uow:
-                for refunds_data in result.data:
-                    removed_tickets_count += await self.tcloud_service.proceed_refund(
-                        refunds_data
-                    )
-                await self.uow.commit()
-                logger.info(
-                    "Ongoing import: %s new tickets, %s removed tickets",
-                    new_tickets_count,
-                    removed_tickets_count,
-                )
         return SyncTCloudResult(new_tickets_count, removed_tickets_count)
