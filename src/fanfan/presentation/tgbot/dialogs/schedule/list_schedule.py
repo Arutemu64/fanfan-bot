@@ -35,6 +35,7 @@ from fanfan.presentation.tgbot.dialogs.schedule.getters import (
 )
 from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
     SCHEDULE_SCROLL,
+    update_schedule_handler,
 )
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.templates import schedule_list
@@ -105,10 +106,16 @@ schedule_main_window = Window(
             switch_inline_query=Const(""),
         ),
         SwitchTo(
-            text=Const(strings.titles.notifications),
+            text=Const(strings.titles.subscriptions),
             id="open_notifications_menu",
             state=states.Schedule.SUBSCRIPTIONS,
         ),
+    ),
+    Button(
+        text=Format(text="🔥 Перейти к текущему"),
+        id="go_to_current",
+        on_click=update_schedule_handler,
+        when="current_event",
     ),
     SCHEDULE_SCROLL,
     Cancel(text=Const(strings.buttons.back)),

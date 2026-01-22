@@ -1,9 +1,8 @@
-from sqlalchemy import and_, delete, func, select
+from sqlalchemy import and_, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, undefer
 
 from fanfan.adapters.db.models import ScheduleEventORM, SubscriptionORM
-from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.subscription import SubscriptionDTO, SubscriptionEventDTO
 from fanfan.core.models.subscription import (
     Subscription,
@@ -85,31 +84,6 @@ class SubscriptionsRepository:
         subscription_orm = await self.session.scalar(stmt)
 
         return _parse_subscription_dto(subscription_orm) if subscription_orm else None
-
-    async def list_user_subscriptions(
-        self, user_id: UserId, pagination: Pagination | None = None
-    ) -> list[SubscriptionDTO]:
-        stmt = (
-            _select_subscription_dto()
-            .where(SubscriptionORM.user_id == user_id)
-            .order_by(ScheduleEventORM.queue)
-        )
-
-        if pagination:
-            stmt = stmt.limit(pagination.limit).offset(pagination.offset)
-
-        results = await self.session.scalars(stmt)
-
-        return [
-            _parse_subscription_dto(subscription_orm) for subscription_orm in results
-        ]
-
-    async def count_user_subscriptions(self, user_id: UserId) -> int:
-        return await self.session.scalar(
-            select(func.count(SubscriptionORM.id)).where(
-                SubscriptionORM.user_id == user_id
-            )
-        )
 
     async def read_upcoming_subscriptions(
         self, current_event_queue: int

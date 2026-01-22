@@ -22,7 +22,7 @@ from fanfan.presentation.tgbot.filters.callbacks import (
     OpenSubscriptionsCallback,
     UndoScheduleChangeCallback,
 )
-from fanfan.presentation.tgbot.filters.commands import NOTIFICATIONS_CMD, SCHEDULE_CMD
+from fanfan.presentation.tgbot.filters.commands import SCHEDULE_CMD, SUBSCRIPTIONS_CMD
 
 schedule_handlers_router = Router(name="schedule_handlers_router")
 
@@ -32,8 +32,8 @@ async def schedule_cmd(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(states.Schedule.MAIN)
 
 
-@schedule_handlers_router.message(Command(NOTIFICATIONS_CMD))
-async def notifications_cmd(message: Message, dialog_manager: DialogManager) -> None:
+@schedule_handlers_router.message(Command(SUBSCRIPTIONS_CMD))
+async def subscriptions_cmd(message: Message, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(states.Schedule.SUBSCRIPTIONS)
 
 
@@ -50,6 +50,7 @@ async def search_events(
                 offset=offset,
             ),
             search_query=inline_query.query,
+            only_subscribed=False,
         )
     )
     results = [

@@ -28,5 +28,5 @@ class ScheduleEventDTO:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class ScheduleEventUserDTO(ScheduleEventDTO):
+class UserScheduleEventDTO(ScheduleEventDTO):
     subscription: ScheduleEventSubscriptionDTO | None

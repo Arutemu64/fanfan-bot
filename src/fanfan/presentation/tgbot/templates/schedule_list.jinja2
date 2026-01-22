@@ -1,7 +1,31 @@
+{% macro events_pluralize(count) %}
+{% if (count % 10 == 1) and (count % 100 != 11) %}
+выступление
+{%- elif (2 <= count % 10 <= 4) and (count % 100 < 10 or count % 100 >= 20) %}
+выступления
+{%- else %}
+выступлений
+{%- endif %}
+{% endmacro %}
 {% if events|length == 0 %}
 ⚠️ Выступления не найдены
 {% else %}
     {% for event in events %}
+    {# Calculate time #}
+    {% if event.queue and current_event_queue %}
+    {% set queue_difference = event.queue - current_event_queue %}
+    {% set time_diff = (event.cumulative_duration - current_event_cumulative_duration)|abs %}
+    {% set hours_diff = time_diff // 3600 %}
+    {% set rounded_minutes = ((time_diff % 3600) / 60) | round %}
+    {% if rounded_minutes == 60 %}
+        {% set hours_diff = hours_diff + 1 %}
+        {% set minutes_diff = 0 %}
+    {% else %}
+        {% set minutes_diff = rounded_minutes %}
+    {% endif %}
+    {% else %}
+    {% set time_diff = none %}
+    {% endif %}
         {% if event.block_title
            and ((not loop.previtem)
                 or (loop.previtem and event.block_title != loop.previtem.block_title)) %}
@@ -12,10 +36,22 @@
                 or (loop.previtem and event.nomination_title != loop.previtem.nomination_title)) %}
 <b>🌟 {{ event.nomination_title }}</b>
         {% endif %}
-<b>/{{ '%03d' % event.public_id }}</b> {% if event.is_skipped %}<s>{% endif %}{% if event.is_current %}<b>{% endif %}{{ event.title }}
-        {%- if event.is_current %} 🔥</b>{% endif %}
-        {%- if event.is_skipped %}</s> 🚫{% endif %}
-        {%- if event.subscription %} 🔔{% endif +%}
+<b>/{{ '%03d' % event.public_id }}</b> {% if event.is_skipped %}<s>{% endif %}{% if event.is_current %}<b>{% endif %}{{ event.title }}{% if event.is_current %}</b>{% endif %}{% if event.is_skipped %}</s>{% endif +%}
+{% if event.is_skipped %}
+⛔ Выступление отменено
+{% endif %}
+{% if queue_difference and (queue_difference > 0) %}
+🚀 Через <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b> <i>(≈ {{"%01d" | format(hours_diff)}}:{{"%02d" | format(minutes_diff)}} ч.)</i>
+{% endif %}
+{% if event.is_current %}
+🔥 Выступление <b>НАЧАЛОСЬ</b>
+{% endif %}
+{% if queue_difference and (queue_difference < 0) %}
+🏁 <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference|abs)}}</b> назад <i>(≈ {{"%01d" | format(hours_diff)}}:{{"%02d" | format(minutes_diff)}} ч.)</i>
+{% endif %}
+{% if event.subscription %}
+🔔 За {{ event.subscription.counter }} {{events_pluralize(event.subscription.counter)}} до начала
+{% endif %}
 
     {% endfor %}
 👆 Нажми на номер, чтобы выбрать выступление

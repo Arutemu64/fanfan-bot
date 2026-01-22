@@ -10,7 +10,7 @@ from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.schedule import (
     ScheduleEventDTO,
     ScheduleEventSubscriptionDTO,
-    ScheduleEventUserDTO,
+    UserScheduleEventDTO,
 )
 from fanfan.core.models.schedule_event import (
     ScheduleEvent,
@@ -42,9 +42,13 @@ def _parse_schedule_event_dto(event_orm: ScheduleEventORM) -> ScheduleEventDTO:
     )
 
 
-def _select_schedule_event_user_dto(user_id: UserId | None) -> Select:
+def _select_schedule_event_user_dto(user_id: UserId) -> Select:
     return (
         select(ScheduleEventORM, SubscriptionORM)
+        .options(
+            undefer(ScheduleEventORM.queue),
+            undefer(ScheduleEventORM.cumulative_duration),
+        )
         .outerjoin(
             SubscriptionORM,
             and_(
@@ -52,17 +56,13 @@ def _select_schedule_event_user_dto(user_id: UserId | None) -> Select:
                 SubscriptionORM.user_id == user_id,
             ),
         )
-        .options(
-            undefer(ScheduleEventORM.queue),
-            undefer(ScheduleEventORM.cumulative_duration),
-        )
     )
 
 
 def _parse_schedule_event_user_dto(
     event_orm: ScheduleEventORM, subscription_orm: SubscriptionORM | None
-) -> ScheduleEventUserDTO:
-    return ScheduleEventUserDTO(
+) -> UserScheduleEventDTO:
+    return UserScheduleEventDTO(
         id=event_orm.id,
         public_id=event_orm.public_id,
         title=event_orm.title,
@@ -91,7 +91,7 @@ def _filter_schedule_events(
         filters.append(ScheduleEventORM.title.ilike(f"%{search_query}%"))
         filters.append(ScheduleEventORM.nomination_title.ilike(f"%{search_query}%"))
         if search_query.isnumeric():
-            filters.append(ScheduleEventORM.id == int(search_query))
+            filters.append(ScheduleEventORM.public_id == int(search_query))
 
     return stmt.where(or_(*filters))
 
@@ -179,8 +179,8 @@ class ScheduleEventsRepository:
         return _parse_schedule_event_dto(event_orm) if event_orm else None
 
     async def read_event_user_by_id(
-        self, event_id: ScheduleEventId, user_id: UserId | None = None
-    ) -> ScheduleEventUserDTO | None:
+        self, event_id: ScheduleEventId, user_id: UserId
+    ) -> UserScheduleEventDTO | None:
         stmt = _select_schedule_event_user_dto(user_id).where(
             ScheduleEventORM.id == event_id
         )
@@ -205,15 +205,18 @@ class ScheduleEventsRepository:
     async def list_schedule_for_user(
         self,
         user_id: UserId,
-        search_query: str | None = None,
-        pagination: Pagination | None = None,
-    ) -> list[ScheduleEventUserDTO]:
+        pagination: Pagination | None,
+        search_query: str | None,
+        only_subscribed: bool,
+    ) -> list[UserScheduleEventDTO]:
         stmt = _select_schedule_event_user_dto(user_id).order_by(ScheduleEventORM.order)
 
         if search_query:
             stmt = _filter_schedule_events(stmt, search_query)
         if pagination:
             stmt = stmt.limit(pagination.limit).offset(pagination.offset)
+        if only_subscribed:
+            stmt = stmt.where(SubscriptionORM.id.is_not(None))
 
         results = (await self.session.execute(stmt)).all()
 

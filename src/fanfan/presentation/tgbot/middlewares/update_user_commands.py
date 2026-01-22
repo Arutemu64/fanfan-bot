@@ -13,13 +13,13 @@ from fanfan.presentation.tgbot.filters.commands import (
     ABOUT_CMD,
     LINK_TICKET_CMD,
     MARKETPLACE_CMD,
-    NOTIFICATIONS_CMD,
     QR_CMD,
     QUEST_CMD,
     SCHEDULE_CMD,
     SETTINGS_CMD,
     STAFF_CMD,
     START_CMD,
+    SUBSCRIPTIONS_CMD,
     VOTING_CMD,
 )
 from fanfan.presentation.tgbot.middlewares.load_current_user import CURRENT_USER_KEY
@@ -43,7 +43,7 @@ def _generate_commands_list(
     if features.enable_activities:
         commands.append(ABOUT_CMD)
     if features.enable_schedule:
-        commands.extend([SCHEDULE_CMD, NOTIFICATIONS_CMD])
+        commands.extend([SCHEDULE_CMD, SUBSCRIPTIONS_CMD])
     if features.enable_voting:
         commands.append(VOTING_CMD)
     if features.enable_quest:

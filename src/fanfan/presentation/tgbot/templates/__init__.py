@@ -8,7 +8,6 @@ def load_template(template_filename: str) -> str:
 achievements_list = load_template("achievements_list.jinja2")
 schedule_list = load_template("schedule_list.jinja2")
 selected_event_info = load_template("selected_event_info.jinja2")
-subscriptions_list = load_template("subscriptions_list.jinja2")
 voting_list = load_template("voting_list.jinja2")
 rating_list = load_template("rating_list.jinja2")
 product_list = load_template("products_list.jinja2")

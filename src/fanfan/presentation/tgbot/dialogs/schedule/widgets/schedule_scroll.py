@@ -2,6 +2,7 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import (
     Button,
+    CurrentPage,
     FirstPage,
     Group,
     LastPage,
@@ -33,10 +34,9 @@ SCHEDULE_SCROLL = Group(
         StubScroll(ID_SCHEDULE_SCROLL, pages="pages"),
         FirstPage(scroll=ID_SCHEDULE_SCROLL, text=Const("⏪")),
         PrevPage(scroll=ID_SCHEDULE_SCROLL, text=Const("◀️")),
-        Button(
-            text=Format(text="{page} 🔥"),
-            id="update_schedule",
-            on_click=update_schedule_handler,
+        CurrentPage(
+            scroll=ID_SCHEDULE_SCROLL,
+            text=Format(text="{current_page1}/{pages}"),
         ),
         NextPage(scroll=ID_SCHEDULE_SCROLL, text=Const("▶️")),
         LastPage(scroll=ID_SCHEDULE_SCROLL, text=Format("⏭️")),

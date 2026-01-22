@@ -1,4 +1,6 @@
-from aiogram import F
+import math
+from typing import TYPE_CHECKING
+
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
@@ -17,13 +19,9 @@ from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.application.schedule.subscriptions.list_subscriptions_page import (
-    ListSubscriptions,
-)
 from fanfan.application.users.update_user_settings import (
     UpdateUserSettings,
 )
-from fanfan.core.dto.page import Pagination
 from fanfan.core.dto.user import FullUserDTO
 from fanfan.presentation.tgbot import states
 from fanfan.presentation.tgbot.dialogs.common.utils import (
@@ -33,11 +31,15 @@ from fanfan.presentation.tgbot.dialogs.common.utils import (
 from fanfan.presentation.tgbot.dialogs.common.widgets import Title
 from fanfan.presentation.tgbot.dialogs.schedule.api import show_event_details
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
+    get_schedule,
     handle_schedule_text_input,
 )
 from fanfan.presentation.tgbot.dialogs.schedule.getters import current_event_getter
 from fanfan.presentation.tgbot.static import strings
-from fanfan.presentation.tgbot.templates import subscriptions_list
+from fanfan.presentation.tgbot.templates import schedule_list
+
+if TYPE_CHECKING:
+    from aiogram_dialog.widgets.common import ManagedScroll
 
 ID_SUBSCRIPTIONS_SCROLL = "subscriptions_scroll"
 ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
@@ -47,22 +49,20 @@ ID_RECEIVE_ALL_ANNOUNCEMENTS_CHECKBOX = "receive_all_announcements_checkbox"
 async def subscriptions_getter(
     dialog_manager: DialogManager,
     current_user: FullUserDTO,
-    get_subscriptions_page: FromDishka[ListSubscriptions],
     **kwargs,
 ):
-    page = await get_subscriptions_page(
-        pagination=Pagination(
-            limit=current_user.settings.items_per_page,
-            offset=await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page()
-            * current_user.settings.items_per_page,
-        )
-    )
-    pages = page.total // current_user.settings.items_per_page + bool(
-        page.total % current_user.settings.items_per_page
-    )
+    scroll: ManagedScroll = dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL)
+    events = await get_schedule(dialog_manager, only_subscribed=True)
+    page = await scroll.get_page()
+    per_page = current_user.settings.items_per_page
+
+    start = page * per_page
+    end = start + per_page
+
     return {
-        "subscriptions": page.items,
-        "pages": pages or 1,
+        "events": events[start:end],
+        "page": await dialog_manager.find(ID_SUBSCRIPTIONS_SCROLL).get_page() + 1,
+        "pages": math.ceil(len(events) / per_page),
         "receive_all_announcements": current_user.settings.receive_all_announcements,
     }
 
@@ -93,12 +93,8 @@ async def toggle_all_notifications_handler(
 
 
 subscriptions_main_window = Window(
-    Title(Const(strings.titles.notifications)),
-    Jinja(subscriptions_list),
-    Const(
-        "➕ <i>Чтобы подписаться, нажми на номер выступления в расписании</i>",
-        when=~F["subscriptions"],
-    ),
+    Title(Const(strings.titles.subscriptions)),
+    Jinja(schedule_list),
     TextInput(
         id="subscriptions_text_input",
         type_factory=str,

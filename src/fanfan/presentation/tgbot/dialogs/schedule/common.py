@@ -6,7 +6,7 @@ from fanfan.application.schedule.list_schedule import (
     ListSchedule,
     ListScheduleDTO,
 )
-from fanfan.core.dto.schedule import ScheduleEventDTO
+from fanfan.core.dto.schedule import ScheduleEventDTO, UserScheduleEventDTO
 from fanfan.core.dto.user import FullUserDTO
 from fanfan.core.models.user import User
 from fanfan.core.vo.schedule_event import ScheduleEventId, ScheduleEventPublicId
@@ -21,10 +21,18 @@ if typing.TYPE_CHECKING:
 ID_SCHEDULE_SCROLL = "schedule_scroll"
 
 
-async def get_schedule(dialog_manager: DialogManager) -> list[ScheduleEventDTO]:
+async def get_schedule(
+    dialog_manager: DialogManager, only_subscribed: bool = False
+) -> list[UserScheduleEventDTO]:
     container = get_container(dialog_manager)
     get_schedule_page = await container.get(ListSchedule)
-    page = await get_schedule_page(ListScheduleDTO())
+    page = await get_schedule_page(
+        ListScheduleDTO(
+            pagination=None,
+            search_query=None,
+            only_subscribed=only_subscribed,
+        )
+    )
     return page.items
 
 

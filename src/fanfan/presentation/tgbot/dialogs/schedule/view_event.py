@@ -55,9 +55,9 @@ async def event_details_getter(
         "event_cumulative_duration": event.cumulative_duration,
         "event_duration": event.duration,
         "event_queue": event.queue,
-        "nomination_title": event.nomination_title,
-        "block_title": event.block_title,
-        "user_is_subscribed": bool(event.subscription),
+        "event_nomination_title": event.nomination_title,
+        "event_block_title": event.block_title,
+        "event_subscription": event.subscription,
     }
 
 
@@ -130,20 +130,20 @@ async def unsubscribe_button_handler(
 
 selected_event_window = Window(
     Jinja("<b>🎭 ВЫСТУПЛЕНИЕ №{{ '%03d' % event_public_id }}</b>"),
-    Jinja(" └ <i>🗂️ {{ block_title }}</i>", when="block_title"),
+    Jinja(" └ <i>🗂️ {{ event_block_title }}</i>", when="event_block_title"),
     Const(" "),
     Jinja(selected_event_info),
     SwitchTo(
         text=Const("🔔 Подписаться"),
         id="subscribe",
         state=states.Schedule.ADD_SUBSCRIPTION,
-        when=~F["user_is_subscribed"],
+        when=~F["event_subscription"],
     ),
     Button(
         text=Const("🔕 Отписаться"),
         id="unsubscribe",
         on_click=unsubscribe_button_handler,
-        when=F["user_is_subscribed"],
+        when=F["event_subscription"],
     ),
     Group(
         Button(

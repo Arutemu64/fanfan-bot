@@ -45,6 +45,7 @@ async def current_event_getter(
 ):
     current_event = await get_current_event(dialog_manager)
     return {
+        "current_event": current_event,
         "current_event_queue": current_event.queue if current_event else None,
         "current_event_cumulative_duration": current_event.cumulative_duration
         if current_event

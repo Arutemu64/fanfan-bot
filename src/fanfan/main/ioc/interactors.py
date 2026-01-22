@@ -50,9 +50,6 @@ from fanfan.application.schedule.subscriptions.create_subscription import (
 from fanfan.application.schedule.subscriptions.delete_subscription import (
     DeleteSubscription,
 )
-from fanfan.application.schedule.subscriptions.list_subscriptions_page import (
-    ListSubscriptions,
-)
 from fanfan.application.settings.get_settings import GetSettings
 from fanfan.application.settings.update_settings import UpdateSettings
 from fanfan.application.tickets.delete_ticket import DeleteTicket
@@ -111,7 +108,6 @@ class InteractorsProvider(Provider):
 
     create_subscription = provide(CreateSubscription)
     delete_subscription = provide(DeleteSubscription)
-    get_subscriptions_page = provide(ListSubscriptions)
 
     generate_ticket = provide(GenerateTicket)
     delete_ticket = provide(DeleteTicket)

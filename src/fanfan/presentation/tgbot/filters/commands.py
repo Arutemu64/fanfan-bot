@@ -6,9 +6,9 @@ START_CMD = BotCommand(command="start", description=titles.main_menu)
 LINK_TICKET_CMD = BotCommand(command="ticket", description=titles.link_ticket)
 ABOUT_CMD = BotCommand(command="about", description=titles.activities)
 SCHEDULE_CMD = BotCommand(command="schedule", description=titles.schedule)
-NOTIFICATIONS_CMD = BotCommand(
-    command="notifications",
-    description=titles.notifications,
+SUBSCRIPTIONS_CMD = BotCommand(
+    command="subscriptions",
+    description=titles.subscriptions,
 )
 VOTING_CMD = BotCommand(command="voting", description=titles.voting)
 STAFF_CMD = BotCommand(command="staff", description=titles.staff_menu)

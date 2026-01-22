@@ -10,9 +10,15 @@
 {% if queue_difference == 0 %}
 🔥 Выступление №{{ '%03d' % event_public_id }}. {{ event_title }} <b>НАЧАЛОСЬ!</b>
 {%- else %}
-{% set hours_left = time_diff // 3600 %}
-{% set minutes_left = (time_diff % 3600) // 60 %}
-🚀 До начала выступления №{{ '%03d' % event_public_id }}. {{ event_title }} осталось <b>{{ queue_difference }} {{ events_pluralize(queue_difference) }}</b> <i>(≈ {{"%02d"|format(hours_left)}} час. {{"%02d"|format(minutes_left)}} мин.)</i>
+{% set hours_diff = time_diff // 3600 %}
+{% set rounded_minutes = ((time_diff % 3600) / 60) | round %}
+{% if rounded_minutes == 60 %}
+    {% set hours_diff = hours_diff + 1 %}
+    {% set minutes_diff = 0 %}
+{% else %}
+    {% set minutes_diff = rounded_minutes %}
+{% endif %}
+🚀 До начала выступления №{{ '%03d' % event_public_id }}. {{ event_title }} осталось <b>{{ queue_difference }} {{ events_pluralize(queue_difference) }}</b> <i>(≈ {{"%01d"|format(hours_diff)}}:{{"%02d"|format(minutes_diff)}} ч.)</i>
 
 <i>{{ reason_msg }}</i>
 {%- endif %}
