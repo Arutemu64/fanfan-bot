@@ -33,6 +33,7 @@ dependencies = [
     "pydantic-settings>=2.6.1",
     "pydantic[timezone]>=2.9.2",
     "pyjwt>=2.9.0",
+    "pytz>=2025.2",
     "qrcode[pil]>=8.0",
     "redis>=5.1.1",
     "rich>=13.9.3",
