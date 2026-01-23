@@ -5,14 +5,10 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import (
     Button,
     Cancel,
-    Checkbox,
-    Column,
-    Group,
     Row,
     SwitchTo,
-    Url,
 )
-from aiogram_dialog.widgets.text import Const, Format, Jinja
+from aiogram_dialog.widgets.text import Const, Jinja
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
@@ -39,8 +35,6 @@ from fanfan.presentation.tgbot.dialogs.schedule.widgets.schedule_scroll import (
 )
 from fanfan.presentation.tgbot.static import strings
 from fanfan.presentation.tgbot.templates import schedule_list
-
-ID_TOGGLE_HELPER_TOOLS = "toggle_helper_tools"
 
 
 @inject
@@ -77,27 +71,10 @@ schedule_main_window = Window(
         type_factory=str,
         on_success=list_schedule_input_handler,
     ),
-    Column(
-        Group(
-            Button(
-                text=Const("⏭️ Переключить на следующее"),
-                id="next_event",
-                on_click=set_next_event_handler,
-            ),
-            Url(
-                text=Const("❓ Справка"),
-                url=Format("{docs_link}"),
-                when="docs_link",
-            ),
-            when=F["middleware_data"]["dialog_manager"]
-            .find(ID_TOGGLE_HELPER_TOOLS)
-            .is_checked(),
-        ),
-        Checkbox(
-            Const("🧰 Инструменты волонтёра ⬇️"),
-            Const("🧰 Инструменты волонтёра ⬆️"),
-            id=ID_TOGGLE_HELPER_TOOLS,
-        ),
+    Button(
+        text=Const("⏭️ Переключить на следующее"),
+        id="next_event",
+        on_click=set_next_event_handler,
         when=F[Permissions.CAN_MANAGE_SCHEDULE],
     ),
     Row(
@@ -105,17 +82,17 @@ schedule_main_window = Window(
             text=Const(strings.buttons.search),
             switch_inline_query=Const(""),
         ),
+        Button(
+            text=Const("🔥 Сейчас"),
+            id="go_to_current",
+            on_click=update_schedule_handler,
+            when="current_event",
+        ),
         SwitchTo(
             text=Const(strings.titles.subscriptions),
             id="open_notifications_menu",
             state=states.Schedule.SUBSCRIPTIONS,
         ),
-    ),
-    Button(
-        text=Format(text="🔥 Перейти к текущему"),
-        id="go_to_current",
-        on_click=update_schedule_handler,
-        when="current_event",
     ),
     SCHEDULE_SCROLL,
     Cancel(text=Const(strings.buttons.back)),

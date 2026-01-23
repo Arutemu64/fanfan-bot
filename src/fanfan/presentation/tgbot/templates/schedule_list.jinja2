@@ -41,18 +41,18 @@
 ⛔ Выступление отменено
 {% endif %}
 {% if queue_difference and (queue_difference > 0) %}
-🚀 Через <b>{{ queue_difference }} {{events_pluralize(queue_difference)}}</b> <i>(≈ {{"%01d" | format(hours_diff)}}:{{"%02d" | format(minutes_diff)}} ч.)</i>
+🚀 Через {{ queue_difference }} {{events_pluralize(queue_difference)}} <i>(≈ {{"%01d" | format(hours_diff)}}:{{"%02d" | format(minutes_diff)}} ч.)</i>
 {% endif %}
 {% if event.is_current %}
-🔥 Выступление <b>НАЧАЛОСЬ</b>
+<b>🔥 ВЫСТУПЛЕНИЕ НАЧАЛОСЬ</b>
 {% endif %}
 {% if queue_difference and (queue_difference < 0) %}
-🏁 <b>{{ queue_difference|abs }} {{events_pluralize(queue_difference|abs)}}</b> назад <i>(≈ {{"%01d" | format(hours_diff)}}:{{"%02d" | format(minutes_diff)}} ч.)</i>
+🏁 {{ queue_difference|abs }} {{events_pluralize(queue_difference|abs)}} назад <i>(≈ {{"%01d" | format(hours_diff)}}:{{"%02d" | format(minutes_diff)}} ч.)</i>
 {% endif %}
 {% if event.subscription %}
 🔔 За {{ event.subscription.counter }} {{events_pluralize(event.subscription.counter)}} до начала
 {% endif %}
 
     {% endfor %}
-👆 Нажми на номер, чтобы выбрать выступление
+👆 Нажми номер для подробностей
 {% endif %}
