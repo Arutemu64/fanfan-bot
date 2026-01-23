@@ -36,7 +36,6 @@ class EnvConfig(BaseSettings):
     env: str
     timezone: TimeZoneName = "Europe/Moscow"
     media_root: DirectoryPath
-    docs_link: HttpUrl | None = None
 
     bot: BotConfig
     web: WebConfig

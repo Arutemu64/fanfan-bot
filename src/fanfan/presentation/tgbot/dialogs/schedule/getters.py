@@ -5,7 +5,7 @@ from aiogram_dialog import DialogManager
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
-from fanfan.adapters.config.models import EnvConfig
+from fanfan.adapters.config.models import BotFeatures
 from fanfan.core.constants.permissions import Permissions
 from fanfan.core.dto.user import FullUserDTO
 from fanfan.presentation.tgbot.dialogs.schedule.common import (
@@ -57,12 +57,12 @@ async def current_event_getter(
 async def helpers_schedule_getter(
     dialog_manager: DialogManager,
     current_user: FullUserDTO,
-    config: FromDishka[EnvConfig],
+    config: FromDishka[BotFeatures],
     **kwargs,
 ):
     return {
         Permissions.CAN_MANAGE_SCHEDULE: current_user.check_permission(
             Permissions.CAN_MANAGE_SCHEDULE
         ),
-        "docs_link": config.docs_link,
+        "docs_link": config.docs_url,
     }
